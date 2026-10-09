@@ -1,7 +1,7 @@
 // Shared Playwright helpers. Import `test`/`expect` from here instead of @playwright/test.
 import { test as base, expect, type Page } from "@playwright/test";
 
-export type Scenario = "first-run" | "ready" | "outdated" | "complete";
+export type Scenario = "first-run" | "ready" | "outdated" | "complete" | "system-outdated";
 export type ColorScheme = "light" | "dark";
 
 export interface OpenOptions {

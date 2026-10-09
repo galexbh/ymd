@@ -239,8 +239,6 @@
     "ledgerTitle": "Registro de esta sesión",
     "openQueue": "Abrir registro completo",
     "card": {
-      "video": "Ficha de ingreso",
-      "playlist": "Ficha de ingreso · lista",
       "willFile": "Se archivará como",
       "seqOnFile": "Número asignado al ingresar",
       "duration": "Duración",
@@ -321,9 +319,9 @@
     "speed": "Velocidad total"
   },
   "catalog": {
-    "description": "Todo lo que ymd ha archivado. Busca por título, enlace o ruta.",
+    "description": "Todo lo que ymd ha archivado. Busca por título, enlace, ruta o número de ingreso.",
     "search": "Buscar en el catálogo",
-    "searchPlaceholder": "Título, enlace o carpeta",
+    "searchPlaceholder": "Título, enlace, carpeta o N.º",
     "kind": "Tipo",
     "kinds": {
       "all": "Todo"
@@ -420,7 +418,9 @@
       "change": "Cambiar en Ajustes → Avanzado",
       "hint": "Los programas viven aquí, fuera de la instalación de ymd; borrarlos no afecta tus descargas."
     },
-    "latest": "Disponible:"
+    "latest": "Disponible:",
+    "installManaged": "Instalar copia actualizada",
+    "systemOutdated": "El {{name}} del sistema ({{version}}) está desactualizado. ymd puede instalar su propia copia, que tendrá prioridad; el archivo del sistema no se toca."
   },
   "onboarding": {
     "title": "Antes del primer ingreso",

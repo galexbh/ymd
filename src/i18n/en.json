@@ -239,8 +239,6 @@
     "ledgerTitle": "This session's ledger",
     "openQueue": "Open full ledger",
     "card": {
-      "video": "Accession card",
-      "playlist": "Accession card · playlist",
       "willFile": "Will be filed as",
       "seqOnFile": "Number assigned on filing",
       "duration": "Duration",
@@ -321,9 +319,9 @@
     "speed": "Total speed"
   },
   "catalog": {
-    "description": "Everything ymd has archived. Search by title, link or path.",
+    "description": "Everything ymd has archived. Search by title, link, path or accession number.",
     "search": "Search the catalog",
-    "searchPlaceholder": "Title, link or folder",
+    "searchPlaceholder": "Title, link, folder or No.",
     "kind": "Type",
     "kinds": {
       "all": "All"
@@ -420,7 +418,9 @@
       "change": "Change in Settings → Advanced",
       "hint": "The programs live here, outside ymd's install; removing them doesn't touch your downloads."
     },
-    "latest": "Available:"
+    "latest": "Available:",
+    "installManaged": "Install an up-to-date copy",
+    "systemOutdated": "The system {{name}} ({{version}}) is out of date. ymd can install its own copy, which takes precedence; the system file is left untouched."
   },
   "onboarding": {
     "title": "Before the first accession",

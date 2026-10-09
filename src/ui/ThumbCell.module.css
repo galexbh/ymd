@@ -72,37 +72,25 @@
 }
 
 /* selected: circled by hand in violet ink */
-.cell::after {
-  content: "";
+.loop {
   position: absolute;
-  inset: -4px -3px -3px -5px;
+  top: -5px;
+  left: -6px;
   z-index: -1;
-  border: 2px solid var(--accent);
-  border-radius: 22px 30px 24px 32px / 30px 22px 32px 24px;
-  transform: rotate(-1.6deg) scale(0.96);
+  width: calc(100% + 10px);
+  height: calc(100% + 9px);
+  overflow: visible;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   opacity: 0;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(
-    118deg,
-    rgb(0 0 0) 0%,
-    rgb(0 0 0 / 0.75) 40%,
-    rgb(0 0 0) 70%,
-    rgb(0 0 0 / 0.85) 100%
-  );
-  mask-image: linear-gradient(
-    118deg,
-    rgb(0 0 0) 0%,
-    rgb(0 0 0 / 0.75) 40%,
-    rgb(0 0 0) 70%,
-    rgb(0 0 0 / 0.85) 100%
-  );
-  transition:
-    opacity var(--dur-fast) var(--ease-out),
-    transform var(--dur-base) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
-.cell[data-selected="true"]::after {
+.cell[data-selected="true"] .loop {
   opacity: 1;
-  transform: rotate(-1.6deg) scale(1);
 }
 .cell[data-selected="true"] .code,
 .cell[data-selected="true"] .code * {

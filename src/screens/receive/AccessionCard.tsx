@@ -1,9 +1,10 @@
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ProbeResult } from "../../ipc/types";
 import { ChevronRight } from "lucide-react";
 import { Accession, DurationFigure, Figure, Icon, Tag, TextField, Thumb } from "../../ui";
-import { nextSeq, useJobs } from "../../store/jobs";
+import { api } from "../../ipc/commands";
+import { useJobs } from "../../store/jobs";
 import { useReceive } from "../../store/receive";
 import { useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
@@ -18,7 +19,20 @@ export function AccessionCard({ probe }: { probe: ProbeResult }) {
   const settings = useSettings((st) => st.settings);
   const kind = useReceive((st) => st.kind);
   const chosen = useReceive((st) => st.presetByKind[kind]);
-  const seq = useJobs((st) => nextSeq(st.jobs));
+  // the backend hands out accession numbers (continuing from the archive); re-ask whenever
+  // the ledger gains a row
+  const filed = useJobs((st) => Object.keys(st.jobs).length);
+  const [seq, setSeq] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    api
+      .jobsNextSeq()
+      .then((n) => alive && setSeq(n))
+      .catch(() => alive && setSeq(null));
+    return () => {
+      alive = false;
+    };
+  }, [probe.url, filed]);
   const preset = activePreset(settings, kind, chosen);
   const playlist = probe.kind === "playlist";
 
@@ -28,9 +42,6 @@ export function AccessionCard({ probe }: { probe: ProbeResult }) {
         <Thumb src={probe.thumbnail} width="100%" className={s.cardThumb} />
         <div className={s.cardBody}>
           <div className={s.cardHead}>
-            <span className={s.cardLabel}>
-              {playlist ? t("receive.card.playlist") : t("receive.card.video")}
-            </span>
             <span className={s.nextSeq}>
               {seq !== null ? (
                 <>

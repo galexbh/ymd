@@ -45,8 +45,12 @@ describe("mock backend — jobs", () => {
   it("video job goes queued → downloading → merging → done and lands in history", async () => {
     const t = setup();
     await t.listen();
+    const next = await api.jobsNextSeq();
     const job = await api.enqueue(req(VIDEO));
-    expect(job.seq).toBe(1);
+    // accession numbers continue from the archive
+    expect(job.seq).toBe(next);
+    expect(next).toBe(Math.max(...t.be.snapshot().history.map((h) => h.seq ?? 0)) + 1);
+    expect(await api.jobsNextSeq()).toBe(next + 1);
     expect(job.kind).toBe("video");
     expect(job.outputDir).toBe("C:\\Users\\ana\\Videos");
 
@@ -234,5 +238,33 @@ describe("mock backend — probe", () => {
     await t.clock.advanceAsync(200);
     await p;
     expect(done).toBe(true);
+  });
+  it("filed history rows carry the accession number and preset id; search finds them by number", async () => {
+    const t = setup();
+    const job = await api.enqueue(req(VIDEO));
+    await t.clock.advanceAsync(60_000, 250);
+    const page = await api.historyQuery({
+      search: String(job.seq).padStart(6, "0"),
+      kind: null,
+      limit: 10,
+      offset: 0,
+    });
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]).toMatchObject({ seq: job.seq, presetId: "mp4-1080" });
+    const bare = await api.historyQuery({
+      search: String(job.seq),
+      kind: null,
+      limit: 10,
+      offset: 0,
+    });
+    expect(bare.items[0].seq).toBe(job.seq);
+  });
+
+  it("an outdated system yt-dlp reports an update and still downloads", async () => {
+    setup({ scenario: "system-outdated" });
+    const r = await api.depsReport(false);
+    const y = r.deps.find((d) => d.id === "ytdlp")!;
+    expect(y).toMatchObject({ state: "system", version: "2026.03.17", updateAvailable: true });
+    expect((await api.probe(VIDEO)).kind).toBe("video");
   });
 });

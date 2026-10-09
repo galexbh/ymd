@@ -26,56 +26,58 @@ export function CounterStrip() {
   const emptyPlaylist = status === "ready" && probe?.kind === "playlist" && selected === 0;
 
   return (
-    <form
-      className={s.counter}
-      aria-label={t("receive.counter")}
-      onSubmit={(e) => {
-        e.preventDefault();
-        void ingest();
-      }}
-    >
-      <UrlField
-        id={URL_INPUT_ID}
-        data-testid="home-url-input"
-        fieldClassName={s.url}
-        value={url}
-        busy={status === "loading"}
-        onValueChange={setUrl}
-        onPasteText={(text) => {
-          if (looksLikeUrl(text)) void runProbe(text);
+    <div className={s.counterWrap}>
+      <form
+        className={s.counter}
+        aria-label={t("receive.counter")}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void ingest();
         }}
-        onClear={reset}
-      />
-      <SegmentedControl<MediaKind>
-        label={t("receive.kind")}
-        size="lg"
-        value={kind}
-        onChange={setKind}
-        options={[
-          { value: "video", label: t("receive.video"), icon: Video },
-          { value: "audio", label: t("receive.audio"), icon: AudioLines },
-        ]}
-      />
-      <Select
-        label={t("receive.preset")}
-        hideLabel
-        size="lg"
-        fieldClassName={s.preset}
-        data-testid="home-preset"
-        value={preset?.id ?? ""}
-        onChange={(e) => setPreset(kind, e.target.value)}
-        options={presets.map((p) => ({ value: p.id, label: presetName(t, p) }))}
-      />
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        loading={enqueueing}
-        disabled={!url.trim() || emptyPlaylist || !settings}
-        data-testid="home-ingest"
       >
-        {t("receive.ingest")}
-      </Button>
-    </form>
+        <UrlField
+          id={URL_INPUT_ID}
+          data-testid="home-url-input"
+          fieldClassName={s.url}
+          value={url}
+          busy={status === "loading"}
+          onValueChange={setUrl}
+          onPasteText={(text) => {
+            if (looksLikeUrl(text)) void runProbe(text);
+          }}
+          onClear={reset}
+        />
+        <SegmentedControl<MediaKind>
+          label={t("receive.kind")}
+          size="lg"
+          value={kind}
+          onChange={setKind}
+          options={[
+            { value: "video", label: t("receive.video"), icon: Video },
+            { value: "audio", label: t("receive.audio"), icon: AudioLines },
+          ]}
+        />
+        <Select
+          label={t("receive.preset")}
+          hideLabel
+          size="lg"
+          fieldClassName={s.preset}
+          data-testid="home-preset"
+          value={preset?.id ?? ""}
+          onChange={(e) => setPreset(kind, e.target.value)}
+          options={presets.map((p) => ({ value: p.id, label: presetName(t, p) }))}
+        />
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={enqueueing}
+          disabled={!url.trim() || emptyPlaylist || !settings}
+          data-testid="home-ingest"
+        >
+          {t("receive.ingest")}
+        </Button>
+      </form>
+    </div>
   );
 }

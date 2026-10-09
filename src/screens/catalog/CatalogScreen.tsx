@@ -40,6 +40,8 @@ import { PAGE_SIZE, useHistory } from "../../store/history";
 import { useNav } from "../../store/nav";
 import { useReceive } from "../../store/receive";
 import { ScreenHeader } from "../shared/ScreenHeader";
+import { historyPresetName } from "../shared/labels";
+import { SeqFigure } from "../shared/SeqFigure";
 import screen from "../shared/screen.module.css";
 import { focusUrlField } from "../receive/ingest";
 import s from "./catalog.module.css";
@@ -149,6 +151,7 @@ export function CatalogScreen() {
             <Ledger caption={t("nav.catalog")} data-testid="catalog-ledger">
               <LedgerHead>
                 <tr>
+                  <LedgerHeaderCell className={s.cSeq}>{t("ledger.col.seq")}</LedgerHeaderCell>
                   <LedgerHeaderCell className={s.cDate}>{t("catalog.col.date")}</LedgerHeaderCell>
                   <LedgerHeaderCell>{t("catalog.col.title")}</LedgerHeaderCell>
                   <LedgerHeaderCell className={s.cPreset}>
@@ -235,6 +238,9 @@ function CatalogRow({ item }: { item: HistoryItem }) {
   };
   return (
     <LedgerRow tone={item.exists ? undefined : "muted"} data-testid={`catalog-row-${item.id}`}>
+      <LedgerCell className={s.cSeq}>
+        <SeqFigure seq={item.seq} />
+      </LedgerCell>
       <LedgerCell className={s.cDate}>
         <Figure value={formatDate(item.completedAt, locale)} muted />
       </LedgerCell>
@@ -256,7 +262,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
         </div>
       </LedgerCell>
       <LedgerCell className={s.cPreset}>
-        <Tag>{item.presetName}</Tag>
+        <Tag>{historyPresetName(t, item)}</Tag>
       </LedgerCell>
       <LedgerCell numeric className={s.cSize}>
         <BytesFigure bytes={item.size} muted={!item.exists} />

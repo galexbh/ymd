@@ -10,6 +10,17 @@ export function presetName(t: TFunction, p: Pick<Preset, "id" | "name">): string
   return isBuiltinId(p.id) ? t(`presets.builtin.${p.id as BuiltinId}`) : p.name;
 }
 
+/** A history row's preset: builtins translated by id, custom presets and old rows by the
+ * name stored when the file was archived. */
+export function historyPresetName(
+  t: TFunction,
+  item: { presetId: string | null; presetName: string },
+): string {
+  return item.presetId && isBuiltinId(item.presetId)
+    ? t(`presets.builtin.${item.presetId as BuiltinId}`)
+    : item.presetName;
+}
+
 /** Short format code for a ledger cell: "MP4 · 1080p", "MP3 · 320K". */
 export function formatCode(t: TFunction, p: Preset | undefined): string {
   if (!p) return "—";

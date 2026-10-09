@@ -77,4 +77,46 @@ describe("Catálogo", () => {
     expect(calls(be, "plugin:opener|open_path")).toHaveLength(1);
     expect(calls(be, "plugin:opener|reveal_item_in_dir")).toHaveLength(1);
   });
+
+  it("shows the accession number, finds a row by it and translates builtin presets by id", async () => {
+    const { user } = await renderApp({ route: "catalog" });
+    await waitFor(() => expect(rows().length).toBe(20));
+    expect(screen.getByRole("columnheader", { name: "N.º" })).toBeInTheDocument();
+    const newest = rows()[0];
+    expect(within(newest).getByText("000025")).toBeInTheDocument();
+    // "Best quality" stored, shown by id in the UI language
+    expect(screen.getAllByText("Mejor calidad").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Best quality")).toBeNull();
+
+    await user.type(screen.getByRole("searchbox"), "000012");
+    await waitFor(() => expect(rows()).toHaveLength(1));
+    expect(within(rows()[0]).getByText("000012")).toBeInTheDocument();
+  });
+
+  it("legacy rows without a number show an em dash and keep their stored preset name", async () => {
+    const { user, tick } = await renderApp({ route: "catalog" });
+    await waitFor(() => expect(rows().length).toBe(20));
+    await user.click(screen.getByRole("button", { name: "Página siguiente" }));
+    await tick(0);
+    await waitFor(() => expect(rows().length).toBe(5));
+    const oldest = rows()[rows().length - 1];
+    expect(within(oldest).getAllByText("—").length).toBeGreaterThan(0);
+  });
+
+  it("the number carries from the counter through the ledger into the catalog", async () => {
+    const { user, tick } = await renderApp();
+    await user.type(
+      screen.getByRole("textbox", { name: "Enlace" }),
+      "https://www.youtube.com/watch?v=carry000001{Enter}",
+    );
+    await tick(0);
+    const [row] = screen.getAllByTestId(/^queue-item-/);
+    expect(within(row).getByText("000026")).toBeInTheDocument();
+    await tick(40_000);
+    // the archive stamp carries the filing date
+    expect(within(row).getByText(/2026/).tagName).toBe("TIME");
+    await user.click(screen.getByTestId("nav-catalog"));
+    await tick(0);
+    await waitFor(() => expect(within(rows()[0]).getByText("000026")).toBeInTheDocument());
+  });
 });

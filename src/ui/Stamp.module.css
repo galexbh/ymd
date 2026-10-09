@@ -16,26 +16,7 @@
   letter-spacing: var(--tracking-stamp);
   text-transform: uppercase;
   white-space: nowrap;
-  transform: rotate(var(--stamp-rot));
   user-select: none;
-  /* uneven ink: the pad presses harder at one end and skips a little in the middle;
-     the floor stays high enough that the label keeps AA contrast */
-  -webkit-mask-image: linear-gradient(
-    101deg,
-    rgb(0 0 0) 0%,
-    rgb(0 0 0 / 0.88) 30%,
-    rgb(0 0 0 / 0.97) 50%,
-    rgb(0 0 0 / 0.86) 76%,
-    rgb(0 0 0 / 0.95) 100%
-  );
-  mask-image: linear-gradient(
-    101deg,
-    rgb(0 0 0) 0%,
-    rgb(0 0 0 / 0.88) 30%,
-    rgb(0 0 0 / 0.97) 50%,
-    rgb(0 0 0 / 0.86) 76%,
-    rgb(0 0 0 / 0.95) 100%
-  );
 }
 
 .sm {
@@ -56,8 +37,6 @@
   /* same outer footprint as the 3px stamped rule */
   margin: 2px;
   font-weight: var(--weight-semibold);
-  -webkit-mask-image: none;
-  mask-image: none;
 }
 
 /* in process: violet outline */
@@ -65,13 +44,13 @@
 .merging,
 .postprocessing {
   --stamp-ink: var(--accent);
-  --stamp-rot: -0.4deg;
 }
 
 /* archived: solid violet impression inside the outer rule of the double border */
 .done {
   --stamp-ink: var(--accent);
   --stamp-rot: -1.2deg;
+  transform: rotate(var(--stamp-rot));
   background: var(--stamp-ink);
   background-clip: padding-box;
   color: var(--on-accent);
@@ -79,13 +58,13 @@
 
 .error {
   --stamp-ink: var(--danger);
-  --stamp-rot: 1deg;
 }
 
 .canceled {
   --stamp-ink: var(--text-faint);
-  --stamp-rot: -0.7deg;
 }
+/* outlined stamps sit square so the double rule stays crisp; only the archive strike tilts */
+
 .canceled .label {
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
@@ -108,4 +87,20 @@
   .strike {
     animation: none;
   }
+}
+
+/* the filing date, inked inside the impression */
+.dated {
+  flex-direction: column;
+  gap: 0.22em;
+  padding-top: 0.34em;
+  padding-bottom: 0.3em;
+}
+.date {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-size: 0.86em;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  line-height: 1;
 }

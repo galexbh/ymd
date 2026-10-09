@@ -1,6 +1,6 @@
 /* Column widths for the jobs ledger (table-layout: fixed reads the header row). */
 .cSeq {
-  width: 7.25rem;
+  width: 5.5rem;
 }
 .cTitle {
   width: auto;
@@ -9,22 +9,22 @@
   width: 7.5rem;
 }
 .cSize {
-  width: 6.25rem;
+  width: 5.75rem;
 }
 .cSpan {
-  width: 10rem;
+  width: 8.5rem;
 }
 .cSpeed {
-  width: 6.75rem;
+  width: 6.25rem;
 }
 .cEta {
-  width: 4.5rem;
+  width: 4.25rem;
 }
 .cStamp {
-  width: 7.75rem;
+  width: 7.5rem;
 }
 .cActions {
-  width: 7.25rem;
+  width: 6.75rem;
 }
 
 /* narrow ledgers: format, ETA and speed fold to zero width in turn (the cells stay so the
@@ -84,7 +84,7 @@
 }
 .spanCell {
   display: grid;
-  grid-template-columns: 1fr 3.25rem;
+  grid-template-columns: 1fr 2.75rem;
   align-items: center;
   gap: var(--space-2);
 }

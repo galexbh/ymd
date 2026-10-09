@@ -581,7 +581,22 @@ const HISTORY_SEED: { title: string; kind: MediaKind; extractor: string; preset:
   },
 ];
 
-/** ~25 realistic history rows, newest first, some with `exists: false` (file moved/deleted). */
+/** Preset ids of the builtin names used in the seed. */
+const PRESET_IDS: Record<string, string> = {
+  "Best quality": "best",
+  "MP4 1080p": "mp4-1080",
+  "MP4 720p": "mp4-720",
+  "MP3 320 kbps": "mp3-320",
+  "Original audio": "audio-original",
+};
+
+/** Rows from before history schema v2 carry no accession number or preset id. */
+export const LEGACY_HISTORY_ROWS = 3;
+
+/**
+ * ~25 realistic history rows, newest first, some with `exists: false` (file moved/deleted).
+ * Accession numbers run 1..N oldest to newest; the oldest few are legacy rows without one.
+ */
 export function seedHistory(now: number, platform: MockPlatform): HistoryItem[] {
   const p = platformPaths(platform);
   const r = rng(42);
@@ -602,8 +617,12 @@ export function seedHistory(now: number, platform: MockPlatform): HistoryItem[] 
       s.kind === "audio"
         ? Math.floor(3_000_000 + r() * 120_000_000)
         : Math.floor(25_000_000 + r() * 900_000_000);
+    const n = HISTORY_SEED.length - i;
+    const legacy = n <= LEGACY_HISTORY_ROWS;
     return {
-      id: HISTORY_SEED.length - i,
+      id: n,
+      seq: legacy ? null : n,
+      presetId: legacy ? null : (PRESET_IDS[s.preset] ?? null),
       url,
       title: s.title,
       filepath: joinPath(p.sep, dir, `${safeFileName(s.title)} [${videoIdFor(s.title)}].${ext}`),

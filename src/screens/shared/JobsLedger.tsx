@@ -12,7 +12,6 @@ import {
 import { useTranslation } from "react-i18next";
 import type { Job } from "../../ipc/types";
 import {
-  Accession,
   BytesFigure,
   EmptyState,
   ErrorNotice,
@@ -34,6 +33,7 @@ import {
   Tooltip,
   formatBytes,
   formatPercent,
+  formatStampDate,
 } from "../../ui";
 import { currentLocale } from "../../i18n";
 import { isActive, isTerminal, useJobs } from "../../store/jobs";
@@ -41,6 +41,7 @@ import { useSettings } from "../../store/settings";
 import { openFile, showInFolder } from "../../app/native";
 import { useErrorFixes } from "./errorFixes";
 import { formatCode } from "./labels";
+import { SeqFigure } from "./SeqFigure";
 import s from "./jobs.module.css";
 import screen from "./screen.module.css";
 
@@ -134,7 +135,7 @@ function JobRow({ job }: { job: Job }) {
         data-stage={job.stage}
       >
         <LedgerCell className={s.seqCell}>
-          <Accession seq={job.seq} />
+          <SeqFigure seq={job.seq} />
         </LedgerCell>
         <LedgerCell truncate title={title}>
           <span className={s.title}>{title}</span>
@@ -179,7 +180,16 @@ function JobRow({ job }: { job: Job }) {
           {job.stage === "downloading" ? <EtaFigure seconds={job.eta} /> : "—"}
         </LedgerCell>
         <LedgerCell center>
-          <Stamp stage={job.stage} size="sm" />
+          <Stamp
+            stage={job.stage}
+            size="sm"
+            date={
+              job.stage === "done" && job.finishedAt
+                ? formatStampDate(job.finishedAt, locale)
+                : undefined
+            }
+            dateTime={job.stage === "done" ? (job.finishedAt ?? undefined) : undefined}
+          />
         </LedgerCell>
         <LedgerCell>
           <div className={screen.actionsCell}>

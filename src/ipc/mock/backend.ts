@@ -63,7 +63,9 @@ export type DepsScenario =
   /** Like `ready`, but the managed yt-dlp is old and an update is available. */
   | "outdated"
   /** Everything installed, including Deno, aria2c and AtomicParsley. */
-  | "complete";
+  | "complete"
+  /** Like `ready`, but yt-dlp is only an old copy found on PATH (system), with an update out. */
+  | "system-outdated";
 
 export interface MockDelays {
   /** Latency added to every command (ms of simulated time). */
@@ -269,6 +271,8 @@ export class MockBackend {
     if (options.seedHistory ?? scenario !== "first-run") {
       this.history = seedHistory(this.clock.now(), this.platform);
       this.nextHistoryId = this.history.length + 1;
+      // accession numbers continue from the archive, like the real backend
+      this.seq = Math.max(0, ...this.history.map((h) => h.seq ?? 0));
     }
   }
 
@@ -357,6 +361,8 @@ export class MockBackend {
         return this.remove(a.id as JobId);
       case "jobs_clear_finished":
         return this.clearFinished();
+      case "jobs_next_seq":
+        return this.seq + 1;
       // history
       case "history_query":
         return this.historyQuery(a.query as HistoryQuery);
@@ -419,6 +425,13 @@ export class MockBackend {
     if (scenario === "first-run") return;
     this.deps.set("ytdlp", this.depStatus("ytdlp", "installed", DEP_CATALOG.ytdlp.latest));
     this.deps.set("ffmpeg", this.depStatus("ffmpeg", "installed", DEP_CATALOG.ffmpeg.latest));
+    if (scenario === "system-outdated") {
+      const sys = this.depStatus("ytdlp", "system", "2026.03.17");
+      sys.path = this.platform === "windows" ? "C:\\yt-dlp\\yt-dlp.exe" : "/usr/local/bin/yt-dlp";
+      sys.latest = DEP_CATALOG.ytdlp.latest;
+      sys.updateAvailable = true;
+      this.deps.set("ytdlp", sys);
+    }
     if (scenario === "outdated") {
       const old = this.depStatus("ytdlp", "installed", "2025.12.08");
       old.latest = DEP_CATALOG.ytdlp.latest;
@@ -486,7 +499,8 @@ export class MockBackend {
     if (checkLatest) {
       for (const d of this.deps.values()) {
         d.latest = DEP_CATALOG[d.id].latest;
-        d.updateAvailable = d.state === "installed" && d.version !== d.latest;
+        d.updateAvailable =
+          (d.state === "installed" || d.state === "system") && d.version !== d.latest;
       }
     }
     return clone({
@@ -626,12 +640,17 @@ export class MockBackend {
     for (const r of PROBE_FAILURE_RULES) {
       if (lower.includes(r.match)) throw commandError(r.code, r.detail);
     }
-    if (this.deps.get("ytdlp")!.state !== "installed") {
+    if (!this.ytdlpUsable()) {
       throw commandError("binary_missing", "yt-dlp is not installed");
     }
     const result = isPlaylistUrl(u) ? probePlaylist(u) : probeVideo(u);
     this.probeCache.set(u, result);
     return clone(result);
+  }
+
+  private ytdlpUsable(): boolean {
+    const s = this.deps.get("ytdlp")!.state;
+    return s === "installed" || s === "system";
   }
 
   private findPreset(id: string): Preset {
@@ -645,7 +664,7 @@ export class MockBackend {
       throw commandError("unsupported_url", "empty URL");
     }
     const preset = this.findPreset(req.presetId);
-    if (this.deps.get("ytdlp")!.state !== "installed") {
+    if (!this.ytdlpUsable()) {
       throw commandError("binary_missing", "yt-dlp is not installed");
     }
     const url = req.url.trim();
@@ -830,6 +849,8 @@ export class MockBackend {
       sim.items.forEach((it, i) => {
         this.history.unshift({
           id: this.nextHistoryId++,
+          seq: j.seq,
+          presetId: sim.preset.id,
           url: sim.items.length > 1 ? `https://www.youtube.com/watch?v=${it.id}` : j.url,
           title: it.title,
           filepath: files[i],
@@ -920,6 +941,7 @@ export class MockBackend {
       .filter(
         (h) =>
           !search ||
+          (/^\d+$/.test(search) && h.seq === Number(search)) ||
           h.title.toLowerCase().includes(search) ||
           h.url.toLowerCase().includes(search) ||
           h.filepath.toLowerCase().includes(search),

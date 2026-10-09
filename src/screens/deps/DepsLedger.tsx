@@ -172,6 +172,22 @@ function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; col
                 {t("deps.update")}
               </Button>
             )}
+            {!compact &&
+              present &&
+              dep.updateAvailable &&
+              dep.state === "system" &&
+              dep.canInstall && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  leadingIcon={Download}
+                  disabled={ytdlpLocked}
+                  data-testid={`deps-install-managed-${dep.id}`}
+                  onClick={() => void install(dep.id)}
+                >
+                  {t("deps.installManaged")}
+                </Button>
+              )}
             {!compact && dep.state === "installed" && (
               <Button
                 size="sm"
@@ -206,6 +222,15 @@ function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; col
         <tr className={s.sub}>
           <td colSpan={cols}>
             <p className={s.subNote}>{t("deps.ytdlpLocked", { n: pendingJobs })}</p>
+          </td>
+        </tr>
+      )}
+      {!compact && present && dep.updateAvailable && dep.state === "system" && dep.canInstall && (
+        <tr className={s.sub}>
+          <td colSpan={cols}>
+            <p className={s.subNote}>
+              {t("deps.systemOutdated", { name, version: dep.version ?? "?" })}
+            </p>
           </td>
         </tr>
       )}

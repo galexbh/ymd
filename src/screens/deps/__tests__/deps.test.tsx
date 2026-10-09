@@ -101,4 +101,16 @@ describe("Dependencias", () => {
       screen.getByRole("img", { name: "Hay dependencias que requieren atención" }),
     ).toBeInTheDocument();
   });
+
+  it("an outdated system yt-dlp offers a managed copy that takes precedence", async () => {
+    const { be, user, tick } = await renderApp({ scenario: "system-outdated", route: "deps" });
+    const row = () => screen.getByTestId("deps-row-ytdlp");
+    expect(within(row()).getByText("Del sistema")).toBeInTheDocument();
+    expect(within(row()).getByText("C:\\yt-dlp\\yt-dlp.exe")).toBeInTheDocument();
+    expect(screen.getByText(/está desactualizado/)).toBeInTheDocument();
+    await user.click(screen.getByTestId("deps-install-managed-ytdlp"));
+    await tick(2500);
+    expect(calls(be, "deps_install").map((c) => c.args!.id)).toEqual(["ytdlp"]);
+    expect(within(row()).getByText("Instalado")).toBeInTheDocument();
+  });
 });

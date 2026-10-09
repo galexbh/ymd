@@ -152,3 +152,17 @@ export function formatDate(date: string | Date, locale: FormatLocale): string {
     year: "numeric",
   }).format(d);
 }
+
+/** Date as inked on a stamp: "09 OCT 2026" / "09 SEPT 2026"; month in the UI language. */
+export function formatStampDate(date: string | Date, locale: FormatLocale): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return PLACEHOLDER;
+  const parts = new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).formatToParts(d);
+  const get = (t: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === t)?.value ?? "";
+  const month = get("month").replace(/\./g, "").toLocaleUpperCase(locale);
+  return `${get("day")}${NBSP}${month}${NBSP}${get("year")}`;
+}

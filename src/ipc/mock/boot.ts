@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-const SCENARIOS: DepsScenario[] = ["first-run", "ready", "outdated", "complete"];
+const SCENARIOS: DepsScenario[] = ["first-run", "ready", "outdated", "complete", "system-outdated"];
 
 function readParam(name: string): string | null {
   const fromUrl = new URLSearchParams(window.location.search).get(name);

@@ -24,7 +24,8 @@ describe("Recibir", () => {
     const card = await screen.findByTestId("accession-card");
     expect(within(card).getByRole("heading", { level: 2 })).toHaveTextContent(/\S/);
     expect(within(card).getByText("youtube")).toBeInTheDocument();
-    expect(within(card).getByText("Número asignado al ingresar")).toBeInTheDocument();
+    // the preview number comes from the backend and continues from the archive
+    expect(await within(card).findByTestId("next-accession")).toHaveTextContent("000026");
     expect(within(card).getByText("C:\\Users\\ana\\Videos")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Ingresar" }));
