@@ -44,3 +44,9 @@ pub async fn jobs_clear_finished(app: AppHandle, state: State<'_>) -> CmdResult<
     }
     Ok(ids)
 }
+
+/// Accession number the next enqueued job will receive (shown on the intake card).
+#[tauri::command]
+pub async fn jobs_next_seq(state: State<'_>) -> CmdResult<u64> {
+    Ok(state.jobs.next_seq().await)
+}

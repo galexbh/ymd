@@ -559,6 +559,12 @@ impl JobManager {
         jobs
     }
 
+    /// Accession number the next enqueued job will get.
+    pub async fn next_seq(&self) -> u64 {
+        let first = self.env.first_seq();
+        self.lock().next_seq.unwrap_or(first)
+    }
+
     /// Jobs not yet finished (queued or running).
     pub async fn active_count(&self) -> usize {
         self.lock()

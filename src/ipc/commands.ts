@@ -44,6 +44,7 @@ export const api = {
   jobRetry: (id: JobId) => invoke<Job>("job_retry", { id }),
   jobRemove: (id: JobId) => invoke<void>("job_remove", { id }),
   jobsClearFinished: () => invoke<JobId[]>("jobs_clear_finished"),
+  jobsNextSeq: () => invoke<number>("jobs_next_seq"),
 
   // history
   historyQuery: (query: HistoryQuery) => invoke<HistoryPage>("history_query", { query }),

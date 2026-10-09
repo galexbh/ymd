@@ -69,6 +69,19 @@ fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
     PathBuf::from(s)
 }
 
+/// A system copy is outdated when the release uses real version tags (not a rolling tag like
+/// `latest`) and its known version is older than the tag. Unknown versions are not flagged.
+fn system_outdated(
+    source: &crate::deps::catalog::Source,
+    tag: &str,
+    version: &Option<String>,
+) -> bool {
+    source.tag.is_none()
+        && version
+            .as_deref()
+            .is_some_and(|v| !version::at_least(v, version::normalize_tag(tag)))
+}
+
 /// Path of `exe` on the system (PATH, plus Homebrew dirs on macOS, which GUI apps launched
 /// from Finder do not get on PATH). Anything inside `bin_dir` is managed, not system.
 fn system_path(exe: &str, bin_dir: &Path) -> Option<PathBuf> {
@@ -289,7 +302,11 @@ impl DepsManager {
             match self.resolve_release(source).await {
                 Ok((release, asset)) => {
                     latest = Some(release.label(source, &asset));
-                    if state == DepState::Installed {
+                    if state == DepState::System {
+                        // A system copy is never touched, but an outdated one is worth
+                        // replacing with a managed copy (managed wins in `tools()`).
+                        update_available = system_outdated(source, &release.tag_name, &version);
+                    } else if state == DepState::Installed {
                         update_available = match entry {
                             Some(e) => e.revision != release.revision(source, &asset),
                             // Placed by hand: compare its version with the tag when the tag
@@ -582,6 +599,28 @@ impl DepsManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn system_copy_outdated_only_when_older_than_a_real_tag() {
+        let spec = crate::deps::catalog::spec(
+            DepId::Ytdlp,
+            crate::deps::catalog::Platform::current(),
+            crate::deps::catalog::YTDLP_NIGHTLY_REPO,
+        );
+        let src = spec.source.unwrap();
+        let v = |s: &str| Some(s.to_string());
+        assert!(system_outdated(&src, "2026.10.07.234512", &v("2026.03.17")));
+        assert!(!system_outdated(
+            &src,
+            "2026.10.07.234512",
+            &v("2026.10.07.234512")
+        ));
+        assert!(!system_outdated(&src, "2026.08.19", &v("2026.10.01")));
+        assert!(!system_outdated(&src, "2026.08.19", &None));
+        let mut rolling = src.clone();
+        rolling.tag = Some("latest".into());
+        assert!(!system_outdated(&rolling, "latest", &v("N-1")));
+    }
 
     #[test]
     fn swap_replaces_and_cleans_old() {

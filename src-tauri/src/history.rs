@@ -31,6 +31,10 @@ const MIGRATIONS: &[&str] = &[
         haystack     TEXT NOT NULL DEFAULT ''
     );
     CREATE INDEX IF NOT EXISTS idx_downloads_completed_at ON downloads(completed_at);",
+    // v2: keep the accession number and the preset id with each archived download.
+    "ALTER TABLE downloads ADD COLUMN seq INTEGER;
+    ALTER TABLE downloads ADD COLUMN preset_id TEXT;
+    CREATE INDEX IF NOT EXISTS idx_downloads_seq ON downloads(seq);",
 ];
 
 pub const SCHEMA_VERSION: i64 = MIGRATIONS.len() as i64;
@@ -93,7 +97,11 @@ impl History {
             .query_row("SELECT MAX(id) FROM downloads", [], |r| r.get(0))
             .ok()
             .flatten();
-        from_seq.max(from_max).unwrap_or(0).max(0) as u64
+        let from_job_seq: Option<i64> = conn
+            .query_row("SELECT MAX(seq) FROM downloads", [], |r| r.get(0))
+            .ok()
+            .flatten();
+        from_seq.max(from_max).max(from_job_seq).unwrap_or(0).max(0) as u64
     }
 
     /// Record a completed job (needs `filepath`).
@@ -116,14 +124,14 @@ impl History {
             .or(job.total_bytes);
         let completed_at = normalize_time(job.finished_at.as_deref());
         let kind = kind_str(job.kind);
-        let haystack = haystack(&title, &job.url, &filepath);
+        let haystack = haystack(&title, &job.url, &filepath, job.seq);
         let extractor: Option<String> = None;
 
         let conn = self.conn();
         conn.execute(
             "INSERT INTO downloads
-                (url, title, filepath, kind, preset_name, size, thumbnail, extractor, completed_at, haystack)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+                (url, title, filepath, kind, preset_name, size, thumbnail, extractor, completed_at, haystack, seq, preset_id)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             params![
                 job.url,
                 title,
@@ -135,6 +143,8 @@ impl History {
                 extractor,
                 completed_at,
                 haystack,
+                job.seq as i64,
+                preset.id,
             ],
         )?;
         let id = conn.last_insert_rowid();
@@ -142,6 +152,8 @@ impl History {
         let exists = Path::new(&filepath).exists();
         Ok(HistoryItem {
             id,
+            seq: Some(job.seq),
+            preset_id: Some(preset.id.clone()),
             url: job.url.clone(),
             title,
             filepath,
@@ -176,7 +188,7 @@ impl History {
             |r| r.get(0),
         )?;
         let mut stmt = conn.prepare(&format!(
-            "SELECT id, url, title, filepath, kind, preset_name, size, thumbnail, extractor, completed_at
+            "SELECT id, url, title, filepath, kind, preset_name, size, thumbnail, extractor, completed_at, seq, preset_id
              FROM downloads {WHERE}
              ORDER BY completed_at DESC, id DESC
              LIMIT ?3 OFFSET ?4"
@@ -184,8 +196,11 @@ impl History {
         let rows = stmt.query_map(params![pattern, kind, limit, offset], |r| {
             let kind: String = r.get(4)?;
             let size: Option<i64> = r.get(6)?;
+            let seq: Option<i64> = r.get(10)?;
             Ok(HistoryItem {
                 id: r.get(0)?,
+                seq: seq.and_then(|s| u64::try_from(s).ok()),
+                preset_id: r.get(11)?,
                 url: r.get(1)?,
                 title: r.get(2)?,
                 filepath: r.get(3)?,
@@ -251,8 +266,9 @@ fn parse_kind(s: &str) -> MediaKind {
     }
 }
 
-fn haystack(title: &str, url: &str, filepath: &str) -> String {
-    format!("{title}\n{url}\n{filepath}").to_lowercase()
+fn haystack(title: &str, url: &str, filepath: &str, seq: u64) -> String {
+    // The accession number is searchable bare ("42") and zero-padded ("000042").
+    format!("{title}\n{url}\n{filepath}\n{seq} {seq:06}").to_lowercase()
 }
 
 /// Escapes `\`, `%` and `_` for `LIKE ... ESCAPE '\'`.

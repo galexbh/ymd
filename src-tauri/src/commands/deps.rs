@@ -75,7 +75,7 @@ pub async fn auto_update(app: AppHandle, state: Arc<crate::state::AppState>) {
         return;
     };
     for d in report.deps.iter().filter(|d| d.id == DepId::Ytdlp) {
-        if (d.update_available && d.state == DepState::Installed)
+        if (d.update_available && matches!(d.state, DepState::Installed | DepState::System))
             || (d.state == DepState::Missing && state.settings().onboarded)
         {
             if let Err(e) = deps.install(d.id, progress_fn(&app)).await {

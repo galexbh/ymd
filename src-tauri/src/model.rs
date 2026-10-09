@@ -446,6 +446,10 @@ pub struct Job {
 #[serde(rename_all = "camelCase")]
 pub struct HistoryItem {
     pub id: i64,
+    /// Accession number the job had (`Job::seq`); `None` for rows recorded before v2.
+    pub seq: Option<u64>,
+    /// Preset id, so builtin presets can be shown translated; `None` before v2.
+    pub preset_id: Option<String>,
     pub url: String,
     pub title: String,
     pub filepath: String,

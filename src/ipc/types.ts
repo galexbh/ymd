@@ -235,6 +235,10 @@ export interface Job {
 // ───────────── History ─────────────
 export interface HistoryItem {
   id: number;
+  /** accession number; null for rows archived before schema v2 */
+  seq: number | null;
+  /** preset id (builtins are translated by id); null before schema v2 */
+  presetId: string | null;
   url: string;
   title: string;
   filepath: string;

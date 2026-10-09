@@ -417,3 +417,46 @@ fn concurrent_records_from_threads() {
     }
     assert_eq!(h.query(&q(None, None, 500, 0)).unwrap().total, 80);
 }
+
+#[test]
+fn v2_keeps_accession_number_and_preset_id() {
+    let h = History::open_in_memory().unwrap();
+    let mut j = job(42, Some("Numbered"), Some("/out/n.mp4"), MediaKind::Video);
+    j.seq = 4242;
+    let item = h.record(&j, &preset()).unwrap();
+    assert_eq!(item.seq, Some(4242));
+    assert_eq!(item.preset_id.as_deref(), Some("best"));
+    for needle in ["4242", "004242"] {
+        let page = h.query(&q(Some(needle), None, 10, 0)).unwrap();
+        assert_eq!(page.items.len(), 1, "search by {needle}");
+        assert_eq!(page.items[0].seq, Some(4242));
+        assert_eq!(page.items[0].preset_id.as_deref(), Some("best"));
+    }
+    assert!(h.max_seq_hint() >= 4242);
+}
+
+#[test]
+fn v1_rows_survive_the_v2_migration() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("h.sqlite3");
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, title TEXT NOT NULL,
+                filepath TEXT NOT NULL, kind TEXT NOT NULL, preset_name TEXT NOT NULL,
+                size INTEGER, thumbnail TEXT, extractor TEXT, completed_at TEXT NOT NULL,
+                haystack TEXT NOT NULL DEFAULT '');
+             INSERT INTO downloads (url, title, filepath, kind, preset_name, completed_at, haystack)
+             VALUES ('u', 'Old row', '/x.mp4', 'video', 'Mejor calidad', '2024-01-01T00:00:00Z', 'old row');
+             PRAGMA user_version = 1;",
+        )
+        .unwrap();
+    }
+    let h = History::open(&path).unwrap();
+    assert_eq!(h.schema_version().unwrap(), SCHEMA_VERSION);
+    let page = h.query(&q(None, None, 10, 0)).unwrap();
+    assert_eq!(page.items.len(), 1);
+    assert_eq!(page.items[0].seq, None);
+    assert_eq!(page.items[0].preset_id, None);
+}
