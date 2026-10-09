@@ -51,7 +51,9 @@ ymd owns the whole yt-dlp toolchain:
 - **Language and appearance:** Spanish and English UI (i18n), plus light and dark themes with a customizable accent color, density, corner radius and text size.
 - **Constraints:**
   - Arguments are always passed to yt-dlp as an argv list, never through a shell.
-  - Secrets never go to disk in plaintext or into process arguments.
+  - Saved site passwords live only in the OS keychain and never go to disk or into process arguments.
+  - A cookie snapshot or imported cookies.txt is stored only in ymd's user-only data folder, and can be deleted in one click.
+  - The one-shot video password and 2FA code typed for a single download are passed as arguments to that one yt-dlp run only, and are never stored.
   - GPL binaries are downloaded at runtime and not bundled in the installer.
 
 ## Brand Commitments

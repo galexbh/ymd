@@ -82,6 +82,10 @@ impl JobEnv for TauriJobEnv {
     fn emit(&self, job: &Job) {
         let _ = self.app.emit(EVT_JOB_UPDATE, job);
     }
+    fn first_seq(&self) -> u64 {
+        // Accession numbers continue after the last archived download.
+        self.state().history.max_seq_hint() + 1
+    }
     fn completed(&self, job: &Job, preset: &Preset) {
         if let Err(e) = self.state().history.record(job, preset) {
             log::warn!("history record failed: {e:#}");
