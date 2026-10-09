@@ -1,0 +1,4 @@
+QuickJS version 2024-01-13
+usage: qjs [options] [file [args]]
+-h  --help         list options
+-e  --eval EXPR    evaluate EXPR

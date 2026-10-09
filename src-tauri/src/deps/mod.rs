@@ -1,9 +1,14 @@
 //! Managed toolchain: yt-dlp, ffmpeg/ffprobe, Deno, aria2c, AtomicParsley.
 //! Owner: deps agent (A).
 
+pub mod archive;
 pub mod catalog;
+pub mod github;
 pub mod jsruntime;
 pub mod manager;
+pub mod manifest;
+pub mod verify;
+pub mod version;
 
 use crate::model::JsRuntimeInfo;
 use std::path::PathBuf;
