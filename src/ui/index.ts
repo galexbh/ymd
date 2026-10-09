@@ -33,6 +33,7 @@ export {
   type FigureProps,
 } from "./Figure";
 export { ThumbCell, type ThumbCellProps } from "./ThumbCell";
+export { Thumb, type ThumbProps } from "./Thumb";
 export {
   Section,
   Panel,

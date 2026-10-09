@@ -175,5 +175,491 @@
       "es": "Español",
       "en": "English"
     }
+  },
+  "nav": {
+    "receive": "Receive",
+    "queue": "Ledger",
+    "catalog": "Catalog",
+    "deps": "Dependencies",
+    "settings": "Settings"
+  },
+  "rail": {
+    "label": "Sections",
+    "skip": "Skip to content",
+    "pending": "{{n}} downloads running or queued",
+    "attention": "Some dependencies need attention",
+    "js": "JS runtime",
+    "missing": "not installed"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "focusUrl": "Go to the link field",
+    "paste": "Paste a link and check it (with the counter empty)",
+    "submit": "File the checked link",
+    "sections": "Switch section",
+    "settings": "Open Settings",
+    "help": "Show this list"
+  },
+  "toast": {
+    "archived": "Archived: {{title}}"
+  },
+  "presets": {
+    "builtin": {
+      "best": "Best quality",
+      "mp4-1080": "MP4 1080p",
+      "mp4-720": "MP4 720p",
+      "mp3-320": "MP3 320 kbps",
+      "audio-original": "Original audio"
+    },
+    "code": {
+      "auto": "AUTO",
+      "max": "max",
+      "audioOriginal": "AUDIO · orig."
+    }
+  },
+  "fix": {
+    "accounts": "Open Settings → Accounts",
+    "installFfmpeg": "Install ffmpeg",
+    "installDeno": "Install Deno",
+    "installMissing": "Install what's missing",
+    "closedRetry": "I closed the browser, retry",
+    "closedRetryNamed": "I closed {{browser}}, retry",
+    "useCookieFile": "Use a cookies.txt file",
+    "folders": "Change folder in Settings",
+    "updateYtdlp": "Check yt-dlp in Dependencies"
+  },
+  "receive": {
+    "counter": "Intake counter",
+    "kind": "Download type",
+    "video": "Video",
+    "audio": "Audio",
+    "preset": "Preset",
+    "ingest": "File it",
+    "probing": "Checking the link…",
+    "ledgerTitle": "This session's ledger",
+    "openQueue": "Open full ledger",
+    "card": {
+      "video": "Accession card",
+      "playlist": "Accession card · playlist",
+      "willFile": "Will be filed as",
+      "seqOnFile": "Number assigned on filing",
+      "duration": "Duration",
+      "best": "Best quality",
+      "entries": "Entries",
+      "site": "Site",
+      "preset": "Preset",
+      "shelf": "Shelf",
+      "askEachTime": "Asked when filing"
+    },
+    "options": {
+      "title": "Options for this download",
+      "hint": "Only for protected videos. Not saved: used for this download and then forgotten.",
+      "videoPassword": "Video password",
+      "twofactor": "Verification code (2FA)"
+    },
+    "picker": {
+      "label": "Playlist entries",
+      "selected": "Selected",
+      "all": "All",
+      "none": "None",
+      "from": "From",
+      "to": "to",
+      "fromLabel": "First entry of the range",
+      "toLabel": "Last entry of the range",
+      "applyRange": "Select range",
+      "shiftHint": "Shift + click marks every entry between two clicks.",
+      "noneWarn": "Pick at least one entry to file the playlist."
+    }
+  },
+  "ledger": {
+    "col": {
+      "seq": "No.",
+      "title": "Title",
+      "format": "Format",
+      "size": "Size",
+      "progress": "Progress",
+      "speed": "Speed",
+      "eta": "Left",
+      "state": "Status",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "The ledger is empty",
+      "body": "Paste a link at the counter, pick Video or Audio and press File it. Every download gets a number and shows up here with its exact progress.",
+      "paste": "pastes and checks a link from anywhere on this screen.",
+      "filtered": "No downloads match this filter."
+    },
+    "clearFinished": "Clear finished",
+    "playlistPart": "Entry {{index}} of {{count}}",
+    "progressOf": "Progress of {{title}}",
+    "actionFailed": "The action could not be completed",
+    "action": {
+      "cancel": "Cancel",
+      "cancelNamed": "Cancel {{title}}",
+      "retryNamed": "Retry {{title}}",
+      "open": "Open file",
+      "openNamed": "Open {{title}}",
+      "reveal": "Show in folder",
+      "revealNamed": "Show {{title}} in folder",
+      "remove": "Remove from ledger",
+      "removeNamed": "Remove {{title}} from the ledger"
+    },
+    "showDetail": "Show the error detail",
+    "hideDetail": "Hide the error detail"
+  },
+  "queue": {
+    "description": "Every download in this session, newest first.",
+    "filter": "Filter by status",
+    "filters": {
+      "all": "All",
+      "active": "Running",
+      "queued": "Queued",
+      "done": "Archived",
+      "failed": "Failed"
+    },
+    "totals": "Ledger totals",
+    "speed": "Total speed"
+  },
+  "catalog": {
+    "description": "Everything ymd has archived. Search by title, link or path.",
+    "search": "Search the catalog",
+    "searchPlaceholder": "Title, link or folder",
+    "kind": "Type",
+    "kinds": {
+      "all": "All"
+    },
+    "col": {
+      "date": "Date",
+      "title": "Title",
+      "preset": "Preset",
+      "size": "Size"
+    },
+    "missing": "File moved or deleted",
+    "redownload": "Download again",
+    "redownloadNamed": "Download {{title}} again",
+    "delete": "Delete from catalog",
+    "deleteNamed": "Delete {{title}} from the catalog",
+    "clearAll": "Empty catalog",
+    "pages": "Catalog pages",
+    "of": "of",
+    "prev": "Previous page",
+    "next": "Next page",
+    "empty": {
+      "title": "The catalog is empty",
+      "body": "Every archived download is noted here with its date, size and location, so you can find it later.",
+      "action": "Go to the counter"
+    },
+    "noResults": {
+      "title": "No results",
+      "body": "Try another word or clear the type filter."
+    },
+    "confirm": {
+      "title": "Empty the catalog?",
+      "body": "All catalog entries are deleted. Downloaded files stay in your folders.",
+      "action": "Empty catalog"
+    }
+  },
+  "deps": {
+    "description": "ymd installs these tools in your user folder, checks their signature when the author publishes one, and keeps them up to date.",
+    "check": "Check for updates",
+    "installAll": "Install everything recommended",
+    "install": "Install",
+    "update": "Update",
+    "verified": "SHA-256 verified",
+    "unverified": "not verified",
+    "updateAvailable": "Update",
+    "manual": "Install it with your system package manager:",
+    "failed": "{{name}} could not be installed",
+    "failedHint": "The previous copy, if any, is untouched. Check your connection and retry.",
+    "allFailed": "The installation stopped",
+    "allFailedHint": "What was already installed is kept. If GitHub rate-limited the downloads, wait a few minutes and retry.",
+    "ytdlpLocked": "yt-dlp can't be changed while downloads are running or queued ({{n}}). Wait for them to finish or cancel them.",
+    "col": {
+      "tool": "Tool",
+      "state": "Status",
+      "version": "Version",
+      "check": "Verification"
+    },
+    "level": {
+      "required": "required",
+      "recommended": "recommended",
+      "optional": "optional"
+    },
+    "state": {
+      "installed": "Installed",
+      "system": "System",
+      "missing": "Missing",
+      "installing": "Installing",
+      "error": "Error"
+    },
+    "desc": {
+      "ytdlp": "The download engine.",
+      "ffmpeg": "Merges video and audio and converts formats.",
+      "deno": "JavaScript runtime YouTube requires to hand out formats.",
+      "aria2c": "Downloads over several connections at once.",
+      "atomicparsley": "Embeds cover art in MP4 and M4A files."
+    },
+    "phase": {
+      "resolving": "Looking up {{name}}…",
+      "downloading": "Downloading {{name}}",
+      "verifying": "Verifying {{name}}",
+      "extracting": "Unpacking {{name}}"
+    },
+    "runtime": {
+      "title": "JavaScript runtime",
+      "uses": "yt-dlp will use",
+      "managed": "installed by ymd",
+      "system": "system",
+      "alsoFound": "Also found:",
+      "why": "YouTube requires running JavaScript to hand out formats; yt-dlp uses the first one in this list.",
+      "noneTitle": "No JavaScript runtime",
+      "noneBody": "Without one, YouTube may refuse video formats. Install Deno in one click."
+    },
+    "binDir": {
+      "title": "Tools folder",
+      "change": "Change in Settings → Advanced",
+      "hint": "The programs live here, outside ymd's install; removing them doesn't touch your downloads."
+    },
+    "latest": "Available:"
+  },
+  "onboarding": {
+    "title": "Before the first accession",
+    "lead": "ymd downloads with yt-dlp and merges video and audio with ffmpeg. They are installed once, verified, in your user folder.",
+    "tools": {
+      "title": "Tools",
+      "body": "What downloading requires, plus Deno if your computer has no JavaScript runtime.",
+      "install": "Install what's needed",
+      "ready": "All set",
+      "failed": "The installation didn't finish",
+      "failedHint": "Usually the connection or a temporary GitHub limit. What's installed is kept; retry in a moment.",
+      "where": "You can review, update or remove them any time in Dependencies."
+    },
+    "folders": {
+      "title": "Where things are filed",
+      "body": "Videos and music go to separate folders. Each preset can have its own.",
+      "videoDir": "Videos",
+      "audioDir": "Music",
+      "change": "Change"
+    },
+    "accounts": {
+      "title": "Accounts (optional)",
+      "body": "If YouTube asks you to confirm you're not a bot, ymd can use your browser's cookies.",
+      "open": "Set up cookies"
+    },
+    "finish": "Start receiving",
+    "skip": "Skip for now",
+    "readyNote": "Paste your first link at the counter.",
+    "notReadyNote": "Without yt-dlp and ffmpeg nothing can be downloaded; you can install them later in Dependencies."
+  },
+  "settings": {
+    "sections": "Settings sections",
+    "choose": "Choose…",
+    "section": {
+      "downloads": "Downloads",
+      "presets": "Presets",
+      "accounts": "Accounts",
+      "appearance": "Appearance",
+      "language": "Language",
+      "advanced": "Advanced"
+    },
+    "save": {
+      "idle": "No changes",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Couldn't save"
+    },
+    "downloads": {
+      "folders": "Folders",
+      "videoDir": "Video folder",
+      "audioDir": "Music folder",
+      "askEachTime": "Ask for the folder on every download",
+      "askEachTimeHint": "Filing opens the folder picker.",
+      "naming": "File name",
+      "template": "Template",
+      "templateHint": "Use yt-dlp fields such as %(title)s, %(id)s, %(uploader)s or %(ext)s.",
+      "templateEmpty": "The template can't be empty.",
+      "templateExt": "Include %(ext)s so the file keeps its extension.",
+      "example": "Example",
+      "queue": "Queue",
+      "concurrency": "Downloads at once",
+      "concurrencyHint": "Between 1 and 8. More at once share the same connection.",
+      "archive": "Skip what's already downloaded",
+      "archiveHint": "yt-dlp notes every video in an archive file and never repeats it.",
+      "aria2c": "Use aria2c",
+      "aria2cHint": "Downloads each file over several connections.",
+      "aria2cMissing": "Install aria2c in Dependencies to turn this on."
+    },
+    "presets": {
+      "description": "A preset sets the format, quality and what gets embedded. Built-in ones keep their format; duplicate them to make your own.",
+      "new": "New preset",
+      "newName": "My preset",
+      "copyOf": "{{name}} (copy)",
+      "default": "default",
+      "builtin": "built-in",
+      "edit": "Edit",
+      "editNamed": "Edit {{name}}",
+      "duplicate": "Duplicate",
+      "duplicateNamed": "Duplicate {{name}}",
+      "delete": "Delete",
+      "deleteNamed": "Delete {{name}}",
+      "deleted": "Preset “{{name}}” deleted",
+      "undo": "Undo",
+      "creating": "New preset",
+      "editing": "Editing {{name}}",
+      "builtinLocked": "On a built-in preset only the embedding options and the folder change; the format stays current with ymd.",
+      "col": {
+        "name": "Name",
+        "kind": "Type",
+        "format": "Format"
+      },
+      "name": "Name",
+      "maxHeight": "Maximum height",
+      "noLimit": "No limit",
+      "container": "Container",
+      "containerAny": "Whatever comes (no re-encoding)",
+      "audioFormat": "Audio format",
+      "audioBest": "Original (no conversion)",
+      "audioQuality": "Quality",
+      "vbr": "VBR {{n}} (0 = best)",
+      "embedThumbnail": "Embed thumbnail",
+      "embedMetadata": "Embed metadata",
+      "embedSubs": "Embed subtitles",
+      "subLangs": "Subtitle languages",
+      "subLangsHint": "Comma-separated codes, for example es,en.",
+      "sponsorblock": "Remove segments with SponsorBlock",
+      "sponsorblockHint": "yt-dlp cuts the community-marked segments out of the file.",
+      "sb": {
+        "sponsor": "Sponsor",
+        "intro": "Intro or bumper",
+        "outro": "Endcards and credits",
+        "selfpromo": "Self-promotion",
+        "preview": "Preview or recap",
+        "filler": "Filler or tangent",
+        "interaction": "Interaction reminder",
+        "music_offtopic": "Music: non-music part",
+        "hook": "Hook or greeting"
+      },
+      "outputDir": "Preset folder",
+      "outputDirDefault": "Empty: uses the video or music folder.",
+      "outputDirReset": "Use the general folder",
+      "makeDefault": "Use as the default preset",
+      "save": "Save preset"
+    },
+    "appearance": {
+      "preview": "Preview",
+      "previewTitle": "How the ledger will look"
+    },
+    "language": {
+      "description": "Applies immediately across the app."
+    },
+    "advanced": {
+      "ytdlp": "yt-dlp",
+      "channel": "Update channel",
+      "channels": {
+        "stable": "Stable",
+        "nightly": "Nightly",
+        "master": "Master"
+      },
+      "channelHint": {
+        "stable": "Tested releases. They can take weeks to catch up with site changes.",
+        "nightly": "Recommended: a daily build with the latest fixes.",
+        "master": "Every change as soon as it lands. Only if you're after a specific fix."
+      },
+      "autoUpdate": "Update yt-dlp automatically",
+      "autoUpdateHint": "Checks when ymd opens and updates when nothing is downloading.",
+      "binDir": "Tools folder",
+      "binDirLabel": "Location",
+      "binDirDefault": "Default location.",
+      "binDirCustom": "Custom location.",
+      "binDirReset": "Back to the default",
+      "openData": "Open data folder"
+    }
+  },
+  "accounts": {
+    "theBrowser": "the browser",
+    "cookies": {
+      "title": "Browser cookies",
+      "description": "Some videos only download while you're signed in. ymd can use your browser's cookies or a copy in a cookies.txt file."
+    },
+    "source": {
+      "label": "Cookie source",
+      "none": "None",
+      "browser": "Browser",
+      "file": "cookies.txt file",
+      "hint": {
+        "none": "yt-dlp downloads without being signed in.",
+        "browser": "yt-dlp reads the browser's cookies on every download.",
+        "file": "yt-dlp uses the imported copy; it works even with the browser open."
+      }
+    },
+    "browser": {
+      "label": "Browser",
+      "detect": "Detect again",
+      "none": "No supported browser was found.",
+      "running": "open",
+      "profiles": "Profiles: {{n}}",
+      "profile": "Profile",
+      "defaultProfile": "Default ({{name}})",
+      "runningNote": "{{browser}} is open and keeps its cookies locked. Close it completely before testing, or use a cookies.txt file."
+    },
+    "test": "Test cookies",
+    "testOk": "The cookies work",
+    "testOkBody": "yt-dlp could read them. They'll be used for the next downloads.",
+    "snapshot": "Import from the browser now",
+    "snapshotOk": "Cookie copy saved",
+    "snapshotOkBody": "Choose “cookies.txt file” as the source to use it with the browser open.",
+    "locked": {
+      "title": "{{browser}} has its cookies locked",
+      "body": "Close {{browser}} completely, including the icon next to the clock, and test again. Or export a cookies.txt file: it works with the browser open.",
+      "retry": "I closed {{browser}}, test again",
+      "useFile": "Use cookies.txt"
+    },
+    "decrypt": {
+      "body": "On Windows, {{browser}} encrypts its cookies so other programs can't read them. Export a cookies.txt file with the steps below."
+    },
+    "guide": {
+      "title": "Export cookies.txt",
+      "why": "A cookies.txt file works with any browser, even while it's open.",
+      "whyWindows": "On Windows, {{browser}} and other Chromium browsers don't let other programs read their cookies while open, and encrypt them once closed. The reliable way is to export a cookies.txt file:",
+      "step1": "In {{browser}}, install an open-source cookie export extension, such as “Get cookies.txt LOCALLY”.",
+      "step2": "Open a private window and allow the extension there.",
+      "step3": "Sign in to YouTube (or the site you need) in that window.",
+      "step4": "Use the extension to export the cookies in Netscape format (cookies.txt), then close the private window.",
+      "step5": "Drag the file here or pick it with the button."
+    },
+    "file": {
+      "title": "ymd's cookie copy",
+      "drop": "Drop your cookies.txt here",
+      "release": "Release to import",
+      "dropHint": "Netscape format, the one extensions export.",
+      "pick": "Choose file…",
+      "filter": "Cookie file",
+      "imported": "Cookies imported",
+      "importedBody": "The source changed to “cookies.txt file”.",
+      "importFailed": "The file couldn't be imported",
+      "importFailedHint": "Check that it's a cookies.txt in Netscape format.",
+      "noneYet": "No copy yet. Import one from the browser or from a file.",
+      "origin": "Origin",
+      "originFile": "Imported file",
+      "date": "Date",
+      "count": "Cookies",
+      "domains": "Domains",
+      "clear": "Delete copy",
+      "privacy": "The copy holds your browser's cookies, that is, your signed-in sessions. It's stored only in your user folder, readable only by you, and deleted in one click."
+    },
+    "sites": {
+      "title": "Site accounts",
+      "description": "For sites that ask for a username and password, such as Vimeo.",
+      "site": "Site",
+      "siteHint": "yt-dlp extractor name, for example vimeo.",
+      "username": "Username",
+      "password": "Password",
+      "save": "Save account",
+      "add": "Add account",
+      "empty": "No saved accounts.",
+      "deleteNamed": "Delete the {{site}} account",
+      "failed": "The account couldn't be saved",
+      "keychain": "Passwords go to the system keychain and reach yt-dlp without touching the disk or the command line. ymd never shows them again."
+    }
   }
 }

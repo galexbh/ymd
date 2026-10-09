@@ -1,0 +1,62 @@
+.cDate {
+  width: 8.5rem;
+}
+.cPreset {
+  width: 10rem;
+}
+.cSize {
+  width: 6.5rem;
+}
+.cActions {
+  width: 8.5rem;
+}
+@media (max-width: 1000px) {
+  .cPreset {
+    display: none;
+  }
+}
+
+.titleCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.titleText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.title,
+.titleGone,
+.file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.title {
+  font-weight: var(--weight-medium);
+}
+.titleGone {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--pencil);
+}
+.file {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.gone {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}

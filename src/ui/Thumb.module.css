@@ -1,0 +1,8 @@
+.thumb {
+  display: block;
+  flex: none;
+}
+.thumb[data-broken="true"] {
+  border-style: dashed;
+  border-color: var(--pencil);
+}

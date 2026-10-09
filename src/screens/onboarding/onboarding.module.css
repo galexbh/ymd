@@ -1,0 +1,49 @@
+.onboarding {
+  max-width: 64rem;
+}
+.ok {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--accent);
+}
+.folders {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.folder {
+  display: grid;
+  grid-template-columns: 7rem 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-h);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--rule-ledger);
+}
+.folder dt {
+  font-weight: var(--weight-medium);
+}
+.folder dd {
+  margin: 0;
+  min-width: 0;
+}
+.accounts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--rule-strong);
+}
+.footNote {
+  flex: 1 1 18rem;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}

@@ -1,0 +1,103 @@
+/* Column widths for the jobs ledger (table-layout: fixed reads the header row). */
+.cSeq {
+  width: 7.25rem;
+}
+.cTitle {
+  width: auto;
+}
+.cFormat {
+  width: 7.5rem;
+}
+.cSize {
+  width: 6.25rem;
+}
+.cSpan {
+  width: 10rem;
+}
+.cSpeed {
+  width: 6.75rem;
+}
+.cEta {
+  width: 4.5rem;
+}
+.cStamp {
+  width: 7.75rem;
+}
+.cActions {
+  width: 7.25rem;
+}
+
+/* narrow ledgers: format, ETA and speed step aside in turn; the span and stamp stay */
+.container {
+  container-type: inline-size;
+  min-width: 0;
+}
+@container (max-width: 1200px) {
+  .cFormat {
+    display: none;
+  }
+}
+@container (max-width: 980px) {
+  .cEta {
+    display: none;
+  }
+}
+@container (max-width: 800px) {
+  .cSpeed {
+    display: none;
+  }
+  .cSpan {
+    width: 7.5rem;
+  }
+}
+
+.seqCell {
+  white-space: nowrap;
+}
+.disclose {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: calc(-1 * var(--space-1));
+  padding: 2px var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+}
+.disclose:hover {
+  background: var(--danger-soft);
+}
+
+.title {
+  font-weight: var(--weight-medium);
+}
+.part {
+  margin-inline-start: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.spanCell {
+  display: grid;
+  grid-template-columns: 1fr 3.25rem;
+  align-items: center;
+  gap: var(--space-2);
+}
+.pct {
+  text-align: end;
+  font-size: var(--text-xs);
+}
+
+.detailRow > td {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--rule-ledger);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}

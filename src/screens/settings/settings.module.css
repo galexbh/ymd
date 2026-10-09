@@ -1,0 +1,401 @@
+.layout {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: var(--space-8);
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+/* section index: a ruled list with the current entry inked */
+.tabs {
+  position: sticky;
+  top: var(--space-4);
+}
+.tabs ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+.tab {
+  display: block;
+  width: 100%;
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-bottom: 1px solid var(--rule-ledger);
+  background: transparent;
+  color: var(--text-muted);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.tab:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.tab[aria-current="page"] {
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+  background: var(--surface-selected);
+}
+.tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  max-width: 52rem;
+}
+.body > section > :not(:first-child) {
+  max-width: 100%;
+}
+
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.folderField {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.folderButton {
+  margin-top: calc(var(--text-sm) * var(--leading-normal) + var(--space-1));
+}
+
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.fieldLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+.fieldHint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.warnNote {
+  font-size: var(--text-sm);
+  color: var(--warning);
+}
+.twoCol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-10);
+}
+
+.example {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius-sm);
+}
+.exampleLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.exampleValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.slider {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) 4rem;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+.sliderLabel {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+.slider input[type="range"] {
+  width: 100%;
+  margin: 0;
+}
+.sliderValue {
+  text-align: end;
+}
+.sliderHint {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* presets */
+.cKind {
+  width: 6rem;
+}
+.cFormat {
+  width: 9rem;
+}
+.cPresetActions {
+  width: 7rem;
+}
+.presetName {
+  font-weight: var(--weight-medium);
+}
+.inlineTag {
+  margin-inline-start: var(--space-2);
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+}
+.checks > * {
+  min-width: 11rem;
+}
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* accounts */
+.browsers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.browsersHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.browserList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--rule-ledger);
+}
+.browserRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--row-h);
+  padding: 0 var(--space-2);
+  border-bottom: 1px solid var(--rule-ledger);
+  cursor: pointer;
+}
+.browserRow:hover {
+  background: var(--surface-hover);
+}
+.browserRow[data-checked="true"] {
+  background: var(--surface-selected);
+}
+.browserRow:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.browserRow input {
+  margin: 0;
+  width: 1rem;
+  height: 1rem;
+}
+.browserName {
+  font-weight: var(--weight-medium);
+  min-width: 6rem;
+}
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+.guideTitle {
+  font-size: var(--text-lg);
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-6);
+  max-width: 68ch;
+}
+.steps li::marker {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+.drop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 2px dashed var(--rule-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+.drop[data-over="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.dropText {
+  flex: 1;
+  color: var(--text);
+}
+
+.cookieFile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: 0;
+}
+.facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.facts dt {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.facts dd {
+  margin: 0;
+}
+.factWide {
+  flex: 1 1 16rem;
+}
+.domains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.privacy svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.credForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+.credSubmit {
+  margin-top: calc(var(--text-sm) * var(--leading-normal) + var(--space-1));
+}
+@media (max-width: 1100px) {
+  .credForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .credSubmit {
+    margin-top: 0;
+    justify-self: start;
+  }
+}
+
+/* appearance */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--surface);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 1px var(--rule-strong);
+  cursor: pointer;
+  transition: box-shadow var(--dur-fast) var(--ease-standard);
+}
+.swatch:hover {
+  box-shadow: 0 0 0 1px var(--text-muted);
+}
+.swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 2px var(--text);
+}
+.swatchCheck {
+  color: var(--surface);
+}
+.customAccent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: min(100%, 20rem);
+}
+.customChip {
+  flex: none;
+  width: var(--control-h);
+  height: var(--control-h);
+  margin-top: calc(var(--text-sm) * var(--leading-normal) + var(--space-1));
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+}
+.preview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule-ledger);
+}
+.preview > :nth-child(3) {
+  flex: 1 1 8rem;
+  min-width: 6rem;
+}
+.previewTitle {
+  font-weight: var(--weight-medium);
+}

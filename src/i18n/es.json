@@ -175,5 +175,491 @@
       "es": "Español",
       "en": "English"
     }
+  },
+  "nav": {
+    "receive": "Recibir",
+    "queue": "Registro",
+    "catalog": "Catálogo",
+    "deps": "Dependencias",
+    "settings": "Ajustes"
+  },
+  "rail": {
+    "label": "Secciones",
+    "skip": "Ir al contenido",
+    "pending": "{{n}} descargas en curso o en cola",
+    "attention": "Hay dependencias que requieren atención",
+    "js": "Entorno JS",
+    "missing": "no instalado"
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "focusUrl": "Ir al campo del enlace",
+    "paste": "Pegar un enlace y revisarlo (con el mostrador vacío)",
+    "submit": "Ingresar el enlace revisado",
+    "sections": "Cambiar de sección",
+    "settings": "Abrir Ajustes",
+    "help": "Mostrar esta lista"
+  },
+  "toast": {
+    "archived": "Archivado: {{title}}"
+  },
+  "presets": {
+    "builtin": {
+      "best": "Mejor calidad",
+      "mp4-1080": "MP4 1080p",
+      "mp4-720": "MP4 720p",
+      "mp3-320": "MP3 320 kbps",
+      "audio-original": "Audio original"
+    },
+    "code": {
+      "auto": "AUTO",
+      "max": "máx.",
+      "audioOriginal": "AUDIO · orig."
+    }
+  },
+  "fix": {
+    "accounts": "Abrir Ajustes → Cuentas",
+    "installFfmpeg": "Instalar ffmpeg",
+    "installDeno": "Instalar Deno",
+    "installMissing": "Instalar lo que falta",
+    "closedRetry": "Ya cerré el navegador, reintentar",
+    "closedRetryNamed": "Ya cerré {{browser}}, reintentar",
+    "useCookieFile": "Usar un archivo cookies.txt",
+    "folders": "Cambiar carpeta en Ajustes",
+    "updateYtdlp": "Revisar yt-dlp en Dependencias"
+  },
+  "receive": {
+    "counter": "Mostrador de ingreso",
+    "kind": "Tipo de descarga",
+    "video": "Video",
+    "audio": "Audio",
+    "preset": "Preajuste",
+    "ingest": "Ingresar",
+    "probing": "Revisando el enlace…",
+    "ledgerTitle": "Registro de esta sesión",
+    "openQueue": "Abrir registro completo",
+    "card": {
+      "video": "Ficha de ingreso",
+      "playlist": "Ficha de ingreso · lista",
+      "willFile": "Se archivará como",
+      "seqOnFile": "Número asignado al ingresar",
+      "duration": "Duración",
+      "best": "Mejor calidad",
+      "entries": "Entradas",
+      "site": "Sitio",
+      "preset": "Preajuste",
+      "shelf": "Estante",
+      "askEachTime": "Se pregunta al ingresar"
+    },
+    "options": {
+      "title": "Opciones de esta descarga",
+      "hint": "Solo para videos protegidos. No se guardan: se usan en esta descarga y se olvidan.",
+      "videoPassword": "Contraseña del video",
+      "twofactor": "Código de verificación (2FA)"
+    },
+    "picker": {
+      "label": "Entradas de la lista",
+      "selected": "Seleccionadas",
+      "all": "Todas",
+      "none": "Ninguna",
+      "from": "Del",
+      "to": "al",
+      "fromLabel": "Primera entrada del rango",
+      "toLabel": "Última entrada del rango",
+      "applyRange": "Seleccionar rango",
+      "shiftHint": "Mayús + clic marca todas las entradas entre dos clics.",
+      "noneWarn": "Elige al menos una entrada para ingresar la lista."
+    }
+  },
+  "ledger": {
+    "col": {
+      "seq": "N.º",
+      "title": "Título",
+      "format": "Formato",
+      "size": "Tamaño",
+      "progress": "Avance",
+      "speed": "Velocidad",
+      "eta": "Resta",
+      "state": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": {
+      "title": "El registro está vacío",
+      "body": "Pega un enlace en el mostrador, elige Video o Audio y pulsa Ingresar. Cada descarga recibe un número y aparece aquí con su avance exacto.",
+      "paste": "pega y revisa un enlace desde cualquier parte de esta pantalla.",
+      "filtered": "Ninguna descarga coincide con este filtro."
+    },
+    "clearFinished": "Limpiar terminados",
+    "playlistPart": "Entrada {{index}} de {{count}}",
+    "progressOf": "Avance de {{title}}",
+    "actionFailed": "No se pudo completar la acción",
+    "action": {
+      "cancel": "Cancelar",
+      "cancelNamed": "Cancelar {{title}}",
+      "retryNamed": "Reintentar {{title}}",
+      "open": "Abrir archivo",
+      "openNamed": "Abrir {{title}}",
+      "reveal": "Mostrar en la carpeta",
+      "revealNamed": "Mostrar {{title}} en la carpeta",
+      "remove": "Quitar del registro",
+      "removeNamed": "Quitar {{title}} del registro"
+    },
+    "showDetail": "Mostrar el detalle del error",
+    "hideDetail": "Ocultar el detalle del error"
+  },
+  "queue": {
+    "description": "Todas las descargas de esta sesión, de la más reciente a la más antigua.",
+    "filter": "Filtrar por estado",
+    "filters": {
+      "all": "Todas",
+      "active": "En curso",
+      "queued": "En cola",
+      "done": "Archivadas",
+      "failed": "Fallidas"
+    },
+    "totals": "Totales del registro",
+    "speed": "Velocidad total"
+  },
+  "catalog": {
+    "description": "Todo lo que ymd ha archivado. Busca por título, enlace o ruta.",
+    "search": "Buscar en el catálogo",
+    "searchPlaceholder": "Título, enlace o carpeta",
+    "kind": "Tipo",
+    "kinds": {
+      "all": "Todo"
+    },
+    "col": {
+      "date": "Fecha",
+      "title": "Título",
+      "preset": "Preajuste",
+      "size": "Tamaño"
+    },
+    "missing": "Archivo movido o borrado",
+    "redownload": "Volver a descargar",
+    "redownloadNamed": "Volver a descargar {{title}}",
+    "delete": "Borrar del catálogo",
+    "deleteNamed": "Borrar {{title}} del catálogo",
+    "clearAll": "Vaciar catálogo",
+    "pages": "Páginas del catálogo",
+    "of": "de",
+    "prev": "Página anterior",
+    "next": "Página siguiente",
+    "empty": {
+      "title": "El catálogo está vacío",
+      "body": "Cada descarga archivada queda anotada aquí con su fecha, tamaño y ubicación, para que la encuentres después.",
+      "action": "Ir al mostrador"
+    },
+    "noResults": {
+      "title": "Sin resultados",
+      "body": "Prueba con otra palabra o quita el filtro de tipo."
+    },
+    "confirm": {
+      "title": "¿Vaciar el catálogo?",
+      "body": "Se borran todas las anotaciones del catálogo. Los archivos descargados se quedan en tus carpetas.",
+      "action": "Vaciar catálogo"
+    }
+  },
+  "deps": {
+    "description": "ymd instala estas herramientas en tu carpeta de usuario, comprueba su firma cuando el autor la publica y las mantiene al día.",
+    "check": "Buscar actualizaciones",
+    "installAll": "Instalar todo lo recomendado",
+    "install": "Instalar",
+    "update": "Actualizar",
+    "verified": "verificado SHA-256",
+    "unverified": "sin verificación",
+    "updateAvailable": "Actualización",
+    "manual": "Instálalo con el gestor de paquetes del sistema:",
+    "failed": "No se pudo instalar {{name}}",
+    "failedHint": "La copia anterior, si existía, sigue intacta. Revisa tu conexión y reintenta.",
+    "allFailed": "La instalación se detuvo",
+    "allFailedHint": "Lo que ya se instaló se conserva. Si GitHub limitó las descargas, espera unos minutos y reintenta.",
+    "ytdlpLocked": "yt-dlp no se puede cambiar mientras haya descargas en curso o en cola ({{n}}). Espera a que terminen o cancélalas.",
+    "col": {
+      "tool": "Herramienta",
+      "state": "Estado",
+      "version": "Versión",
+      "check": "Verificación"
+    },
+    "level": {
+      "required": "requerida",
+      "recommended": "recomendada",
+      "optional": "opcional"
+    },
+    "state": {
+      "installed": "Instalado",
+      "system": "Del sistema",
+      "missing": "Falta",
+      "installing": "Instalando",
+      "error": "Error"
+    },
+    "desc": {
+      "ytdlp": "El motor de descargas.",
+      "ffmpeg": "Une video y audio y convierte formatos.",
+      "deno": "Entorno JavaScript que YouTube exige para obtener los formatos.",
+      "aria2c": "Descargas por varias conexiones a la vez.",
+      "atomicparsley": "Incrusta portadas en archivos MP4 y M4A."
+    },
+    "phase": {
+      "resolving": "Buscando {{name}}…",
+      "downloading": "Descargando {{name}}",
+      "verifying": "Verificando {{name}}",
+      "extracting": "Descomprimiendo {{name}}"
+    },
+    "runtime": {
+      "title": "Entorno JavaScript",
+      "uses": "yt-dlp usará",
+      "managed": "instalado por ymd",
+      "system": "del sistema",
+      "alsoFound": "También se encontró:",
+      "why": "YouTube exige ejecutar JavaScript para entregar los formatos; yt-dlp usa el primero de esta lista.",
+      "noneTitle": "No hay entorno JavaScript",
+      "noneBody": "Sin él, YouTube puede negar los formatos de video. Instala Deno con un clic."
+    },
+    "binDir": {
+      "title": "Carpeta de herramientas",
+      "change": "Cambiar en Ajustes → Avanzado",
+      "hint": "Los programas viven aquí, fuera de la instalación de ymd; borrarlos no afecta tus descargas."
+    },
+    "latest": "Disponible:"
+  },
+  "onboarding": {
+    "title": "Antes del primer ingreso",
+    "lead": "ymd descarga con yt-dlp y une video y audio con ffmpeg. Se instalan una sola vez, verificados, en tu carpeta de usuario.",
+    "tools": {
+      "title": "Herramientas",
+      "body": "Lo requerido para descargar, más Deno si tu equipo no tiene un entorno JavaScript.",
+      "install": "Instalar lo necesario",
+      "ready": "Todo listo",
+      "failed": "La instalación no terminó",
+      "failedHint": "Suele ser la conexión o un límite temporal de GitHub. Lo instalado se conserva; reintenta en un momento.",
+      "where": "Puedes revisarlas, actualizarlas o quitarlas cuando quieras en Dependencias."
+    },
+    "folders": {
+      "title": "Dónde se archiva",
+      "body": "Los videos y la música van a carpetas distintas. Cada preajuste puede tener la suya.",
+      "videoDir": "Videos",
+      "audioDir": "Música",
+      "change": "Cambiar"
+    },
+    "accounts": {
+      "title": "Cuentas (opcional)",
+      "body": "Si YouTube te pide confirmar que no eres un bot, ymd puede usar las cookies de tu navegador.",
+      "open": "Configurar cookies"
+    },
+    "finish": "Empezar a recibir",
+    "skip": "Omitir por ahora",
+    "readyNote": "Pega tu primer enlace en el mostrador.",
+    "notReadyNote": "Sin yt-dlp y ffmpeg no se puede descargar; puedes instalarlos luego en Dependencias."
+  },
+  "settings": {
+    "sections": "Secciones de ajustes",
+    "choose": "Elegir…",
+    "section": {
+      "downloads": "Descargas",
+      "presets": "Preajustes",
+      "accounts": "Cuentas",
+      "appearance": "Apariencia",
+      "language": "Idioma",
+      "advanced": "Avanzado"
+    },
+    "save": {
+      "idle": "Sin cambios",
+      "saving": "Guardando…",
+      "saved": "Guardado",
+      "error": "No se pudo guardar"
+    },
+    "downloads": {
+      "folders": "Carpetas",
+      "videoDir": "Carpeta de videos",
+      "audioDir": "Carpeta de música",
+      "askEachTime": "Preguntar la carpeta en cada descarga",
+      "askEachTimeHint": "Al ingresar se abre el selector de carpetas.",
+      "naming": "Nombre de archivo",
+      "template": "Plantilla",
+      "templateHint": "Usa los campos de yt-dlp, como %(title)s, %(id)s, %(uploader)s o %(ext)s.",
+      "templateEmpty": "La plantilla no puede quedar vacía.",
+      "templateExt": "Incluye %(ext)s para que el archivo conserve su extensión.",
+      "example": "Ejemplo",
+      "queue": "Cola",
+      "concurrency": "Descargas a la vez",
+      "concurrencyHint": "Entre 1 y 8. Más descargas a la vez reparten la misma conexión.",
+      "archive": "Saltar lo ya descargado",
+      "archiveHint": "yt-dlp anota cada video en un archivo de registro y no lo repite.",
+      "aria2c": "Usar aria2c",
+      "aria2cHint": "Descarga cada archivo por varias conexiones.",
+      "aria2cMissing": "Instala aria2c en Dependencias para activarlo."
+    },
+    "presets": {
+      "description": "Un preajuste fija el formato, la calidad y lo que se incrusta. Los incluidos mantienen su formato; duplícalos para crear el tuyo.",
+      "new": "Nuevo preajuste",
+      "newName": "Mi preajuste",
+      "copyOf": "{{name}} (copia)",
+      "default": "predeterminado",
+      "builtin": "incluido",
+      "edit": "Editar",
+      "editNamed": "Editar {{name}}",
+      "duplicate": "Duplicar",
+      "duplicateNamed": "Duplicar {{name}}",
+      "delete": "Borrar",
+      "deleteNamed": "Borrar {{name}}",
+      "deleted": "Preajuste «{{name}}» borrado",
+      "undo": "Deshacer",
+      "creating": "Nuevo preajuste",
+      "editing": "Editando {{name}}",
+      "builtinLocked": "En un preajuste incluido solo cambian lo que se incrusta y la carpeta; el formato se mantiene al día con ymd.",
+      "col": {
+        "name": "Nombre",
+        "kind": "Tipo",
+        "format": "Formato"
+      },
+      "name": "Nombre",
+      "maxHeight": "Altura máxima",
+      "noLimit": "Sin límite",
+      "container": "Contenedor",
+      "containerAny": "El que venga (sin recodificar)",
+      "audioFormat": "Formato de audio",
+      "audioBest": "Original (sin convertir)",
+      "audioQuality": "Calidad",
+      "vbr": "VBR {{n}} (0 = mejor)",
+      "embedThumbnail": "Incrustar miniatura",
+      "embedMetadata": "Incrustar metadatos",
+      "embedSubs": "Incrustar subtítulos",
+      "subLangs": "Idiomas de subtítulos",
+      "subLangsHint": "Códigos separados por comas, por ejemplo es,en.",
+      "sponsorblock": "Quitar segmentos con SponsorBlock",
+      "sponsorblockHint": "yt-dlp corta del archivo los tramos marcados por la comunidad.",
+      "sb": {
+        "sponsor": "Patrocinio",
+        "intro": "Intro o cortinilla",
+        "outro": "Cierre y créditos",
+        "selfpromo": "Autopromoción",
+        "preview": "Avance o resumen",
+        "filler": "Relleno o tangente",
+        "interaction": "Petición de interacción",
+        "music_offtopic": "Música: parte sin música",
+        "hook": "Gancho o saludo inicial"
+      },
+      "outputDir": "Carpeta del preajuste",
+      "outputDirDefault": "Vacía: usa la carpeta de videos o de música.",
+      "outputDirReset": "Usar la carpeta general",
+      "makeDefault": "Usar como preajuste predeterminado",
+      "save": "Guardar preajuste"
+    },
+    "appearance": {
+      "preview": "Vista previa",
+      "previewTitle": "Así se verá el registro"
+    },
+    "language": {
+      "description": "Se aplica al instante en toda la aplicación."
+    },
+    "advanced": {
+      "ytdlp": "yt-dlp",
+      "channel": "Canal de actualización",
+      "channels": {
+        "stable": "Estable",
+        "nightly": "Nightly",
+        "master": "Master"
+      },
+      "channelHint": {
+        "stable": "Versiones probadas. Pueden tardar semanas en corregir cambios de los sitios.",
+        "nightly": "Recomendado: una compilación diaria con las correcciones más recientes.",
+        "master": "Cada cambio en cuanto se publica. Solo si buscas un arreglo concreto."
+      },
+      "autoUpdate": "Actualizar yt-dlp solo",
+      "autoUpdateHint": "Revisa al abrir ymd y actualiza cuando no hay descargas en curso.",
+      "binDir": "Carpeta de herramientas",
+      "binDirLabel": "Ubicación",
+      "binDirDefault": "Ubicación predeterminada.",
+      "binDirCustom": "Ubicación personalizada.",
+      "binDirReset": "Volver a la predeterminada",
+      "openData": "Abrir carpeta de datos"
+    }
+  },
+  "accounts": {
+    "theBrowser": "el navegador",
+    "cookies": {
+      "title": "Cookies del navegador",
+      "description": "Algunos videos solo se descargan con tu sesión iniciada. ymd puede usar las cookies de tu navegador o una copia en un archivo cookies.txt."
+    },
+    "source": {
+      "label": "Origen de las cookies",
+      "none": "Ninguno",
+      "browser": "Navegador",
+      "file": "Archivo cookies.txt",
+      "hint": {
+        "none": "yt-dlp descarga sin sesión iniciada.",
+        "browser": "yt-dlp lee las cookies del navegador en cada descarga.",
+        "file": "yt-dlp usa la copia importada; funciona aunque el navegador esté abierto."
+      }
+    },
+    "browser": {
+      "label": "Navegador",
+      "detect": "Volver a detectar",
+      "none": "No se encontró ningún navegador compatible.",
+      "running": "abierto",
+      "profiles": "Perfiles: {{n}}",
+      "profile": "Perfil",
+      "defaultProfile": "Predeterminado ({{name}})",
+      "runningNote": "{{browser}} está abierto y mantiene bloqueadas sus cookies. Ciérralo por completo antes de probar o usa un archivo cookies.txt."
+    },
+    "test": "Probar cookies",
+    "testOk": "Las cookies funcionan",
+    "testOkBody": "yt-dlp pudo leerlas. Se usarán en las próximas descargas.",
+    "snapshot": "Importar desde el navegador ahora",
+    "snapshotOk": "Copia de cookies guardada",
+    "snapshotOkBody": "Elige «Archivo cookies.txt» como origen para usarla con el navegador abierto.",
+    "locked": {
+      "title": "{{browser}} tiene bloqueadas sus cookies",
+      "body": "Cierra {{browser}} por completo, incluido el icono junto al reloj, y vuelve a probar. O exporta un archivo cookies.txt: funciona con el navegador abierto.",
+      "retry": "Ya cerré {{browser}}, probar otra vez",
+      "useFile": "Usar cookies.txt"
+    },
+    "decrypt": {
+      "body": "En Windows, {{browser}} cifra sus cookies de forma que otros programas no pueden leerlas. Exporta un archivo cookies.txt con los pasos de abajo."
+    },
+    "guide": {
+      "title": "Exportar cookies.txt",
+      "why": "Un archivo cookies.txt funciona con cualquier navegador y aunque esté abierto.",
+      "whyWindows": "En Windows, {{browser}} y otros navegadores Chromium no dejan leer sus cookies mientras están abiertos y las cifran al cerrarse. La forma fiable es exportar un archivo cookies.txt:",
+      "step1": "En {{browser}}, instala una extensión de código abierto para exportar cookies, como «Get cookies.txt LOCALLY».",
+      "step2": "Abre una ventana privada y permite la extensión en ella.",
+      "step3": "Inicia sesión en YouTube (o en el sitio que necesites) dentro de esa ventana.",
+      "step4": "Usa la extensión para exportar las cookies en formato Netscape (cookies.txt) y cierra la ventana privada.",
+      "step5": "Arrastra el archivo aquí o elígelo con el botón."
+    },
+    "file": {
+      "title": "Copia de cookies de ymd",
+      "drop": "Suelta aquí tu cookies.txt",
+      "release": "Suelta para importar",
+      "dropHint": "Formato Netscape, el que exportan las extensiones.",
+      "pick": "Elegir archivo…",
+      "filter": "Archivo de cookies",
+      "imported": "Cookies importadas",
+      "importedBody": "El origen cambió a «Archivo cookies.txt».",
+      "importFailed": "No se pudo importar el archivo",
+      "importFailedHint": "Comprueba que sea un cookies.txt en formato Netscape.",
+      "noneYet": "Aún no hay una copia. Impórtala desde el navegador o desde un archivo.",
+      "origin": "Origen",
+      "originFile": "Archivo importado",
+      "date": "Fecha",
+      "count": "Cookies",
+      "domains": "Dominios",
+      "clear": "Borrar copia",
+      "privacy": "La copia contiene las cookies de tu navegador, es decir, tus sesiones abiertas. Se guarda solo en tu carpeta de usuario, con permisos solo para ti, y se borra con un clic."
+    },
+    "sites": {
+      "title": "Cuentas de sitios",
+      "description": "Para sitios que piden usuario y contraseña, como Vimeo.",
+      "site": "Sitio",
+      "siteHint": "Nombre del extractor de yt-dlp, por ejemplo vimeo.",
+      "username": "Usuario",
+      "password": "Contraseña",
+      "save": "Guardar cuenta",
+      "add": "Agregar cuenta",
+      "empty": "No hay cuentas guardadas.",
+      "deleteNamed": "Borrar la cuenta de {{site}}",
+      "failed": "No se pudo guardar la cuenta",
+      "keychain": "Las contraseñas se guardan en el llavero del sistema y llegan a yt-dlp sin pasar por el disco ni por la línea de comandos. ymd nunca las vuelve a mostrar."
+    }
   }
 }
