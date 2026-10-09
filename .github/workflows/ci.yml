@@ -1,0 +1,213 @@
+# Gate for every change: nothing merges unless all jobs are green.
+# Branch protection on `main` should require: frontend, rust (3 OS), build-check (3 OS).
+name: CI
+
+on:
+  push:
+    branches: [main, "redesign/**"]
+  pull_request:
+    branches: [main, "redesign/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  frontend:
+    name: frontend (lint, types, unit, e2e)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests + coverage
+        run: pnpm test:coverage
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e '
+              const t = require("./coverage/coverage-summary.json").total;
+              const row = (k) => `| ${k} | ${t[k].pct}% | ${t[k].covered}/${t[k].total} |`;
+              console.log(["### Frontend coverage", "| metric | % | covered |", "|---|---|---|",
+                ...["lines", "statements", "functions", "branches"].map(row)].join("\n"));
+            ' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Install Playwright (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E (mock backend)
+        run: pnpm e2e
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: |
+            coverage/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  rust:
+    name: rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-22.04]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Linux system dependencies (Tauri v2 prerequisites)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+
+      # `tauri::generate_context!` needs `frontendDist` (../dist) to exist at compile time.
+      - name: Frontend dist stub
+        run: |
+          mkdir -p dist
+          [ -f dist/index.html ] || echo '<!doctype html><title>ymd</title>' > dist/index.html
+
+      - name: cargo fmt
+        working-directory: src-tauri
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        working-directory: src-tauri
+        run: cargo clippy --all-targets --features test-support -- -D warnings
+
+      - name: cargo test
+        working-directory: src-tauri
+        run: cargo test --features test-support
+
+  rust-coverage:
+    name: rust coverage (report)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    needs: rust
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+      - name: Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+      - name: Frontend dist stub
+        run: mkdir -p dist && echo '<!doctype html><title>ymd</title>' > dist/index.html
+      - name: cargo llvm-cov
+        working-directory: src-tauri
+        run: |
+          cargo llvm-cov --features test-support --lcov --output-path lcov.info
+          {
+            echo '### Rust coverage'
+            echo '```'
+            cargo llvm-cov report --summary-only
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: src-tauri/lcov.info
+          retention-days: 14
+
+  build-check:
+    name: build-check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-22.04]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: build-check
+
+      - name: Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+
+      - run: pnpm install --frozen-lockfile
+
+      # Runs `beforeBuildCommand` (pnpm build) then compiles the app; no installers.
+      - name: tauri build (no bundle)
+        run: pnpm tauri build --debug --no-bundle
