@@ -1,0 +1,141 @@
+---
+source: tests/settings_store.rs
+expression: defs()
+---
+{
+  "language": "system",
+  "theme": {
+    "mode": "system",
+    "accent": null,
+    "density": "comfortable",
+    "radius": "soft",
+    "fontScale": 1.0
+  },
+  "videoDir": "/videos",
+  "audioDir": "/music",
+  "askEachTime": false,
+  "filenameTemplate": "%(title).180B [%(id)s].%(ext)s",
+  "concurrency": 3,
+  "binDir": null,
+  "ytdlpChannel": "nightly",
+  "autoUpdate": true,
+  "useDownloadArchive": false,
+  "useAria2c": false,
+  "cookies": {
+    "kind": "none"
+  },
+  "presets": [
+    {
+      "id": "best",
+      "name": "Mejor calidad",
+      "kind": "video",
+      "video": {
+        "maxHeight": null,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "best",
+        "quality": "0"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    },
+    {
+      "id": "mp4-1080",
+      "name": "MP4 1080p",
+      "kind": "video",
+      "video": {
+        "maxHeight": 1080,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "best",
+        "quality": "0"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    },
+    {
+      "id": "mp4-720",
+      "name": "MP4 720p",
+      "kind": "video",
+      "video": {
+        "maxHeight": 720,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "best",
+        "quality": "0"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    },
+    {
+      "id": "mp3-320",
+      "name": "MP3 320",
+      "kind": "audio",
+      "video": {
+        "maxHeight": null,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "mp3",
+        "quality": "320K"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    },
+    {
+      "id": "audio-original",
+      "name": "Audio original (m4a/opus)",
+      "kind": "audio",
+      "video": {
+        "maxHeight": null,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "best",
+        "quality": "0"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    }
+  ],
+  "defaultPresetId": "best",
+  "onboarded": false
+}

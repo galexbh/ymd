@@ -1,0 +1,28 @@
+{
+  "language": "es",
+  "theme": { "mode": "dark" },
+  "videoDir": "D:\\Media\\Videos",
+  "concurrency": 5,
+  "presets": [
+    {
+      "id": "best",
+      "name": "Renamed by user",
+      "kind": "audio",
+      "postprocess": {
+        "embedThumbnail": false,
+        "embedMetadata": true,
+        "embedSubs": true,
+        "subLangs": "es.*",
+        "sponsorblockRemove": ["sponsor"]
+      },
+      "outputDir": "D:\\Media\\Best"
+    },
+    {
+      "id": "my-podcast",
+      "name": "Podcast",
+      "kind": "audio",
+      "audio": { "format": "opus", "quality": "5" }
+    }
+  ],
+  "defaultPresetId": "my-podcast"
+}
