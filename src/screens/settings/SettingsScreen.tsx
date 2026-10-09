@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { Check, CircleAlert, LoaderCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Skeleton } from "../../ui";
@@ -13,7 +14,7 @@ import { LanguageSettings } from "./LanguageSettings";
 import { PresetsSettings } from "./PresetsSettings";
 import s from "./settings.module.css";
 
-const SECTION: Record<SettingsSection, () => JSX.Element> = {
+const SECTION: Record<SettingsSection, () => ReactElement> = {
   downloads: DownloadsSettings,
   presets: PresetsSettings,
   accounts: AccountsSettings,

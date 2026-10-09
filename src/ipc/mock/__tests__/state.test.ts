@@ -347,13 +347,13 @@ describe("mock backend — auth", () => {
   it("credentials CRUD never returns passwords", async () => {
     installMockBackend({ clock: "manual" });
     expect(await api.credentialsList()).toEqual([]);
-    await api.credentialsSet(" vimeo ", " ana@example.com ", "s3cret");
+    await api.credentialsSet(" vimeo ", " ana@example.com ", "typed-in-test");
     const list = await api.credentialsSet("nebula", "ana", "pw");
     expect(list).toEqual([
       { extractor: "nebula", username: "ana" },
       { extractor: "vimeo", username: "ana@example.com" },
     ]);
-    expect(JSON.stringify(list)).not.toContain("s3cret");
+    expect(JSON.stringify(list)).not.toContain("typed-in-test");
     await expect(api.credentialsSet("x", "", "pw")).rejects.toMatchObject({ code: "unknown" });
     expect(await api.credentialsDelete("vimeo")).toEqual([
       { extractor: "nebula", username: "ana" },

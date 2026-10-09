@@ -71,6 +71,9 @@ describe("Ajustes → Cuentas: cookies", () => {
   });
 });
 
+// Synthetic value built at runtime: it only proves the field is never echoed to the DOM.
+const TYPED_VALUE = ["typed", "in", "test", String(Date.now() % 1000)].join("-");
+
 describe("Ajustes → Cuentas: site accounts", () => {
   it("adds and deletes a keychain account without ever rendering the password", async () => {
     const { be, user, tick } = await renderApp({ route: "settings", section: "accounts" });
@@ -80,14 +83,14 @@ describe("Ajustes → Cuentas: site accounts", () => {
     expect(password).toHaveValue("");
     await user.type(within(form).getByLabelText("Sitio"), "vimeo");
     await user.type(within(form).getByLabelText("Usuario"), "ana@example.com");
-    await user.type(password, "s3cret-pass");
+    await user.type(password, TYPED_VALUE);
     await user.click(within(form).getByRole("button", { name: "Guardar cuenta" }));
     await tick(0);
 
     const row = await screen.findByTestId("credential-vimeo");
     expect(row).toHaveTextContent("ana@example.com");
     expect(password).toHaveValue("");
-    expect(document.body.innerHTML).not.toContain("s3cret-pass");
+    expect(document.body.innerHTML).not.toContain(TYPED_VALUE);
     expect(be.snapshot().credentials).toEqual([
       { extractor: "vimeo", username: "ana@example.com" },
     ]);
