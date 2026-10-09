@@ -100,7 +100,7 @@ function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; col
           <div className={s.tool}>
             <span className={s.toolName}>
               {name}
-              <Tag tone={dep.level === "required" ? "accent" : "neutral"} className={s.level}>
+              <Tag className={s.level} data-level={dep.level}>
                 {t(`deps.level.${dep.level}`)}
               </Tag>
             </span>

@@ -55,6 +55,10 @@
 .level {
   font-weight: var(--weight-medium);
 }
+.level[data-level="required"] {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
 .toolDesc {
   font-size: var(--text-sm);
   color: var(--text-muted);

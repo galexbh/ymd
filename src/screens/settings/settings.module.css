@@ -387,14 +387,14 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-3) var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
   border-top: 1px solid var(--rule-strong);
   border-bottom: 1px solid var(--rule-ledger);
 }
 .preview > :nth-child(3) {
-  flex: 1 1 8rem;
-  min-width: 6rem;
+  flex: 1 1 4rem;
+  min-width: 3rem;
 }
 .previewTitle {
   font-weight: var(--weight-medium);
