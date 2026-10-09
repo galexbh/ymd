@@ -1,0 +1,48 @@
+{
+  "browser": {
+    "enabled_labs_experiments": [],
+    "last_redirect_origin": ""
+  },
+  "brave": {
+    "p3a": {
+      "enabled": false
+    },
+    "stats": {
+      "reporting_enabled": false
+    }
+  },
+  "os_crypt": {
+    "app_bound_encrypted_key": "U1lOVEhFVElDLUtFWS1OT1QtUkVBTA==",
+    "audit_enabled": true,
+    "encrypted_key": "U1lOVEhFVElDLUtFWS1OT1QtUkVBTA=="
+  },
+  "profile": {
+    "info_cache": {
+      "Default": {
+        "active_time": 1760000000.0,
+        "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_26",
+        "is_using_default_name": true,
+        "name": "Personal"
+      },
+      "Profile 1": {
+        "active_time": 1750000000.0,
+        "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_12",
+        "is_using_default_name": false,
+        "name": "Trabajo – Atlántida"
+      },
+      "Profile 3": {
+        "is_using_default_name": false,
+        "name": "音楽 🎧"
+      }
+    },
+    "last_active_profiles": [
+      "Default"
+    ],
+    "last_used": "Profile 1",
+    "profiles_order": [
+      "Default",
+      "Profile 1",
+      "Profile 3"
+    ]
+  }
+}
