@@ -106,6 +106,7 @@ jobs:
             coverage/
             playwright-report/
             test-results/
+            e2e/__screenshots__/
           if-no-files-found: ignore
           retention-days: 14
 

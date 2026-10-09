@@ -22,7 +22,12 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled" },
   },
-  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{arg}-{projectName}{ext}",
+  // Fonts render differently per OS, so baselines are per platform. A platform without
+  // baselines (e.g. the first Linux CI run) records them instead of failing; CI uploads them
+  // as an artifact so they can be committed.
+  snapshotPathTemplate:
+    "{testDir}/__screenshots__/{platform}/{testFilePath}/{arg}-{projectName}{ext}",
+  updateSnapshots: "missing",
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "on-first-retry",
