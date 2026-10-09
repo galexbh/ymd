@@ -1,0 +1,137 @@
+/* Dialog */
+.dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-overlay);
+  overflow: hidden;
+}
+.dialog.wide {
+  width: min(48rem, calc(100vw - 2rem));
+}
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+  animation: rise var(--dur-base) var(--ease-out);
+}
+.dialog::backdrop {
+  background: var(--scrim, rgb(0 0 0 / 0.5));
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.dialogHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--rule);
+}
+.dialogTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+.dialogBody {
+  padding: var(--space-5);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.dialogFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+/* Notice (inline) and toast */
+.notice {
+  --tone: var(--text-muted);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: var(--text-md);
+}
+.notice > svg {
+  margin-top: 0.15em;
+  color: var(--tone);
+}
+.info {
+  --tone: var(--text-muted);
+}
+.success {
+  --tone: var(--accent);
+  border-color: var(--accent);
+}
+.warning {
+  --tone: var(--warning);
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+.error {
+  --tone: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.noticeText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.noticeTitle {
+  font-weight: var(--weight-semibold);
+}
+.noticeBody {
+  color: var(--text);
+}
+.noticeDetail {
+  margin-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.noticeClose {
+  margin: calc(var(--space-1) * -1) calc(var(--space-1) * -1) 0 0;
+}
+
+.toastRegion {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(26rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  box-shadow: var(--shadow-overlay);
+  animation: rise var(--dur-base) var(--ease-out);
+}

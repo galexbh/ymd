@@ -1,0 +1,182 @@
+/* SegmentedControl */
+.segmented {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--control-h);
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+}
+.segmented.lg {
+  height: var(--control-h-lg);
+}
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 4.5rem;
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.segment:hover:not(:disabled),
+.segment[data-demo-state="hover"] {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.segment[aria-checked="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+}
+.segment[aria-checked="true"] svg {
+  color: var(--accent);
+}
+.segment:focus-visible {
+  outline-offset: 0;
+}
+.segment:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* Switch */
+.toggleRow {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+.toggleRow[data-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+}
+.toggleText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-md);
+}
+.toggleDesc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: calc(2.25rem * var(--font-scale));
+  height: calc(1.25rem * var(--font-scale));
+  margin-top: 1px;
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  cursor: inherit;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem * var(--font-scale) - 6px);
+  height: calc(1.25rem * var(--font-scale) - 6px);
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.switch:hover:not(:disabled),
+.switch[data-demo-state="hover"] {
+  border-color: var(--text-faint);
+}
+.switch[aria-checked="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.switch[aria-checked="true"]:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.switch[aria-checked="true"]::after {
+  background: var(--on-accent);
+  transform: translateX(calc(1rem * var(--font-scale)));
+}
+.switch:disabled {
+  background: var(--surface-sunken);
+  border-color: var(--rule);
+}
+.switch:disabled::after {
+  background: var(--text-disabled);
+}
+
+/* Checkbox */
+.checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: calc(1rem * var(--font-scale));
+  height: calc(1rem * var(--font-scale));
+  margin: 2px 0 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  cursor: inherit;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.checkbox::before {
+  content: "";
+  width: 75%;
+  height: 75%;
+  background: var(--on-accent);
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+  transform: scale(0);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.checkbox {
+  --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.checkbox:indeterminate {
+  --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8h9' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.checkbox:hover:not(:disabled),
+.checkbox[data-demo-state="hover"] {
+  border-color: var(--text-faint);
+}
+.checkbox:checked,
+.checkbox:indeterminate {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.checkbox:checked::before,
+.checkbox:indeterminate::before {
+  transform: scale(1);
+}
+.checkbox:disabled {
+  background: var(--surface-sunken);
+  border-color: var(--rule);
+}
+.checkbox:disabled::before {
+  background: var(--text-disabled);
+}
+.checkbox[aria-invalid="true"] {
+  border-color: var(--danger);
+}
