@@ -1,5 +1,5 @@
 # Gate for every change: nothing merges unless all jobs are green.
-# Branch protection on `main` should require: frontend, rust (3 OS), build-check (3 OS).
+# Branch protection on `main` should require: audit, frontend, rust (3 OS), build-check (3 OS).
 name: CI
 
 on:
@@ -26,6 +26,28 @@ defaults:
     shell: bash
 
 jobs:
+  audit:
+    name: dependency audit (npm + RustSec)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: pnpm audit (fails on high or critical)
+        run: pnpm audit --audit-level high
+
+      - name: cargo audit
+        working-directory: src-tauri
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
   frontend:
     name: frontend (lint, types, unit, e2e)
     runs-on: ubuntu-24.04
