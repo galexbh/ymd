@@ -1,0 +1,32 @@
+# Normalise line endings: LF in the repo and in working trees on every OS.
+* text=auto eol=lf
+
+# Windows scripts keep CRLF.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary assets
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.icns  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.mp3   binary
+*.mp4   binary
+*.webm  binary
+*.zip   binary
+*.gz    binary
+*.xz    binary
+*.exe   binary
+*.dll   binary
+
+# Lockfiles: hide noisy diffs; regenerate instead of hand-merging.
+pnpm-lock.yaml       -diff linguist-generated
+src-tauri/Cargo.lock -diff linguist-generated

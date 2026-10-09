@@ -1,0 +1,3 @@
+# rustfmt defaults, kept explicit so editors and CI agree. rustfmt looks up parent
+# directories, so this also applies to `cargo fmt` run inside src-tauri/.
+edition = "2021"
