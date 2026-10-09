@@ -1,0 +1,8 @@
+YMD_PP|started|Merger
+YMD_PP|finished|Merger
+YMD_PP|started|Metadata
+YMD_PP|finished|Metadata
+YMD_PP|started|EmbedThumbnail
+YMD_PP|finished|EmbedThumbnail
+YMD_PP|started|MoveFiles
+YMD_PP|finished|MoveFiles
