@@ -32,7 +32,7 @@ import {
   TextField,
   Thumb,
   Tooltip,
-  formatDate,
+  formatStampDate,
 } from "../../ui";
 import { currentLocale } from "../../i18n";
 import { openFile, showInFolder } from "../../app/native";
@@ -242,7 +242,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
         <SeqFigure seq={item.seq} />
       </LedgerCell>
       <LedgerCell className={s.cDate}>
-        <Figure value={formatDate(item.completedAt, locale)} muted />
+        <Figure value={formatStampDate(item.completedAt, locale)} muted />
       </LedgerCell>
       <LedgerCell>
         <div className={s.titleCell}>

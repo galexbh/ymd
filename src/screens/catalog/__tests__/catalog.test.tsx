@@ -84,6 +84,8 @@ describe("Catálogo", () => {
     expect(screen.getByRole("columnheader", { name: "N.º" })).toBeInTheDocument();
     const newest = rows()[0];
     expect(within(newest).getByText("000025")).toBeInTheDocument();
+    // filing dates use the stamp formatter everywhere ("07 OCT 2026")
+    expect(within(newest).getByText(/^\d{2}\s[A-Z]{3,4}\s\d{4}$/)).toBeInTheDocument();
     // "Best quality" stored, shown by id in the UI language
     expect(screen.getAllByText("Mejor calidad").length).toBeGreaterThan(0);
     expect(screen.queryByText("Best quality")).toBeNull();

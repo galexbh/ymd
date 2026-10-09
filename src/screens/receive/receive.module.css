@@ -20,8 +20,8 @@
 .preset {
   min-width: 0;
 }
-/* only a genuinely narrow counter wraps the link onto its own row */
-@container (max-width: 680px) {
+/* below ~820px the link gets its own full-width row so a pasted URL stays readable */
+@container (max-width: 820px) {
   .counter {
     grid-template-columns: auto minmax(8rem, 1fr) auto;
   }
@@ -29,9 +29,8 @@
     grid-column: 1 / -1;
   }
 }
-@container (max-width: 860px) {
+@container (max-width: 1000px) {
   .counter {
-    grid-template-columns: minmax(12rem, 1fr) auto minmax(8.5rem, 11rem) auto;
     gap: var(--space-2);
   }
 }
