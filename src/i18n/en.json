@@ -201,7 +201,10 @@
     "help": "Show this list"
   },
   "toast": {
-    "archived": "Archived: {{title}}"
+    "archived": "Archived: {{title}}",
+    "appUpdate": "A new version of ymd is available: {{version}}",
+    "appUpdateInstall": "Install and restart",
+    "appUpdateLater": "Later"
   },
   "presets": {
     "builtin": {
@@ -572,7 +575,22 @@
       "binDirDefault": "Default location.",
       "binDirCustom": "Custom location.",
       "binDirReset": "Back to the default",
-      "openData": "Open data folder"
+      "openData": "Open data folder",
+      "app": {
+        "title": "ymd",
+        "current": "Installed version",
+        "check": "Check for updates",
+        "checking": "Checking…",
+        "upToDate": "You have the latest version.",
+        "available": "Version {{version}} is available.",
+        "install": "Install and restart",
+        "downloading": "Downloading the update",
+        "installing": "Installing; ymd will restart.",
+        "error": "Could not check for updates: {{error}}",
+        "unknown": "unknown",
+        "hint": "ymd updates are signed, come from GitHub Releases and are verified before installing.",
+        "dev": "Updates only work in the installed app."
+      }
     }
   },
   "accounts": {

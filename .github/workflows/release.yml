@@ -89,9 +89,7 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
-          # TODO(plan "Fase 3: Empaquetado y distribución"): once `tauri-plugin-updater` is wired
-          # (plugins.updater pubkey + endpoints in tauri.conf.json and
-          # `bundle.createUpdaterArtifacts: true`), flip this to true so tauri-action uploads
-          # signed updater artifacts and `latest.json`. Until then no updater manifest is
-          # produced or required.
-          includeUpdaterJson: false
+          # Signed updater artifacts + latest.json for tauri-plugin-updater. The app reads
+          # releases/latest/download/latest.json, so a release must be published (not draft)
+          # before installed copies see it.
+          includeUpdaterJson: true

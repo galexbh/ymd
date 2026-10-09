@@ -119,6 +119,21 @@ tema claro y oscuro. Respeta `prefers-reduced-motion` y el foco visible.
 - El `cookies.txt` propio de ymd se crea con permisos solo para el usuario (0600 / ACL).
 - Nunca se suben binarios descargados ni material de autenticación (ver `.gitignore`).
 
+## Releases y auto-actualización
+
+- ymd se actualiza sola con `tauri-plugin-updater`. Lee `releases/latest/download/latest.json` de GitHub, y cada instalador va firmado (minisign). La clave pública vive en `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`).
+- La clave privada **nunca** entra al repo:
+  - En CI está en los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+  - En la máquina del mantenedor está en `~/.tauri/ymd-updater.key`, con su contraseña aparte.
+  - Si se pierde, las copias instaladas ya no aceptarán actualizaciones: habría que publicar una versión nueva con otra clave e instalarla a mano.
+- Para publicar:
+  1. Subir la versión en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
+  2. Crear el tag `vX.Y.Z` y hacer push.
+  3. `release.yml` crea un release en borrador con los instaladores, los `.sig` y `latest.json`.
+  4. Revisarlo y **publicarlo**: las copias instaladas solo ven releases publicados.
+- Para generar un instalador en local (`pnpm tauri build`), exporta antes las dos variables de entorno de firma. Sin ellas, el paso de firma del actualizador falla. Para compilar sin empaquetar, `pnpm tauri build --no-bundle` no las necesita.
+- Los instaladores de Windows no llevan firma de código (Authenticode), así que SmartScreen muestra un aviso en la primera instalación.
+
 ## Commits
 
 Mensajes en imperativo y concisos ("Add cookie snapshot command"). Si el cambio lo escribió o

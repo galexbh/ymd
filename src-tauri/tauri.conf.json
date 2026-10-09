@@ -39,13 +39,25 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
       "nsis": {
         "installMode": "currentUser",
         "languages": ["Spanish", "English"],
         "displayLanguageSelector": true,
         "headerImage": "icons/nsis-header.bmp",
         "sidebarImage": "icons/nsis-sidebar.bmp"
+      }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU0MjY3NkNDQTE5RkY3NjQKUldSazk1K2h6SFltVk5Pb25sbW4wR3dwMVdKV0FleHJYamlQVGpaVEZLMEIrUkgweHpPRHFTalEK",
+      "endpoints": ["https://github.com/galexbh/ymd/releases/latest/download/latest.json"],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }

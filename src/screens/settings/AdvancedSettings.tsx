@@ -1,7 +1,8 @@
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { UpdateChannel } from "../../ipc/types";
-import { Button, Section, SegmentedControl, Switch } from "../../ui";
+import { Button, Notice, ProgressDeterminate, Section, SegmentedControl, Switch } from "../../ui";
+import { inTauri, useAppUpdate } from "../../store/appUpdate";
 import { openFile, parentDir } from "../../app/native";
 import { useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
@@ -20,6 +21,65 @@ async function dataDir(fallback: string | undefined): Promise<string | null> {
   return fallback ? parentDir(fallback) : null;
 }
 
+function AppUpdateSection() {
+  const { t } = useTranslation();
+  const u = useAppUpdate();
+  const busy = u.status === "checking" || u.status === "downloading" || u.status === "installing";
+  const native = inTauri();
+  return (
+    <Section title={t("settings.advanced.app.title")}>
+      <p className={s.fieldHint}>
+        {t("settings.advanced.app.current")}:{" "}
+        <span className="figure">{u.current ?? t("settings.advanced.app.unknown")}</span>
+      </p>
+      <p className={s.fieldHint}>
+        {native ? t("settings.advanced.app.hint") : t("settings.advanced.app.dev")}
+      </p>
+      <div className={screen.inline}>
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={RefreshCw}
+          loading={u.status === "checking"}
+          disabled={!native || busy}
+          onClick={() => void u.check()}
+        >
+          {u.status === "checking"
+            ? t("settings.advanced.app.checking")
+            : t("settings.advanced.app.check")}
+        </Button>
+        {u.status === "available" && (
+          <Button size="sm" onClick={() => void u.install()}>
+            {t("settings.advanced.app.install")}
+          </Button>
+        )}
+      </div>
+      {u.status === "upToDate" && (
+        <p className={s.fieldHint}>{t("settings.advanced.app.upToDate")}</p>
+      )}
+      {u.status === "available" && (
+        <Notice tone="info" title={t("settings.advanced.app.available", { version: u.version })}>
+          {u.notes}
+        </Notice>
+      )}
+      {(u.status === "downloading" || u.status === "installing") && (
+        <ProgressDeterminate
+          label={
+            u.status === "installing"
+              ? t("settings.advanced.app.installing")
+              : t("settings.advanced.app.downloading")
+          }
+          value={u.downloaded}
+          max={u.total}
+        />
+      )}
+      {u.status === "error" && (
+        <Notice tone="error" title={t("settings.advanced.app.error", { error: u.error ?? "" })} />
+      )}
+    </Section>
+  );
+}
+
 export function AdvancedSettings() {
   const { t } = useTranslation();
   const settings = useSettings((st) => st.settings)!;
@@ -36,6 +96,7 @@ export function AdvancedSettings() {
 
   return (
     <>
+      <AppUpdateSection />
       <Section title={t("settings.advanced.ytdlp")}>
         <div className={s.fieldStack}>
           <span className={s.fieldLabel}>{t("settings.advanced.channel")}</span>
