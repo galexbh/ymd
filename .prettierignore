@@ -25,3 +25,6 @@ src-tauri/tests/fixtures
 src-tauri/**/snapshots
 *.snap
 .impeccable
+
+# Machine-read design record (written by the impeccable documenter)
+DESIGN.md
