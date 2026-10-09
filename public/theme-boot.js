@@ -8,12 +8,15 @@
     var s = (cache && cache.settings) || {};
     var dark =
       s.mode === "dark" ||
-      (s.mode !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      (s.mode !== "light" &&
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
     var theme = dark ? "dark" : "light";
     root.setAttribute("data-theme", theme);
     root.setAttribute("data-density", s.density || "comfortable");
     root.setAttribute("data-radius", s.radius || "soft");
-    if (typeof s.fontScale === "number") root.style.setProperty("--font-scale", String(s.fontScale));
+    if (typeof s.fontScale === "number")
+      root.style.setProperty("--font-scale", String(s.fontScale));
     var vars = cache && cache.vars && cache.vars[theme];
     if (vars) for (var k in vars) root.style.setProperty(k, vars[k]);
   } catch (e) {

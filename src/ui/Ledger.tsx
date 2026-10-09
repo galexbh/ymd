@@ -11,7 +11,14 @@ export interface LedgerProps extends HTMLAttributes<HTMLTableElement> {
 }
 
 /** Ruled register table; a real <table> with aligned numeric columns. */
-export function Ledger({ caption, columns, className, wrapClassName, children, ...rest }: LedgerProps) {
+export function Ledger({
+  caption,
+  columns,
+  className,
+  wrapClassName,
+  children,
+  ...rest
+}: LedgerProps) {
   return (
     <div className={cx(s.wrap, wrapClassName)}>
       <table className={cx(s.ledger, className)} {...rest}>
@@ -42,8 +49,20 @@ export interface LedgerHeaderCellProps extends ThHTMLAttributes<HTMLTableCellEle
   center?: boolean;
 }
 
-export function LedgerHeaderCell({ numeric, center, className, scope = "col", ...rest }: LedgerHeaderCellProps) {
-  return <th scope={scope} className={cx(numeric && s.numeric, center && s.center, className)} {...rest} />;
+export function LedgerHeaderCell({
+  numeric,
+  center,
+  className,
+  scope = "col",
+  ...rest
+}: LedgerHeaderCellProps) {
+  return (
+    <th
+      scope={scope}
+      className={cx(numeric && s.numeric, center && s.center, className)}
+      {...rest}
+    />
+  );
 }
 
 export interface LedgerRowProps extends HTMLAttributes<HTMLTableRowElement> {
@@ -75,10 +94,25 @@ export interface LedgerCellProps extends TdHTMLAttributes<HTMLTableCellElement> 
   shrink?: boolean;
 }
 
-export function LedgerCell({ numeric, center, truncate, muted, shrink, className, ...rest }: LedgerCellProps) {
+export function LedgerCell({
+  numeric,
+  center,
+  truncate,
+  muted,
+  shrink,
+  className,
+  ...rest
+}: LedgerCellProps) {
   return (
     <td
-      className={cx(numeric && s.numeric, center && s.center, truncate && s.truncate, muted && s.muted, shrink && s.shrink, className)}
+      className={cx(
+        numeric && s.numeric,
+        center && s.center,
+        truncate && s.truncate,
+        muted && s.muted,
+        shrink && s.shrink,
+        className,
+      )}
       {...rest}
     />
   );

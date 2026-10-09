@@ -14,7 +14,9 @@ export const resources = {
 /** Resolves the "system" setting against the webview's languages. */
 export function resolveLanguage(lang: Language, navLangs?: readonly string[]): AppLocale {
   if (lang === "es" || lang === "en") return lang;
-  const list = navLangs ?? (typeof navigator !== "undefined" ? navigator.languages ?? [navigator.language] : []);
+  const list =
+    navLangs ??
+    (typeof navigator !== "undefined" ? (navigator.languages ?? [navigator.language]) : []);
   for (const l of list) {
     const base = l.toLowerCase().split("-")[0];
     if (base === "es" || base === "en") return base;

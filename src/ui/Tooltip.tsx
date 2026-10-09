@@ -1,4 +1,11 @@
-import { cloneElement, isValidElement, useId, useState, type ReactElement, type ReactNode } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  useId,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import s from "./Misc.module.css";
 import { cx } from "./cx";
 
@@ -15,7 +22,13 @@ export interface TooltipProps {
  * Supplementary hint on hover and keyboard focus. Escape hides it.
  * Never put essential information only in a tooltip.
  */
-export function Tooltip({ content, children, placement = "top", className, "data-demo-state": demo }: TooltipProps) {
+export function Tooltip({
+  content,
+  children,
+  placement = "top",
+  className,
+  "data-demo-state": demo,
+}: TooltipProps) {
   const id = useId();
   const [dismissed, setDismissed] = useState(false);
   const trigger = isValidElement(children)
@@ -34,7 +47,12 @@ export function Tooltip({ content, children, placement = "top", className, "data
       onBlur={() => setDismissed(false)}
     >
       {trigger}
-      <span role="tooltip" id={id} className={cx(s.tip, placement === "bottom" && s.tipBottom)} data-demo-state={demo}>
+      <span
+        role="tooltip"
+        id={id}
+        className={cx(s.tip, placement === "bottom" && s.tipBottom)}
+        data-demo-state={demo}
+      >
         {content}
       </span>
     </span>

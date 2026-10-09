@@ -1,4 +1,12 @@
-import { forwardRef, useEffect, useId, useRef, useImperativeHandle, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  useImperativeHandle,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
 import s from "./Choice.module.css";
 import { cx } from "./cx";
 
@@ -14,11 +22,24 @@ export interface SwitchProps {
 }
 
 /** On/off setting that applies immediately. */
-export function Switch({ checked, onChange, label, description, disabled, id: idProp, className, "data-demo-state": demo }: SwitchProps) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled,
+  id: idProp,
+  className,
+  "data-demo-state": demo,
+}: SwitchProps) {
   const autoId = useId();
   const id = idProp ?? autoId;
   return (
-    <label className={cx(s.toggleRow, className)} data-disabled={disabled ? "true" : undefined} htmlFor={id}>
+    <label
+      className={cx(s.toggleRow, className)}
+      data-disabled={disabled ? "true" : undefined}
+      htmlFor={id}
+    >
       <button
         id={id}
         type="button"
@@ -42,7 +63,10 @@ export function Switch({ checked, onChange, label, description, disabled, id: id
   );
 }
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
+export interface CheckboxProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "type" | "onChange"
+> {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: ReactNode;
@@ -54,7 +78,18 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 
 /** Native checkbox, restyled; part of a set of choices or a list selection. */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
-  { checked, onCheckedChange, label, description, indeterminate = false, invalid, disabled, id: idProp, className, ...rest },
+  {
+    checked,
+    onCheckedChange,
+    label,
+    description,
+    indeterminate = false,
+    invalid,
+    disabled,
+    id: idProp,
+    className,
+    ...rest
+  },
   ref,
 ) {
   const autoId = useId();
@@ -65,7 +100,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
     if (inner.current) inner.current.indeterminate = indeterminate;
   }, [indeterminate]);
   return (
-    <label className={cx(s.toggleRow, className)} data-disabled={disabled ? "true" : undefined} htmlFor={id}>
+    <label
+      className={cx(s.toggleRow, className)}
+      data-disabled={disabled ? "true" : undefined}
+      htmlFor={id}
+    >
       <input
         ref={inner}
         id={id}

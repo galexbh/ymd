@@ -10,5 +10,7 @@ export interface IconProps extends Omit<LucideProps, "ref"> {
 
 /** Decorative lucide icon with the shared stroke; label the parent control instead. */
 export function Icon({ icon: Glyph, size = 16, ...rest }: IconProps) {
-  return <Glyph size={size} strokeWidth={ICON_STROKE} aria-hidden="true" focusable="false" {...rest} />;
+  return (
+    <Glyph size={size} strokeWidth={ICON_STROKE} aria-hidden="true" focusable="false" {...rest} />
+  );
 }

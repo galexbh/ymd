@@ -21,11 +21,26 @@ export interface ThumbCellProps {
 }
 
 /** Stamp-size playlist entry; selected entries are circled in ink. */
-export function ThumbCell({ seq, title, thumbnail, duration, selected, onSelectedChange, disabled, className, "data-demo-state": demo }: ThumbCellProps) {
+export function ThumbCell({
+  seq,
+  title,
+  thumbnail,
+  duration,
+  selected,
+  onSelectedChange,
+  disabled,
+  className,
+  "data-demo-state": demo,
+}: ThumbCellProps) {
   const { t } = useTranslation();
   const [broken, setBroken] = useState(false);
   return (
-    <label className={cx(s.cell, className)} data-selected={selected || undefined} data-disabled={disabled || undefined} data-demo-state={demo}>
+    <label
+      className={cx(s.cell, className)}
+      data-selected={selected || undefined}
+      data-disabled={disabled || undefined}
+      data-demo-state={demo}
+    >
       <input
         type="checkbox"
         className="visually-hidden"
@@ -35,7 +50,13 @@ export function ThumbCell({ seq, title, thumbnail, duration, selected, onSelecte
       />
       <span className={s.frame}>
         {thumbnail && !broken ? (
-          <img src={thumbnail} alt="" loading="lazy" decoding="async" onError={() => setBroken(true)} />
+          <img
+            src={thumbnail}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={() => setBroken(true)}
+          />
         ) : (
           <span className={s.placeholder} title={t("ui.thumb.noImage")}>
             <Icon icon={ImageOff} size={18} />

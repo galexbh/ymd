@@ -37,7 +37,16 @@ export interface NoticeProps {
 }
 
 /** Inline message with an optional next step; errors name the recovery. */
-export function Notice({ tone = "info", title, children, detail, actions, onDismiss, className, live = true }: NoticeProps) {
+export function Notice({
+  tone = "info",
+  title,
+  children,
+  detail,
+  actions,
+  onDismiss,
+  className,
+  live = true,
+}: NoticeProps) {
   const { t } = useTranslation();
   return (
     <div
@@ -52,23 +61,57 @@ export function Notice({ tone = "info", title, children, detail, actions, onDism
         {actions && actions.length > 0 && (
           <div className={s.noticeActions}>
             {actions.map((a) => (
-              <Button key={a.label} size="sm" variant={a.primary ? (tone === "error" ? "secondary" : "primary") : "ghost"} onClick={a.onClick}>
+              <Button
+                key={a.label}
+                size="sm"
+                variant={a.primary ? (tone === "error" ? "secondary" : "primary") : "ghost"}
+                onClick={a.onClick}
+              >
                 {a.label}
               </Button>
             ))}
           </div>
         )}
       </div>
-      {onDismiss ? <IconButton icon={X} size="sm" className={s.noticeClose} aria-label={t("ui.notice.dismiss")} onClick={onDismiss} /> : <span />}
+      {onDismiss ? (
+        <IconButton
+          icon={X}
+          size="sm"
+          className={s.noticeClose}
+          aria-label={t("ui.notice.dismiss")}
+          onClick={onDismiss}
+        />
+      ) : (
+        <span />
+      )}
     </div>
   );
 }
 
 /** Notice for an IPC/job error: translated title + next step, raw detail below. */
-export function ErrorNotice({ code, detail, actions, onDismiss, className }: { code: ErrorCode; detail?: string; actions?: NoticeAction[]; onDismiss?: () => void; className?: string }) {
+export function ErrorNotice({
+  code,
+  detail,
+  actions,
+  onDismiss,
+  className,
+}: {
+  code: ErrorCode;
+  detail?: string;
+  actions?: NoticeAction[];
+  onDismiss?: () => void;
+  className?: string;
+}) {
   const { t } = useTranslation();
   return (
-    <Notice tone="error" title={t(`error.${code}.title`)} detail={detail} actions={actions} onDismiss={onDismiss} className={className}>
+    <Notice
+      tone="error"
+      title={t(`error.${code}.title`)}
+      detail={detail}
+      actions={actions}
+      onDismiss={onDismiss}
+      className={className}
+    >
       {t(`error.${code}.action`)}
     </Notice>
   );

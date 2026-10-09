@@ -6,10 +6,10 @@
 //!   assert exactly what ymd passed (argv only, never a shell).
 //! - `FAKE_YTDLP_VERSION`: what `--version` prints (default `2026.10.07`).
 //! - `FAKE_YTDLP_SCRIPT`: path to a script; one directive per line (blank lines / `#` ignored):
-//!     `out <text>`   print a line on stdout        `err <text>`   print a line on stderr
-//!     `sleep <ms>`   wait                          `hang`         sleep forever (cancel tests)
-//!     `touch <path>` create a file (+ parents)     `exit <code>`  stop with that exit code
-//!     `cat <path>`   copy a file to stdout (e.g. a recorded `-J` JSON fixture)
+//!   `out <text>`   print a line on stdout        `err <text>`   print a line on stderr
+//!   `sleep <ms>`   wait                          `hang`         sleep forever (cancel tests)
+//!   `touch <path>` create a file (+ parents)     `exit <code>`  stop with that exit code
+//!   `cat <path>`   copy a file to stdout (e.g. a recorded `-J` JSON fixture)
 //!   Text and paths expand `{arg:-o}` / `{arg:-P}` (value after that flag; `-P` defaults to
 //!   `.`), `{cwd}`, `{pid}`
 //!   and `{env:NAME}`.

@@ -20,7 +20,16 @@ export const hintId = (id: string) => `${id}-hint`;
 export const errorId = (id: string) => `${id}-error`;
 
 /** Label + control + hint/error, shared by every form field. */
-export function FieldFrame({ id, label, hideLabel, hint, error, optional, className, children }: FieldFrameProps) {
+export function FieldFrame({
+  id,
+  label,
+  hideLabel,
+  hint,
+  error,
+  optional,
+  className,
+  children,
+}: FieldFrameProps) {
   const { t } = useTranslation();
   return (
     <div className={cx(s.field, className)}>
@@ -44,7 +53,9 @@ export function FieldFrame({ id, label, hideLabel, hint, error, optional, classN
 }
 
 export function describedBy(id: string, hint: unknown, error: unknown, extra?: string) {
-  return [error ? errorId(id) : hint ? hintId(id) : null, extra].filter(Boolean).join(" ") || undefined;
+  return (
+    [error ? errorId(id) : hint ? hintId(id) : null, extra].filter(Boolean).join(" ") || undefined
+  );
 }
 
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -62,13 +73,36 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 }
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  { id: idProp, label, hideLabel, hint, error, optional, leadingIcon, trailing, mono, disabled, fieldClassName, className, "data-demo-state": demo, ...rest },
+  {
+    id: idProp,
+    label,
+    hideLabel,
+    hint,
+    error,
+    optional,
+    leadingIcon,
+    trailing,
+    mono,
+    disabled,
+    fieldClassName,
+    className,
+    "data-demo-state": demo,
+    ...rest
+  },
   ref,
 ) {
   const autoId = useId();
   const id = idProp ?? autoId;
   return (
-    <FieldFrame id={id} label={label} hideLabel={hideLabel} hint={hint} error={error} optional={optional} className={fieldClassName}>
+    <FieldFrame
+      id={id}
+      label={label}
+      hideLabel={hideLabel}
+      hint={hint}
+      error={error}
+      optional={optional}
+      className={fieldClassName}
+    >
       <div
         className={cx(s.control, mono && s.mono, className)}
         data-invalid={error ? "true" : undefined}

@@ -27,7 +27,8 @@ function nf(locale: FormatLocale, digits: number): Intl.NumberFormat {
   return f;
 }
 
-const valid = (n: number | null | undefined): n is number => typeof n === "number" && Number.isFinite(n) && n >= 0;
+const valid = (n: number | null | undefined): n is number =>
+  typeof n === "number" && Number.isFinite(n) && n >= 0;
 
 /** Binary byte size split into value and unit: 1536 -> { "1.5", "KiB" }. */
 export function bytesParts(bytes: number | null | undefined, locale: FormatLocale): FigureParts {
@@ -47,12 +48,18 @@ export function formatBytes(bytes: number | null | undefined, locale: FormatLoca
   return p.unit ? `${p.value}${NBSP}${p.unit}` : p.value;
 }
 
-export function speedParts(bytesPerSecond: number | null | undefined, locale: FormatLocale): FigureParts {
+export function speedParts(
+  bytesPerSecond: number | null | undefined,
+  locale: FormatLocale,
+): FigureParts {
   const p = bytesParts(bytesPerSecond, locale);
   return p.unit ? { value: p.value, unit: `${p.unit}/s` } : p;
 }
 
-export function formatSpeed(bytesPerSecond: number | null | undefined, locale: FormatLocale): string {
+export function formatSpeed(
+  bytesPerSecond: number | null | undefined,
+  locale: FormatLocale,
+): string {
   const p = speedParts(bytesPerSecond, locale);
   return p.unit ? `${p.value}${NBSP}${p.unit}` : p.value;
 }
@@ -100,7 +107,9 @@ export function accessionDigits(seq: number): string {
 /** Whole-number percentage of a fraction 0..1 ("42 %" in es, "42%" in en). */
 export function formatPercent(fraction: number | null | undefined, locale: FormatLocale): string {
   if (!valid(fraction)) return PLACEHOLDER;
-  return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(Math.min(1, fraction));
+  return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(
+    Math.min(1, fraction),
+  );
 }
 
 const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
@@ -114,7 +123,11 @@ const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
 ];
 
 /** "hace 5 minutos" / "5 minutes ago"; dates older than a week also print the date. */
-export function formatRelativeDate(date: string | Date, locale: FormatLocale, now: Date = new Date()): string {
+export function formatRelativeDate(
+  date: string | Date,
+  locale: FormatLocale,
+  now: Date = new Date(),
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(d.getTime())) return PLACEHOLDER;
   let delta = (d.getTime() - now.getTime()) / 1000;
@@ -133,5 +146,9 @@ export function formatRelativeDate(date: string | Date, locale: FormatLocale, no
 export function formatDate(date: string | Date, locale: FormatLocale): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(d.getTime())) return PLACEHOLDER;
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(d);
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(d);
 }

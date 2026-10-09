@@ -14,6 +14,7 @@ export default tseslint.config(
       "playwright-report",
       "test-results",
       "src-tauri/target",
+      ".claude",
       "src-tauri/gen",
       "node_modules",
       ".impeccable",
@@ -59,7 +60,20 @@ export default tseslint.config(
   },
   {
     files: ["**/*.js"],
+    ignores: ["public/**"],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node, sourceType: "module" },
+  },
+  {
+    // Classic browser script loaded before the bundle (theme boot).
+    files: ["public/**/*.js"],
+    extends: [js.configs.recommended],
+    languageOptions: { globals: globals.browser, sourceType: "script" },
+    rules: { "no-unused-vars": ["error", { caughtErrors: "none" }] },
+  },
+  {
+    // Primitive modules export small helpers next to components on purpose.
+    files: ["src/ui/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
 );

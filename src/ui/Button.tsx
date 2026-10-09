@@ -20,7 +20,18 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const iconSize = (size: ButtonSize) => (size === "sm" ? 14 : size === "lg" ? 18 : 16);
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "secondary", size = "md", loading = false, leadingIcon, trailingIcon, disabled, className, children, type = "button", ...rest },
+  {
+    variant = "secondary",
+    size = "md",
+    loading = false,
+    leadingIcon,
+    trailingIcon,
+    disabled,
+    className,
+    children,
+    type = "button",
+    ...rest
+  },
   ref,
 ) {
   const lead = loading ? LoaderCircle : leadingIcon;
@@ -33,7 +44,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       {...rest}
     >
-      {lead && <Icon icon={lead} size={iconSize(size)} className={loading ? s.spinner : undefined} />}
+      {lead && (
+        <Icon icon={lead} size={iconSize(size)} className={loading ? s.spinner : undefined} />
+      )}
       {children}
       {trailingIcon && !loading && <Icon icon={trailingIcon} size={iconSize(size)} />}
     </button>
@@ -50,7 +63,16 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, variant = "ghost", size = "md", loading = false, disabled, className, type = "button", ...rest },
+  {
+    icon,
+    variant = "ghost",
+    size = "md",
+    loading = false,
+    disabled,
+    className,
+    type = "button",
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -62,7 +84,11 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       aria-busy={loading || undefined}
       {...rest}
     >
-      <Icon icon={loading ? LoaderCircle : icon} size={iconSize(size)} className={loading ? s.spinner : undefined} />
+      <Icon
+        icon={loading ? LoaderCircle : icon}
+        size={iconSize(size)}
+        className={loading ? s.spinner : undefined}
+      />
     </button>
   );
 });

@@ -10,8 +10,12 @@ import { formatBytes, formatPercent } from "./format";
  * Exact fraction of a span: value/max clamped to 0..1, or null when the total
  * is unknown. No easing and no rounding: the ink is the real share.
  */
-export function spanFraction(value: number | null | undefined, max: number | null | undefined): number | null {
-  if (value == null || max == null || !Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return null;
+export function spanFraction(
+  value: number | null | undefined,
+  max: number | null | undefined,
+): number | null {
+  if (value == null || max == null || !Number.isFinite(value) || !Number.isFinite(max) || max <= 0)
+    return null;
   return Math.min(1, Math.max(0, value / max));
 }
 
@@ -31,9 +35,23 @@ export interface LedgerSpanProps {
   className?: string;
 }
 
-export function LedgerSpan({ value, max, fraction: fractionProp, stage, label, valueText, thick, className }: LedgerSpanProps) {
+export function LedgerSpan({
+  value,
+  max,
+  fraction: fractionProp,
+  stage,
+  label,
+  valueText,
+  thick,
+  className,
+}: LedgerSpanProps) {
   const { t } = useTranslation();
-  let fraction = fractionProp !== undefined ? (fractionProp == null ? null : Math.min(1, Math.max(0, fractionProp))) : spanFraction(value, max);
+  let fraction =
+    fractionProp !== undefined
+      ? fractionProp == null
+        ? null
+        : Math.min(1, Math.max(0, fractionProp))
+      : spanFraction(value, max);
   if (stage === "done" || stage === "merging" || stage === "postprocessing") fraction = 1;
   const indeterminate = fraction === null;
   const pct = indeterminate ? undefined : fraction! * 100;
@@ -47,9 +65,22 @@ export function LedgerSpan({ value, max, fraction: fractionProp, stage, label, v
       aria-valuenow={pct === undefined ? undefined : Math.round(pct * 10) / 10}
       aria-valuetext={valueText ?? (indeterminate ? t("ui.ledgerSpan.unknownTotal") : undefined)}
       data-stage={stage}
-      className={cx(s.span, indeterminate && s.indeterminate, stage === "error" && s.error, stage === "canceled" && s.canceled, thick && s.thick, className)}
+      className={cx(
+        s.span,
+        indeterminate && s.indeterminate,
+        stage === "error" && s.error,
+        stage === "canceled" && s.canceled,
+        thick && s.thick,
+        className,
+      )}
     >
-      {!indeterminate && <span className={s.ink} style={{ width: `${pct}%` }} data-empty={pct === 0 ? "true" : undefined} />}
+      {!indeterminate && (
+        <span
+          className={s.ink}
+          style={{ width: `${pct}%` }}
+          data-empty={pct === 0 ? "true" : undefined}
+        />
+      )}
     </div>
   );
 }
@@ -65,7 +96,13 @@ export interface ProgressDeterminateProps {
 }
 
 /** Labelled progress with exact figures, for dependency installs. */
-export function ProgressDeterminate({ label, value, max, failed, className }: ProgressDeterminateProps) {
+export function ProgressDeterminate({
+  label,
+  value,
+  max,
+  failed,
+  className,
+}: ProgressDeterminateProps) {
   const { t } = useTranslation();
   const locale = currentLocale();
   const fraction = spanFraction(value, max);
@@ -131,12 +168,35 @@ export function StageLine({ stage, failedAt = "downloading", className }: StageL
   const cur = failed ? stageIndex(failedAt) : stageIndex(stage);
   const style = { "--reached": cur / 3 } as CSSProperties;
   return (
-    <ol className={cx(s.stages, className)} style={style} data-failed={stage === "error" || undefined}>
+    <ol
+      className={cx(s.stages, className)}
+      style={style}
+      data-failed={stage === "error" || undefined}
+    >
       {LINE.map(({ key, at }) => {
-        const state = at < cur ? "reached" : at === cur ? (failed ? "failed" : stage === "done" ? "reached" : "current") : "todo";
-        const word = at === 2 && stage === "postprocessing" ? t("stage.postprocessing") : at === cur && failed ? t(`stage.${stage}`) : t(`stage.${key}`);
+        const state =
+          at < cur
+            ? "reached"
+            : at === cur
+              ? failed
+                ? "failed"
+                : stage === "done"
+                  ? "reached"
+                  : "current"
+              : "todo";
+        const word =
+          at === 2 && stage === "postprocessing"
+            ? t("stage.postprocessing")
+            : at === cur && failed
+              ? t(`stage.${stage}`)
+              : t(`stage.${key}`);
         return (
-          <li key={key} className={s.stage} data-state={state} aria-current={state === "current" ? "step" : undefined}>
+          <li
+            key={key}
+            className={s.stage}
+            data-state={state}
+            aria-current={state === "current" ? "step" : undefined}
+          >
             <span className={s.mark} aria-hidden="true" />
             <span className={s.word}>{word}</span>
           </li>

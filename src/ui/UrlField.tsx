@@ -1,4 +1,12 @@
-import { forwardRef, useId, useImperativeHandle, useRef, type ClipboardEvent, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useId,
+  useImperativeHandle,
+  useRef,
+  type ClipboardEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
 import { Link2, LoaderCircle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import s from "./Field.module.css";
@@ -7,7 +15,10 @@ import { cx } from "./cx";
 import { Icon } from "./Icon";
 import { describedBy, FieldFrame } from "./TextField";
 
-export interface UrlFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "size"> {
+export interface UrlFieldProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "value" | "onChange" | "size"
+> {
   value: string;
   onValueChange: (value: string) => void;
   /** called with the pasted text after a paste lands in the field */
@@ -23,7 +34,22 @@ export interface UrlFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement
 
 /** Large counter field where links are handed over. */
 export const UrlField = forwardRef<HTMLInputElement, UrlFieldProps>(function UrlField(
-  { id: idProp, value, onValueChange, onPasteText, onClear, label, hint, error, busy, disabled, placeholder, fieldClassName, className, ...rest },
+  {
+    id: idProp,
+    value,
+    onValueChange,
+    onPasteText,
+    onClear,
+    label,
+    hint,
+    error,
+    busy,
+    disabled,
+    placeholder,
+    fieldClassName,
+    className,
+    ...rest
+  },
   ref,
 ) {
   const { t } = useTranslation();
@@ -48,7 +74,14 @@ export const UrlField = forwardRef<HTMLInputElement, UrlFieldProps>(function Url
   };
 
   return (
-    <FieldFrame id={id} label={label ?? t("ui.urlField.label")} hideLabel={!label} hint={hint} error={error} className={fieldClassName}>
+    <FieldFrame
+      id={id}
+      label={label ?? t("ui.urlField.label")}
+      hideLabel={!label}
+      hint={hint}
+      error={error}
+      className={fieldClassName}
+    >
       <div
         className={cx(s.control, s.large, className)}
         data-invalid={error ? "true" : undefined}
@@ -79,7 +112,9 @@ export const UrlField = forwardRef<HTMLInputElement, UrlFieldProps>(function Url
         />
         <span className={s.trailing}>
           {busy && <Icon icon={LoaderCircle} size={16} className={s.busy} />}
-          {value && !disabled && <IconButton icon={X} size="sm" aria-label={t("ui.urlField.clear")} onClick={clear} />}
+          {value && !disabled && (
+            <IconButton icon={X} size="sm" aria-label={t("ui.urlField.clear")} onClick={clear} />
+          )}
         </span>
       </div>
     </FieldFrame>

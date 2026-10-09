@@ -136,15 +136,7 @@ export interface ThemeSettings {
 
 export type UpdateChannel = "stable" | "nightly" | "master";
 export type Browser =
-  | "brave"
-  | "chrome"
-  | "chromium"
-  | "edge"
-  | "firefox"
-  | "opera"
-  | "safari"
-  | "vivaldi"
-  | "whale";
+  "brave" | "chrome" | "chromium" | "edge" | "firefox" | "opera" | "safari" | "vivaldi" | "whale";
 
 export type CookieSource =
   | { kind: "none" }
@@ -186,13 +178,7 @@ export interface EnqueueRequest {
 }
 
 export type JobStage =
-  | "queued"
-  | "downloading"
-  | "merging"
-  | "postprocessing"
-  | "done"
-  | "error"
-  | "canceled";
+  "queued" | "downloading" | "merging" | "postprocessing" | "done" | "error" | "canceled";
 
 export const TERMINAL_STAGES: readonly JobStage[] = ["done", "error", "canceled"];
 

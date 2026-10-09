@@ -65,7 +65,13 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let settings = settings::load(&settings_file, defaults);
 
     let paths = AppPaths::new(data_dir, config_dir, settings.bin_dir.as_deref());
-    for dir in [&paths.bin_dir, &paths.data_dir, &paths.config_dir, &paths.tmp_dir(), &paths.auth_dir()] {
+    for dir in [
+        &paths.bin_dir,
+        &paths.data_dir,
+        &paths.config_dir,
+        &paths.tmp_dir(),
+        &paths.auth_dir(),
+    ] {
         std::fs::create_dir_all(dir)?;
     }
 

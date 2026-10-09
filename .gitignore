@@ -29,18 +29,20 @@ playwright-report
 test-results
 
 # Never commit downloaded tool binaries or auth material
-bin/
-*.exe
-yt-dlp*
-!yt-dlp*.md
-ffmpeg*
-ffprobe*
-deno
-deno.exe
-cookies*.txt
+# (anchored to the repo root so test fixtures named after the tools stay tracked)
+/bin/
+/*.exe
+/yt-dlp*
+/ffmpeg*
+/ffprobe*
+/deno
+/deno.exe
+/cookies*.txt
+src-tauri/bin/
 *.netrc
 
 # Impeccable machine-local state
 .impeccable/config.local.json
 .impeccable/questions/
 .impeccable/build/
+.claude/worktrees/

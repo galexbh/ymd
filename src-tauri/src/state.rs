@@ -57,7 +57,9 @@ pub struct TauriJobEnv {
 
 impl TauriJobEnv {
     fn state(&self) -> &Arc<AppState> {
-        self.inner.get().expect("AppState initialized before jobs run")
+        self.inner
+            .get()
+            .expect("AppState initialized before jobs run")
     }
 }
 

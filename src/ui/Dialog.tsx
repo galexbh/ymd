@@ -23,7 +23,16 @@ export interface DialogProps {
  * previously focused element on close. Use only when the task needs
  * protected focus (confirmations, secrets prompts).
  */
-export function Dialog({ open, onClose, title, children, footer, wide, dismissOnBackdrop = true, className }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  children,
+  footer,
+  wide,
+  dismissOnBackdrop = true,
+  className,
+}: DialogProps) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null);
   const returnTo = useRef<HTMLElement | null>(null);
@@ -36,7 +45,11 @@ export function Dialog({ open, onClose, title, children, footer, wide, dismissOn
       returnTo.current = document.activeElement as HTMLElement | null;
       if (typeof el.showModal === "function") el.showModal();
       else el.setAttribute("open", "");
-      const target = el.querySelector<HTMLElement>("[autofocus], [data-autofocus]") ?? el.querySelector<HTMLElement>(".dialog-body input, .dialog-body select, .dialog-body textarea, .dialog-body button");
+      const target =
+        el.querySelector<HTMLElement>("[autofocus], [data-autofocus]") ??
+        el.querySelector<HTMLElement>(
+          ".dialog-body input, .dialog-body select, .dialog-body textarea, .dialog-body button",
+        );
       (target ?? el.querySelector<HTMLElement>("button"))?.focus();
     } else if (!open && el.open) {
       if (typeof el.close === "function") el.close();
