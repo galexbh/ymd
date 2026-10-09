@@ -1,5 +1,4 @@
-import { Home } from './views/Home';
-
+// Placeholder shell — replaced by the screens agent.
 export default function App() {
-  return <Home />;
+  return <main>ymd</main>;
 }
