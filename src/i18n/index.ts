@@ -42,7 +42,6 @@ export function setupI18n(lang: Language = "system") {
       interpolation: { escapeValue: false },
       returnNull: false,
       initAsync: false,
-      showSupportNotice: false,
     });
   } else if (i18n.language !== lng) {
     void i18n.changeLanguage(lng);
