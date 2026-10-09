@@ -38,6 +38,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          # setup-node v5 caches the pnpm store automatically; this job installs nothing.
+          package-manager-cache: false
 
       - name: pnpm audit (fails on high or critical)
         run: pnpm audit --audit-level high
