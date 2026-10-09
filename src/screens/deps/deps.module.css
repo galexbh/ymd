@@ -15,8 +15,14 @@
   width: 12rem;
 }
 @container (max-width: 900px) {
-  .cCheck {
-    display: none;
+  th.cCheck,
+  td.cCheck {
+    width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    border-left: 0;
+    border-right: 0;
+    visibility: hidden;
   }
   .cVersion {
     width: 11rem;

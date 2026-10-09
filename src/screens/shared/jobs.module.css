@@ -27,24 +27,43 @@
   width: 7.25rem;
 }
 
-/* narrow ledgers: format, ETA and speed step aside in turn; the span and stamp stay */
+/* narrow ledgers: format, ETA and speed fold to zero width in turn (the cells stay so the
+   detail rows' colSpan still matches the column count); the span and stamp stay */
 .container {
   container-type: inline-size;
   min-width: 0;
 }
 @container (max-width: 1200px) {
-  .cFormat {
-    display: none;
+  th.cFormat,
+  td.cFormat {
+    width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    border-left: 0;
+    border-right: 0;
+    visibility: hidden;
   }
 }
 @container (max-width: 980px) {
-  .cEta {
-    display: none;
+  th.cEta,
+  td.cEta {
+    width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    border-left: 0;
+    border-right: 0;
+    visibility: hidden;
   }
 }
 @container (max-width: 800px) {
-  .cSpeed {
-    display: none;
+  th.cSpeed,
+  td.cSpeed {
+    width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    border-left: 0;
+    border-right: 0;
+    visibility: hidden;
   }
   .cSpan {
     width: 7.5rem;
@@ -53,21 +72,6 @@
 
 .seqCell {
   white-space: nowrap;
-}
-.disclose {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-inline-start: calc(-1 * var(--space-1));
-  padding: 2px var(--space-1);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--danger);
-  cursor: pointer;
-}
-.disclose:hover {
-  background: var(--danger-soft);
 }
 
 .title {
