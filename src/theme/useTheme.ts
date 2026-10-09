@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import type { ThemeSettings } from "../ipc/types";
 import type { ResolvedTheme } from "./accent";
-import { applyTheme, DEFAULT_THEME, readThemeCache, resolveMode, systemPrefersDark, watchSystemTheme } from "./applyTheme";
+import {
+  applyTheme,
+  DEFAULT_THEME,
+  readThemeCache,
+  resolveMode,
+  systemPrefersDark,
+  watchSystemTheme,
+} from "./applyTheme";
 
 interface ThemeState {
   settings: ThemeSettings;

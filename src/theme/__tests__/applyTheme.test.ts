@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { applyTheme, clampFontScale, DEFAULT_THEME, readThemeCache, resolveMode, THEME_CACHE_KEY } from "../applyTheme";
+import {
+  applyTheme,
+  clampFontScale,
+  DEFAULT_THEME,
+  readThemeCache,
+  resolveMode,
+  THEME_CACHE_KEY,
+} from "../applyTheme";
 import { deriveAccent } from "../accent";
 
 describe("applyTheme", () => {
@@ -16,7 +23,11 @@ describe("applyTheme", () => {
   });
 
   it("sets data attributes and the font scale", () => {
-    const r = applyTheme({ ...DEFAULT_THEME, mode: "dark", density: "compact", radius: "sharp", fontScale: 1.125 }, root, false);
+    const r = applyTheme(
+      { ...DEFAULT_THEME, mode: "dark", density: "compact", radius: "sharp", fontScale: 1.125 },
+      root,
+      false,
+    );
     expect(r.resolved).toBe("dark");
     expect(root.dataset.theme).toBe("dark");
     expect(root.dataset.density).toBe("compact");

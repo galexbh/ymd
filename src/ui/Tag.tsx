@@ -14,7 +14,14 @@ export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
 export function Tag({ tone = "neutral", mono, className, ...rest }: TagProps) {
   return (
     <span
-      className={cx(s.tag, mono && s.tagMono, tone === "accent" && s.tagAccent, tone === "danger" && s.tagDanger, tone === "warning" && s.tagWarning, className)}
+      className={cx(
+        s.tag,
+        mono && s.tagMono,
+        tone === "accent" && s.tagAccent,
+        tone === "danger" && s.tagDanger,
+        tone === "warning" && s.tagWarning,
+        className,
+      )}
       {...rest}
     />
   );

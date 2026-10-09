@@ -62,7 +62,9 @@ pub async fn credentials_set(
     username: String,
     password: String,
 ) -> CmdResult<Vec<SiteCredential>> {
-    state.keychain.set(extractor.trim(), username.trim(), &password)?;
+    state
+        .keychain
+        .set(extractor.trim(), username.trim(), &password)?;
     Ok(state.keychain.list()?)
 }
 

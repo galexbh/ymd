@@ -23,7 +23,15 @@ export interface SegmentedControlProps<T extends string> {
 }
 
 /** Radio group drawn as joined segments; arrows move and select, like native radios. */
-export function SegmentedControl<T extends string>({ options, value, onChange, label, size = "md", disabled, className }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+  label,
+  size = "md",
+  disabled,
+  className,
+}: SegmentedControlProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const enabled = options.map((o, i) => (!o.disabled && !disabled ? i : -1)).filter((i) => i >= 0);
 
@@ -59,10 +67,16 @@ export function SegmentedControl<T extends string>({ options, value, onChange, l
   };
 
   const selectedIndex = options.findIndex((o) => o.value === value);
-  const tabStop = selectedIndex >= 0 && enabled.includes(selectedIndex) ? selectedIndex : enabled[0];
+  const tabStop =
+    selectedIndex >= 0 && enabled.includes(selectedIndex) ? selectedIndex : enabled[0];
 
   return (
-    <div role="radiogroup" aria-label={label} aria-disabled={disabled || undefined} className={cx(s.segmented, size === "lg" && s.lg, className)}>
+    <div
+      role="radiogroup"
+      aria-label={label}
+      aria-disabled={disabled || undefined}
+      className={cx(s.segmented, size === "lg" && s.lg, className)}
+    >
       {options.map((o, i) => (
         <button
           key={o.value}

@@ -20,8 +20,22 @@
   user-select: none;
   /* uneven ink: the pad presses harder at one end and skips a little in the middle;
      the floor stays high enough that the label keeps AA contrast */
-  -webkit-mask-image: linear-gradient(101deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.88) 30%, rgb(0 0 0 / 0.97) 50%, rgb(0 0 0 / 0.86) 76%, rgb(0 0 0 / 0.95) 100%);
-  mask-image: linear-gradient(101deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.88) 30%, rgb(0 0 0 / 0.97) 50%, rgb(0 0 0 / 0.86) 76%, rgb(0 0 0 / 0.95) 100%);
+  -webkit-mask-image: linear-gradient(
+    101deg,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.88) 30%,
+    rgb(0 0 0 / 0.97) 50%,
+    rgb(0 0 0 / 0.86) 76%,
+    rgb(0 0 0 / 0.95) 100%
+  );
+  mask-image: linear-gradient(
+    101deg,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.88) 30%,
+    rgb(0 0 0 / 0.97) 50%,
+    rgb(0 0 0 / 0.86) 76%,
+    rgb(0 0 0 / 0.95) 100%
+  );
 }
 
 .sm {

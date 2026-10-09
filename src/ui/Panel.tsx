@@ -14,7 +14,15 @@ export interface SectionProps extends Omit<HTMLAttributes<HTMLElement>, "title">
 }
 
 /** Ruled section with a small-caps header and optional actions. */
-export function Section({ title, description, actions, level = 2, className, children, ...rest }: SectionProps) {
+export function Section({
+  title,
+  description,
+  actions,
+  level = 2,
+  className,
+  children,
+  ...rest
+}: SectionProps) {
   const id = useId();
   const H = `h${level}` as const;
   return (
@@ -77,19 +85,39 @@ export interface SkeletonProps {
 const TEXT_WIDTHS = [92, 78, 85, 60, 70];
 
 /** Loading placeholder drawn as ruled lines, not a spinner. */
-export function Skeleton({ variant = "rows", count = 4, columns = [8, 44, 10, 10, 18], className }: SkeletonProps) {
+export function Skeleton({
+  variant = "rows",
+  count = 4,
+  columns = [8, 44, 10, 10, 18],
+  className,
+}: SkeletonProps) {
   const { t } = useTranslation();
   const total = columns.reduce((a, b) => a + b, 0);
   return (
-    <div className={cx(s.skeleton, variant === "text" && s.skText, className)} role="status" aria-busy="true" aria-live="polite">
+    <div
+      className={cx(s.skeleton, variant === "text" && s.skText, className)}
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+    >
       <span className="visually-hidden">{t("ui.skeleton.loading")}</span>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className={s.skLine} aria-hidden="true">
           {variant === "text" ? (
-            <span className={s.skBar} style={{ width: `${TEXT_WIDTHS[i % TEXT_WIDTHS.length]}%` }} />
+            <span
+              className={s.skBar}
+              style={{ width: `${TEXT_WIDTHS[i % TEXT_WIDTHS.length]}%` }}
+            />
           ) : (
             columns.map((w, j) => (
-              <span key={j} className={s.skBar} style={{ flex: `0 0 calc(${(w / total) * 100}% - var(--space-4))`, opacity: j === 1 ? 1 : 0.75 }} />
+              <span
+                key={j}
+                className={s.skBar}
+                style={{
+                  flex: `0 0 calc(${(w / total) * 100}% - var(--space-4))`,
+                  opacity: j === 1 ? 1 : 0.75,
+                }}
+              />
             ))
           )}
         </div>

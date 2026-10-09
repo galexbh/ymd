@@ -256,7 +256,15 @@ describe("fields and toggles", () => {
   it("ThumbCell is a labelled checkbox", async () => {
     const onSel = vi.fn();
     const user = userEvent.setup();
-    render(<ThumbCell seq={3} title="Estudio" thumbnail={null} selected={false} onSelectedChange={onSel} />);
+    render(
+      <ThumbCell
+        seq={3}
+        title="Estudio"
+        thumbnail={null}
+        selected={false}
+        onSelectedChange={onSel}
+      />,
+    );
     const cb = screen.getByRole("checkbox", { name: /000003.*Estudio/ });
     await user.click(cb);
     expect(onSel).toHaveBeenCalledWith(true);

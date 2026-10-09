@@ -55,7 +55,8 @@
 
 /* total unknown: a dotted pencil line, no fake motion */
 .indeterminate {
-  background: radial-gradient(circle, var(--pencil) 0.9px, transparent 1.3px) 0 calc(100% + 1px) / 5px 4px repeat-x;
+  background: radial-gradient(circle, var(--pencil) 0.9px, transparent 1.3px) 0 calc(100% + 1px) /
+    5px 4px repeat-x;
 }
 .indeterminate::after {
   display: none;

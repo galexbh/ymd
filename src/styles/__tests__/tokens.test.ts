@@ -5,7 +5,15 @@ import { describe, expect, it } from "vitest";
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 const tokensCss = read("../tokens.css");
-import { AA_TEXT, DEFAULT_ACCENT, THEME_SURFACES, accentCssVars, contrastRatio, deriveAccent, type ResolvedTheme } from "../../theme/accent";
+import {
+  AA_TEXT,
+  DEFAULT_ACCENT,
+  THEME_SURFACES,
+  accentCssVars,
+  contrastRatio,
+  deriveAccent,
+  type ResolvedTheme,
+} from "../../theme/accent";
 
 function block(theme: ResolvedTheme): Record<string, string> {
   const m = new RegExp(`\\[data-theme="${theme}"\\]\\s*\\{([^}]*)\\}`).exec(tokensCss);
@@ -26,7 +34,24 @@ describe("tokens.css", () => {
   });
 
   it("defines the required semantic tokens", () => {
-    for (const k of ["--surface", "--surface-2", "--surface-sunken", "--text", "--text-muted", "--rule", "--rule-strong", "--accent", "--accent-hover", "--accent-active", "--accent-soft", "--on-accent", "--focus", "--danger", "--danger-soft", "--warning"]) {
+    for (const k of [
+      "--surface",
+      "--surface-2",
+      "--surface-sunken",
+      "--text",
+      "--text-muted",
+      "--rule",
+      "--rule-strong",
+      "--accent",
+      "--accent-hover",
+      "--accent-active",
+      "--accent-soft",
+      "--on-accent",
+      "--focus",
+      "--danger",
+      "--danger-soft",
+      "--warning",
+    ]) {
       expect(light, k).toHaveProperty([k]);
     }
   });
@@ -52,20 +77,38 @@ describe("tokens.css", () => {
   it("meets AA for text roles on every surface", () => {
     for (const t of ["light", "dark"] as const) {
       const v = themes[t];
-      const surfaces = ["--surface", "--surface-2", "--surface-sunken", "--surface-raised", "--surface-hover"].map((k) => v[k]);
+      const surfaces = [
+        "--surface",
+        "--surface-2",
+        "--surface-sunken",
+        "--surface-raised",
+        "--surface-hover",
+      ].map((k) => v[k]);
       for (const bg of surfaces) {
         expect(contrastRatio(v["--text"], bg)).toBeGreaterThanOrEqual(AA_TEXT);
-        expect(contrastRatio(v["--text-muted"], bg), `${t} muted on ${bg}`).toBeGreaterThanOrEqual(AA_TEXT);
-        expect(contrastRatio(v["--danger"], bg), `${t} danger on ${bg}`).toBeGreaterThanOrEqual(AA_TEXT);
-        expect(contrastRatio(v["--text-faint"], bg), `${t} faint on ${bg}`).toBeGreaterThanOrEqual(3);
+        expect(contrastRatio(v["--text-muted"], bg), `${t} muted on ${bg}`).toBeGreaterThanOrEqual(
+          AA_TEXT,
+        );
+        expect(contrastRatio(v["--danger"], bg), `${t} danger on ${bg}`).toBeGreaterThanOrEqual(
+          AA_TEXT,
+        );
+        expect(contrastRatio(v["--text-faint"], bg), `${t} faint on ${bg}`).toBeGreaterThanOrEqual(
+          3,
+        );
       }
       expect(contrastRatio(v["--warning"], v["--surface"])).toBeGreaterThanOrEqual(AA_TEXT);
       expect(contrastRatio(v["--on-danger"], v["--danger"])).toBeGreaterThanOrEqual(AA_TEXT);
       expect(contrastRatio(v["--on-danger"], v["--danger-hover"])).toBeGreaterThanOrEqual(AA_TEXT);
       expect(contrastRatio(v["--text"], v["--danger-soft"])).toBeGreaterThanOrEqual(AA_TEXT);
-      expect(contrastRatio(v["--danger"], v["--danger-soft"]), `${t} danger on danger-soft`).toBeGreaterThanOrEqual(AA_TEXT);
+      expect(
+        contrastRatio(v["--danger"], v["--danger-soft"]),
+        `${t} danger on danger-soft`,
+      ).toBeGreaterThanOrEqual(AA_TEXT);
       expect(contrastRatio(v["--text"], v["--warning-soft"])).toBeGreaterThanOrEqual(AA_TEXT);
-      expect(contrastRatio(v["--rule-strong"], v["--surface"]), `${t} control border`).toBeGreaterThanOrEqual(2);
+      expect(
+        contrastRatio(v["--rule-strong"], v["--surface"]),
+        `${t} control border`,
+      ).toBeGreaterThanOrEqual(2);
     }
   });
 });

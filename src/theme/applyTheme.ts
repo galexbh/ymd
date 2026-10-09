@@ -15,7 +15,14 @@ export const DEFAULT_THEME: ThemeSettings = {
 export const FONT_SCALE_MIN = 0.875;
 export const FONT_SCALE_MAX = 1.25;
 
-const ACCENT_VARS = ["--accent", "--accent-hover", "--accent-active", "--accent-soft", "--on-accent", "--focus"];
+const ACCENT_VARS = [
+  "--accent",
+  "--accent-hover",
+  "--accent-active",
+  "--accent-soft",
+  "--on-accent",
+  "--focus",
+];
 
 export interface ThemeCache {
   settings: ThemeSettings;
@@ -39,7 +46,10 @@ export function systemPrefersDark(): boolean {
   }
 }
 
-export function resolveMode(mode: ThemeSettings["mode"], prefersDark = systemPrefersDark()): ResolvedTheme {
+export function resolveMode(
+  mode: ThemeSettings["mode"],
+  prefersDark = systemPrefersDark(),
+): ResolvedTheme {
   if (mode === "light" || mode === "dark") return mode;
   return prefersDark ? "dark" : "light";
 }

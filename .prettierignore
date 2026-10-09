@@ -16,3 +16,12 @@ pnpm-lock.yaml
 .impeccable/config.local.json
 .impeccable/questions
 .impeccable/build
+
+# Agent worktrees
+.claude
+
+# Byte-exact test data
+src-tauri/tests/fixtures
+src-tauri/**/snapshots
+*.snap
+.impeccable

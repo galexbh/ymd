@@ -18,12 +18,20 @@ function expectReadable(hex: string | null, theme: ResolvedTheme) {
   const d = deriveAccent(hex, theme);
   const s = THEME_SURFACES[theme];
   for (const bg of [s.surface, s.surface2, s.sunken, s.raised, d.accentSoft]) {
-    expect(contrastRatio(d.accent, bg), `${hex} ${theme} accent on ${bg}`).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrastRatio(d.accent, bg), `${hex} ${theme} accent on ${bg}`).toBeGreaterThanOrEqual(
+      AA_TEXT,
+    );
   }
   for (const tone of [d.accent, d.accentHover, d.accentActive]) {
-    expect(contrastRatio(tone, d.onAccent), `${hex} ${theme} onAccent on ${tone}`).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(
+      contrastRatio(tone, d.onAccent),
+      `${hex} ${theme} onAccent on ${tone}`,
+    ).toBeGreaterThanOrEqual(AA_TEXT);
   }
-  expect(contrastRatio(s.text, d.accentSoft), `${hex} ${theme} text on soft`).toBeGreaterThanOrEqual(AA_TEXT);
+  expect(
+    contrastRatio(s.text, d.accentSoft),
+    `${hex} ${theme} text on soft`,
+  ).toBeGreaterThanOrEqual(AA_TEXT);
   expect(contrastRatio(d.focus, s.surface)).toBeGreaterThanOrEqual(3);
   return d;
 }
@@ -77,7 +85,10 @@ describe("contrast ratio", () => {
     expect(contrastRatio("#ffffff", "#ffffff")).toBeCloseTo(1, 5);
     expect(contrastRatio("#777777", "#ffffff")).toBeCloseTo(4.48, 2);
     expect(contrastRatio("#0000ff", "#ffffff")).toBeCloseTo(8.59, 2);
-    expect(contrastRatio("#ffffff", "#767676")).toBeCloseTo(contrastRatio("#767676", "#ffffff"), 10);
+    expect(contrastRatio("#ffffff", "#767676")).toBeCloseTo(
+      contrastRatio("#767676", "#ffffff"),
+      10,
+    );
   });
 });
 
