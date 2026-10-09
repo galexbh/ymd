@@ -15,7 +15,8 @@ Proposal A, "Sello de entrada": a double-ruled accession stamp holding a lowerca
 | `public/favicon.svg` (16 hint, violet, dark-scheme variant) | `scripts/build-brand.mjs` |
 | `.impeccable/brand/appicon.svg` (1024, macOS 824 safe area) | `scripts/build-brand.mjs` |
 | `src-tauri/icons/app-icon.png` | `scripts/render-brand.mjs` (Playwright Chromium rasterizes `appicon.svg`) |
-| `src-tauri/icons/*` other than the two BMPs and `app-icon.png` | `pnpm tauri icon src-tauri/icons/app-icon.png` (mobile folders removed) |
+| `src-tauri/icons/icon.ico`, `32x32.png` | `scripts/render-brand.mjs`, hand-built. The 16, 24 and 32 sizes are the pixel-hinted drawings on a paper tile. The 48 and 256 sizes are the app-icon tile. The ICO holds PNG entries, and the script asserts the entry sizes. |
+| `src-tauri/icons/*` other than the files above | `pnpm tauri icon src-tauri/icons/app-icon.png` (mobile folders removed) |
 | `src-tauri/icons/nsis-header.bmp` (150x57), `nsis-sidebar.bmp` (164x314) | `scripts/render-brand.mjs` (canvas pixels, written as 24-bit BMP) |
 | `.impeccable/brand/final-render.png`, `final-render-zoom.png` | `scripts/render-brand.mjs` (size check) |
 | `.impeccable/brand/proposals/*` | `scripts/proposals-gen.mjs`, `scripts/proposals-shot.mjs` |
@@ -26,7 +27,7 @@ Proposal A, "Sello de entrada": a double-ruled accession stamp holding a lowerca
 node .impeccable/brand/scripts/build-brand.mjs .
 node .impeccable/brand/scripts/render-brand.mjs .
 corepack pnpm tauri icon src-tauri/icons/app-icon.png   # then delete src-tauri/icons/android and ios
-node .impeccable/brand/scripts/render-brand.mjs .       # refresh the size check with the new 32x32.png
+node .impeccable/brand/scripts/render-brand.mjs .       # must run after tauri icon: rebuilds icon.ico and 32x32.png, refreshes the size check
 ```
 
 `Logo.tsx` is generated. Change the geometry in `build-brand.mjs`, not in the component.

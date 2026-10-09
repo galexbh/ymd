@@ -63,6 +63,59 @@ await bmp("src-tauri/icons/nsis-sidebar.bmp", 164, 314,
   [130, 154, 178, 202, 226, 250, 274].map((y) => `<rect x="22" y="${y}" width="120" height="1" fill="#8C9CA8"/>`).join("") +
   `<rect x="22" y="129" width="78" height="3" fill="${ACCENT}"/>`);
 
+/* Windows icon: 16/24/32 use the pixel-hinted drawings on a paper tile; 48/256 use the app-icon tile.
+   Runs after `tauri icon`, overwriting its icon.ico and 32x32.png. */
+async function rasterSvg(doc, size) {
+  const p = await browser.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
+  await p.setContent(`<html><body style="margin:0;background:transparent">${doc}</body></html>`);
+  const buf = await p.locator("svg").screenshot({ omitBackground: true });
+  await p.close();
+  return buf;
+}
+const PAPER = "#F2F3EF";
+const small = (size) => {
+  const src = size === 16 ? "isotype-16.svg" : size === 24 ? "isotype-24.svg" : "isotype.svg";
+  const grid = size === 16 ? 16 : size === 24 ? 24 : 64;
+  const inner = strip(rd(`src/assets/brand/${src}`)).replace(/^<svg[^>]*>|<\/svg>\s*$/g, "").replace(/currentColor/g, ACCENT);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${grid} ${grid}" shape-rendering="crispEdges">` +
+    `<rect width="${grid}" height="${grid}" rx="${grid * 0.18}" fill="${PAPER}" shape-rendering="geometricPrecision"/>${inner}</svg>`;
+};
+const tileAt = (size) => rd(".impeccable/brand/appicon.svg").replace(/ width="\d+" height="\d+"/, ` width="${size}" height="${size}"`);
+const icoSizes = [16, 24, 32, 48, 256];
+const pngs = [];
+for (const s of icoSizes) pngs.push(await rasterSvg(s <= 32 ? small(s) : tileAt(s), s));
+fs.writeFileSync(path.join(ROOT, "src-tauri/icons/32x32.png"), pngs[2]);
+{
+  const head = Buffer.alloc(6 + 16 * pngs.length);
+  head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(pngs.length, 4);
+  let off = head.length;
+  pngs.forEach((png, i) => {
+    const e = 6 + 16 * i, s = icoSizes[i] >= 256 ? 0 : icoSizes[i];
+    head[e] = s; head[e + 1] = s; head[e + 2] = 0; head[e + 3] = 0;
+    head.writeUInt16LE(1, e + 4); head.writeUInt16LE(32, e + 6);
+    head.writeUInt32LE(png.length, e + 8); head.writeUInt32LE(off, e + 12);
+    off += png.length;
+  });
+  fs.writeFileSync(path.join(ROOT, "src-tauri/icons/icon.ico"), Buffer.concat([head, ...pngs]));
+}
+/* assertion: the ico carries exactly 16, 24, 32, 48, 256, each a PNG of the declared size */
+{
+  const b = fs.readFileSync(path.join(ROOT, "src-tauri/icons/icon.ico"));
+  if (b.readUInt16LE(2) !== 1) throw new Error("icon.ico: not an icon resource");
+  const found = [];
+  for (let i = 0; i < b.readUInt16LE(4); i++) {
+    const e = 6 + 16 * i, w = b[e] || 256, h = b[e + 1] || 256, off = b.readUInt32LE(e + 12);
+    if (b.readUInt32BE(off) !== 0x89504e47) throw new Error(`icon.ico: entry ${w} is not PNG`);
+    const pw = b.readUInt32BE(off + 16), ph = b.readUInt32BE(off + 20);
+    if (pw !== w || ph !== h || w !== h) throw new Error(`icon.ico: entry ${w}x${h} holds a ${pw}x${ph} image`);
+    found.push(w);
+  }
+  if (found.join() !== icoSizes.join()) throw new Error(`icon.ico: sizes ${found} != ${icoSizes}`);
+  const p32 = fs.readFileSync(path.join(ROOT, "src-tauri/icons/32x32.png"));
+  if (p32.readUInt32BE(16) !== 32 || p32.readUInt32BE(20) !== 32) throw new Error("32x32.png is not 32x32");
+  console.log("icon.ico ok:", found.join(", "));
+}
+
 /* size check render */
 {
   const files = { 16: "isotype-16.svg", 24: "isotype-24.svg", 32: "isotype.svg", 48: "isotype.svg", 128: "isotype.svg" };
