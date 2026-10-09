@@ -1,0 +1,94 @@
+---
+source: src/deps/catalog.rs
+expression: table()
+---
+Stable Windows/X86_64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Windows/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-win64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Stable Windows/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-pc-windows-msvc.zip.sha256sum" }
+Stable Windows/X86_64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Stable Windows/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Stable Windows/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp_arm64.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Windows/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-winarm64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Stable Windows/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-pc-windows-msvc.zip.sha256sum" }
+Stable Windows/Aarch64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Stable Windows/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Stable Macos/X86_64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Macos/X86_64 Ffmpeg [Required] manual: brew install ffmpeg
+Stable Macos/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-apple-darwin.zip.sha256sum" }
+Stable Macos/X86_64 Aria2c [Optional] manual: brew install aria2
+Stable Macos/X86_64 Atomicparsley [Optional] manual: brew install atomicparsley
+Stable Macos/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Macos/Aarch64 Ffmpeg [Required] manual: brew install ffmpeg
+Stable Macos/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-apple-darwin.zip.sha256sum" }
+Stable Macos/Aarch64 Aria2c [Optional] manual: brew install aria2
+Stable Macos/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyMacOS.zip Zip bins=["AtomicParsley"] sum=None
+Stable Linux/X86_64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp_linux Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Linux/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linux64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Stable Linux/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-unknown-linux-gnu.zip.sha256sum" }
+Stable Linux/X86_64 Aria2c [Optional] manual: sudo apt install aria2
+Stable Linux/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyLinux.zip Zip bins=["AtomicParsley"] sum=None
+Stable Linux/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp@latest-release yt-dlp_linux_aarch64 Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Stable Linux/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linuxarm64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Stable Linux/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-unknown-linux-gnu.zip.sha256sum" }
+Stable Linux/Aarch64 Aria2c [Optional] manual: sudo apt install aria2
+Stable Linux/Aarch64 Atomicparsley [Optional] manual: sudo apt install atomicparsley
+Nightly Windows/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Windows/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-win64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Nightly Windows/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-pc-windows-msvc.zip.sha256sum" }
+Nightly Windows/X86_64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Nightly Windows/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Nightly Windows/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp_arm64.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Windows/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-winarm64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Nightly Windows/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-pc-windows-msvc.zip.sha256sum" }
+Nightly Windows/Aarch64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Nightly Windows/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Nightly Macos/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Macos/X86_64 Ffmpeg [Required] manual: brew install ffmpeg
+Nightly Macos/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-apple-darwin.zip.sha256sum" }
+Nightly Macos/X86_64 Aria2c [Optional] manual: brew install aria2
+Nightly Macos/X86_64 Atomicparsley [Optional] manual: brew install atomicparsley
+Nightly Macos/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Macos/Aarch64 Ffmpeg [Required] manual: brew install ffmpeg
+Nightly Macos/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-apple-darwin.zip.sha256sum" }
+Nightly Macos/Aarch64 Aria2c [Optional] manual: brew install aria2
+Nightly Macos/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyMacOS.zip Zip bins=["AtomicParsley"] sum=None
+Nightly Linux/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp_linux Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Linux/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linux64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Nightly Linux/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-unknown-linux-gnu.zip.sha256sum" }
+Nightly Linux/X86_64 Aria2c [Optional] manual: sudo apt install aria2
+Nightly Linux/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyLinux.zip Zip bins=["AtomicParsley"] sum=None
+Nightly Linux/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-nightly-builds@latest-release yt-dlp_linux_aarch64 Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Nightly Linux/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linuxarm64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Nightly Linux/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-unknown-linux-gnu.zip.sha256sum" }
+Nightly Linux/Aarch64 Aria2c [Optional] manual: sudo apt install aria2
+Nightly Linux/Aarch64 Atomicparsley [Optional] manual: sudo apt install atomicparsley
+Master Windows/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Windows/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-win64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Master Windows/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-pc-windows-msvc.zip.sha256sum" }
+Master Windows/X86_64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Master Windows/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Master Windows/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp_arm64.exe Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Windows/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-winarm64-gpl.zip Zip bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Master Windows/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-pc-windows-msvc.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-pc-windows-msvc.zip.sha256sum" }
+Master Windows/Aarch64 Aria2c [Optional] aria2/aria2@latest-release aria2-*-win-64bit-*.zip (pattern) Zip bins=["aria2c"] sum=None
+Master Windows/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyWindows.zip Zip bins=["AtomicParsley"] sum=None
+Master Macos/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Macos/X86_64 Ffmpeg [Required] manual: brew install ffmpeg
+Master Macos/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-apple-darwin.zip.sha256sum" }
+Master Macos/X86_64 Aria2c [Optional] manual: brew install aria2
+Master Macos/X86_64 Atomicparsley [Optional] manual: brew install atomicparsley
+Master Macos/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp_macos Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Macos/Aarch64 Ffmpeg [Required] manual: brew install ffmpeg
+Master Macos/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-apple-darwin.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-apple-darwin.zip.sha256sum" }
+Master Macos/Aarch64 Aria2c [Optional] manual: brew install aria2
+Master Macos/Aarch64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyMacOS.zip Zip bins=["AtomicParsley"] sum=None
+Master Linux/X86_64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp_linux Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Linux/X86_64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linux64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Master Linux/X86_64 Deno [Recommended] denoland/deno@latest-release deno-x86_64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-x86_64-unknown-linux-gnu.zip.sha256sum" }
+Master Linux/X86_64 Aria2c [Optional] manual: sudo apt install aria2
+Master Linux/X86_64 Atomicparsley [Optional] wez/atomicparsley@latest-release AtomicParsleyLinux.zip Zip bins=["AtomicParsley"] sum=None
+Master Linux/Aarch64 Ytdlp [Required] yt-dlp/yt-dlp-master-builds@latest-release yt-dlp_linux_aarch64 Raw bins=["yt-dlp"] sum=SumsFile { asset: "SHA2-256SUMS" }
+Master Linux/Aarch64 Ffmpeg [Required] yt-dlp/FFmpeg-Builds@latest ffmpeg-master-latest-linuxarm64-gpl.tar.xz TarXz bins=["ffmpeg", "ffprobe"] sum=SumsFile { asset: "checksums.sha256" }
+Master Linux/Aarch64 Deno [Recommended] denoland/deno@latest-release deno-aarch64-unknown-linux-gnu.zip Zip bins=["deno"] sum=Sidecar { asset: "deno-aarch64-unknown-linux-gnu.zip.sha256sum" }
+Master Linux/Aarch64 Aria2c [Optional] manual: sudo apt install aria2
+Master Linux/Aarch64 Atomicparsley [Optional] manual: sudo apt install atomicparsley

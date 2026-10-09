@@ -40,12 +40,14 @@ pub async fn probe_with_timeout(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| match e.kind() {
-            std::io::ErrorKind::NotFound => {
-                CommandError::new(ErrorCode::BinaryMissing, format!("{}: {e}", ytdlp.display()))
-            }
-            std::io::ErrorKind::PermissionDenied => {
-                CommandError::new(ErrorCode::PermissionDenied, format!("{}: {e}", ytdlp.display()))
-            }
+            std::io::ErrorKind::NotFound => CommandError::new(
+                ErrorCode::BinaryMissing,
+                format!("{}: {e}", ytdlp.display()),
+            ),
+            std::io::ErrorKind::PermissionDenied => CommandError::new(
+                ErrorCode::PermissionDenied,
+                format!("{}: {e}", ytdlp.display()),
+            ),
             _ => CommandError::unknown(e),
         })?;
 
@@ -222,15 +224,11 @@ pub fn parse(json: &Value, url: &str) -> anyhow::Result<ProbeResult> {
                 .collect()
         })
         .unwrap_or_default();
-    let max_height = formats
-        .iter()
-        .filter_map(|f| f.height)
-        .max()
-        .or_else(|| {
-            codec(json, "vcodec")
-                .and(u64_of(json, "height"))
-                .map(|h| h as u32)
-        });
+    let max_height = formats.iter().filter_map(|f| f.height).max().or_else(|| {
+        codec(json, "vcodec")
+            .and(u64_of(json, "height"))
+            .map(|h| h as u32)
+    });
     Ok(ProbeResult {
         kind: ProbeKind::Video,
         url: url.to_string(),
@@ -276,7 +274,9 @@ mod tests {
 
     #[tokio::test]
     async fn missing_binary() {
-        let e = probe("https://x", &Tools::default(), &[]).await.unwrap_err();
+        let e = probe("https://x", &Tools::default(), &[])
+            .await
+            .unwrap_err();
         assert_eq!(e.code, ErrorCode::BinaryMissing);
         let tools = Tools {
             ytdlp: Some(std::env::temp_dir().join("ymd-definitely-missing-yt-dlp.exe")),

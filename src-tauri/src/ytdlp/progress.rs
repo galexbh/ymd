@@ -94,7 +94,10 @@ fn num(v: Option<&Value>) -> Option<f64> {
 fn parse_progress(json: &str) -> Option<Event> {
     let v: Value = serde_json::from_str(json.trim()).ok()?;
     let obj = v.as_object()?;
-    let status = obj.get("status").and_then(Value::as_str).unwrap_or("downloading");
+    let status = obj
+        .get("status")
+        .and_then(Value::as_str)
+        .unwrap_or("downloading");
     if status == "error" {
         return None;
     }
@@ -275,7 +278,10 @@ mod tests {
         );
         assert_eq!(
             parse_line("YMD_ITEM|02|17"),
-            Some(Event::PlaylistItem { index: 2, count: 17 })
+            Some(Event::PlaylistItem {
+                index: 2,
+                count: 17
+            })
         );
         assert_eq!(
             parse_line(r"YMD_FILE|C:\Users\user\Videos\Caminandes 3： Llamigos [SkVqJ1SGeL0].mp4"),
@@ -289,7 +295,10 @@ mod tests {
     fn plain_log_lines() {
         assert_eq!(
             parse_line("[download] Downloading item 3 of 12"),
-            Some(Event::PlaylistItem { index: 3, count: 12 })
+            Some(Event::PlaylistItem {
+                index: 3,
+                count: 12
+            })
         );
         assert_eq!(
             parse_line("[download] Downloading video 1 of 2"),

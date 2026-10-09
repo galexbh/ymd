@@ -1,0 +1,179 @@
+{
+  "common": {
+    "ok": "Aceptar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "retry": "Reintentar",
+    "clear": "Borrar",
+    "open": "Abrir",
+    "openFolder": "Abrir carpeta",
+    "save": "Guardar",
+    "remove": "Quitar",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "dismiss": "Descartar",
+    "loading": "Cargando…",
+    "optional": "opcional",
+    "details": "Detalle técnico",
+    "none": "Ninguno",
+    "unknown": "Desconocido"
+  },
+  "ui": {
+    "urlField": {
+      "label": "Enlace",
+      "placeholder": "Pega un enlace de YouTube o de cualquier sitio compatible",
+      "clear": "Borrar enlace",
+      "pasted": "Enlace pegado"
+    },
+    "stamp": {
+      "prefix": "Estado:"
+    },
+    "ledgerSpan": {
+      "label": "Progreso",
+      "unknownTotal": "Tamaño total aún desconocido"
+    },
+    "progress": {
+      "of": "de"
+    },
+    "dialog": {
+      "close": "Cerrar diálogo"
+    },
+    "notice": {
+      "dismiss": "Descartar aviso"
+    },
+    "thumb": {
+      "select": "Seleccionar",
+      "selected": "Seleccionado",
+      "noImage": "Sin miniatura"
+    },
+    "skeleton": {
+      "loading": "Cargando contenido"
+    },
+    "field": {
+      "invalid": "Revisa este campo"
+    }
+  },
+  "stage": {
+    "queued": "En cola",
+    "downloading": "Descargando",
+    "merging": "Uniendo",
+    "postprocessing": "Procesando",
+    "done": "Archivado",
+    "error": "Fallido",
+    "canceled": "Anulado"
+  },
+  "error": {
+    "bot_check": {
+      "title": "YouTube pide confirmar que no eres un bot",
+      "action": "Activa las cookies de tu navegador en Ajustes → Cuentas y vuelve a intentarlo."
+    },
+    "age_restricted": {
+      "title": "Video con restricción de edad",
+      "action": "Inicia sesión en tu navegador con una cuenta mayor de edad y activa sus cookies en Ajustes → Cuentas."
+    },
+    "login_required": {
+      "title": "Este contenido requiere iniciar sesión",
+      "action": "Activa las cookies de tu navegador o agrega tu cuenta del sitio en Ajustes → Cuentas."
+    },
+    "private": {
+      "title": "El video es privado",
+      "action": "Si tu cuenta tiene acceso, activa las cookies de tu navegador en Ajustes → Cuentas y reintenta."
+    },
+    "unavailable": {
+      "title": "El video ya no está disponible",
+      "action": "Puede que lo hayan eliminado o bloqueado. Abre el enlace en tu navegador para confirmarlo."
+    },
+    "geoblocked": {
+      "title": "No disponible en tu país",
+      "action": "El autor lo limitó por región. Prueba desde una conexión en una región permitida."
+    },
+    "ffmpeg_missing": {
+      "title": "Falta ffmpeg",
+      "action": "Instálalo con un clic en Dependencias; se usa para unir video y audio."
+    },
+    "js_runtime_missing": {
+      "title": "Falta el entorno JavaScript (Deno)",
+      "action": "Instala Deno en Dependencias; YouTube lo exige para obtener los formatos."
+    },
+    "unsupported_url": {
+      "title": "Este enlace no es compatible",
+      "action": "Comprueba que sea la dirección de un video o una lista. Si el sitio es nuevo, actualiza yt-dlp en Dependencias."
+    },
+    "network": {
+      "title": "Se perdió la conexión",
+      "action": "Revisa tu conexión a internet y vuelve a intentarlo."
+    },
+    "cookies_locked": {
+      "title": "El navegador tiene bloqueadas sus cookies",
+      "action": "Cierra el navegador por completo y reintenta, o usa una copia de las cookies en Ajustes → Cuentas."
+    },
+    "cookies_decrypt": {
+      "title": "No se pudieron leer las cookies del navegador",
+      "action": "Cierra el navegador y reintenta. Si sigue fallando, importa un archivo cookies.txt en Ajustes → Cuentas."
+    },
+    "disk_full": {
+      "title": "No queda espacio en el disco",
+      "action": "Libera espacio o elige otra carpeta de destino en Ajustes → Descargas."
+    },
+    "permission_denied": {
+      "title": "No hay permiso para escribir en la carpeta",
+      "action": "Elige otra carpeta de destino en Ajustes → Descargas."
+    },
+    "binary_missing": {
+      "title": "Falta una herramienta necesaria",
+      "action": "Abre Dependencias e instala lo que aparece como faltante."
+    },
+    "unknown": {
+      "title": "La descarga falló por un motivo inesperado",
+      "action": "Reintenta. Si vuelve a fallar, actualiza yt-dlp en Dependencias y copia el detalle técnico si necesitas reportarlo."
+    }
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "theme": {
+      "label": "Tema",
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "accent": {
+      "label": "Color de acento",
+      "custom": "Personalizado",
+      "customHint": "Escribe un color en formato #rrggbb.",
+      "reset": "Volver al violeta",
+      "adjusted": "Ajustamos el tono para que se lea bien.",
+      "invalid": "Usa un color en formato #rrggbb, por ejemplo #5b3fc4.",
+      "names": {
+        "violet": "Violeta",
+        "indigo": "Índigo",
+        "teal": "Verde azulado",
+        "green": "Verde",
+        "ochre": "Ocre",
+        "rust": "Óxido",
+        "magenta": "Magenta",
+        "graphite": "Grafito"
+      }
+    },
+    "density": {
+      "label": "Densidad",
+      "comfortable": "Cómoda",
+      "compact": "Compacta"
+    },
+    "radius": {
+      "label": "Esquinas",
+      "sharp": "Rectas",
+      "soft": "Suaves",
+      "round": "Redondeadas"
+    },
+    "fontScale": {
+      "label": "Tamaño del texto",
+      "hint": "Afecta a toda la interfaz."
+    },
+    "language": {
+      "label": "Idioma",
+      "system": "Según el sistema",
+      "es": "Español",
+      "en": "English"
+    }
+  }
+}

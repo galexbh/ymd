@@ -1,0 +1,97 @@
+# Builds installers for the three platforms on a version tag and attaches them to a DRAFT
+# GitHub release (publish it by hand after a smoke test).
+#
+# macOS ships as ONE universal binary (universal-apple-darwin) rather than separate arm64/x64
+# builds: users get a single .dmg that runs natively on Apple Silicon and Intel with no
+# "which one do I download?" decision. The cost is ~2x macOS build time and a larger download,
+# acceptable for a release-only workflow.
+#
+# Linux builds on ubuntu-22.04 so the AppImage/.deb link against an older glibc and run on
+# more distributions.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: release (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+            args: --bundles nsis
+            rust-targets: ""
+          - name: macos-universal
+            os: macos-latest
+            args: --target universal-apple-darwin --bundles app,dmg
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - name: linux
+            os: ubuntu-22.04
+            args: --bundles appimage,deb
+            rust-targets: ""
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: release-${{ matrix.name }}
+
+      - name: Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing key (minisign). Kept outside the repo as CI secrets.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: "ymd ${{ github.ref_name }}"
+          releaseBody: "Draft release — see CHANGELOG / commits. Installers below."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+          # TODO(plan "Fase 3: Empaquetado y distribución"): once `tauri-plugin-updater` is wired
+          # (plugins.updater pubkey + endpoints in tauri.conf.json and
+          # `bundle.createUpdaterArtifacts: true`), flip this to true so tauri-action uploads
+          # signed updater artifacts and `latest.json`. Until then no updater manifest is
+          # produced or required.
+          includeUpdaterJson: false

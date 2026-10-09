@@ -25,15 +25,15 @@ pub const ITEM_PREFIX: &str = "YMD_ITEM|";
 pub const PP_PREFIX: &str = "YMD_PP|";
 
 pub const PROGRESS_TEMPLATE: &str = "download:YMD|%(progress)j";
-pub const PP_TEMPLATE: &str =
-    "postprocess:YMD_PP|%(progress.status)s|%(progress.postprocessor)s";
+pub const PP_TEMPLATE: &str = "postprocess:YMD_PP|%(progress.status)s|%(progress.postprocessor)s";
 pub const META_PRINT: &str = "before_dl:YMD_META|%(title)s";
 pub const ITEM_PRINT: &str = "before_dl:YMD_ITEM|%(playlist_autonumber)s|%(n_entries)s";
 pub const FILE_PRINT: &str = "after_move:YMD_FILE|%(filepath)s";
 
 /// Prefix added to the filename template for playlist downloads: one folder per playlist,
 /// items numbered by their playlist position.
-pub const PLAYLIST_TEMPLATE_PREFIX: &str = "%(playlist,playlist_id|playlist)s/%(playlist_index)s - ";
+pub const PLAYLIST_TEMPLATE_PREFIX: &str =
+    "%(playlist,playlist_id|playlist)s/%(playlist_index)s - ";
 /// Used when settings carry an empty template.
 pub const DEFAULT_FILENAME_TEMPLATE: &str = "%(title)s [%(id)s].%(ext)s";
 /// Fragment concurrency (`-N`).
@@ -481,12 +481,21 @@ mod tests {
         ];
         let items: &[u32] = &[1, 3, 7];
         let cases: Vec<(&str, DownloadSpec)> = vec![
-            ("playlist_all", spec(mp4, &w, Some(&[]), false, false, vec![])),
-            ("playlist_some", spec(mp4, &w, Some(items), false, false, vec![])),
+            (
+                "playlist_all",
+                spec(mp4, &w, Some(&[]), false, false, vec![]),
+            ),
+            (
+                "playlist_some",
+                spec(mp4, &w, Some(items), false, false, vec![]),
+            ),
             ("archive_on", spec(mp4, &w, None, true, false, vec![])),
             ("aria2c_on", spec(mp4, &w, None, false, true, vec![])),
             ("auth", spec(mp4, &w, None, false, false, auth.clone())),
-            ("everything_mp3", spec(mp3, &w, Some(items), true, true, auth)),
+            (
+                "everything_mp3",
+                spec(mp3, &w, Some(items), true, true, auth),
+            ),
         ];
         for (name, s) in cases {
             insta::assert_yaml_snapshot!(format!("download_combo_{name}"), download_args(&s));
@@ -611,7 +620,15 @@ mod tests {
             let a = format_args(&audio("x", f, "0"));
             assert_eq!(
                 a,
-                ["-f", "ba/b", "-x", "--audio-format", name, "--audio-quality", "0"]
+                [
+                    "-f",
+                    "ba/b",
+                    "-x",
+                    "--audio-format",
+                    name,
+                    "--audio-quality",
+                    "0"
+                ]
             );
         }
         let a = format_args(&audio("x", AudioFormat::Mp3, " "));

@@ -46,11 +46,24 @@ fn real_video_download() {
     assert_eq!(progress, n, "every progress line parses");
     assert_eq!(out[0], Event::Title("Big Buck Bunny".into()));
     assert!(!out.iter().any(|e| matches!(e, Event::PlaylistItem { .. })));
-    // Two streams (video then audio), each reaching 100 %.
+    // Two streams (video then audio); each ends with a 100 % "downloading" line followed by a
+    // "finished" line, and progress restarts from ~0 for the second stream.
     let f = fractions(&out);
-    assert_eq!(f.iter().filter(|x| **x == 1.0).count(), 2, "{f:?}");
+    assert_eq!(f.iter().filter(|x| **x == 1.0).count(), 4, "{f:?}");
+    let restarts = f.windows(2).filter(|w| w[1] < w[0]).count();
+    assert_eq!(restarts, 1, "{f:?}");
     assert!(f.iter().all(|x| (0.0..=1.0).contains(x)));
-    match out.iter().find(|e| matches!(e, Event::Progress { total: Some(_), speed: Some(_), eta: Some(_), .. })) {
+    match out.iter().find(|e| {
+        matches!(
+            e,
+            Event::Progress {
+                total: Some(_),
+                speed: Some(_),
+                eta: Some(_),
+                ..
+            }
+        )
+    }) {
         Some(Event::Progress { total, .. }) => assert!(total.unwrap() > 1_000_000),
         _ => panic!("no progress with total/speed/eta"),
     }
@@ -72,7 +85,11 @@ fn real_audio_extraction() {
     assert_eq!(fractions(&out).len(), n);
     assert_eq!(fractions(&out).last(), Some(&1.0));
     assert!(matches!(out.last(), Some(Event::File(p)) if p.ends_with(".mp3")));
-    assert_eq!(err.len(), 4, "ExtractAudio, Metadata, EmbedThumbnail, MoveFiles");
+    assert_eq!(
+        err.len(),
+        4,
+        "ExtractAudio, Metadata, EmbedThumbnail, MoveFiles"
+    );
     assert!(err
         .iter()
         .all(|e| *e == Event::Stage(JobStage::Postprocessing)));
@@ -152,10 +169,10 @@ fn real_probe_video() {
     );
     assert!(r.entries.is_empty());
     assert!(r.formats.iter().all(|f| f.ext != "mhtml"));
-    assert!(r
-        .formats
-        .iter()
-        .any(|f| f.format_id == "140" && f.acodec.is_some() && f.vcodec.is_none() && f.height.is_none()));
+    assert!(r.formats.iter().any(|f| f.format_id == "140"
+        && f.acodec.is_some()
+        && f.vcodec.is_none()
+        && f.height.is_none()));
     insta::assert_json_snapshot!("probe_video", r);
 }
 
@@ -172,7 +189,10 @@ fn real_probe_playlist() {
         assert_eq!(e.index as usize, i + 1);
         assert!(e.thumbnail.is_some() && e.url.is_some() && e.title.is_some());
     }
-    assert_eq!(r.entries[9].title.as_deref(), Some("Caminandes 3: Llamigos"));
+    assert_eq!(
+        r.entries[9].title.as_deref(),
+        Some("Caminandes 3: Llamigos")
+    );
     assert!(r.thumbnail.is_some());
     assert!(r.formats.is_empty());
     insta::assert_json_snapshot!("probe_playlist", r);

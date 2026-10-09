@@ -207,7 +207,9 @@ impl JobManager {
             let limit = g.limit.unwrap_or(1).max(1);
             while g.running < limit {
                 let Some(id) = g.queue.pop_front() else { break };
-                let Some(entry) = g.jobs.get_mut(&id) else { continue };
+                let Some(entry) = g.jobs.get_mut(&id) else {
+                    continue;
+                };
                 if entry.job.stage != JobStage::Queued {
                     continue;
                 }
@@ -293,7 +295,12 @@ impl JobManager {
         });
         drop(req);
 
-        if self.lock().jobs.get(id).map_or(true, |e| e.cancel_requested) {
+        if self
+            .lock()
+            .jobs
+            .get(id)
+            .map_or(true, |e| e.cancel_requested)
+        {
             return Outcome::Canceled;
         }
         let mut child = match process::command(&ytdlp)
@@ -521,7 +528,10 @@ impl JobManager {
             .get(id)
             .ok_or_else(|| cmd_err(ErrorCode::Unknown, format!("unknown job: {id}")))?;
         if !e.job.stage.is_terminal() {
-            return Err(cmd_err(ErrorCode::Unknown, "cancel the job before removing it"));
+            return Err(cmd_err(
+                ErrorCode::Unknown,
+                "cancel the job before removing it",
+            ));
         }
         g.jobs.remove(id);
         Ok(())
@@ -656,9 +666,21 @@ mod tests {
             "presets": [], "defaultPresetId": "p", "onboarded": true
         });
         let s: Settings = serde_json::from_value(settings_json).unwrap();
-        assert_eq!(resolve_output_dir(&req(Some("R")), &preset(MediaKind::Video, Some("P")), &s), "R");
-        assert_eq!(resolve_output_dir(&req(Some(" ")), &preset(MediaKind::Video, Some("P")), &s), "P");
-        assert_eq!(resolve_output_dir(&req(None), &preset(MediaKind::Video, None), &s), "V");
-        assert_eq!(resolve_output_dir(&req(None), &preset(MediaKind::Audio, Some("")), &s), "A");
+        assert_eq!(
+            resolve_output_dir(&req(Some("R")), &preset(MediaKind::Video, Some("P")), &s),
+            "R"
+        );
+        assert_eq!(
+            resolve_output_dir(&req(Some(" ")), &preset(MediaKind::Video, Some("P")), &s),
+            "P"
+        );
+        assert_eq!(
+            resolve_output_dir(&req(None), &preset(MediaKind::Video, None), &s),
+            "V"
+        );
+        assert_eq!(
+            resolve_output_dir(&req(None), &preset(MediaKind::Audio, Some("")), &s),
+            "A"
+        );
     }
 }

@@ -13,7 +13,11 @@ use crate::model::{ErrorCode, JobError};
 const RULES: &[(ErrorCode, &[&str])] = &[
     (
         ErrorCode::CookiesLocked,
-        &["could not copy chrome cookie database", "cookie database is locked", "database is locked"],
+        &[
+            "could not copy chrome cookie database",
+            "cookie database is locked",
+            "database is locked",
+        ],
     ),
     (
         ErrorCode::CookiesDecrypt,
@@ -26,7 +30,10 @@ const RULES: &[(ErrorCode, &[&str])] = &[
             "failed to decrypt",
         ],
     ),
-    (ErrorCode::BotCheck, &["not a bot", "confirm you\u{2019}re not a bot"]),
+    (
+        ErrorCode::BotCheck,
+        &["not a bot", "confirm you\u{2019}re not a bot"],
+    ),
     (
         ErrorCode::AgeRestricted,
         &[
@@ -37,7 +44,14 @@ const RULES: &[(ErrorCode, &[&str])] = &[
             "age verification",
         ],
     ),
-    (ErrorCode::Private, &["private video", "this video is private", "is a private video"]),
+    (
+        ErrorCode::Private,
+        &[
+            "private video",
+            "this video is private",
+            "is a private video",
+        ],
+    ),
     (
         ErrorCode::Geoblocked,
         &[
@@ -99,15 +113,32 @@ const RULES: &[(ErrorCode, &[&str])] = &[
     ),
     (
         ErrorCode::DiskFull,
-        &["no space left", "errno 28", "enospc", "not enough space on the disk", "winerror 112"],
+        &[
+            "no space left",
+            "errno 28",
+            "enospc",
+            "not enough space on the disk",
+            "winerror 112",
+        ],
     ),
     (
         ErrorCode::PermissionDenied,
-        &["permission denied", "errno 13", "eacces", "access is denied", "winerror 5]"],
+        &[
+            "permission denied",
+            "errno 13",
+            "eacces",
+            "access is denied",
+            "winerror 5]",
+        ],
     ),
     (
         ErrorCode::UnsupportedUrl,
-        &["unsupported url", "is not a valid url", "no video formats found", "no suitable extractor"],
+        &[
+            "unsupported url",
+            "is not a valid url",
+            "no video formats found",
+            "no suitable extractor",
+        ],
     ),
     (
         ErrorCode::Network,
@@ -195,7 +226,8 @@ mod tests {
 
     #[test]
     fn warning_explains_generic_error() {
-        let s = "WARNING: [youtube] abc: n challenge solving failed: Some formats may be missing.\n\
+        let s =
+            "WARNING: [youtube] abc: n challenge solving failed: Some formats may be missing.\n\
                  ERROR: [youtube] abc: Requested format is not available. Use --list-formats";
         assert_eq!(classify(s), ErrorCode::JsRuntimeMissing);
     }
@@ -203,7 +235,10 @@ mod tests {
     #[test]
     fn empty_and_unknown() {
         assert_eq!(classify(""), ErrorCode::Unknown);
-        assert_eq!(classify("ERROR: something odd happened"), ErrorCode::Unknown);
+        assert_eq!(
+            classify("ERROR: something odd happened"),
+            ErrorCode::Unknown
+        );
         let e = to_job_error("noise\nERROR: boom\n\n");
         assert_eq!(e.detail, "ERROR: boom");
     }

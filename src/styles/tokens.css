@@ -1,0 +1,189 @@
+/*
+ * Semantic design tokens. Components read only these variables, never raw
+ * color values. Theme blocks must define the same set of names (tested).
+ * Surface values are mirrored in src/theme/accent.ts (tested).
+ */
+
+:root {
+  /* type families: system faces only, the app runs offline */
+  --font-sans:
+    "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    system-ui, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "Cascadia Mono", "SF Mono", ui-monospace, Menlo, Consolas, "Ubuntu Mono", "DejaVu Sans Mono",
+    "Liberation Mono", monospace;
+
+  /* user scale, set by applyTheme (0.875 – 1.25) */
+  --font-scale: 1;
+
+  /* type scale: ratio 1.2 around a 14px body, times the user scale */
+  --text-2xs: calc(0.6875rem * var(--font-scale));
+  --text-xs: calc(0.75rem * var(--font-scale));
+  --text-sm: calc(0.8125rem * var(--font-scale));
+  --text-md: calc(0.875rem * var(--font-scale));
+  --text-lg: calc(1.05rem * var(--font-scale));
+  --text-xl: calc(1.26rem * var(--font-scale));
+  --text-2xl: calc(1.512rem * var(--font-scale));
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --tracking-caps: 0.09em;
+  --tracking-stamp: 0.14em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* density multiplier: comfortable 1, compact 0.78 */
+  --density: 1;
+
+  /* spacing scale (4px grid) scaled by density */
+  --space-1: calc(0.25rem * var(--density));
+  --space-2: calc(0.5rem * var(--density));
+  --space-3: calc(0.75rem * var(--density));
+  --space-4: calc(1rem * var(--density));
+  --space-5: calc(1.25rem * var(--density));
+  --space-6: calc(1.5rem * var(--density));
+  --space-8: calc(2rem * var(--density));
+  --space-10: calc(2.5rem * var(--density));
+  --space-12: calc(3rem * var(--density));
+
+  /* control heights follow density and text size */
+  --control-h-sm: calc(1.75rem * var(--density) * var(--font-scale));
+  --control-h: calc(2.25rem * var(--density) * var(--font-scale));
+  --control-h-lg: calc(2.75rem * var(--density) * var(--font-scale));
+  --row-h: calc(2.5rem * var(--density) * var(--font-scale));
+
+  /* radius scale from the user setting (sharp / soft / round) */
+  --radius-base: 4px;
+  --radius-sm: calc(var(--radius-base) * 0.5);
+  --radius-md: var(--radius-base);
+  --radius-lg: calc(var(--radius-base) * 1.5);
+  --radius-full: calc(var(--radius-base) * 250);
+  /* stamps are physical marks; they keep a near-square corner */
+  --radius-stamp: min(var(--radius-base), 2px);
+
+  --hairline: 1px;
+
+  /* motion: state changes only */
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 250ms;
+  --dur-strike: 180ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* layers */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-rail: 20;
+  --z-tooltip: 60;
+  --z-toast: 70;
+  --z-dialog: 80;
+
+  color-scheme: light dark;
+}
+
+[data-density="comfortable"] {
+  --density: 1;
+}
+[data-density="compact"] {
+  --density: 0.78;
+}
+
+[data-radius="sharp"] {
+  --radius-base: 0px;
+}
+[data-radius="soft"] {
+  --radius-base: 4px;
+}
+[data-radius="round"] {
+  --radius-base: 8px;
+}
+
+/* Light: grey-white archival board */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --surface: #eef1f2;
+  --surface-2: #e1e6e8;
+  --surface-sunken: #e5e9eb;
+  --surface-raised: #f8fafa;
+  --surface-hover: #e4e9eb;
+  --surface-selected: var(--accent-soft);
+
+  --text: #172024;
+  --text-muted: #4b5a61;
+  --text-faint: #6b7a81;
+  --text-disabled: #8b989e;
+
+  --rule: #c3ccd0;
+  --rule-strong: #8e9ca3;
+  --rule-ledger: #cdd6db;
+
+  --accent: #5b3fc4;
+  --accent-hover: #4f2eb3;
+  --accent-active: #431aa2;
+  --accent-soft: #e0dfff;
+  --on-accent: #ffffff;
+  --focus: #5b3fc4;
+
+  --danger: #a8281f;
+  --danger-hover: #93190f;
+  --danger-soft: #f5dcd8;
+  --on-danger: #ffffff;
+  --warning: #7a5300;
+  --warning-soft: #f2e4c7;
+  --success: var(--accent);
+  --info: var(--text-muted);
+
+  --pencil: #6b7a81;
+  --scrim: rgb(23 32 36 / 0.42);
+  --selection: var(--accent-soft);
+  --shadow-overlay: 0 12px 32px -8px rgb(23 32 36 / 0.28), 0 2px 6px rgb(23 32 36 / 0.12);
+  --shadow-raise: 0 1px 2px rgb(23 32 36 / 0.1);
+}
+
+/* Dark: archival-box slate */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface: #1b2427;
+  --surface-2: #151d20;
+  --surface-sunken: #131a1d;
+  --surface-raised: #222c30;
+  --surface-hover: #253035;
+  --surface-selected: var(--accent-soft);
+
+  --text: #e2e8e9;
+  --text-muted: #9eacb1;
+  --text-faint: #7f8f95;
+  --text-disabled: #5e6d73;
+
+  --rule: #2f3c42;
+  --rule-strong: #4a5a62;
+  --rule-ledger: #2a363b;
+
+  --accent: #a996ff;
+  --accent-hover: #b8abff;
+  --accent-active: #c7bfff;
+  --accent-soft: #312c4b;
+  --on-accent: #11171a;
+  --focus: #a996ff;
+
+  --danger: #f2877a;
+  --danger-hover: #ff9c8f;
+  --danger-soft: #42272a;
+  --on-danger: #11171a;
+  --warning: #d9b25e;
+  --warning-soft: #3a3020;
+  --success: var(--accent);
+  --info: var(--text-muted);
+
+  --pencil: #7f8f95;
+  --scrim: rgb(8 12 14 / 0.6);
+  --selection: var(--accent-soft);
+  --shadow-overlay: 0 16px 40px -8px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3);
+  --shadow-raise: 0 1px 2px rgb(0 0 0 / 0.3);
+}
