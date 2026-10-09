@@ -1,0 +1,179 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "retry": "Retry",
+    "clear": "Clear",
+    "open": "Open",
+    "openFolder": "Open folder",
+    "save": "Save",
+    "remove": "Remove",
+    "copy": "Copy",
+    "copied": "Copied",
+    "dismiss": "Dismiss",
+    "loading": "Loading…",
+    "optional": "optional",
+    "details": "Technical detail",
+    "none": "None",
+    "unknown": "Unknown"
+  },
+  "ui": {
+    "urlField": {
+      "label": "Link",
+      "placeholder": "Paste a link from YouTube or any supported site",
+      "clear": "Clear link",
+      "pasted": "Link pasted"
+    },
+    "stamp": {
+      "prefix": "Status:"
+    },
+    "ledgerSpan": {
+      "label": "Progress",
+      "unknownTotal": "Total size not known yet"
+    },
+    "progress": {
+      "of": "of"
+    },
+    "dialog": {
+      "close": "Close dialog"
+    },
+    "notice": {
+      "dismiss": "Dismiss notice"
+    },
+    "thumb": {
+      "select": "Select",
+      "selected": "Selected",
+      "noImage": "No thumbnail"
+    },
+    "skeleton": {
+      "loading": "Loading content"
+    },
+    "field": {
+      "invalid": "Check this field"
+    }
+  },
+  "stage": {
+    "queued": "Queued",
+    "downloading": "Downloading",
+    "merging": "Merging",
+    "postprocessing": "Processing",
+    "done": "Archived",
+    "error": "Failed",
+    "canceled": "Canceled"
+  },
+  "error": {
+    "bot_check": {
+      "title": "YouTube wants to confirm you're not a bot",
+      "action": "Turn on your browser cookies in Settings → Accounts, then try again."
+    },
+    "age_restricted": {
+      "title": "Age-restricted video",
+      "action": "Sign in to an adult account in your browser and turn on its cookies in Settings → Accounts."
+    },
+    "login_required": {
+      "title": "This content requires signing in",
+      "action": "Turn on your browser cookies or add your site account in Settings → Accounts."
+    },
+    "private": {
+      "title": "The video is private",
+      "action": "If your account has access, turn on your browser cookies in Settings → Accounts and retry."
+    },
+    "unavailable": {
+      "title": "The video is no longer available",
+      "action": "It may have been removed or blocked. Open the link in your browser to confirm."
+    },
+    "geoblocked": {
+      "title": "Not available in your country",
+      "action": "The uploader restricted it by region. Try from a connection in an allowed region."
+    },
+    "ffmpeg_missing": {
+      "title": "ffmpeg is missing",
+      "action": "Install it with one click in Dependencies; it joins video and audio."
+    },
+    "js_runtime_missing": {
+      "title": "The JavaScript runtime (Deno) is missing",
+      "action": "Install Deno in Dependencies; YouTube requires it to list formats."
+    },
+    "unsupported_url": {
+      "title": "This link isn't supported",
+      "action": "Check that it points to a video or a playlist. If the site is new, update yt-dlp in Dependencies."
+    },
+    "network": {
+      "title": "The connection dropped",
+      "action": "Check your internet connection and try again."
+    },
+    "cookies_locked": {
+      "title": "The browser is locking its cookies",
+      "action": "Quit the browser completely and retry, or use a cookie snapshot in Settings → Accounts."
+    },
+    "cookies_decrypt": {
+      "title": "Couldn't read the browser's cookies",
+      "action": "Quit the browser and retry. If it keeps failing, import a cookies.txt file in Settings → Accounts."
+    },
+    "disk_full": {
+      "title": "The disk is full",
+      "action": "Free up space or choose another destination folder in Settings → Downloads."
+    },
+    "permission_denied": {
+      "title": "No permission to write to the folder",
+      "action": "Choose another destination folder in Settings → Downloads."
+    },
+    "binary_missing": {
+      "title": "A required tool is missing",
+      "action": "Open Dependencies and install whatever is marked as missing."
+    },
+    "unknown": {
+      "title": "The download failed for an unexpected reason",
+      "action": "Retry. If it fails again, update yt-dlp in Dependencies and copy the technical detail if you need to report it."
+    }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": {
+      "label": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "accent": {
+      "label": "Accent color",
+      "custom": "Custom",
+      "customHint": "Type a color as #rrggbb.",
+      "reset": "Back to violet",
+      "adjusted": "We adjusted the shade so it stays readable.",
+      "invalid": "Use a color like #rrggbb, for example #5b3fc4.",
+      "names": {
+        "violet": "Violet",
+        "indigo": "Indigo",
+        "teal": "Teal",
+        "green": "Green",
+        "ochre": "Ochre",
+        "rust": "Rust",
+        "magenta": "Magenta",
+        "graphite": "Graphite"
+      }
+    },
+    "density": {
+      "label": "Density",
+      "comfortable": "Comfortable",
+      "compact": "Compact"
+    },
+    "radius": {
+      "label": "Corners",
+      "sharp": "Square",
+      "soft": "Soft",
+      "round": "Rounded"
+    },
+    "fontScale": {
+      "label": "Text size",
+      "hint": "Applies to the whole interface."
+    },
+    "language": {
+      "label": "Language",
+      "system": "Follow system",
+      "es": "Español",
+      "en": "English"
+    }
+  }
+}

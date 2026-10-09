@@ -1,0 +1,97 @@
+.stamp {
+  --stamp-ink: var(--accent);
+  --stamp-rot: 0deg;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.75em;
+  padding: 0.32em 0.6em 0.26em;
+  border: 3px double var(--stamp-ink);
+  border-radius: var(--radius-stamp);
+  color: var(--stamp-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  letter-spacing: var(--tracking-stamp);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(var(--stamp-rot));
+  user-select: none;
+  /* uneven ink: the pad presses harder at one end and skips a little in the middle;
+     the floor stays high enough that the label keeps AA contrast */
+  -webkit-mask-image: linear-gradient(101deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.88) 30%, rgb(0 0 0 / 0.97) 50%, rgb(0 0 0 / 0.86) 76%, rgb(0 0 0 / 0.95) 100%);
+  mask-image: linear-gradient(101deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.88) 30%, rgb(0 0 0 / 0.97) 50%, rgb(0 0 0 / 0.86) 76%, rgb(0 0 0 / 0.95) 100%);
+}
+
+.sm {
+  min-width: 0;
+  padding: 0.26em 0.45em 0.2em;
+  border-width: 3px;
+}
+.lg {
+  font-size: var(--text-sm);
+  border-width: 4px;
+  padding: 0.38em 0.8em 0.32em;
+}
+
+/* queued: pencilled, not stamped yet */
+.queued {
+  --stamp-ink: var(--pencil);
+  border: 1px dashed var(--stamp-ink);
+  /* same outer footprint as the 3px stamped rule */
+  margin: 2px;
+  font-weight: var(--weight-semibold);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* in process: violet outline */
+.downloading,
+.merging,
+.postprocessing {
+  --stamp-ink: var(--accent);
+  --stamp-rot: -0.4deg;
+}
+
+/* archived: solid violet impression inside the outer rule of the double border */
+.done {
+  --stamp-ink: var(--accent);
+  --stamp-rot: -1.2deg;
+  background: var(--stamp-ink);
+  background-clip: padding-box;
+  color: var(--on-accent);
+}
+
+.error {
+  --stamp-ink: var(--danger);
+  --stamp-rot: 1deg;
+}
+
+.canceled {
+  --stamp-ink: var(--text-faint);
+  --stamp-rot: -0.7deg;
+}
+.canceled .label {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.strike {
+  animation: strike var(--dur-strike) var(--ease-out) both;
+}
+@keyframes strike {
+  from {
+    opacity: 0;
+    transform: scale(1.12) rotate(calc(var(--stamp-rot) - 2.5deg));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(var(--stamp-rot));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .strike {
+    animation: none;
+  }
+}

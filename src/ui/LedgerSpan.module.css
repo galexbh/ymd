@@ -1,0 +1,173 @@
+/* A ruled baseline; the inked part is exactly the downloaded share. */
+.span {
+  --ink: var(--accent);
+  position: relative;
+  width: 100%;
+  min-width: 4rem;
+  height: 12px;
+  /* fixed scale: ticks at every quarter of the baseline */
+  background:
+    linear-gradient(to right, var(--rule-strong) 1px, transparent 1px) 0 100% / 25% 4px repeat-x,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) 0 100% / 100% 1px no-repeat;
+  background-clip: content-box;
+}
+.span::after {
+  /* closing tick at 100% */
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 4px;
+  background: var(--rule-strong);
+}
+
+.ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--ink);
+}
+/* the pen mark at the leading edge */
+.ink::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1.5px;
+  height: 9px;
+  background: var(--ink);
+}
+.ink[data-empty="true"]::after {
+  display: none;
+}
+
+.error {
+  --ink: var(--danger);
+}
+.canceled {
+  --ink: var(--text-faint);
+}
+.canceled .ink {
+  height: 1px;
+}
+
+/* total unknown: a dotted pencil line, no fake motion */
+.indeterminate {
+  background: radial-gradient(circle, var(--pencil) 0.9px, transparent 1.3px) 0 calc(100% + 1px) / 5px 4px repeat-x;
+}
+.indeterminate::after {
+  display: none;
+}
+
+.thick {
+  height: 14px;
+}
+.thick .ink {
+  height: 5px;
+}
+
+/* ProgressDeterminate */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.progressHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+.progressLabel {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.progressFigures {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* StageLine: queued, downloading, merging, archived on one baseline */
+.stages {
+  --ink: var(--accent);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stages::before,
+.stages::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 12.5%;
+  height: 1px;
+  background: var(--rule-strong);
+  width: 75%;
+}
+.stages::after {
+  height: 2px;
+  top: 3.5px;
+  background: var(--ink);
+  width: calc(75% * var(--reached, 0));
+}
+.stages[data-failed="true"] {
+  --ink: var(--danger);
+}
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-faint);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  min-width: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.mark {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--pencil);
+  background: var(--surface);
+  border-radius: var(--radius-stamp);
+}
+.stage[data-state="reached"] {
+  color: var(--text-muted);
+}
+.stage[data-state="reached"] .mark {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.stage[data-state="current"] {
+  color: var(--text);
+}
+.stage[data-state="current"] .mark {
+  border: 2px solid var(--ink);
+  background: var(--surface);
+}
+.stage[data-state="failed"] {
+  color: var(--danger);
+}
+.stage[data-state="failed"] .mark {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+.word {
+  max-width: 100%;
+  padding: 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
