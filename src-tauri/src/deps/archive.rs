@@ -95,7 +95,7 @@ pub fn extract(
                 if !entry.is_file() {
                     continue;
                 }
-                let entry_name = entry.name().to_string();
+                let entry_name = entry.name()?.to_string();
                 if let Some(name) = picker.want(&entry_name) {
                     picker.write(&entry_name, name, &mut entry)?;
                 }

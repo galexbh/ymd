@@ -33,6 +33,7 @@ class ResizeObserverStub implements ResizeObserver {
 class IntersectionObserverStub implements IntersectionObserver {
   readonly root = null;
   readonly rootMargin = "0px";
+  readonly scrollMargin = "0px";
   readonly thresholds = [0];
   observe(): void {}
   unobserve(): void {}
