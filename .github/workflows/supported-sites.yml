@@ -22,11 +22,11 @@ jobs:
       contents: write # push the update branch
       pull-requests: write # open or update the PR
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           package-manager-cache: false
@@ -36,7 +36,7 @@ jobs:
         run: node scripts/gen-supported-sites.mjs
 
       - name: Open or update the PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/supported-sites
           delete-branch: true
