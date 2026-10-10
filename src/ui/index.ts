@@ -59,6 +59,8 @@ export {
 } from "./Notice";
 export { Tooltip, type TooltipProps } from "./Tooltip";
 export { Kbd } from "./Kbd";
+export { Markdown, type MarkdownProps } from "./Markdown";
+export { parseMarkdown, parseInline, type Block as MarkdownBlock } from "./mdParse";
 export { Tag, type TagProps, type TagTone } from "./Tag";
 export { Icon, ICON_STROKE } from "./Icon";
 export { cx } from "./cx";

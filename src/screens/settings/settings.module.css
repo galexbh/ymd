@@ -89,6 +89,19 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+/* Release notes of an available update: long changelogs scroll inside the notice. */
+.releaseNotes {
+  max-height: 18rem;
+  overflow-y: auto;
+  margin-top: var(--space-2);
+  padding-right: var(--space-2);
+  overscroll-behavior: contain;
+}
+.releaseNotes:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
 .warnNote {
   font-size: var(--text-sm);
   color: var(--warning);

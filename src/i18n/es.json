@@ -209,7 +209,9 @@
     "archived": "Archivado: {{title}}",
     "appUpdate": "Hay una versión nueva de ymd: {{version}}",
     "appUpdateInstall": "Instalar y reiniciar",
-    "appUpdateLater": "Más tarde"
+    "appUpdateLater": "Más tarde",
+    "appUpdateNotes": "Ver novedades",
+    "appUpdateNotifyBody": "Abre ymd para ver las novedades e instalarla con un clic."
   },
   "presets": {
     "builtin": {
@@ -609,6 +611,7 @@
         "checking": "Buscando…",
         "upToDate": "Tienes la última versión.",
         "available": "Disponible la versión {{version}}.",
+        "notes": "Novedades de la versión {{version}}",
         "install": "Instalar y reiniciar",
         "downloading": "Descargando la actualización",
         "installing": "Instalando; ymd se reiniciará.",

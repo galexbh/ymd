@@ -4,6 +4,11 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **Aviso de versiones nuevas**: ymd busca actualizaciones al abrirse y cada 6 horas. Si está en segundo plano, también envía una notificación del sistema, una sola vez por versión. El aviso incluye **Ver novedades**.
+- **Novedades con formato**: las notas de una versión nueva se muestran con títulos, listas y enlaces, en lugar del Markdown sin procesar.
+
 ### Cambios
 
 - **La extensión «ymd Cookies» solo lee YouTube por defecto** (versión 1.1.0). Ya no incluye `google.com`: la sesión de YouTube vive en sus propias cookies, así que no hace falta tocar las de tu cuenta de Google. Al actualizarse la quita de la lista una vez; si la necesitas para otro sitio, puedes volver a agregarla.
