@@ -7,8 +7,10 @@ description: How ymd and yt-dlp are kept up to date.
 
 ymd updates from [GitHub Releases](https://github.com/galexbh/ymd/releases). Every version is signed and verified before it installs.
 
-- When ymd opens and a new version is out, the notice **A new version of ymd is available** offers **Install and restart** or **Later**.
-- **Settings → Advanced → ymd** shows the **Installed version** and a **Check for updates** button.
+- ymd looks for new versions when it opens and every 6 hours while it stays open.
+- When it finds one, the notice **A new version of ymd is available** offers **Install and restart** and **What’s new**. It stays until you close it.
+- If ymd is in the background, you also get a system notification, once per version.
+- **Settings → Advanced → ymd** shows the **Installed version**, a **Check for updates** button and, when a new version is out, what’s new in it.
 
 Installed copies only see published versions. If the check fails, try again later or download the latest version from the [releases page](https://github.com/galexbh/ymd/releases/latest).
 

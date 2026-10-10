@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { calls, renderApp } from "../../../app/__tests__/harness";
+import { resetAppUpdate, useAppUpdate } from "../../../store/appUpdate";
 import { useSettings } from "../../../store/settings";
 import { renderTemplate, templateHasExt } from "../template";
 
@@ -368,5 +369,25 @@ describe("template", () => {
     expect(renderTemplate("%(title).10B [%(id)s].%(ext)s")).toBe("Volcanes d [dQw4w9WgXcQ].mp4");
     expect(renderTemplate("%(playlist_index)03d - %(nope)s")).toBe("003 - NA");
     expect(templateHasExt("%(title)s")).toBe(false);
+  });
+});
+
+describe("Ajustes → Avanzado: actualización de ymd", () => {
+  it("shows the release notes formatted, not as raw Markdown", async () => {
+    await renderApp({ route: "settings", section: "advanced" });
+    act(() =>
+      useAppUpdate.setState({
+        status: "available",
+        version: "0.4.0",
+        notes: "### Novedades\n\n- **Preajuste M4A** por defecto.\n  - Con `m4a` sin recodificar.",
+      }),
+    );
+    const notes = await screen.findByTestId("app-update-notes");
+    expect(notes).toHaveAccessibleName("Novedades de la versión 0.4.0");
+    expect(within(notes).getByRole("heading", { name: "Novedades" })).toBeInTheDocument();
+    expect(within(notes).getByText("Preajuste M4A").tagName).toBe("STRONG");
+    expect(within(notes).getByText("m4a").tagName).toBe("CODE");
+    expect(notes.textContent).not.toMatch(/\*\*|###/);
+    act(() => resetAppUpdate());
   });
 });
