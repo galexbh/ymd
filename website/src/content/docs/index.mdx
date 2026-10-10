@@ -1,0 +1,59 @@
+---
+title: ymd
+description: Aplicación de escritorio para Windows, macOS y Linux que descarga video y audio con yt-dlp.
+template: splash
+editUrl: false
+lastUpdated: false
+hero:
+  title: Video y audio con yt‑dlp, sin terminal
+  tagline: ymd es una aplicación de escritorio para Windows, macOS y Linux. Instala y mantiene yt-dlp y sus dependencias, descarga con progreso exacto y anota cada archivo en un catálogo.
+  image:
+    light: ../../assets/ymd-logo-light.svg
+    dark: ../../assets/ymd-logo-dark.svg
+    alt: ymd
+  actions:
+    - text: Descargar
+      link: https://github.com/galexbh/ymd/releases/latest
+      icon: external
+      variant: primary
+    - text: Empezar
+      link: /ymd/guia/instalacion/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import shotLight from "../../assets/screenshot-receive-light.png";
+import shotDark from "../../assets/screenshot-receive-dark.png";
+
+<div class="ymd-shot">
+  <Image
+    src={shotLight}
+    alt="Pantalla Recibir de ymd con la ficha de un video y el registro de descargas"
+    class="dark:sl-hidden"
+  />
+  <Image
+    src={shotDark}
+    alt="Pantalla Recibir de ymd con la ficha de un video y el registro de descargas"
+    class="light:sl-hidden"
+  />
+</div>
+
+<CardGrid>
+  <Card title="Video y audio" icon="download">
+    Preajustes para la mejor calidad, MP4 1080p o 720p, MP3 320 kbps o el audio original. Playlists
+    completas o por entradas, y una cola con varias descargas a la vez.
+  </Card>
+  <Card title="Dependencias gestionadas" icon="setting">
+    yt-dlp, ffmpeg y Deno se instalan en tu carpeta de usuario, verificados con SHA-256, y se
+    mantienen al día.
+  </Card>
+  <Card title="Cookies y cuentas" icon="padlock">
+    Extensión propia para Brave, Chrome y Edge, cookies de Firefox, `cookies.txt` y cuentas en el
+    llavero del sistema.
+  </Card>
+  <Card title="Errores con arreglo" icon="information">
+    Cada fallo de yt-dlp se traduce en un mensaje con la acción que lo resuelve.
+  </Card>
+</CardGrid>

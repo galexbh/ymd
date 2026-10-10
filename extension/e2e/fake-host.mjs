@@ -1,5 +1,6 @@
-// A stand-in for ymd's native host (docs/cookie-bridge.md, "Transport"): reads one framed
-// message from stdin, appends it to a record file, writes one framed reply and exits.
+// A stand-in for ymd's native host (cookie bridge contract, "Transport" section of
+// website/src/content/docs/desarrollo/puente-de-cookies.md): reads one framed message from
+// stdin, appends it to a record file, writes one framed reply and exits.
 //
 //   node fake-host.mjs <record-file> <allowed-origin> chrome-extension://<id>/ [--parent-window=N]
 import { appendFileSync } from "node:fs";

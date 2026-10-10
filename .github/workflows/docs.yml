@@ -1,0 +1,64 @@
+# Builds the documentation site (website/, Astro Starlight) and publishes it to GitHub Pages at
+# https://galexbh.github.io/ymd/. PRs are checked by the `docs` job in ci.yml; this workflow only
+# deploys what reached main.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "CHANGELOG.md"
+      - "docs/assets/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# One deployment at a time; a newer push waits instead of cancelling one in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history so Starlight's "last updated" dates come from git.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Only the site's dependencies; the app and the extension aren't needed.
+      - run: pnpm install --frozen-lockfile --filter ymd-website
+
+      - name: Build (validates internal links)
+        run: pnpm docs:build
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: website/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

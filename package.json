@@ -27,6 +27,9 @@
     "ext:lint": "eslint extension --max-warnings 0 && tsc -p extension/tsconfig.json --noEmit",
     "ext:zip": "node extension/scripts/zip.mjs",
     "ext:e2e": "playwright test --config extension/playwright.config.ts",
+    "docs:dev": "node website/node_modules/astro/bin/astro.mjs dev --root website",
+    "docs:build": "node website/node_modules/astro/bin/astro.mjs build --root website",
+    "docs:preview": "node website/node_modules/astro/bin/astro.mjs preview --root website",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test",
     "tauri": "tauri"
   },

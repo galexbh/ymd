@@ -19,6 +19,9 @@ export default tseslint.config(
       "node_modules",
       ".impeccable",
       "extension/dist",
+      // Docs site (Astro Starlight): build output and generated types.
+      "website/dist",
+      "website/.astro",
     ],
   },
   {

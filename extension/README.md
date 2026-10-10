@@ -4,7 +4,10 @@ Extensión para Brave, Chrome y Edge (Manifest V3) que entrega a ymd, en este mi
 cookies de los sitios que tú elijas. Así ymd descarga con tu sesión (videos privados, con
 restricción de edad o de miembros) sin tener que leer la base de cookies del navegador.
 
-El contrato con ymd está en [`docs/cookie-bridge.md`](../docs/cookie-bridge.md).
+La guía de uso está en la [documentación de ymd](https://galexbh.github.io/ymd/cookies/extension/).
+El contrato con ymd es la página
+[Protocolo del puente de cookies](https://galexbh.github.io/ymd/desarrollo/puente-de-cookies/)
+(fuente: [`website/src/content/docs/desarrollo/puente-de-cookies.md`](../website/src/content/docs/desarrollo/puente-de-cookies.md)).
 
 ## Instalar (modo descomprimido)
 

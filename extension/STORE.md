@@ -2,7 +2,9 @@
 
 Prepared for a future submission. Nothing has been submitted. To publish with the same ID as the
 unpacked build, the package must be signed with the private key kept at
-`~/.ymd/extension-key.pem` on the maintainer's machine (see `docs/cookie-bridge.md`).
+`~/.ymd/extension-key.pem` on the maintainer's machine (see the
+[cookie bridge protocol](https://galexbh.github.io/ymd/en/desarrollo/puente-de-cookies/), source
+`website/src/content/docs/en/desarrollo/puente-de-cookies.md`).
 
 ## Listing
 

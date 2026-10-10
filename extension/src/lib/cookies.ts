@@ -1,4 +1,5 @@
-// Collecting the cookies of allowed domains and shaping them for the wire (docs/cookie-bridge.md).
+// Collecting the cookies of allowed domains and shaping them for the wire (cookie bridge
+// contract: website/src/content/docs/desarrollo/puente-de-cookies.md).
 
 import { type ChromeApi, type ChromeCookie } from "./chrome-api";
 import { cookieDomainAllowed } from "./domains";

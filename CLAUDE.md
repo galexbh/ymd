@@ -20,6 +20,8 @@ corepack pnpm test:coverage     # vitest + v8 coverage (80% lines on pure module
 corepack pnpm e2e               # Playwright vs dev:mock (e2e:install once)
 corepack pnpm test:rust         # cargo test --features test-support
 corepack pnpm lint:rust         # cargo fmt --check + clippy -D warnings
+corepack pnpm docs:dev          # docs site (website/, Astro Starlight)
+corepack pnpm docs:build        # build docs + validate internal links
 ```
 
 Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `dist/index.html`.
@@ -44,7 +46,14 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
   - `screens/`, `ui/`, `store/`, `theme/`, `styles/`, `i18n/` — UI layers.
   - `test/setup.ts` — Vitest setup (jest-dom, jsdom polyfills, Tauri mock reset).
 - `e2e/` — Playwright specs + `fixtures.ts`; conventions in `e2e/README.md`.
-- `.github/workflows/` — `ci.yml` (gate), `release.yml` (tags `v*`), `nightly-smoke.yml`.
+- `website/` — user and developer docs (Astro Starlight, GitHub Pages at
+  `https://galexbh.github.io/ymd/`). Spanish pages at the root of `src/content/docs/`, English
+  under `en/` with the same file names. The cookie bridge contract lives in
+  `src/content/docs/{,en/}desarrollo/puente-de-cookies.md` (its key block is read by
+  `extension/src/__tests__/manifest.test.ts`). The changelog page renders the root `CHANGELOG.md`.
+  `docs/assets/` only holds README images.
+- `.github/workflows/` — `ci.yml` (gate), `release.yml` (tags `v*`), `docs.yml` (Pages deploy),
+  `nightly-smoke.yml`.
 
 ### Mock backend
 
@@ -70,3 +79,6 @@ Scenarios: `first-run`, `ready`, `outdated`, `complete`.
    cookies or credentials.
 5. **Formatting**: Prettier for TS/JSON/MD/YAML, rustfmt for Rust; LF line endings.
 6. Keep `@tauri-apps/*` npm packages on the same major.minor as the Rust crates.
+7. **Docs**: a user-visible behavior change updates the matching `website/` page in both es and
+   en, using the app's real UI labels (`src/i18n/*.json`). `pnpm docs:build` must pass (it fails
+   on broken internal links).

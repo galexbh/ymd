@@ -1,0 +1,146 @@
+/*
+ * ymd's look for Starlight: the archival ledger of the app, kept quiet for a reading surface.
+ * Values come from src/styles/tokens.css (the app's tokens); they are copied, not imported,
+ * so the site never depends on the app's build.
+ */
+
+/* Dark: archival-box slate (Starlight's default block) */
+:root {
+  --sl-font:
+    "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    system-ui, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --sl-font-mono:
+    "Cascadia Mono", "SF Mono", ui-monospace, Menlo, Consolas, "Ubuntu Mono", "DejaVu Sans Mono",
+    "Liberation Mono", monospace;
+
+  --sl-color-accent-low: #312c4b;
+  --sl-color-accent: #a996ff;
+  --sl-color-accent-high: #c7bfff;
+
+  --sl-color-white: #f2f5f5;
+  --sl-color-gray-1: #e2e8e9;
+  --sl-color-gray-2: #cbd4d7;
+  --sl-color-gray-3: #9eacb1;
+  --sl-color-gray-4: #7f8f95;
+  --sl-color-gray-5: #2f3c42;
+  --sl-color-gray-6: #151d20;
+  --sl-color-black: #1b2427;
+
+  --sl-color-bg-inline-code: #222c30;
+  --sl-color-hairline-light: #2f3c42;
+  --sl-color-hairline: #2a363b;
+  --sl-color-hairline-shade: #131a1d;
+  --sl-color-backdrop-overlay: rgb(8 12 14 / 0.6);
+
+  --sl-color-red: #f2877a;
+  --sl-color-red-high: #ffc6be;
+  --sl-color-red-low: #42272a;
+  --sl-color-orange: #d9b25e;
+  --sl-color-orange-high: #f0d9a6;
+  --sl-color-orange-low: #3a3020;
+  --sl-color-purple: #a996ff;
+  --sl-color-purple-high: #c7bfff;
+  --sl-color-purple-low: #312c4b;
+  --sl-color-blue: #9eacb1;
+  --sl-color-blue-high: #e2e8e9;
+  --sl-color-blue-low: #222c30;
+  --sl-color-green: #a996ff;
+  --sl-color-green-high: #c7bfff;
+  --sl-color-green-low: #312c4b;
+}
+
+/* Light: grey-white archival board */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #e0dfff;
+  --sl-color-accent: #5b3fc4;
+  --sl-color-accent-high: #431aa2;
+
+  --sl-color-white: #172024;
+  --sl-color-gray-1: #1f2a2f;
+  --sl-color-gray-2: #26333a;
+  --sl-color-gray-3: #4b5a61;
+  --sl-color-gray-4: #6b7a81;
+  --sl-color-gray-5: #c3ccd0;
+  --sl-color-gray-6: #e1e6e8;
+  --sl-color-gray-7: #e5e9eb;
+  --sl-color-black: #eef1f2;
+
+  --sl-color-bg-nav: #e5e9eb;
+  --sl-color-bg-sidebar: #eef1f2;
+  --sl-color-bg-inline-code: #e1e6e8;
+  --sl-color-hairline-light: #c3ccd0;
+  --sl-color-hairline: #cdd6db;
+  --sl-color-hairline-shade: #c3ccd0;
+  --sl-color-backdrop-overlay: rgb(23 32 36 / 0.42);
+
+  --sl-color-red: #a8281f;
+  --sl-color-red-high: #93190f;
+  --sl-color-red-low: #f5dcd8;
+  --sl-color-orange: #7a5300;
+  --sl-color-orange-high: #5c3e00;
+  --sl-color-orange-low: #f2e4c7;
+  --sl-color-purple: #5b3fc4;
+  --sl-color-purple-high: #431aa2;
+  --sl-color-purple-low: #e0dfff;
+  --sl-color-blue: #4b5a61;
+  --sl-color-blue-high: #172024;
+  --sl-color-blue-low: #e1e6e8;
+  --sl-color-green: #5b3fc4;
+  --sl-color-green-high: #431aa2;
+  --sl-color-green-low: #e0dfff;
+}
+
+/* Headings: semibold, a touch of negative tracking like the app's headline style. */
+.sl-markdown-content :is(h1, h2, h3, h4),
+h1#_top {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Tables read as ledger rows: hairlines, no zebra fill. */
+.sl-markdown-content table {
+  font-size: var(--sl-text-sm);
+}
+.sl-markdown-content :is(th, td) {
+  border-color: var(--sl-color-hairline);
+}
+.sl-markdown-content th {
+  font-size: var(--sl-text-xs);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+/* Cards and link cards: flat, hairline-bordered, square-ish corners. */
+.card,
+.sl-link-card {
+  border-radius: 4px;
+  box-shadow: none;
+}
+/* One ink for every card icon instead of Starlight's rotating hues. */
+.card-grid .card {
+  --sl-card-border: var(--sl-color-accent);
+  --sl-card-bg: var(--sl-color-accent-low);
+}
+
+/* Screenshot on the home page: a filed print with a hairline frame. */
+.ymd-shot img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--sl-color-hairline-light);
+  border-radius: 6px;
+}
+
+/* The changelog page renders CHANGELOG.md; its own "# Changelog" repeats the page title. */
+.ymd-changelog > h1:first-child {
+  display: none;
+}
+
+/* Current page in the sidebar: a soft violet mark rather than a solid block. */
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover,
+.sidebar-content a[aria-current="page"]:focus {
+  background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-text-accent);
+  font-weight: 600;
+}
