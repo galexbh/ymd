@@ -7,8 +7,10 @@ description: Cómo se actualizan ymd y yt-dlp.
 
 ymd se actualiza desde [GitHub Releases](https://github.com/galexbh/ymd/releases). Cada versión va firmada y se verifica antes de instalarse.
 
-- Al abrir ymd, si hay una versión nueva aparece el aviso **Hay una versión nueva de ymd** con **Instalar y reiniciar** o **Más tarde**.
-- En **Ajustes → Avanzado → ymd** se ven la **Versión instalada** y el botón **Buscar actualización**.
+- ymd busca versiones nuevas al abrirse y cada 6 horas mientras sigue abierto.
+- Si encuentra una, aparece el aviso **Hay una versión nueva de ymd** con **Instalar y reiniciar** y **Ver novedades**. El aviso se queda hasta que lo cierras.
+- Si ymd está en segundo plano, también recibes una notificación del sistema, una sola vez por versión.
+- En **Ajustes → Avanzado → ymd** se ven la **Versión instalada**, el botón **Buscar actualización** y, cuando hay una versión nueva, sus novedades.
 
 Las copias instaladas solo ven versiones publicadas. Si la búsqueda falla, vuelve a intentarlo más tarde o descarga la última versión desde la [página de releases](https://github.com/galexbh/ymd/releases/latest).
 

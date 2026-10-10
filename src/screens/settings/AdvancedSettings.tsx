@@ -1,9 +1,17 @@
 import { FolderOpen, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { UpdateChannel } from "../../ipc/types";
-import { Button, Notice, ProgressDeterminate, Section, SegmentedControl, Switch } from "../../ui";
+import {
+  Button,
+  Markdown,
+  Notice,
+  ProgressDeterminate,
+  Section,
+  SegmentedControl,
+  Switch,
+} from "../../ui";
 import { inTauri, useAppUpdate } from "../../store/appUpdate";
-import { openFile, parentDir } from "../../app/native";
+import { openExternal, openFile, parentDir } from "../../app/native";
 import { useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
 import screen from "../shared/screen.module.css";
@@ -59,7 +67,20 @@ function AppUpdateSection() {
       )}
       {u.status === "available" && (
         <Notice tone="info" title={t("settings.advanced.app.available", { version: u.version })}>
-          {u.notes}
+          {u.notes && (
+            <div
+              className={s.releaseNotes}
+              tabIndex={0}
+              role="region"
+              aria-label={t("settings.advanced.app.notes", { version: u.version })}
+              data-testid="app-update-notes"
+            >
+              <Markdown
+                source={u.notes}
+                onLink={(href) => void openExternal(href).catch(() => {})}
+              />
+            </div>
+          )}
         </Notice>
       )}
       {(u.status === "downloading" || u.status === "installing") && (
