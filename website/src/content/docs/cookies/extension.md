@@ -58,7 +58,7 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd), por Native Messaging. El navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No hay red, servidor ni telemetría.
 - **Qué:** las cookies de los dominios de la lista, con los campos de `chrome.cookies.Cookie` (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), y el nombre del navegador.
 - **Cuándo:** 3 s después de que cambie una cookie de la lista, cada 30 min como sincronización completa, y al pulsar **Enviar ahora**. Solo se envía si el contenido cambió (se compara un hash SHA-256).
-- **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, con permisos solo para tu usuario, y lo usa con yt-dlp.
+- **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, cifrado con una clave del llavero del sistema y con permisos solo para tu usuario, y lo usa con yt-dlp.
 
 El protocolo completo está en [Protocolo del puente de cookies](/ymd/desarrollo/puente-de-cookies/).
 
@@ -66,6 +66,7 @@ El protocolo completo está en [Protocolo del puente de cookies](/ymd/desarrollo
 
 - La extensión guarda la lista de sitios, el estado (última sincronización, número de cookies, dominios y el último error) y el hash. Nunca guarda el valor de una cookie.
 - Las cookies viajan solo a ymd en este equipo. No se envían por red ni al desarrollador.
+- Ninguna otra extensión ni página web puede hablar con «ymd Cookies», y ymd nunca le devuelve cookies a nadie. Detalles en [Seguridad](/ymd/desarrollo/puente-de-cookies/#seguridad).
 - Para dejar de compartir: quita el sitio de la lista o desinstala la extensión. **Borrar copia**, en **Ajustes → Cuentas**, borra el `cookies.txt` de ymd.
 
 ## Solución de problemas

@@ -3,6 +3,7 @@ import {
   cookieDomainAllowed,
   DEFAULT_DOMAINS,
   isDefaultDomain,
+  isPublicSuffix,
   normalizeDomain,
   originPattern,
   sanitizeAllowlist,
@@ -75,5 +76,38 @@ describe("allowlist helpers", () => {
     ]);
     expect(sanitizeAllowlist(undefined)).toEqual(["youtube.com"]);
     expect(sanitizeAllowlist([])).toEqual([]);
+  });
+});
+
+describe("public suffixes", () => {
+  it("refuses shared hosts and country-code second levels, not real sites", () => {
+    for (const d of [
+      "github.io",
+      "blogspot.com",
+      "co.uk",
+      "com.br",
+      "ne.jp",
+      "gob.mx",
+      "pages.dev",
+    ]) {
+      expect(isPublicSuffix(d), d).toBe(true);
+    }
+    for (const d of [
+      "youtube.com",
+      "vimeo.com",
+      "bbc.co.uk",
+      "user.github.io",
+      "co.com",
+      "com.mx.example",
+    ]) {
+      expect(isPublicSuffix(d), d).toBe(false);
+    }
+  });
+
+  it("drops them from a stored list", () => {
+    expect(sanitizeAllowlist(["youtube.com", "github.io", "co.uk", "vimeo.com"])).toEqual([
+      "youtube.com",
+      "vimeo.com",
+    ]);
   });
 });

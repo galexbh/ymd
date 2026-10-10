@@ -2,7 +2,7 @@
 // Everything takes its dependencies as arguments so tests drive it with a fake `chrome`.
 
 import { type BrowserName } from "./browser";
-import { type ChromeApi, type CookieChangeInfo } from "./chrome-api";
+import { type ChromeApi, type MessageSender, type CookieChangeInfo } from "./chrome-api";
 import { collectCookies, domainsOf, hashCookies, type WireCookie } from "./cookies";
 import { cookieDomainAllowed } from "./domains";
 import { mapLastError, type Status, type StatusError } from "./status";
@@ -216,6 +216,19 @@ function isPopupRequest(m: unknown): m is PopupRequest {
 }
 
 /**
+ * Only this extension's popup may ask for a sync. `onMessage` already ignores other extensions
+ * and web pages (`externally_connectable` is empty); this also rules out any other page of the
+ * extension, now or in the future.
+ */
+export function fromOwnPopup(api: Pick<ChromeApi, "runtime">, sender: MessageSender): boolean {
+  return (
+    sender.id === api.runtime.id &&
+    typeof sender.url === "string" &&
+    sender.url.split(/[?#]/)[0] === api.runtime.getURL("popup.html")
+  );
+}
+
+/**
  * Wires every listener synchronously, as MV3 requires (listeners added after an await are lost
  * when the worker is woken by that event).
  */
@@ -244,8 +257,8 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
     if (area === "local" && KEYS.allowlist in changes) engine.schedule();
   });
 
-  api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (!isPopupRequest(message)) return false;
+  api.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (!fromOwnPopup(api, sender) || !isPopupRequest(message)) return false;
     const reply =
       message.type === "send-now"
         ? engine.syncNow(true).then((r): PopupResponse => ({ ok: r.sent, status: r.status }))

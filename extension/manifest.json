@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ymd Cookies",
   "short_name": "ymd Cookies",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "__MSG_extDescription__",
   "default_locale": "es",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB",
@@ -10,6 +10,9 @@
   "permissions": ["cookies", "nativeMessaging", "storage", "alarms"],
   "host_permissions": ["*://*.youtube.com/*"],
   "optional_host_permissions": ["*://*/*"],
+  "externally_connectable": {
+    "ids": []
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -31,6 +34,6 @@
     "128": "icons/icon-128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
   }
 }

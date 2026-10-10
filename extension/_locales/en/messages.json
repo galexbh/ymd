@@ -119,6 +119,15 @@
       }
     }
   },
+  "addShared": {
+    "message": "$DOMAIN$ is shared by many sites. Type the specific site, for example user.github.io.",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "github.io"
+      }
+    }
+  },
   "privacyNote": {
     "message": "Cookies only travel to ymd on this computer, never over the network. Only from the sites on the list."
   }

@@ -67,6 +67,10 @@ export type NativeBehavior =
 
 export const HOST_NOT_FOUND = "Specified native messaging host not found.";
 
+/** ID of the fake extension; the popup sends from its own page. */
+export const FAKE_ID = "fakeextensionidfakeextensionidaa";
+export const POPUP_SENDER = { id: FAKE_ID, url: `chrome-extension://${FAKE_ID}/popup.html` };
+
 export interface FakeOptions {
   cookies?: ChromeCookie[];
   locale?: Locale;
@@ -117,7 +121,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       fakeEvent<
         (
           message: unknown,
-          sender: { id?: string },
+          sender: { id?: string; url?: string },
           sendResponse: (r?: unknown) => void,
         ) => boolean | undefined | void
       >(),
@@ -154,10 +158,12 @@ export function createChromeFake(options: FakeOptions = {}) {
         }
       });
     },
+    id: FAKE_ID,
+    getURL: (path: string) => `chrome-extension://${FAKE_ID}/${path.replace(/^\//, "")}`,
     sendMessage(message) {
       return new Promise((resolve) => {
         let answered = false;
-        const results = events.message.emit(message, { id: "fake" }, (r) => {
+        const results = events.message.emit(message, POPUP_SENDER, (r) => {
           answered = true;
           resolve(r);
         });

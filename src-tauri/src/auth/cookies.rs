@@ -1,5 +1,7 @@
 //! cookies.txt snapshot / import / test / clear. Owner: C.
-//! The file lives at `AppPaths::cookies_file()` with owner-only permissions (0600 / user ACL).
+//! The file lives at `AppPaths::cookies_file()` with owner-only permissions (0600 / user ACL),
+//! sealed with a key from the OS keychain (see `super::jar`); every read and write of it goes
+//! through `read_jar` / `write_jar`.
 //!
 //! Permissions: on Unix every file is created 0600 (and the auth dir 0700) before any byte is
 //! written. On Windows the file lives under `%APPDATA%\<id>\auth`, whose inherited ACL already
@@ -101,8 +103,8 @@ pub async fn snapshot(
             });
         }
     }
-    let target = paths.cookies_file();
-    std::fs::rename(&jar.0, &target).map_err(CommandError::unknown)?;
+    write_jar(paths, &normalize_for_ytdlp(&text))?;
+    drop(jar);
     let meta = Meta {
         created_at: chrono::Utc::now().to_rfc3339(),
         origin: spec,
@@ -139,7 +141,7 @@ pub fn import(paths: &AppPaths, source: &std::path::Path) -> CmdResult<CookieFil
     let normalized = normalize_for_ytdlp(text);
     ensure_private_dir(&paths.auth_dir())?;
     // Content is copied; no reference to `source` is kept.
-    write_private(&paths.cookies_file(), normalized.as_bytes())?;
+    write_jar(paths, &normalized)?;
     let meta = Meta {
         created_at: chrono::Utc::now().to_rfc3339(),
         origin: "import".into(),
@@ -157,7 +159,7 @@ pub fn import(paths: &AppPaths, source: &std::path::Path) -> CmdResult<CookieFil
 pub(crate) fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
     parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     ensure_private_dir(&paths.auth_dir())?;
-    write_private(&paths.cookies_file(), normalize_for_ytdlp(text).as_bytes())?;
+    write_jar(paths, &normalize_for_ytdlp(text))?;
     write_meta(paths, origin)?;
     info(paths).ok_or_else(|| CommandError::unknown("cookies written but unreadable"))
 }
@@ -180,10 +182,53 @@ pub(crate) fn write_meta(paths: &AppPaths, origin: &str) -> CmdResult<()> {
 /// from clobbering cookies the extension (or an import) wrote while it ran.
 pub fn ephemeral_copy(src: &Path, dir: &Path) -> CmdResult<PathBuf> {
     let bytes = std::fs::read(src).map_err(|e| io_err(src, e))?;
+    // yt-dlp needs plain Netscape text: this copy is the only place it exists on disk.
+    let bytes = super::jar::decode(&bytes, super::jar::key().as_ref())
+        .map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     std::fs::create_dir_all(dir).map_err(|e| io_err(dir, e))?;
     let path = dir.join(format!("cookies-{}.txt", uuid::Uuid::new_v4().simple()));
     write_private_new(&path, &bytes)?;
     Ok(path)
+}
+
+/// Whether `name` is a per-run copy written by [`ephemeral_copy`].
+fn is_ephemeral_name(name: &str) -> bool {
+    name.strip_prefix("cookies-")
+        .and_then(|rest| rest.strip_suffix(".txt"))
+        .is_some_and(|id| id.len() == 32 && id.bytes().all(|b| b.is_ascii_hexdigit()))
+}
+
+/// Deletes per-run plain copies left in `tmp_dir` (and its job folders) by a crash or a forced
+/// quit. Run at start-up, before any job can own one. Returns how many were removed.
+pub fn sweep_stale_copies(tmp_dir: &Path) -> usize {
+    let mut removed = 0;
+    let mut dirs = vec![tmp_dir.to_path_buf()];
+    let mut depth = 0;
+    while !dirs.is_empty() && depth < 3 {
+        let mut next = Vec::new();
+        for dir in dirs {
+            let Ok(entries) = std::fs::read_dir(&dir) else {
+                continue;
+            };
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let Ok(kind) = entry.file_type() else {
+                    continue;
+                };
+                if kind.is_dir() {
+                    next.push(path);
+                } else if kind.is_file()
+                    && is_ephemeral_name(&entry.file_name().to_string_lossy())
+                    && std::fs::remove_file(&path).is_ok()
+                {
+                    removed += 1;
+                }
+            }
+        }
+        dirs = next;
+        depth += 1;
+    }
+    removed
 }
 
 /// Per-run cookie copy, deleted when dropped.
@@ -237,9 +282,40 @@ fn normalize_for_ytdlp(text: &str) -> String {
     out
 }
 
+/// Plain text of ymd's jar (decrypted when sealed). `None` when there is no jar.
+fn read_jar(paths: &AppPaths) -> Option<anyhow::Result<String>> {
+    let bytes = std::fs::read(paths.cookies_file()).ok()?;
+    let sealed = super::jar::is_sealed(&bytes);
+    Some(
+        super::jar::decode(&bytes, super::jar::key().as_ref()).map(|plain| {
+            let text = String::from_utf8_lossy(&plain).into_owned();
+            // A plain jar from an older version gets sealed the first time it is read.
+            if !sealed && super::jar::key().is_some() {
+                if let Err(e) = write_jar(paths, &text) {
+                    log::warn!("cookie jar: could not seal the existing file: {}", e.detail);
+                }
+            }
+            text
+        }),
+    )
+}
+
+/// Write ymd's jar, sealed when the keychain allows (owner-only and atomic either way).
+fn write_jar(paths: &AppPaths, text: &str) -> CmdResult<()> {
+    let bytes = super::jar::encode(text.as_bytes(), super::jar::key().as_ref())
+        .map_err(|e| CommandError::unknown(format!("{e:#}")))?;
+    write_private(&paths.cookies_file(), &bytes)
+}
+
 pub fn info(paths: &AppPaths) -> Option<CookieFileInfo> {
     let file = paths.cookies_file();
-    let text = std::fs::read_to_string(&file).ok()?;
+    let text = match read_jar(paths)? {
+        Ok(t) => t,
+        Err(e) => {
+            log::warn!("cookies.txt is unreadable: {e:#}");
+            return None;
+        }
+    };
     let (cookie_count, domains) = match parse_netscape(&text) {
         Ok(v) => v,
         Err(e) => {
@@ -600,6 +676,37 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         assert_eq!(n, format!("{HEADER}\n.a.com\tTRUE\t/\tFALSE\t1\tn\tv\n"));
         let n2 = normalize_for_ytdlp("# HTTP Cookie File\n.a.com\tTRUE\t/\tFALSE\t1\tn\tv\n");
         assert!(n2.starts_with("# HTTP Cookie File\n.a.com"));
+    }
+
+    #[test]
+    fn sweep_removes_only_left_over_copies() {
+        let tmp = tempfile::tempdir().unwrap();
+        let job = tmp.path().join("job1");
+        std::fs::create_dir_all(&job).unwrap();
+        let copy = ephemeral_copy(
+            &{
+                let src = tmp.path().join("src.txt");
+                std::fs::write(&src, "x").unwrap();
+                src
+            },
+            &job,
+        )
+        .unwrap();
+        let keep = [
+            tmp.path().join("src.txt"),
+            job.join("video.mp4.part"),
+            job.join("cookies-notahexid.txt"),
+            job.join("cookies.txt"),
+        ];
+        for k in &keep[1..] {
+            std::fs::write(k, "x").unwrap();
+        }
+        assert_eq!(sweep_stale_copies(tmp.path()), 1);
+        assert!(!copy.exists());
+        for k in &keep {
+            assert!(k.exists(), "{}", k.display());
+        }
+        assert_eq!(sweep_stale_copies(&tmp.path().join("missing")), 0);
     }
 
     #[test]

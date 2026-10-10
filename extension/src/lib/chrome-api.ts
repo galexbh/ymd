@@ -58,6 +58,9 @@ export interface ChromeApi {
     onAlarm: ChromeEvent<(alarm: Alarm) => void>;
   };
   runtime: {
+    /** This extension's ID. */
+    id: string;
+    getURL(path: string): string;
     lastError?: { message?: string };
     // Callback form on purpose: it is the only form where `lastError` is readable everywhere.
     sendNativeMessage(

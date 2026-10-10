@@ -27,6 +27,11 @@ pub const PROTOCOL: u32 = 1;
 /// Largest inbound message accepted (the browser caps host → extension at 1 MiB, and
 /// extension → host at 64 MiB; a cookie jar is far below this).
 pub const MAX_MESSAGE: u32 = 16 * 1024 * 1024;
+/// Most cookies accepted in one message: a real jar for a handful of sites holds a few hundred.
+pub const MAX_COOKIES: usize = 10_000;
+/// Browsers cap a cookie's name + value at 4096 bytes (RFC 6265 §6.1 minimum, Chromium's limit).
+const MAX_COOKIE_BYTES: usize = 4096;
+const MAX_PATH_BYTES: usize = 1024;
 
 const NETSCAPE_HEADER: &str = "# Netscape HTTP Cookie File";
 const BROWSERS: [&str; 7] = [
@@ -178,27 +183,49 @@ fn browser_name(raw: &str) -> &'static str {
 // ───────────────────────────── Netscape conversion ─────────────────────────────
 
 fn has_control(s: &str) -> bool {
-    s.contains(['\t', '\r', '\n'])
+    s.chars().any(char::is_control)
+}
+
+/// A cookie domain as browsers store it: a hostname (letters, digits, `-`, `_`, dots) of at
+/// most 253 bytes with at least one dot, or an IPv4 literal.
+fn valid_domain(bare: &str) -> bool {
+    !bare.is_empty()
+        && bare.len() <= 253
+        && bare.contains('.')
+        && !bare.ends_with('.')
+        && !bare.contains("..")
+        && bare
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'-' | b'_'))
+}
+
+/// Whether a cookie can be written: a sane domain and path, no control characters, and within
+/// the sizes a browser would ever hand out. Anything else is skipped, never repaired.
+fn acceptable(c: &ChromeCookie) -> bool {
+    let bare = c.domain.trim().trim_start_matches('.');
+    valid_domain(bare)
+        && !c.name.is_empty()
+        && c.name.len() + c.value.len() <= MAX_COOKIE_BYTES
+        && c.path.len() <= MAX_PATH_BYTES
+        && (c.path.is_empty() || c.path.starts_with('/'))
+        && ![c.path.as_str(), c.name.as_str(), c.value.as_str()]
+            .iter()
+            .any(|s| has_control(s))
 }
 
 /// Pure: `chrome.cookies` records → Netscape cookies.txt (header first, one line per cookie).
 ///
-/// Cookies whose domain, path, name or value contain a tab or line break, or that have an
-/// empty name or domain, are skipped: they cannot be represented in the format.
+/// Cookies that fail [`acceptable`] (control characters, an odd domain or path, an empty
+/// name, oversized) are skipped: the format can't carry them, or no browser would send them.
 pub fn cookies_to_netscape(cookies: &[ChromeCookie]) -> String {
     let mut out = String::with_capacity(64 + cookies.len() * 96);
     out.push_str(NETSCAPE_HEADER);
     out.push('\n');
     for c in cookies {
-        let bare = c.domain.trim().trim_start_matches('.');
-        if bare.is_empty()
-            || c.name.is_empty()
-            || [bare, c.path.as_str(), c.name.as_str(), c.value.as_str()]
-                .iter()
-                .any(|s| has_control(s))
-        {
+        if !acceptable(c) {
             continue;
         }
+        let bare = c.domain.trim().trim_start_matches('.');
         let (domain, subdomains) = if c.host_only {
             (bare.to_string(), "FALSE")
         } else {
@@ -232,6 +259,12 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
             browser, cookies, ..
         } => {
             let browser = browser_name(&browser);
+            if cookies.len() > MAX_COOKIES {
+                return Err(CommandError::unknown(format!(
+                    "too many cookies in one message ({}, at most {MAX_COOKIES})",
+                    cookies.len()
+                )));
+            }
             let text = cookies_to_netscape(&cookies);
             let paths = AppPaths {
                 bin_dir: data_dir.join("bin"),
@@ -424,6 +457,51 @@ mod tests {
                 "youtube.com"
             ]
         );
+    }
+
+    #[test]
+    fn rejects_cookies_no_browser_would_send() {
+        let ok = cookie(".youtube.com", false, "SID", "v");
+        assert!(acceptable(&ok));
+        for bad_domain in [
+            "",
+            ".",
+            "localhost",
+            "a..b.com",
+            "evil.com.",
+            "a b.com",
+            "a/b.com",
+            "x\u{7f}.com",
+            "ü.com",
+        ] {
+            assert!(
+                !acceptable(&cookie(bad_domain, false, "n", "v")),
+                "{bad_domain:?}"
+            );
+        }
+        assert!(acceptable(&cookie("192.168.0.1", true, "n", "v")));
+        let mut c = ok.clone();
+        c.value = "x".repeat(MAX_COOKIE_BYTES);
+        assert!(!acceptable(&c), "oversized");
+        let mut c = ok.clone();
+        c.path = "no-slash".into();
+        assert!(!acceptable(&c), "relative path");
+        let mut c = ok.clone();
+        c.value = "a\u{0}b".into();
+        assert!(!acceptable(&c), "NUL in value");
+    }
+
+    #[test]
+    fn too_many_cookies_is_an_error_and_writes_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let req = Request::Cookies {
+            version: Some(1),
+            browser: "brave".into(),
+            cookies: vec![cookie(".youtube.com", false, "n", "v"); MAX_COOKIES + 1],
+        };
+        let e = handle(req, dir.path()).unwrap_err();
+        assert!(e.detail.contains("too many cookies"), "{}", e.detail);
+        assert!(!dir.path().join("auth").exists());
     }
 
     #[test]

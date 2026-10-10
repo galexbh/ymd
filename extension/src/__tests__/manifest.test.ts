@@ -43,7 +43,7 @@ describe("manifest", () => {
     expect(manifest).toMatchObject({
       manifest_version: 3,
       name: "ymd Cookies",
-      version: "1.1.0",
+      version: "1.2.0",
       default_locale: "es",
       permissions: ["cookies", "nativeMessaging", "storage", "alarms"],
       host_permissions: ["*://*.youtube.com/*"],
@@ -51,5 +51,30 @@ describe("manifest", () => {
       background: { service_worker: "background.js", type: "module" },
       action: { default_popup: "popup.html" },
     });
+  });
+
+  it("lets no other extension or web page connect to it", () => {
+    expect(manifest.externally_connectable).toEqual({ ids: [] });
+    expect(manifest).not.toHaveProperty("web_accessible_resources");
+    expect(manifest).not.toHaveProperty("content_scripts");
+  });
+
+  it("locks its pages down to its own files", () => {
+    const csp = (manifest.content_security_policy as { extension_pages: string }).extension_pages;
+    const directives = Object.fromEntries(
+      csp.split(";").map((d) => {
+        const [name, ...values] = d.trim().split(/\s+/);
+        return [name, values.join(" ")];
+      }),
+    );
+    expect(directives).toMatchObject({
+      "default-src": "'none'",
+      "script-src": "'self'",
+      "connect-src": "'none'",
+      "object-src": "'none'",
+      "base-uri": "'none'",
+      "frame-ancestors": "'none'",
+    });
+    expect(csp).not.toMatch(/unsafe|https?:|\*/);
   });
 });
