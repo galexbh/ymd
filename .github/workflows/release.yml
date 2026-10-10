@@ -76,6 +76,16 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The release body is this version's section of CHANGELOG.md.
+      - name: Release notes
+        id: notes
+        run: |
+          {
+            echo "body<<YMD_NOTES_EOF"
+            node scripts/release-notes.mjs "${{ github.ref_name }}"
+            echo "YMD_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,7 +95,7 @@ jobs:
         with:
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           releaseName: "ymd ${{ github.ref_name }}"
-          releaseBody: "Draft release — see CHANGELOG / commits. Installers below."
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -125,11 +135,9 @@ jobs:
           path: extension/ymd-cookies-extension.zip
           if-no-files-found: error
 
+      # gh resolves the draft release tauri-action created for this tag (no second draft).
       - name: Attach to the draft release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          draft: true
-          files: extension/ymd-cookies-extension.zip
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" extension/ymd-cookies-extension.zip --clobber
