@@ -64,10 +64,13 @@ Lo que protege el puente, y lo que ningún diseño local puede proteger.
 - **La extensión no guarda valores.** En el navegador solo guarda la lista de sitios, el estado y una huella SHA-256 del conjunto.
 - **Páginas cerradas.** La política de contenido de la extensión solo permite sus propios archivos y ninguna conexión de red.
 
-### Límites
+### Buenas prácticas
 
-- **Un programa malicioso que ya corre con tu usuario** puede pedirle al llavero lo mismo que ymd (en Windows) o registrar otro host en lugar de ymd. Ningún diseño local lo impide del todo; el cifrado sí evita que un ladrón de archivos genérico encuentre las cookies en texto plano.
-- **Mientras la extensión se carga descomprimida,** su clave pública es conocida y otra extensión descomprimida podría usar el mismo ID. Como el host solo escribe, esa extensión no podría leer tus cookies, aunque sí reemplazar la copia de ymd. Al publicarla en la Chrome Web Store, la tienda garantiza el ID.
+Como cualquier aplicación que guarda sesiones, ymd cuenta con que el equipo esté sano:
+
+- Mantén el sistema operativo y el navegador actualizados.
+- Instala ymd y la extensión solo desde las fuentes oficiales: los releases de GitHub y la carpeta que trae ymd.
+- Agrega a la lista solo los sitios que necesitas, y usa **Borrar copia** en **Ajustes → Cuentas** cuando ya no la uses.
 
 ## Registro del host
 

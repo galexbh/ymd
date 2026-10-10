@@ -64,10 +64,13 @@ What the bridge protects, and what no local design can.
 - **The extension stores no values.** In the browser it only keeps the site list, the status and a SHA-256 fingerprint of the set.
 - **Locked-down pages.** The extension's content security policy allows only its own files and no network connections.
 
-### Limits
+### Good practices
 
-- **Malware already running as your user** can ask the keychain for what ymd asks (on Windows) or register another host in ymd's place. No local design fully prevents that; encryption does keep a generic file grabber from finding the cookies in plain text.
-- **While the extension is loaded unpacked,** its public key is known and another unpacked extension could take the same ID. Since the host only writes, that extension couldn't read your cookies, though it could replace ymd's copy. Once published on the Chrome Web Store, the store guarantees the ID.
+Like any application that keeps sessions, ymd relies on a healthy computer:
+
+- Keep the operating system and the browser up to date.
+- Install ymd and the extension only from the official sources: the GitHub releases and the folder that ships with ymd.
+- Add only the sites you need to the list, and use **Delete copy** in **Settings → Accounts** once you no longer need it.
 
 ## Host registration
 

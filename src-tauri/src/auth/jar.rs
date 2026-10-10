@@ -5,8 +5,7 @@
 //!
 //! Why: Chromium encrypts its own cookie store so other programs can't read it. The extension
 //! bridge hands those cookies to ymd, so leaving them in a plain file would undo that protection
-//! for any program running as the user. Sealing keeps generic file grabbers out; a program that
-//! can impersonate the user to the keychain is out of reach of any local design.
+//! for any program running as the user.
 //!
 //! When the keychain is unavailable (e.g. Linux without a Secret Service) the jar falls back to a
 //! plain owner-only file and says so in the log. Plain files written by older versions are

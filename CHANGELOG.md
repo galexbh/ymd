@@ -6,7 +6,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Seguridad
 
-- **Cookies cifradas en disco.** La copia de cookies de ymd se guarda cifrada (ChaCha20-Poly1305) con una clave aleatoria en el llavero del sistema. Antes era texto plano, legible por cualquier programa que corriera con tu usuario, lo que deshacía el cifrado que Chrome y Edge aplican a sus cookies en Windows. Las copias existentes se cifran solas la primera vez que ymd las lee. El texto plano solo existe durante una descarga, en la copia que recibe yt-dlp, y ymd borra al arrancar las que haya dejado un cierre forzado.
+- **Cookies cifradas en disco.** La copia de cookies de ymd se guarda cifrada (ChaCha20-Poly1305) con una clave aleatoria en el llavero del sistema, para que conserve la misma protección que el navegador da a tus sesiones. Las copias existentes se cifran solas la primera vez que ymd las lee. El texto plano solo existe durante una descarga, en la copia que recibe yt-dlp, y ymd borra al arrancar las que haya dejado un cierre forzado.
 - **Extensión «ymd Cookies» 1.2.0, más cerrada.** No acepta mensajes de otras extensiones ni de páginas web, solo responde a su propio popup, usa una política de contenido estricta (solo sus archivos, sin conexiones de red) y rechaza dominios compartidos por muchos sitios (`co.uk`, `github.io`…), que darían acceso a sitios ajenos.
 - **Host nativo más estricto.** Como máximo 10.000 cookies por mensaje, y cada cookie con un dominio y una ruta válidos, sin caracteres de control y de 4096 bytes como máximo. El host sigue sin devolver nunca cookies.
 
