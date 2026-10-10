@@ -59,6 +59,7 @@ fallan con el error correspondiente; `notfound` y `offline` fallan en el anális
 | `pnpm test:rust`                    | `cargo test --features test-support`                             |
 | `pnpm lint:rust`                    | `cargo fmt --check` + `cargo clippy -D warnings`                 |
 | `pnpm check`                        | lint + formato + tipos + tests del frontend                      |
+| `pnpm docs:dev` / `pnpm docs:build` | Sitio de documentación (`website/`); el build valida enlaces     |
 
 Antes de abrir un PR: `pnpm check && pnpm test:rust && pnpm lint:rust`.
 
@@ -107,6 +108,21 @@ Todo en **el mismo commit**:
 
 Español e inglés. **Las claves de `es` y `en` son idénticas**; un test lo comprueba. No hay
 textos en duro en componentes. Al añadir una clave, añádela en ambos idiomas en el mismo commit.
+
+## Documentación
+
+La documentación de usuario y de desarrollo vive en `website/` (Astro Starlight) y se publica en
+<https://galexbh.github.io/ymd/> al fusionar en `main` (`.github/workflows/docs.yml`).
+
+- Las páginas en español están en la raíz de `website/src/content/docs/`; las inglesas, en
+  `en/` con los mismos nombres de archivo. Un cambio de comportamiento visible actualiza ambas,
+  con los textos reales de la interfaz (`src/i18n/*.json`).
+- El contrato del puente de cookies es `desarrollo/puente-de-cookies.md` (y su versión en
+  `en/`). Un cambio en el protocolo toca la extensión, `native_host.rs` y ambas páginas en el
+  mismo PR; `extension/src/__tests__/manifest.test.ts` lee la clave del manifiesto de ellas.
+- La página Changelog muestra el `CHANGELOG.md` de la raíz; no se copia.
+- `pnpm docs:build` falla si hay enlaces internos rotos. `docs/assets/` guarda solo las imágenes
+  del README.
 
 ## Temas y diseño
 
@@ -162,5 +178,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - New IPC command = `model.rs` + command + `types.ts` + `commands.ts`/`events.ts` + mock + tests,
   in one commit.
 - i18n: `es` and `en` keys must be identical. Theming: tokens only, check light and dark.
+- Docs: `website/` (Astro Starlight, published to <https://galexbh.github.io/ymd/>). Update the
+  es and en pages with behavior changes; `pnpm docs:build` validates internal links. The cookie
+  bridge contract is `website/src/content/docs/{,en/}desarrollo/puente-de-cookies.md`.
 - Security: argv only (no shell), no secrets on disk or in argv, owner-only cookie file.
 - Add an AI co-author trailer to commits written with an AI assistant.

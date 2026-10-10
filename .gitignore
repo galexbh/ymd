@@ -49,3 +49,7 @@ src-tauri/bin/
 
 # ymd Cookies extension package (built by `pnpm ext:zip`)
 extension/ymd-cookies-extension.zip
+
+# Docs site (website/): Astro's generated types and local review screenshots
+website/.astro/
+website/.screens/

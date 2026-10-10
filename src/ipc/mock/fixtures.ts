@@ -297,7 +297,7 @@ export function browsersFixture(braveRunning: boolean, firefoxInstalled = true):
 
 // ───────────── Cookie bridge (extension) ─────────────
 
-/** Fixed ID derived from the manifest `key` (docs/cookie-bridge.md). */
+/** Fixed ID derived from the manifest `key` (website/src/content/docs/desarrollo/puente-de-cookies.md). */
 export const EXTENSION_ID = "gicaphbpepkphmeciigjhdpnbcaflfgd";
 
 /** Chromium browsers the native-messaging host is registered for, in display order. */

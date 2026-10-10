@@ -1,4 +1,6 @@
-//! Native-messaging host for the ymd Cookies extension. Contract: `docs/cookie-bridge.md`.
+//! Native-messaging host for the ymd Cookies extension. Contract:
+//! `website/src/content/docs/desarrollo/puente-de-cookies.md`
+//! (<https://galexbh.github.io/ymd/desarrollo/puente-de-cookies/>).
 //!
 //! The browser launches `ymd chrome-extension://<id>/ [--parent-window=N]` once per
 //! `chrome.runtime.sendNativeMessage` call. [`host_main`] checks the origin, reads exactly one

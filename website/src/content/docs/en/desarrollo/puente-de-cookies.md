@@ -1,13 +1,16 @@
-# Cookie bridge: ymd Cookies extension ↔ ymd (Native Messaging)
+---
+title: Cookie bridge protocol
+description: The Native Messaging contract between the ymd Cookies extension and ymd.
+---
 
-Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change both in the same PR.
+Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change both in the same PR, together with this page and its Spanish version.
 
 ## Identity
 
 - Native host name: `com.ymd.cookies`
 - Extension ID (fixed by the manifest `key`): `gicaphbpepkphmeciigjhdpnbcaflfgd`
 - Allowed origin: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/`
-- Manifest `key` (public, SPKI DER base64):
+- Manifest `key` (public, SPKI DER base64). `extension/src/__tests__/manifest.test.ts` reads this block and checks it matches `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
@@ -17,7 +20,11 @@ The matching private key is **not** in the repo. It lives at `~/.ymd/extension-k
 
 ## Transport
 
-Chrome/Brave/Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON. Max 16 MiB inbound. The host reads exactly one message, writes exactly one reply and exits 0. If the origin is not the allowed one, it exits 1 without reading. If the frame itself is unreadable (truncated, or a length over 16 MiB) it still writes an error reply, then exits 1.
+Chrome, Brave and Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON, 16 MiB max inbound.
+
+- The host reads exactly one message, writes exactly one reply and exits 0.
+- If the origin is not the allowed one, it exits 1 without reading.
+- If the frame itself is unreadable (truncated, or a length over 16 MiB), it still writes an error reply, then exits 1.
 
 ## Messages (extension → host)
 
@@ -29,10 +36,17 @@ Chrome/Brave/Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent
   - An unknown `browser` is recorded as `other`.
   - `count` / `domains` describe what was written: cookies with an empty name, or a tab or line break in the domain, path, name or value, are skipped (Netscape cannot represent them). If none remain, the reply is an error and the previous `cookies.txt` is kept.
 - `version` is optional; a value above `1` is rejected.
-- Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}` (the detail never contains cookie values).
+- Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}`. The detail never contains cookie values.
 
 ## Effects
 
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically with owner-only permissions.
 - It writes `cookies.meta.json` with `origin: "extension:<browser>"`.
 - The app reads both through `cookies_info` / `extension_status`.
+
+## Host registration
+
+ymd registers itself as the `com.ymd.cookies` host on every launch (idempotently, so the manifest always points at the current executable) for Brave, Chrome, Edge, Chromium and Vivaldi, only when their user-data folder exists:
+
+- **Windows:** `HKCU\Software\<vendor>\NativeMessagingHosts\com.ymd.cookies`, whose default value is the path of the host manifest JSON. HKCU needs no elevation. The uninstaller removes the keys.
+- **macOS and Linux:** the manifest JSON is copied into each browser's `NativeMessagingHosts` folder.

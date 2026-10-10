@@ -1,4 +1,5 @@
-//! The real `ymd` binary as a native-messaging host (contract: `docs/cookie-bridge.md`).
+//! The real `ymd` binary as a native-messaging host
+//! (contract: `website/src/content/docs/desarrollo/puente-de-cookies.md`).
 //! `YMD_DATA_DIR` points the host at a temp dir instead of the user's app data.
 
 use serde_json::{json, Value};

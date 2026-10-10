@@ -8,7 +8,12 @@ const manifest = JSON.parse(readFileSync(resolve(EXTENSION_DIR, "manifest.json")
   key: string;
   [k: string]: unknown;
 };
-const doc = readFileSync(resolve(EXTENSION_DIR, "../docs/cookie-bridge.md"), "utf8");
+// The bridge contract is published on the docs site, in Spanish (root) and English (en/).
+const DOCS_DIR = resolve(EXTENSION_DIR, "../website/src/content/docs");
+const CONTRACT_PAGES = {
+  es: resolve(DOCS_DIR, "desarrollo/puente-de-cookies.md"),
+  en: resolve(DOCS_DIR, "en/desarrollo/puente-de-cookies.md"),
+};
 
 /** Chrome's extension ID: sha256 of the SPKI DER, first 16 bytes, each nibble mapped 0-f → a-p. */
 function extensionId(base64Key: string): string {
@@ -19,16 +24,19 @@ function extensionId(base64Key: string): string {
 }
 
 describe("manifest", () => {
-  const docId = /Extension ID.*?`([a-p]{32})`/.exec(doc)?.[1];
-  const docKey = /```\s*\n(MII[A-Za-z0-9+/=]+)\s*\n```/.exec(doc)?.[1];
+  describe.each(Object.entries(CONTRACT_PAGES))("bridge contract page (%s)", (_lang, page) => {
+    const doc = readFileSync(page, "utf8");
+    const docId = /(?:Extension ID|ID de la extensión).*?`([a-p]{32})`/.exec(doc)?.[1];
+    const docKey = /```\s*\n(MII[A-Za-z0-9+/=]+)\s*\n```/.exec(doc)?.[1];
 
-  it("its key derives to the fixed ID in docs/cookie-bridge.md", () => {
-    expect(docId).toBe("gicaphbpepkphmeciigjhdpnbcaflfgd");
-    expect(extensionId(manifest.key)).toBe(docId);
-  });
+    it("its key derives to the fixed ID in the contract", () => {
+      expect(docId).toBe("gicaphbpepkphmeciigjhdpnbcaflfgd");
+      expect(extensionId(manifest.key)).toBe(docId);
+    });
 
-  it("uses exactly the key published in the contract", () => {
-    expect(manifest.key).toBe(docKey);
+    it("uses exactly the key published in the contract", () => {
+      expect(manifest.key).toBe(docKey);
+    });
   });
 
   it("asks for the documented permissions and nothing more", () => {

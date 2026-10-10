@@ -43,6 +43,7 @@ jobs:
       frontend: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.frontend == 'true' }}
       extension: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.extension == 'true' }}
       deps: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.deps == 'true' }}
+      website: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.website == 'true' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -87,6 +88,8 @@ jobs:
               - package.json
               - pnpm-lock.yaml
               - pnpm-workspace.yaml
+              # The bridge contract pages hold the manifest key the extension tests read.
+              - website/src/content/docs/**/puente-de-cookies.md
             deps:
               - *ci
               - package.json
@@ -94,6 +97,14 @@ jobs:
               - extension/package.json
               - src-tauri/Cargo.toml
               - src-tauri/Cargo.lock
+            website:
+              - *ci
+              - website/**
+              - CHANGELOG.md
+              - docs/assets/**
+              - package.json
+              - pnpm-lock.yaml
+              - pnpm-workspace.yaml
 
   # Cheap and always on: formatting covers docs too (README, CHANGELOG…).
   format:
@@ -286,6 +297,29 @@ jobs:
             test-results/extension/
           if-no-files-found: ignore
           retention-days: 14
+
+  # The documentation site builds and its internal links resolve (starlight-links-validator).
+  # Deploying is docs.yml's job, on main only.
+  docs:
+    name: docs (build, links)
+    needs: changes
+    if: needs.changes.outputs.website == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter ymd-website
+
+      - name: Build + link check
+        run: pnpm docs:build
 
   rust:
     name: rust (${{ matrix.os }})

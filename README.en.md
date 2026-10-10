@@ -12,8 +12,10 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
+[![Documentation](https://img.shields.io/badge/docs-galexbh.github.io%2Fymd-5b3fc4)](https://galexbh.github.io/ymd/en/)
 
 [Download](https://github.com/galexbh/ymd/releases/latest) ·
+[**Documentation**](https://galexbh.github.io/ymd/en/) ·
 [Changelog](CHANGELOG.md) ·
 [Contributing](CONTRIBUTING.md) ·
 [Español](README.md)
@@ -75,56 +77,29 @@ Download the latest version from [Releases](https://github.com/galexbh/ymd/relea
 > [!NOTE]
 > The Windows installer is not Authenticode-signed yet, so SmartScreen may show a warning the first time. Choose **More info → Run anyway**.
 
-On first launch, the welcome screen installs what ymd needs. From then on ymd keeps its dependencies and itself up to date.
+On first launch, the welcome screen installs what ymd needs. From then on ymd keeps its dependencies and itself up to date. Per-OS details in the [installation guide](https://galexbh.github.io/ymd/en/guia/instalacion/).
 
 ## Dependencies
 
-ymd downloads its tools to `%LOCALAPPDATA%\ymd\bin` (Windows) or to its data folder (macOS and Linux); nothing is installed system-wide. The location can be changed in **Settings → Advanced**.
-
-| Tool                                                                                     | Purpose                                        | Source                                                                                                 |
-| ---------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp)                                               | Download engine                                | Official executable, verified against `SHA2-256SUMS`; stable, nightly or master channel                |
-| [FFmpeg](https://ffmpeg.org/)                                                            | Stream merging, conversion and post-processing | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) (Windows and Linux), Homebrew on macOS |
-| [Deno](https://deno.com/)                                                                | JavaScript runtime yt-dlp needs for YouTube    | Node, Bun or QuickJS are used if already installed                                                     |
-| [aria2](https://aria2.github.io/), [AtomicParsley](https://github.com/wez/atomicparsley) | Optional                                       | Installed from the Dependencies screen                                                                 |
+ymd installs yt-dlp, FFmpeg and Deno in a per-user folder, verified with SHA-256, and keeps them up to date. Full table, locations and JavaScript runtimes in [Dependencies](https://galexbh.github.io/ymd/en/dependencias/).
 
 ## Cookies and accounts
 
-Some videos can only be downloaded while signed in. ymd offers several opt-in options:
-
-- **ymd Cookies extension** for Brave, Chrome and Edge: syncs the cookies of the sites you choose over Native Messaging, with no network involved. On Windows this is the recommended path for Chromium browsers. See [`extension/README.md`](extension/README.md).
-- **Browser cookies** (Firefox recommended on Windows) or an imported **`cookies.txt`** file.
-- **Site accounts**, stored in the OS keychain and handed to yt-dlp through `--netrc-cmd`.
-
-Passwords are never written to disk or passed as process arguments. The cookie file lives in the user's private data folder and can be deleted from **Settings → Accounts**.
+For videos that need a session: the ymd Cookies extension for Brave, Chrome and Edge, Firefox cookies, `cookies.txt` or accounts in the system keychain. Options and privacy in [Cookies and accounts](https://galexbh.github.io/ymd/en/cookies/por-que/).
 
 ## Development
 
-Requirements: Node 22+, stable Rust and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/).
+Requirements: Node 22+, stable Rust and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` runs the app; `pnpm dev:mock` runs the UI only, against a simulated backend.
 
-```sh
-corepack enable
-pnpm install
+Guide, architecture, tests and releases in [Development](https://galexbh.github.io/ymd/en/desarrollo/contribuir/) and in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-pnpm tauri dev        # run the app in development mode
-pnpm dev:mock         # UI only, in the browser, against a simulated backend
-pnpm test             # UI tests
-pnpm e2e              # end-to-end tests (Playwright)
-pnpm ext:build        # ymd Cookies extension
-pnpm tauri build      # installers in src-tauri/target/release/bundle
-```
-
-Rust tests run with `cargo test --features test-support` inside `src-tauri/`. The full guide, conventions and release process are in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Layout
-
-| Path         | Contents                                                                             |
-| ------------ | ------------------------------------------------------------------------------------ |
-| `src/`       | User interface (React 19, TypeScript)                                                |
-| `src-tauri/` | Backend (Rust, Tauri 2): queue, dependencies, authentication, history                |
-| `extension/` | ymd Cookies extension (Manifest V3)                                                  |
-| `e2e/`       | End-to-end tests                                                                     |
-| `docs/`      | Technical documentation, such as the [cookie bridge protocol](docs/cookie-bridge.md) |
+| Path         | Contents                                                                  |
+| ------------ | ------------------------------------------------------------------------- |
+| `src/`       | User interface (React 19, TypeScript)                                     |
+| `src-tauri/` | Backend (Rust, Tauri 2): queue, dependencies, authentication, history     |
+| `extension/` | ymd Cookies extension (Manifest V3)                                       |
+| `website/`   | [Documentation site](https://galexbh.github.io/ymd/en/) (Astro Starlight) |
+| `e2e/`       | End-to-end tests                                                          |
 
 ## License
 
