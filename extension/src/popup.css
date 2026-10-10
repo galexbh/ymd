@@ -1,6 +1,11 @@
 /* ymd Cookies popup: the same accession-register world as the app, read from its tokens. */
 @import "../../src/styles/base.css";
 
+/* `hidden` always wins over a class that sets `display` (sections, buttons…). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   height: auto;

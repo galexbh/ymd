@@ -166,6 +166,9 @@ test.describe.serial("ymd Cookies extension", () => {
     await expect(page.locator("#send-now")).toHaveText(/Enviar ahora/);
     await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com"]);
     await expect(page.locator(".privacy")).toContainText("sin red");
+    // Opened as a tab, the active page is the popup itself: nothing to download or add.
+    await expect(page.locator("#current")).toBeHidden();
+    await expect(page.locator("#session-fact")).toBeHidden();
     // Tokens applied: the stamp is drawn, the page has a themed ground.
     const theme = await page.evaluate(() => document.documentElement.dataset.theme);
     expect(["light", "dark"]).toContain(theme);
