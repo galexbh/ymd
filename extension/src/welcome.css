@@ -1,0 +1,221 @@
+/* ymd Cookies welcome page: the popup's components on a full page, read from the same tokens. */
+@import "./popup.css";
+
+body {
+  width: auto;
+  min-height: 100vh;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4) var(--space-10);
+}
+
+.masthead-name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.welcome-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.welcome-intro h1 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+}
+.lead {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  max-width: 34em;
+}
+
+/* the two steps: a numbered mark that turns into a check, joined by the ledger rule */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+  border-top: var(--hairline) solid var(--rule);
+}
+.step:last-child {
+  border-bottom: var(--hairline) solid var(--rule);
+}
+.step-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--rule-strong);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.step-check {
+  display: none;
+}
+.step[data-done="true"] .step-mark {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--surface);
+}
+.step[data-done="true"] .step-number {
+  display: none;
+}
+.step[data-done="true"] .step-check {
+  display: block;
+}
+.step-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.step-head {
+  font-size: var(--text-lg);
+  line-height: 2rem;
+}
+.step-body > p:not(.field-note) {
+  color: var(--text-muted);
+  max-width: 34em;
+}
+
+/* the drawn toolbar: a quiet sketch with the two targets in the accent */
+.mock {
+  width: min(100%, 22rem);
+  margin-top: var(--space-2);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.mock-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--hairline) solid var(--rule);
+}
+.mock-address {
+  flex: 1;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+}
+.mock-button,
+.mock-pin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+}
+.is-target {
+  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+  background: var(--accent-soft);
+}
+.mock-badge {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+.mock-menu {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-2) var(--space-3) var(--space-3) auto;
+  width: 78%;
+  padding: var(--space-1) 0;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-raise);
+}
+.mock-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+}
+.mock-row.is-ours {
+  background: var(--surface-hover);
+}
+.mock-ext {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--rule);
+}
+.mock-line {
+  height: 0.5rem;
+  width: 60%;
+  border-radius: var(--radius-full);
+  background: var(--rule);
+}
+.mock-line.short {
+  width: 40%;
+}
+.mock-isotype {
+  flex: none;
+  color: var(--accent);
+}
+.mock-name {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.ready {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--success);
+  font-weight: var(--weight-medium);
+}
+
+.welcome-done,
+.welcome .privacy {
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .step-mark {
+    transition:
+      background var(--dur-base) var(--ease-standard),
+      border-color var(--dur-base) var(--ease-standard);
+  }
+}

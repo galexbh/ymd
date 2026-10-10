@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   cookieDomainAllowed,
-  DEFAULT_DOMAINS,
-  isDefaultDomain,
   isPublicSuffix,
   normalizeDomain,
   originPattern,
+  presetDomains,
   sanitizeAllowlist,
   RETIRED_DEFAULTS,
 } from "../lib/domains";
@@ -57,16 +56,22 @@ describe("cookieDomainAllowed (the domain filter)", () => {
 });
 
 describe("allowlist helpers", () => {
-  it("the only default is youtube.com (google.com is retired)", () => {
-    expect(DEFAULT_DOMAINS).toEqual(["youtube.com"]);
-    expect(isDefaultDomain("youtube.com")).toBe(true);
-    expect(isDefaultDomain("google.com")).toBe(false);
+  it("google.com is the retired default (no site is preset any more)", () => {
     expect(RETIRED_DEFAULTS).toEqual(["google.com"]);
-    expect(isDefaultDomain("vimeo.com")).toBe(false);
   });
 
   it("builds the host match pattern", () => {
     expect(originPattern("vimeo.com")).toBe("*://*.vimeo.com/*");
+  });
+
+  it("takes the preset sites from the required host permissions", () => {
+    expect(presetDomains(["*://*.youtube.com/*"])).toEqual(["youtube.com"]);
+    expect(presetDomains(undefined)).toEqual([]);
+    expect(presetDomains([])).toEqual([]);
+    // broader or odd patterns never become a site
+    expect(
+      presetDomains(["*://*/*", "<all_urls>", "https://vimeo.com/*", "*://*.co.uk/*"]),
+    ).toEqual([]);
   });
 
   it("sanitizes a stored list", () => {
@@ -74,7 +79,7 @@ describe("allowlist helpers", () => {
       "youtube.com",
       "vimeo.com",
     ]);
-    expect(sanitizeAllowlist(undefined)).toEqual(["youtube.com"]);
+    expect(sanitizeAllowlist(undefined)).toEqual([]);
     expect(sanitizeAllowlist([])).toEqual([]);
   });
 });

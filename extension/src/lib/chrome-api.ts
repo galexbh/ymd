@@ -80,6 +80,8 @@ export interface ChromeApi {
   runtime: {
     /** This extension's ID. */
     id: string;
+    /** Only the required host permissions are read (they decide the preset sites). */
+    getManifest(): { host_permissions?: string[] };
     getURL(path: string): string;
     lastError?: { message?: string };
     // Callback form on purpose: it is the only form where `lastError` is readable everywhere.
@@ -117,10 +119,14 @@ export interface ChromeApi {
     setBadgeText(details: { text: string }): Promise<void>;
     setBadgeBackgroundColor(details: { color: string }): Promise<void>;
     setTitle(details: { title: string }): Promise<void>;
+    /** Chrome 91+: whether the person pinned the extension to the toolbar. */
+    getUserSettings?(): Promise<{ isOnToolbar?: boolean }>;
   };
   tabs: {
     /** With `activeTab`, the active tab's `url` is readable while the popup is open. */
     query(query: { active?: boolean; currentWindow?: boolean }): Promise<Tab[]>;
+    /** Opens the welcome page after a fresh install. */
+    create(properties: { url: string }): Promise<unknown>;
   };
 }
 

@@ -3,11 +3,13 @@
 //   pnpm ext:build && pnpm ext:zip         → ymd-cookies-extension.zip (release asset; keeps the
 //                                            manifest `key`, so the unpacked ID stays fixed)
 //   pnpm ext:build && pnpm ext:zip:store   → ymd-cookies-store.zip (Chrome Web Store upload:
-//                                            the store assigns the ID, so `key` is left out)
+//                                            no `key`, the store assigns the ID; and no required
+//                                            host permission, so no site is preset)
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { crc32, deflateRawSync } from "node:zlib";
+import { storeManifest } from "../src/lib/store-manifest.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(here, "../dist");
@@ -40,8 +42,7 @@ for (const file of walk(dist)) {
   const name = Buffer.from(relative(dist, file).split("\\").join("/"), "utf8");
   let data = readFileSync(file);
   if (store && relative(dist, file) === "manifest.json") {
-    const manifest = JSON.parse(data.toString("utf8"));
-    delete manifest.key;
+    const manifest = storeManifest(JSON.parse(data.toString("utf8")));
     data = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, "utf8");
   }
   const deflated = deflateRawSync(data, { level: 9 });

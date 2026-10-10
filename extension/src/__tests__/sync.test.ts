@@ -294,14 +294,23 @@ describe("hello", () => {
 });
 
 describe("lifecycle", () => {
-  it("on install seeds the defaults, creates the 30 min alarm and syncs", async () => {
+  it("on install starts an empty list, creates the 30 min alarm and syncs", async () => {
     const { fake, engine } = setup({ storage: {} });
     installBackground(engine, fake.api);
     fake.events.installed.emit({ reason: "install" });
     await flush();
-    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
+    expect(fake.store.get(KEYS.allowlist)).toEqual([]);
     expect(fake.alarms.get(ALARM_NAME)?.periodInMinutes).toBe(ALARM_PERIOD_MINUTES);
     expect(cookiesSent(fake)).toHaveLength(1);
+    expect(fake.record.tabsCreated).toEqual([fake.api.runtime.getURL("welcome.html")]);
+  });
+
+  it("opens the welcome page only on a fresh install, not on an update", async () => {
+    const { fake, engine } = setup({ storage: { [KEYS.allowlist]: ["youtube.com"] } });
+    installBackground(engine, fake.api);
+    fake.events.installed.emit({ reason: "update" });
+    await flush();
+    expect(fake.record.tabsCreated).toEqual([]);
   });
 
   it("does not overwrite an edited allowlist on update", async () => {

@@ -75,10 +75,7 @@
     "message": "Sitios permitidos"
   },
   "sitesEmpty": {
-    "message": "La lista está vacía: no se envía ninguna cookie."
-  },
-  "siteDefault": {
-    "message": "Predeterminado"
+    "message": "Aún no hay sitios. Agrega los sitios donde inicias sesión."
   },
   "siteRemove": {
     "message": "Quitar $DOMAIN$",
@@ -178,5 +175,65 @@
         "example": "Vimeo"
       }
     }
+  },
+  "suggestLabel": {
+    "message": "Sitios sugeridos"
+  },
+  "suggestAdd": {
+    "message": "Agregar $SITE$",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "YouTube"
+      }
+    }
+  },
+  "siteGrant": {
+    "message": "Permitir"
+  },
+  "siteGrantLabel": {
+    "message": "Volver a permitir $DOMAIN$",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "youtube.com"
+      }
+    }
+  },
+  "welcomeTitle": {
+    "message": "ymd Cookies está instalada"
+  },
+  "welcomeLead": {
+    "message": "Entrega a ymd, en este equipo, las cookies de los sitios que elijas, para que descargue con tu sesión. Dos pasos y listo."
+  },
+  "welcomePinHeading": {
+    "message": "Fija la extensión en la barra"
+  },
+  "welcomePinBody": {
+    "message": "Pulsa el icono de extensiones (la pieza de rompecabezas, junto a la barra de direcciones) y luego la chincheta junto a ymd Cookies. Así ves de un vistazo si tu sesión llega a ymd."
+  },
+  "welcomePinWaiting": {
+    "message": "Aún no está fijada."
+  },
+  "welcomePinDone": {
+    "message": "Fijada: ya la tienes en la barra."
+  },
+  "welcomeSitesHeading": {
+    "message": "Elige tus sitios"
+  },
+  "welcomeSitesBody": {
+    "message": "La extensión solo envía las cookies de los sitios de tu lista. El navegador te pide permiso para cada sitio que agregas."
+  },
+  "welcomeYoutubeReady": {
+    "message": "YouTube ya está listo: ymd recibirá tu sesión cuando la inicies en este navegador."
+  },
+  "welcomeUseYoutube": {
+    "message": "Usar YouTube"
+  },
+  "welcomeOthers": {
+    "message": "Otros sitios"
+  },
+  "welcomeDone": {
+    "message": "Puedes cerrar esta pestaña. Para cambiar tus sitios más tarde, abre ymd Cookies desde la barra."
   }
 }

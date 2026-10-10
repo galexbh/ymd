@@ -11,6 +11,7 @@
 import { execFileSync } from "node:child_process";
 import {
   chmodSync,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -22,6 +23,7 @@ import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, expect, test, type BrowserContext, type Worker } from "@playwright/test";
+import { storeManifest } from "../src/lib/store-manifest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(here, "../dist");
@@ -159,12 +161,33 @@ test.describe.serial("ymd Cookies extension", () => {
     expect(url.pathname).toBe("/background.js");
   });
 
+  test("a fresh install opens the welcome page, with YouTube already ready", async () => {
+    const welcome = `chrome-extension://${EXTENSION_ID}/welcome.html`;
+    await expect.poll(() => context.pages().map((p) => p.url())).toContain(welcome);
+    const page = context.pages().find((p) => p.url() === welcome)!;
+    await expect(page.locator("h1")).toHaveText("ymd Cookies está instalada");
+    await expect(page.locator("#youtube-ready")).toBeVisible();
+    await expect(page.locator("#use-youtube")).toBeHidden();
+    await expect(page.locator("#step-sites")).toHaveAttribute("data-done", "true");
+    await expect(page.locator("#other-list button")).toHaveText(["Vimeo", "SoundCloud", "Twitch"]);
+    // A headless browser has no toolbar to pin to: the step stays open, the guide is there.
+    await expect(page.locator(".mock")).toBeVisible();
+    await page.close();
+  });
+
   test("renders the popup", async () => {
     const page = await context.newPage();
     await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
     await expect(page.locator("h1")).toHaveText("ymd Cookies");
     await expect(page.locator("#send-now")).toHaveText(/Enviar ahora/);
     await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com"]);
+    await expect(page.locator("#site-list .grant")).toHaveCount(0);
+    // YouTube is on the list, so the other known sites are the suggestions.
+    await expect(page.locator("#suggest-list button")).toHaveText([
+      "Vimeo",
+      "SoundCloud",
+      "Twitch",
+    ]);
     await expect(page.locator(".privacy")).toContainText("sin red");
     // Opened as a tab, the active page is the popup itself: nothing to download or add.
     // (The session row may show: the install-time sync already reached the fake host.)
@@ -313,5 +336,58 @@ test.describe.serial("ymd Cookies extension", () => {
       { type: "open", version: 1, url },
     ]);
     await page.close();
+  });
+});
+
+// The Chrome Web Store package: same code, no `key` (another ID) and no preset site.
+test.describe.serial("ymd Cookies extension, store package", () => {
+  let work: string;
+  let context: BrowserContext;
+  let id: string;
+
+  test.beforeAll(async () => {
+    work = mkdtempSync(join(tmpdir(), "ymd-cookies-store-e2e-"));
+    const extDir = join(work, "extension");
+    cpSync(DIST, extDir, { recursive: true });
+    const manifest = JSON.parse(readFileSync(join(extDir, "manifest.json"), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    writeFileSync(join(extDir, "manifest.json"), JSON.stringify(storeManifest(manifest), null, 2));
+    context = await chromium.launchPersistentContext(join(work, "profile"), {
+      channel: "chromium",
+      headless: true,
+      locale: "es-ES",
+      args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, "--lang=es"],
+      env: { ...process.env, LANGUAGE: "es", LANG: "es_ES.UTF-8", LC_ALL: "es_ES.UTF-8" },
+    });
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+    id = new URL(worker.url()).host;
+  });
+
+  test.afterAll(async () => {
+    await context?.close();
+    if (work) rmSync(work, { recursive: true, force: true });
+  });
+
+  test("starts with no site: the welcome page offers «Usar YouTube»", async () => {
+    expect(id).not.toBe(EXTENSION_ID);
+    const welcome = `chrome-extension://${id}/welcome.html`;
+    await expect.poll(() => context.pages().map((p) => p.url())).toContain(welcome);
+    const page = context.pages().find((p) => p.url() === welcome)!;
+    await expect(page.locator("#use-youtube")).toBeVisible();
+    await expect(page.locator("#youtube-ready")).toBeHidden();
+    await expect(page.locator("#step-sites")).toHaveAttribute("data-done", "false");
+
+    const popup = await context.newPage();
+    await popup.goto(`chrome-extension://${id}/popup.html`);
+    await expect(popup.locator("#site-list li")).toHaveCount(0);
+    await expect(popup.locator("#sites-empty")).toBeVisible();
+    await expect(popup.locator("#suggest-list button")).toHaveText([
+      "YouTube",
+      "Vimeo",
+      "SoundCloud",
+      "Twitch",
+    ]);
   });
 });

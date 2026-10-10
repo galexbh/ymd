@@ -5,7 +5,15 @@
 //
 //   pnpm ext:build && pnpm ext:shots
 import { chromium } from "@playwright/test";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +49,13 @@ const MONO = "ui-monospace,Consolas,monospace";
 /** The real popup, connected, as a 2× PNG (only an input to the JPEGs below). */
 async function popupShot(locale, scheme) {
   const userDataDir = mkdtempSync(join(tmpdir(), "ymd-shots-"));
+  // The shown sites as already added: youtube.com comes in the manifest; vimeo.com is granted
+  // in a copy of dist (a script cannot click the browser's permission prompt).
+  const ext = join(userDataDir, "extension");
+  cpSync(DIST, ext, { recursive: true });
+  const manifest = JSON.parse(readFileSync(join(ext, "manifest.json"), "utf8"));
+  manifest.host_permissions = ["*://*.youtube.com/*", "*://*.vimeo.com/*"];
+  writeFileSync(join(ext, "manifest.json"), JSON.stringify(manifest, null, 2));
   const lang = locale === "es" ? "es-ES" : "en-US";
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: "chromium",
@@ -49,7 +64,7 @@ async function popupShot(locale, scheme) {
     colorScheme: scheme,
     viewport: { width: 380, height: 640 },
     deviceScaleFactor: 2,
-    args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`, `--lang=${locale}`],
+    args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, `--lang=${locale}`],
     env: { ...process.env, LANGUAGE: locale, LANG: `${lang.replace("-", "_")}.UTF-8` },
   });
   try {
