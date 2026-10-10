@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import {
+  ExternalLink,
   Inbox,
   Keyboard,
   Library,
@@ -14,9 +15,12 @@ import { Dialog, Figure, Icon, Kbd, ToastRegion } from "../ui";
 import { depById, depsNeedAttention, useDeps } from "../store/deps";
 import { jobTotals, useJobs } from "../store/jobs";
 import { ROUTES, useNav, type Route } from "../store/nav";
-import { JS_RUNTIME_NAMES } from "../screens/shared/labels";
+import { openExternal } from "./native";
 import { SHORTCUTS, useShortcutHelp } from "./shortcuts";
 import s from "./shell.module.css";
+
+const AUTHOR_URL = "https://galexbh.dev/";
+const AUTHOR_HOST = "galexbh.dev";
 
 const ICONS: Record<Route, LucideIcon> = {
   receive: Inbox,
@@ -30,7 +34,6 @@ function RailFooter() {
   const { t } = useTranslation();
   const report = useDeps((st) => st.report);
   const ytdlp = depById(report, "ytdlp");
-  const rt = report?.jsRuntime;
   const openHelp = useShortcutHelp((st) => st.set);
   return (
     <div className={s.footer}>
@@ -41,16 +44,21 @@ function RailFooter() {
             {ytdlp?.version ?? t("rail.missing")}
           </dd>
         </div>
-        <div>
-          <dt>{t("rail.js")}</dt>
-          <dd className="figure">
-            {rt ? `${JS_RUNTIME_NAMES[rt.name]} ${rt.version ?? ""}`.trim() : t("rail.missing")}
-          </dd>
-        </div>
       </dl>
       <button type="button" className={s.helpButton} onClick={() => openHelp(true)}>
         <Icon icon={Keyboard} size={16} />
         <span className={s.label}>{t("shortcuts.title")}</span>
+      </button>
+      <button
+        type="button"
+        className={`${s.helpButton} ${s.author}`}
+        aria-label={t("rail.author")}
+        title={t("rail.author")}
+        data-testid="rail-author"
+        onClick={() => void openExternal(AUTHOR_URL).catch(() => undefined)}
+      >
+        <Icon icon={ExternalLink} size={14} />
+        <span className={s.label}>{AUTHOR_HOST}</span>
       </button>
     </div>
   );
