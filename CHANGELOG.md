@@ -2,6 +2,25 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [0.3.0] - 2026-10-10
+
+### Novedades
+
+- **Preajuste M4A (AAC)** entre los que vienen por defecto: audio en contenedor m4a que, con YouTube, suele guardarse sin recodificar.
+- **La extensión «ymd Cookies» funciona en cualquier navegador Chromium**: Brave, Chrome, Edge, Vivaldi, Opera, Opera GX, Arc, Yandex, Whale, Thorium y otros.
+- **Detección del navegador predeterminado**: la tarjeta de la extensión en Ajustes → Cuentas muestra los pasos para tu navegador. Si es Firefox, te ofrece usar sus cookies directamente.
+- **Abrir la página de extensiones**: el botón abre tu navegador y copia la dirección (`brave://extensions`, `opera://extensions`…) para pegarla. Los navegadores no dejan que otro programa abra esa página por sí mismo.
+- **Sitio de documentación** en español e inglés: https://galexbh.github.io/ymd/
+
+### Correcciones
+
+- «Abrir carpeta de la extensión» no hacía nada; ahora abre la carpeta y, si falla, muestra la ruta.
+
+### Proyecto
+
+- Licencia MIT.
+- CI más rápido: cada cambio ejecuta solo lo que afecta; en `main` se ejecuta todo.
+
 ## [0.2.0] - 2026-10-10
 
 Primera versión pública: ymd pasa de prototipo a una app completa para descargar video y música con yt-dlp, sin terminal.
@@ -56,4 +75,5 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
+[0.3.0]: https://github.com/galexbh/ymd/releases/tag/v0.3.0
 [0.2.0]: https://github.com/galexbh/ymd/releases/tag/v0.2.0
