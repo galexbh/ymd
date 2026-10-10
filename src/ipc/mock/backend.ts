@@ -121,6 +121,36 @@ export interface MockExtensionOptions {
   extensionDir?: boolean;
   /** Last sync delivered by the extension. Default null (installed, nothing synced yet). */
   lastSync?: ExtensionSync | null;
+  /** The user's default browser. Default "brave". */
+  defaultBrowser?: Browser | null;
+  /** Display name of the default browser (forks: "Opera GX", "Arc"…). Default from defaultBrowser. */
+  defaultBrowserName?: string | null;
+  /** Default browser is Chromium-based. Default: true unless Firefox/Safari/none. */
+  defaultBrowserChromium?: boolean;
+}
+
+const BROWSER_LABELS: Record<Browser, string> = {
+  brave: "Brave",
+  chrome: "Chrome",
+  chromium: "Chromium",
+  edge: "Edge",
+  firefox: "Firefox",
+  opera: "Opera",
+  safari: "Safari",
+  vivaldi: "Vivaldi",
+  whale: "Whale",
+};
+
+function defaultBrowserFields(o: MockExtensionOptions): {
+  defaultBrowser: Browser | null;
+  defaultBrowserName: string | null;
+  defaultBrowserChromium: boolean;
+} {
+  const browser = o.defaultBrowser === undefined ? "brave" : o.defaultBrowser;
+  const name = o.defaultBrowserName ?? (browser ? BROWSER_LABELS[browser] : null);
+  const chromium =
+    o.defaultBrowserChromium ?? (browser !== null && browser !== "firefox" && browser !== "safari");
+  return { defaultBrowser: browser, defaultBrowserName: name, defaultBrowserChromium: chromium };
 }
 
 export type MockEmitter = (event: string, payload: unknown) => void;
@@ -296,6 +326,7 @@ export class MockBackend {
       hostManifest: hostManifestFor(this.platform),
       targets: bridgeTargetsFixture(ext.registered ?? true),
       lastSync: clone(ext.lastSync ?? null),
+      ...defaultBrowserFields(ext),
     };
     this.settingsFallback = defaultSettings(this.platform);
     this.settings = sanitizeSettings(
@@ -370,6 +401,13 @@ export class MockBackend {
       this.extension.extensionDir = state.extensionDir ? extensionDirFor(this.platform) : null;
     }
     if (state.lastSync !== undefined) this.extension.lastSync = clone(state.lastSync);
+    if (
+      state.defaultBrowser !== undefined ||
+      state.defaultBrowserName !== undefined ||
+      state.defaultBrowserChromium !== undefined
+    ) {
+      Object.assign(this.extension, defaultBrowserFields(state));
+    }
   }
 
   setDepFails(id: DepId, fails: boolean): void {
@@ -480,7 +518,7 @@ export class MockBackend {
       case "extension_status":
         return clone(this.extension);
       case "extension_open_page":
-        return this.extensionOpenPage(a.browser as Browser);
+        return this.extensionOpenPage((a.browser as Browser | null | undefined) ?? null);
       default:
         if (cmd.startsWith("plugin:")) return this.plugin(cmd, a);
         throw commandError("unknown", `mock backend: unhandled command "${cmd}"`);
@@ -1139,7 +1177,14 @@ export class MockBackend {
     return this.credentialList();
   }
 
-  private extensionOpenPage(browser: Browser): null {
+  private extensionOpenPage(browser: Browser | null): null {
+    // null = launch the default browser by its own executable (Chromium forks such as Arc).
+    if (browser === null) {
+      if (!this.extension.defaultBrowserName) {
+        throw commandError("binary_missing", "could not find the default browser executable");
+      }
+      return null;
+    }
     const target = this.extension.targets.find((t) => t.browser === browser);
     if (!target || !BRIDGE_BROWSERS.includes(browser)) {
       throw commandError("unknown", `extensions page not supported for ${String(browser)}`);

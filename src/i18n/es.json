@@ -217,6 +217,7 @@
       "mp4-1080": "MP4 1080p",
       "mp4-720": "MP4 720p",
       "mp3-320": "MP3 320 kbps",
+      "m4a": "M4A (AAC)",
       "audio-original": "Audio original"
     },
     "code": {
@@ -622,7 +623,7 @@
     }
   },
   "extension": {
-    "title": "Extensión de ymd para Brave, Chrome y Edge",
+    "title": "Extensión de ymd para navegadores Chromium",
     "lead": "La extensión envía a ymd tus cookies de YouTube cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.",
     "state": {
       "connected": "Conectada",
@@ -642,19 +643,27 @@
     },
     "steps": "Pasos, una sola vez",
     "step1": "Abre la carpeta de la extensión que viene con ymd.",
-    "step2": "Abre la página de extensiones de {{browser}}.",
-    "step3": "Activa «Modo de desarrollador» y pulsa «Cargar descomprimida»; elige la carpeta del paso 1.",
+    "step2": "Abre {{browser}} y ve a la página de extensiones:",
+    "step3": "Activa «Modo de desarrollador». Luego arrastra a la página la carpeta del paso 1, o pulsa «Cargar descomprimida» y elígela.",
     "step4": "Inicia sesión en YouTube en ese navegador; ymd recibirá las cookies solo.",
     "openFolder": "Abrir carpeta de la extensión",
     "noFolder": "Esta compilación no incluye la carpeta de la extensión (modo desarrollo).",
-    "openPage": "Abrir página de extensiones de {{browser}}",
+    "openPage": "Abrir {{browser}} y copiar la dirección",
     "openFailed": "No se pudo abrir {{browser}}",
     "openFailedHint": "Abre {{browser}} y escribe {{url}} en la barra de direcciones.",
     "id": "ID de la extensión",
     "idHint": "Para comprobar en la página de extensiones que es la de ymd.",
     "synced": "{{browser}} conectado: {{count}} cookies sincronizadas",
     "syncedBody": "El origen de las cookies cambió a «Archivo cookies.txt» y se mantiene al día solo.",
-    "stepsOther": "Instalar en otro navegador"
+    "stepsOther": "Instalar en otro navegador",
+    "openedTitle": "{{browser}} está abierto",
+    "openedCopied": "Copiamos {{url}}: pégala en la barra de direcciones (Ctrl+V) y pulsa Enter. Los navegadores no dejan que otros programas abran esa página directamente.",
+    "openedType": "Escribe {{url}} en la barra de direcciones y pulsa Enter. Los navegadores no dejan que otros programas abran esa página directamente.",
+    "folderFailed": "No se pudo abrir la carpeta",
+    "folderFailedHint": "Ábrela desde el Explorador de archivos en esta ruta:",
+    "firefoxDefault": "Tu navegador predeterminado es Firefox",
+    "firefoxDefaultBody": "yt-dlp lee las cookies de Firefox directamente, así que no necesitas la extensión. Inicia sesión en YouTube en Firefox y usa sus cookies.",
+    "useFirefox": "Usar cookies de Firefox"
   },
   "accounts": {
     "theBrowser": "el navegador",
@@ -685,7 +694,7 @@
       "recommended": "recomendado en Windows",
       "notInstalled": "no instalado",
       "getFirefox": "Descargar Firefox",
-      "firefoxWhy": "En Windows, Firefox es el único navegador cuyas cookies yt-dlp puede leer directamente: Brave, Chrome y Edge las cifran para que ningún otro programa las abra. Inicia sesión en YouTube en Firefox y elígelo aquí."
+      "firefoxWhy": "En Windows, Firefox es el único navegador cuyas cookies yt-dlp puede leer directamente: Brave, Chrome, Edge, Opera y los demás navegadores Chromium las cifran para que ningún otro programa las abra. Inicia sesión en YouTube en Firefox y elígelo aquí, o usa la extensión de ymd."
     },
     "test": "Probar cookies",
     "testOk": "Las cookies funcionan",

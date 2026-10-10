@@ -578,6 +578,13 @@ pub struct ExtensionStatus {
     pub host_manifest: Option<String>,
     pub targets: Vec<BridgeTarget>,
     pub last_sync: Option<ExtensionSync>,
+    /// The user's default web browser, when it can be told (drives which browser the card targets).
+    pub default_browser: Option<Browser>,
+    /// Display name of the default browser, also for Chromium forks yt-dlp has no key for
+    /// (Arc, Yandex, Opera GX…).
+    pub default_browser_name: Option<String>,
+    /// The default browser is Chromium-based, so the ymd extension can be installed in it.
+    pub default_browser_chromium: bool,
 }
 
 // ───────────────────────────── Errors ─────────────────────────────

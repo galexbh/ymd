@@ -137,3 +137,14 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* The extensions-page address the user pastes (Chromium won't open it for other programs). */
+.url {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  white-space: nowrap;
+}

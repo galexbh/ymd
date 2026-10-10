@@ -148,7 +148,14 @@ export function resetSettingsStore() {
 
 // ───────────── presets helpers ─────────────
 
-export const BUILTIN_PRESET_IDS = ["best", "mp4-1080", "mp4-720", "mp3-320", "audio-original"];
+export const BUILTIN_PRESET_IDS = [
+  "best",
+  "mp4-1080",
+  "mp4-720",
+  "mp3-320",
+  "m4a",
+  "audio-original",
+];
 
 export function isBuiltinId(id: string): boolean {
   return BUILTIN_PRESET_IDS.includes(id);

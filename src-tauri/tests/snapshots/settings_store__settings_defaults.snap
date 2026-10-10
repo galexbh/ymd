@@ -114,6 +114,28 @@ expression: defs()
       "builtin": true
     },
     {
+      "id": "m4a",
+      "name": "M4A (AAC)",
+      "kind": "audio",
+      "video": {
+        "maxHeight": null,
+        "container": "mp4"
+      },
+      "audio": {
+        "format": "m4a",
+        "quality": "0"
+      },
+      "postprocess": {
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+      },
+      "outputDir": null,
+      "builtin": true
+    },
+    {
       "id": "audio-original",
       "name": "Audio original (m4a/opus)",
       "kind": "audio",

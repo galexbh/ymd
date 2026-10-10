@@ -319,6 +319,12 @@ export interface ExtensionStatus {
   hostManifest: string | null;
   targets: BridgeTarget[];
   lastSync: ExtensionSync | null;
+  /** the user's default web browser, when it can be told */
+  defaultBrowser: Browser | null;
+  /** display name of the default browser, also for Chromium forks yt-dlp has no key for */
+  defaultBrowserName: string | null;
+  /** the default browser is Chromium-based (the ymd extension can be installed in it) */
+  defaultBrowserChromium: boolean;
 }
 
 // ───────────── Errors & events ─────────────
