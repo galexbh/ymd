@@ -27,7 +27,7 @@ import { onFileDrop, openExternal, osPlatform, pickCookieFile } from "../../app/
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
-import { CHROMIUM, FIREFOX_DOWNLOAD_URL, orderBrowsers } from "./constants";
+import { DIRECT_BROWSERS, FIREFOX_DOWNLOAD_URL, orderBrowsers } from "./constants";
 import { ExtensionCard } from "./ExtensionCard";
 import s from "./settings.module.css";
 import { SiteAccounts } from "./SiteAccounts";
@@ -47,6 +47,12 @@ function goToCookies() {
 type Run = { status: "idle" | "running" | "ok" | "fail"; error: CommandError | null };
 const IDLE: Run = { status: "idle", error: null };
 
+/**
+ * Where cookies come from. Chromium browsers (Brave, Chrome, Edge…) only through the ymd
+ * extension: Windows encrypts their cookies so no other program can read them, and they stay
+ * locked while the browser (or its background processes) runs. Firefox, and Safari on macOS,
+ * are read directly. A hand-exported cookies.txt is the fallback for anything else.
+ */
 export function AccountsSettings() {
   const { t } = useTranslation();
   const settings = useSettings((st) => st.settings)!;
@@ -57,29 +63,19 @@ export function AccountsSettings() {
   const [snap, setSnap] = useState<Run>(IDLE);
   const [imp, setImp] = useState<Run>(IDLE);
   const [over, setOver] = useState(false);
-  const guideRef = useRef<HTMLElement>(null);
-  const extRef = useRef<HTMLElement>(null);
 
   const source = settings.cookies;
-  const ordered = browsers ? orderBrowsers(browsers) : [];
+  const mac = osPlatform() === "macos";
+  const direct = browsers
+    ? orderBrowsers(browsers).filter((b) => DIRECT_BROWSERS.includes(b.browser))
+    : [];
   const chosen: Browser | null = source.kind === "browser" ? source.browser : null;
-  const chosenInfo = ordered.find((b) => b.browser === chosen) ?? null;
-  const windows = osPlatform() === "windows";
-  const chromiumInPlay =
-    (chosen !== null && CHROMIUM.includes(chosen)) ||
-    ordered.some((b) => CHROMIUM.includes(b.browser));
-  const guideFirst = windows && chromiumInPlay;
-  const firefox = ordered.find((b) => b.browser === "firefox") ?? null;
+  const chosenInfo = direct.find((b) => b.browser === chosen) ?? null;
 
   const chooseBrowser = (browser: Browser) => {
     setTest(IDLE);
     setSnap(IDLE);
     update({ cookies: { kind: "browser", browser, profile: null } });
-  };
-  /** Switch to Firefox when it is installed, otherwise open its download page. */
-  const useFirefox = () => {
-    if (firefox?.installed) chooseBrowser("firefox");
-    else void openExternal(FIREFOX_DOWNLOAD_URL).catch(() => {});
   };
 
   const detect = () =>
@@ -88,15 +84,15 @@ export function AccountsSettings() {
       .then(setBrowsers)
       .catch(() => setBrowsers([]));
 
-  useEffect(() => {
-    api
-      .browsersDetect()
-      .then(setBrowsers)
-      .catch(() => setBrowsers([]));
+  const refreshInfo = () =>
     api
       .cookiesInfo()
       .then(setCookieInfo)
       .catch(() => setCookieInfo(null));
+
+  useEffect(() => {
+    void detect();
+    void refreshInfo();
   }, []);
 
   const importPath = async (path: string) => {
@@ -139,10 +135,11 @@ export function AccountsSettings() {
 
   const setSource = (kind: CookieSource["kind"]) => {
     setTest(IDLE);
+    setSnap(IDLE);
     if (kind === "browser") {
-      const first = ordered.find((b) => b.installed) ?? ordered[0];
+      const first = direct.find((b) => b.installed) ?? direct[0];
       update({
-        cookies: { kind: "browser", browser: first?.browser ?? "brave", profile: null },
+        cookies: { kind: "browser", browser: first?.browser ?? "firefox", profile: null },
       });
     } else update({ cookies: { kind } });
   };
@@ -178,111 +175,94 @@ export function AccountsSettings() {
     }
   };
 
-  const browserName = chosen ? BROWSER_NAMES[chosen] : t("accounts.theBrowser");
-
-  const cookieProblem = (run: Run, retry: () => void) => {
-    if (run.status !== "fail" || !run.error) return null;
-    const code = run.error.code;
-    if (code === "cookies_locked") {
-      return (
-        <Notice
-          tone="warning"
-          title={t("accounts.locked.title", { browser: browserName })}
-          detail={run.error.detail}
-          actions={[
-            {
-              label: t("accounts.locked.retry", { browser: browserName }),
-              primary: true,
-              onClick: retry,
-            },
-            {
-              label: t("accounts.locked.useFile"),
-              onClick: () =>
-                guideRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-            },
-          ]}
-        >
-          {t("accounts.locked.body", { browser: browserName })}
-        </Notice>
-      );
-    }
-    if (code === "cookies_decrypt") {
-      return (
-        <Notice
-          tone="warning"
-          title={t("error.cookies_decrypt.title")}
-          detail={run.error.detail}
-          actions={[
-            {
-              label: t("accounts.decrypt.useExtension"),
-              primary: true,
-              onClick: () => {
-                extRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                extRef.current?.focus({ preventScroll: true });
-              },
-            },
-            {
-              label: t("accounts.locked.useFile"),
-              onClick: () =>
-                guideRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-            },
-            ...(chosen !== "firefox"
-              ? [
-                  {
-                    label: firefox?.installed
-                      ? t("accounts.decrypt.switchFirefox")
-                      : t("accounts.browser.getFirefox"),
-                    onClick: useFirefox,
-                  },
-                ]
-              : []),
-          ]}
-        >
-          {t("accounts.decrypt.body", { browser: browserName })}{" "}
-          {chosen !== "firefox" && t("accounts.decrypt.orFirefox")}
-        </Notice>
-      );
-    }
-    return (
+  const problem = (run: Run, retry: () => void) =>
+    run.status === "fail" && run.error ? (
       <ErrorNotice
-        code={code}
+        code={run.error.code}
         detail={run.error.detail}
         actions={[{ label: t("common.retry"), primary: true, onClick: retry }]}
       />
-    );
-  };
+    ) : null;
 
-  const extension = (
-    <ExtensionCard
-      ref={extRef}
-      prominent={guideFirst}
-      onSynced={() =>
-        void api
-          .cookiesInfo()
-          .then(setCookieInfo)
-          .catch(() => {})
-      }
-    />
+  const browserPicker = (
+    <div className={s.browsers}>
+      <div className={s.browsersHead}>
+        <span className={s.fieldLabel}>{t("accounts.browser.label")}</span>
+        <Button size="sm" variant="ghost" leadingIcon={RefreshCw} onClick={() => void detect()}>
+          {t("accounts.browser.detect")}
+        </Button>
+      </div>
+      {browsers === null ? (
+        <Skeleton variant="text" count={2} />
+      ) : direct.length === 0 ? (
+        <p className={screen.muted}>{t("accounts.browser.none")}</p>
+      ) : (
+        <div role="radiogroup" aria-label={t("accounts.browser.label")} className={s.browserList}>
+          {direct.map((b) => (
+            <label
+              key={b.browser}
+              className={s.browserRow}
+              data-checked={chosen === b.browser || undefined}
+              data-absent={!b.installed || undefined}
+              data-testid={`browser-${b.browser}`}
+            >
+              <input
+                type="radio"
+                name="cookie-browser"
+                checked={chosen === b.browser}
+                disabled={!b.installed}
+                onChange={() => chooseBrowser(b.browser)}
+              />
+              <span className={s.browserName}>{BROWSER_NAMES[b.browser]}</span>
+              {!b.installed && <Tag>{t("accounts.browser.notInstalled")}</Tag>}
+              {b.installed ? (
+                <span className={s.fieldHint}>
+                  {t("accounts.browser.profiles", { n: b.profiles.length })}
+                </span>
+              ) : (
+                b.browser === "firefox" && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    leadingIcon={ExternalLink}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void openExternal(FIREFOX_DOWNLOAD_URL).catch(() => {});
+                    }}
+                  >
+                    {t("accounts.browser.getFirefox")}
+                  </Button>
+                )
+              )}
+            </label>
+          ))}
+        </div>
+      )}
+      {chosenInfo && chosenInfo.profiles.length > 0 && source.kind === "browser" && (
+        <Select
+          label={t("accounts.browser.profile")}
+          value={source.profile ?? ""}
+          onChange={(e) => update({ cookies: { ...source, profile: e.target.value || null } })}
+          options={[
+            {
+              value: "",
+              label: t("accounts.browser.defaultProfile", { name: chosenInfo.profiles[0].name }),
+            },
+            ...chosenInfo.profiles.map((p) => ({ value: p.id, label: p.name })),
+          ]}
+        />
+      )}
+    </div>
   );
 
   const guide = (
-    <section
-      ref={guideRef}
-      className={s.guide}
-      aria-labelledby="cookie-guide-title"
-      data-testid="cookie-guide"
-      data-prominent={guideFirst || undefined}
-    >
+    <section className={s.guide} aria-labelledby="cookie-guide-title" data-testid="cookie-guide">
       <h3 id="cookie-guide-title" className={s.guideTitle}>
-        {guideFirst ? t("accounts.guide.titleAlt") : t("accounts.guide.title")}
+        {t("accounts.guide.title")}
       </h3>
-      <p className={screen.prose}>
-        {guideFirst
-          ? t("accounts.guide.whyWindows", { browser: browserName })
-          : t("accounts.guide.why")}
-      </p>
+      <p className={screen.prose}>{t("accounts.guide.why")}</p>
       <ol className={s.steps}>
-        <li>{t("accounts.guide.step1", { browser: browserName })}</li>
+        <li>{t("accounts.guide.step1")}</li>
         <li>{t("accounts.guide.step2")}</li>
         <li>{t("accounts.guide.step3")}</li>
         <li>{t("accounts.guide.step4")}</li>
@@ -333,111 +313,22 @@ export function AccountsSettings() {
             onChange={setSource}
             options={[
               { value: "none", label: t("accounts.source.none") },
-              { value: "browser", label: t("accounts.source.browser") },
+              { value: "extension", label: t("accounts.source.extension") },
+              {
+                value: "browser",
+                label: mac ? t("accounts.source.browserMac") : t("accounts.source.browser"),
+              },
               { value: "file", label: t("accounts.source.file") },
             ]}
           />
-          <p className={s.fieldHint}>{t(`accounts.source.hint.${source.kind}`)}</p>
+          <p className={s.fieldHint}>
+            {source.kind === "browser" && mac
+              ? t("accounts.source.hint.browserMac")
+              : t(`accounts.source.hint.${source.kind}`)}
+          </p>
         </div>
 
-        {source.kind === "browser" && (
-          <div className={s.browsers}>
-            <div className={s.browsersHead}>
-              <span className={s.fieldLabel}>{t("accounts.browser.label")}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                leadingIcon={RefreshCw}
-                onClick={() => void detect()}
-              >
-                {t("accounts.browser.detect")}
-              </Button>
-            </div>
-            {browsers === null ? (
-              <Skeleton variant="text" count={2} />
-            ) : ordered.length === 0 ? (
-              <p className={screen.muted}>{t("accounts.browser.none")}</p>
-            ) : (
-              <div
-                role="radiogroup"
-                aria-label={t("accounts.browser.label")}
-                className={s.browserList}
-              >
-                {ordered.map((b) => {
-                  const recommended = windows && b.browser === "firefox";
-                  return (
-                    <label
-                      key={b.browser}
-                      className={s.browserRow}
-                      data-checked={chosen === b.browser || undefined}
-                      data-absent={!b.installed || undefined}
-                      data-testid={`browser-${b.browser}`}
-                    >
-                      <input
-                        type="radio"
-                        name="cookie-browser"
-                        checked={chosen === b.browser}
-                        disabled={!b.installed}
-                        onChange={() => chooseBrowser(b.browser)}
-                      />
-                      <span className={s.browserName}>{BROWSER_NAMES[b.browser]}</span>
-                      {recommended && <Tag tone="accent">{t("accounts.browser.recommended")}</Tag>}
-                      {!b.installed && <Tag>{t("accounts.browser.notInstalled")}</Tag>}
-                      {b.running && <Tag tone="warning">{t("accounts.browser.running")}</Tag>}
-                      {b.installed ? (
-                        <span className={s.fieldHint}>
-                          {t("accounts.browser.profiles", { n: b.profiles.length })}
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          leadingIcon={ExternalLink}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            void openExternal(FIREFOX_DOWNLOAD_URL).catch(() => {});
-                          }}
-                        >
-                          {t("accounts.browser.getFirefox")}
-                        </Button>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {chosenInfo && chosenInfo.profiles.length > 0 && source.kind === "browser" && (
-              <Select
-                label={t("accounts.browser.profile")}
-                value={source.profile ?? ""}
-                onChange={(e) =>
-                  update({
-                    cookies: { ...source, profile: e.target.value || null },
-                  })
-                }
-                options={[
-                  {
-                    value: "",
-                    label: t("accounts.browser.defaultProfile", {
-                      name: chosenInfo.profiles[0].name,
-                    }),
-                  },
-                  ...chosenInfo.profiles.map((p) => ({ value: p.id, label: p.name })),
-                ]}
-              />
-            )}
-            {windows && firefox && (
-              <p className={s.fieldHint} data-testid="firefox-why">
-                {t("accounts.browser.firefoxWhy")}
-              </p>
-            )}
-            {chosenInfo?.running && (
-              <p className={s.warnNote}>
-                {t("accounts.browser.runningNote", { browser: browserName })}
-              </p>
-            )}
-          </div>
-        )}
+        {source.kind === "browser" && browserPicker}
 
         {source.kind !== "none" && (
           <div className={screen.inline}>
@@ -467,17 +358,19 @@ export function AccountsSettings() {
             {t("accounts.testOkBody")}
           </Notice>
         )}
-        {cookieProblem(test, () => void runTest())}
+        {problem(test, () => void runTest())}
         {snap.status === "ok" && (
           <Notice tone="success" title={t("accounts.snapshotOk")}>
             {t("accounts.snapshotOkBody")}
           </Notice>
         )}
-        {cookieProblem(snap, () => void runSnapshot())}
+        {problem(snap, () => void runSnapshot())}
       </Section>
 
-      {guideFirst && extension}
-      {guideFirst && guide}
+      {source.kind === "extension" && (
+        <ExtensionCard prominent onSynced={() => void refreshInfo()} />
+      )}
+      {source.kind === "file" && guide}
 
       <Section title={t("accounts.file.title")}>
         {cookieInfo === undefined ? (
@@ -534,9 +427,6 @@ export function AccountsSettings() {
           <span>{t("accounts.file.privacy")}</span>
         </p>
       </Section>
-
-      {!guideFirst && guide}
-      {!guideFirst && extension}
 
       <SiteAccounts onGoToCookies={goToCookies} />
       <SupportedSites />

@@ -657,7 +657,7 @@
     "id": "Extension ID",
     "idHint": "To check on the extensions page that it's ymd's.",
     "synced": "{{browser}} connected: {{count}} cookies synced",
-    "syncedBody": "The cookie source switched to «cookies.txt file» and keeps itself up to date.",
+    "syncedBody": "The cookie source changed to “Extension” and keeps itself up to date.",
     "stepsOther": "Install in another browser",
     "openedTitle": "{{browser}} is open",
     "openedCopied": "We copied {{url}}: paste it into the address bar (Ctrl+V) and press Enter. Browsers don’t let other programs open that page directly.",
@@ -669,60 +669,45 @@
     "useFirefox": "Use Firefox cookies"
   },
   "accounts": {
-    "theBrowser": "the browser",
     "cookies": {
       "title": "Browser cookies",
-      "description": "Some videos only download while you're signed in. ymd can use your browser's cookies or a copy in a cookies.txt file."
+      "description": "Some videos only download while you're signed in. Choose where ymd gets your cookies from."
     },
     "source": {
       "label": "Cookie source",
       "none": "None",
-      "browser": "Browser",
+      "extension": "Extension",
+      "browser": "Firefox",
+      "browserMac": "Firefox or Safari",
       "file": "cookies.txt file",
       "hint": {
         "none": "Downloads without being signed in.",
-        "browser": "ymd reads the browser's cookies on every download.",
-        "file": "ymd uses the imported copy; it works even with the browser open."
+        "extension": "For Brave, Chrome, Edge and other Chromium browsers: the ymd extension sends your cookies whenever they change.",
+        "browser": "ymd reads Firefox's cookies on every download, even while it's open.",
+        "browserMac": "ymd reads Firefox's or Safari's cookies on every download.",
+        "file": "ymd uses a cookies.txt file you export yourself. Works with any browser."
       }
     },
     "browser": {
       "label": "Browser",
       "detect": "Detect again",
-      "none": "No supported browser was found.",
-      "running": "open",
+      "none": "Firefox wasn't found.",
       "profiles": "Profiles: {{n}}",
       "profile": "Profile",
       "defaultProfile": "Default ({{name}})",
-      "runningNote": "{{browser}} is open and keeps its cookies locked. Close it completely before testing, or use a cookies.txt file.",
-      "recommended": "recommended on Windows",
       "notInstalled": "not installed",
-      "getFirefox": "Get Firefox",
-      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies ymd can read directly: Brave, Chrome, Edge, Opera and the other Chromium browsers encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here, or use the ymd extension."
+      "getFirefox": "Get Firefox"
     },
     "test": "Test cookies",
     "testOk": "The cookies work",
     "testOkBody": "ymd could read them. They'll be used for the next downloads.",
     "snapshot": "Import from the browser now",
     "snapshotOk": "Cookie copy saved",
-    "snapshotOkBody": "Choose “cookies.txt file” as the source to use it with the browser open.",
-    "locked": {
-      "title": "{{browser}} has its cookies locked",
-      "body": "Close {{browser}} completely, including the icon next to the clock, and test again. Or export a cookies.txt file: it works with the browser open.",
-      "retry": "I closed {{browser}}, test again",
-      "useFile": "Use cookies.txt"
-    },
-    "decrypt": {
-      "body": "On Windows, {{browser}} encrypts its cookies so other programs can't read them. The ymd extension sends them straight from the browser; you can also export a cookies.txt file.",
-      "useExtension": "Use the ymd extension",
-      "orFirefox": "You can also use Firefox, whose cookies can be read.",
-      "switchFirefox": "Use Firefox"
-    },
+    "snapshotOkBody": "Choose “cookies.txt file” as the source to use this copy instead of reading Firefox on every download.",
     "guide": {
       "title": "Export cookies.txt",
-      "titleAlt": "Alternative: export cookies.txt by hand",
-      "why": "A cookies.txt file works with any browser, even while it's open.",
-      "whyWindows": "On Windows, {{browser}} and other Chromium browsers don't let other programs read their cookies while open, and encrypt them once closed. If you'd rather not install the ymd extension, export a cookies.txt file:",
-      "step1": "In {{browser}}, install an open-source cookie export extension, such as “Get cookies.txt LOCALLY”.",
+      "why": "A cookies.txt file works with any browser, even while it's open. For Brave, Chrome or Edge the ymd extension is easier.",
+      "step1": "In your browser, install an open-source cookie export extension, such as “Get cookies.txt LOCALLY”.",
       "step2": "Open a private window and allow the extension there.",
       "step3": "Sign in to YouTube (or the site you need) in that window.",
       "step4": "Use the extension to export the cookies in Netscape format (cookies.txt), then close the private window.",
@@ -739,7 +724,7 @@
       "importedBody": "The source changed to “cookies.txt file”.",
       "importFailed": "The file couldn't be imported",
       "importFailedHint": "Check that it's a cookies.txt in Netscape format.",
-      "noneYet": "No copy yet. Import one from the browser or from a file.",
+      "noneYet": "No copy yet. The extension, Firefox or an imported file creates it.",
       "origin": "Origin",
       "originFile": "Imported file",
       "date": "Date",

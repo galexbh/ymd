@@ -49,13 +49,13 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `cookies_locked`. El navegador está abierto y mantiene bloqueada su base de cookies, así que yt-dlp no puede leerla.
 
-**Arreglo:** cierra el navegador por completo, incluido el icono junto al reloj, y pulsa **Ya cerré el navegador, reintentar** (aparece con su nombre). O pulsa **Usar un archivo cookies.txt**: una copia de las cookies funciona con el navegador abierto.
+**Arreglo:** ocurre con navegadores Chromium, que ymd ya no lee directamente. Elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/), que funciona con el navegador abierto.
 
 ### No se pudieron leer las cookies del navegador
 
-`cookies_decrypt`. yt-dlp encontró las cookies pero no pudo descifrarlas. En Windows, Brave, Chrome y Edge las cifran de forma que ningún otro programa puede leerlas (ver [Cookies del navegador](/ymd/cookies/navegador/#windows-firefox-recomendado)).
+`cookies_decrypt`. yt-dlp encontró las cookies pero no pudo descifrarlas. En Windows, Brave, Chrome y Edge las cifran de forma que ningún otro programa puede leerlas (ver [Cookies de Firefox](/ymd/cookies/navegador/#y-brave-chrome-o-edge)).
 
-**Arreglo:** cierra el navegador y reintenta. Si sigue fallando, importa un archivo `cookies.txt` en **Ajustes → Cuentas**, usa la [extensión ymd Cookies](/ymd/cookies/extension/) o cambia a Firefox.
+**Arreglo:** elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/). También puedes usar Firefox o un archivo `cookies.txt`.
 
 ## Herramientas
 

@@ -55,7 +55,7 @@ pub fn args_for(
             args.push("--cookies-from-browser".to_string());
             args.push(browser_spec(*browser, profile.as_deref()));
         }
-        CookieSource::File => {
+        CookieSource::File | CookieSource::Extension => {
             // Always ymd's own copy (snapshot or imported), never the user's original file:
             // yt-dlp writes the jar back on exit, which keeps our snapshot fresh.
             let file = paths.cookies_file();
@@ -159,6 +159,7 @@ mod tests {
                 profile: None,
             },
             CookieSource::File,
+            CookieSource::Extension,
         ];
         let reqs = [
             None,
@@ -184,7 +185,7 @@ mod tests {
                                 want.push("--cookies-from-browser".into());
                                 want.push(browser_spec(*browser, profile.as_deref()));
                             }
-                            CookieSource::File => {
+                            CookieSource::File | CookieSource::Extension => {
                                 if file_exists {
                                     want.push("--cookies".into());
                                     want.push(cookie_file.to_string_lossy().into_owned());

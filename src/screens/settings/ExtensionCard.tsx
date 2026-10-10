@@ -129,8 +129,8 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
     if (prev === undefined || !next || prev?.at === next.at) return;
     if (prev === null) {
       const current = useSettings.getState().settings?.cookies;
-      const switched = current?.kind !== "file";
-      if (switched) update({ cookies: { kind: "file" } });
+      const switched = current?.kind !== "extension";
+      if (switched) update({ cookies: { kind: "extension" } });
       setFirst({ sync: next, switched });
     }
     onSyncedRef.current?.();

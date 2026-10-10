@@ -141,7 +141,9 @@ export type Browser =
 export type CookieSource =
   | { kind: "none" }
   | { kind: "browser"; browser: Browser; profile: string | null }
-  | { kind: "file" };
+  | { kind: "file" }
+  /** the same cookies.txt, kept up to date by the ymd Cookies extension */
+  | { kind: "extension" };
 
 /** When ymd looks at the clipboard (on window focus only). */
 export type ClipboardWatch = "off" | "known" | "any";

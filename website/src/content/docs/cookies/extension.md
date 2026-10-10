@@ -5,7 +5,7 @@ description: La extensión para navegadores Chromium que entrega tus cookies a y
 
 **ymd Cookies** es una extensión (Manifest V3) para navegadores Chromium: Brave, Chrome, Edge, Opera, Vivaldi y otros. Entrega a ymd, en el mismo equipo, las cookies de los sitios que elijas, cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.
 
-En Windows es la vía recomendada para navegadores Chromium, que cifran sus cookies de forma que yt-dlp no puede leerlas (ver [Cookies del navegador](/ymd/cookies/navegador/)).
+Es la forma de usar las cookies de un navegador Chromium: ymd no las lee directamente (ver [Cookies de Firefox](/ymd/cookies/navegador/#y-brave-chrome-o-edge)). Elige **Extensión** como **Origen de las cookies** y la tarjeta muestra los pasos.
 
 ## Instalar
 

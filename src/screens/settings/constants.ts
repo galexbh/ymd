@@ -14,16 +14,8 @@ export const SPONSORBLOCK_CATEGORIES = [
   "hook",
 ] as const;
 
-/** Browsers whose cookie store yt-dlp can't read on Windows while open (and often not at all). */
-export const CHROMIUM: Browser[] = [
-  "brave",
-  "chrome",
-  "chromium",
-  "edge",
-  "opera",
-  "vivaldi",
-  "whale",
-];
+/** Browsers ymd reads directly (`--cookies-from-browser`); Chromium ones go through the extension. */
+export const DIRECT_BROWSERS: Browser[] = ["firefox", "safari"];
 
 /** Installed browsers first (Brave leads), then the ones only listed as a suggestion. */
 export function orderBrowsers(list: BrowserInfo[]): BrowserInfo[] {

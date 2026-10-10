@@ -280,13 +280,8 @@ fn load_ignores_unknown_fields_and_keeps_known_ones() {
     assert_eq!(s.concurrency, 2);
     assert_eq!(s.ytdlp_channel, UpdateChannel::Stable);
     assert!(!s.auto_update && s.use_download_archive && s.use_aria2c && s.onboarded);
-    assert_eq!(
-        s.cookies,
-        CookieSource::Browser {
-            browser: Browser::Brave,
-            profile: Some("Profile 1".into())
-        }
-    );
+    // a Chromium browser saved by an older version moves to the extension
+    assert_eq!(s.cookies, CookieSource::Extension);
     // empty preset list -> builtins come back
     assert_eq!(ids(&s), ids(&defs()));
     assert_eq!(s.default_preset_id, "mp3-320");
@@ -542,6 +537,52 @@ fn sanitize_trims_dirs_and_bin_dir() {
             profile: None
         }
     );
+}
+
+#[test]
+fn sanitize_moves_chromium_browsers_to_the_extension() {
+    for browser in [
+        Browser::Brave,
+        Browser::Chrome,
+        Browser::Chromium,
+        Browser::Edge,
+        Browser::Opera,
+        Browser::Vivaldi,
+        Browser::Whale,
+    ] {
+        let out = sanitize(Settings {
+            cookies: CookieSource::Browser {
+                browser,
+                profile: Some("Default".into()),
+            },
+            ..defs()
+        });
+        assert_eq!(out.cookies, CookieSource::Extension, "{browser:?}");
+    }
+    for browser in [Browser::Firefox, Browser::Safari] {
+        let out = sanitize(Settings {
+            cookies: CookieSource::Browser {
+                browser,
+                profile: None,
+            },
+            ..defs()
+        });
+        assert_eq!(
+            out.cookies,
+            CookieSource::Browser {
+                browser,
+                profile: None
+            }
+        );
+    }
+}
+
+#[test]
+fn extension_source_round_trips_as_lowercase_kind() {
+    let json = serde_json::to_value(CookieSource::Extension).unwrap();
+    assert_eq!(json, serde_json::json!({ "kind": "extension" }));
+    let back: CookieSource = serde_json::from_value(json).unwrap();
+    assert_eq!(back, CookieSource::Extension);
 }
 
 #[test]

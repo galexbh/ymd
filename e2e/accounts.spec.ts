@@ -7,7 +7,7 @@ const T0 = new Date("2026-10-08T15:00:00Z");
 async function openAccounts(page: Page) {
   await page.getByTestId("nav-settings").click();
   await page.getByTestId("settings-tab-accounts").click();
-  await expect(page.getByTestId("cookie-guide")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Ninguno" })).toBeVisible();
 }
 
 /** No element in the page scrolls sideways. */

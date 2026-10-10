@@ -8,12 +8,14 @@ interface MockBridge {
   simulateExtensionSync(browser: string, count: number, domains: string[]): unknown;
 }
 
+/** Ajustes → Cuentas with «Extensión» as the cookie source (where the card lives). */
 async function openAccounts(page: Page) {
   await page.getByTestId("nav-settings").click();
   await page.getByTestId("settings-tab-accounts").click();
+  await page.getByRole("radio", { name: "Extensión" }).click();
 }
 
-test("a sync from the extension turns the card CONECTADA and adopts the file", async ({
+test("a sync from the extension turns the card CONECTADA and fills the cookie copy", async ({
   page,
   app,
 }) => {
@@ -36,7 +38,7 @@ test("a sync from the extension turns the card CONECTADA and adopts the file", a
   await expect(stamp).toContainText("Conectada");
   await expect(card.getByText("Brave conectado: 42 cookies sincronizadas")).toBeVisible();
   await expect(card.getByTestId("extension-sync")).toContainText("42");
-  await expect(page.getByRole("radio", { name: "Archivo cookies.txt" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Extensión" })).toBeChecked();
   await expect(page.getByTestId("cookie-info")).toContainText("extension:brave");
 });
 
