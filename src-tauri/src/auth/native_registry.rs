@@ -12,7 +12,7 @@
 //! ([`STORE_EXTENSION_ENABLED`]).
 
 use super::browsers::{chromium_dir, Env, Os};
-use super::native_host::{allowed_origins, EXTENSION_ID, HOST_NAME};
+use super::native_host::{allowed_origins, HOST_NAME, STORE_EXTENSION_ID};
 use crate::model::{BridgeTarget, Browser};
 use std::path::{Path, PathBuf};
 
@@ -26,7 +26,8 @@ pub const BROWSERS: [Browser; 5] = [
 ];
 
 /// Writes the Web Store external-extension keys at install time when true. Off until the
-/// extension is published (and Edge's acceptance of a Chrome Web Store `update_url` verified).
+/// store item ([`STORE_EXTENSION_ID`]) is published (it is a draft) and Edge's acceptance of a
+/// Chrome Web Store `update_url` is verified.
 pub const STORE_EXTENSION_ENABLED: bool = false;
 /// Chrome Web Store update endpoint used by external-extension registrations.
 pub const STORE_UPDATE_URL: &str = "https://clients2.google.com/service/update2/crx";
@@ -112,7 +113,7 @@ pub fn external_extension_keys() -> Vec<ExternalExtensionKey> {
         .filter_map(|b| {
             vendor_key(*b).map(|v| ExternalExtensionKey {
                 browser: *b,
-                key: format!(r"Software\{v}\Extensions\{EXTENSION_ID}"),
+                key: format!(r"Software\{v}\Extensions\{STORE_EXTENSION_ID}"),
                 value_name: "update_url",
                 value: STORE_UPDATE_URL,
             })
@@ -341,7 +342,10 @@ mod tests {
                 "description": "ymd cookie bridge",
                 "path": exe.to_string_lossy(),
                 "type": "stdio",
-                "allowed_origins": ["chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/"],
+                "allowed_origins": [
+                    "chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/",
+                    "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/",
+                ],
             })
         );
         assert!(host_manifest_json(&exe).ends_with("}\n"));
@@ -430,9 +434,9 @@ mod tests {
         assert_eq!(
             keys.iter().map(|k| k.key.as_str()).collect::<Vec<_>>(),
             [
-                r"Software\Google\Chrome\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd",
-                r"Software\BraveSoftware\Brave-Browser\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd",
-                r"Software\Microsoft\Edge\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd",
+                r"Software\Google\Chrome\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi",
+                r"Software\BraveSoftware\Brave-Browser\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi",
+                r"Software\Microsoft\Edge\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi",
             ]
         );
         for k in keys {

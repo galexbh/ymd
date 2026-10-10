@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Proyecto
+
+- ymd acepta el ID que la Chrome Web Store asignó a «ymd Cookies» (`hhojlkpllmndkaolmebblijfcjkjpdpi`), además del de la versión descomprimida, para que ambas puedan hablar con ymd. La instalación automática desde el instalador de ymd sigue apagada hasta que la tienda publique la extensión.
+
 ## [0.4.0] - 2026-10-10
 
 ### Novedades
