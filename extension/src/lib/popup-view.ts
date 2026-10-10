@@ -6,6 +6,7 @@ import { addSite, removeSite } from "./sites";
 import { stampState, type Status, type StatusError } from "./status";
 import { KEYS, readAllowlist, readStatus } from "./storage";
 import { type PopupRequest, type PopupResponse, type OpenResult } from "./sync";
+import { siteToOffer } from "./current-site";
 import { webLink } from "./links";
 import { relativeTimeParts } from "./time";
 
@@ -236,6 +237,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
       void readAllowlist(api).then((s) => {
         sites = s;
         renderSites();
+        renderCurrentSite();
       });
     }
   });
@@ -252,6 +254,42 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     $("current").hidden = false;
     $("current-host").textContent = new URL(pageUrl).hostname.replace(/^www\./, "");
   }
+  // «Usar mi sesión de Vimeo»: one click adds the active site when ymd knows it.
+  let tabUrl: string | undefined;
+  try {
+    tabUrl = (await api.tabs.query({ active: true, currentWindow: true }))[0]?.url;
+  } catch {
+    tabUrl = undefined;
+  }
+  const addCurrent = $<HTMLButtonElement>("add-current");
+  function renderCurrentSite(): void {
+    const offer = siteToOffer(tabUrl, sites);
+    addCurrent.hidden = !offer;
+    if (offer) $("add-current-label").textContent = t("currentUseSession", offer.name);
+  }
+  async function addCurrentSite(): Promise<void> {
+    const offer = siteToOffer(tabUrl, sites);
+    if (!offer) return;
+    const result = $("add-current-result");
+    // addSite asks for the permission first, inside this click's user gesture.
+    const res = await addSite(api, sites, offer.domain);
+    if (res.ok) {
+      sites = res.list;
+      renderSites();
+      result.textContent = t("currentAdded", offer.name);
+      result.dataset.tone = "ok";
+    } else {
+      result.textContent =
+        res.reason === "invalid"
+          ? t("addInvalid")
+          : t(res.reason === "denied" ? "addDenied" : "addDuplicate", res.domain);
+      result.dataset.tone = "error";
+    }
+    renderCurrentSite();
+  }
+  addCurrent.addEventListener("click", () => void addCurrentSite());
+  renderCurrentSite();
+
   const download = $<HTMLButtonElement>("download-page");
   async function downloadPage(): Promise<void> {
     if (!pageUrl || download.getAttribute("aria-busy") === "true") return;
@@ -278,6 +316,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
 
   return {
     downloadPage,
+    addCurrentSite,
     sendNow,
     refresh: renderStatus,
     get sites() {

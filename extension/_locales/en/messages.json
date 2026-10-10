@@ -160,5 +160,23 @@
   },
   "badgeError": {
     "message": "ymd Cookies: couldn't reach ymd"
+  },
+  "currentUseSession": {
+    "message": "Use my $SITE$ session in ymd",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "Vimeo"
+      }
+    }
+  },
+  "currentAdded": {
+    "message": "Done: ymd will get your $SITE$ session.",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "Vimeo"
+      }
+    }
   }
 }

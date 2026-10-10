@@ -2,6 +2,9 @@
 // Nothing here stores, logs or sends the text; callers keep at most the last offered URL
 // in memory.
 import type { ClipboardWatch } from "../ipc/types";
+import { providerOf } from "../shared/providers";
+
+export { PROVIDERS } from "../shared/providers";
 
 export interface ClipboardLink {
   /** the trimmed URL, exactly as copied */
@@ -11,48 +14,8 @@ export interface ClipboardLink {
   known: boolean;
 }
 
-interface Provider {
-  name: string;
-  /** registrable domains; subdomains match too (`m.youtube.com`, `artist.bandcamp.com`) */
-  domains: readonly string[];
-}
-
-/** Curated video/audio sites yt-dlp supports. Hosts match exactly or as a true subdomain. */
-export const PROVIDERS: readonly Provider[] = [
-  {
-    name: "YouTube",
-    domains: [
-      "youtube.com",
-      "youtu.be",
-      "music.youtube.com",
-      "m.youtube.com",
-      "youtube-nocookie.com",
-    ],
-  },
-  { name: "Vimeo", domains: ["vimeo.com"] },
-  { name: "SoundCloud", domains: ["soundcloud.com"] },
-  { name: "Bandcamp", domains: ["bandcamp.com"] },
-  { name: "TikTok", domains: ["tiktok.com"] },
-  { name: "X/Twitter", domains: ["x.com", "twitter.com"] },
-  { name: "Instagram", domains: ["instagram.com"] },
-  { name: "Facebook", domains: ["facebook.com", "fb.watch"] },
-  { name: "Twitch", domains: ["twitch.tv"] },
-  { name: "Dailymotion", domains: ["dailymotion.com", "dai.ly"] },
-  { name: "Reddit", domains: ["reddit.com", "v.redd.it"] },
-  { name: "Bilibili", domains: ["bilibili.com"] },
-  { name: "Kick", domains: ["kick.com"] },
-  { name: "Rumble", domains: ["rumble.com"] },
-  { name: "Streamable", domains: ["streamable.com"] },
-  { name: "Mixcloud", domains: ["mixcloud.com"] },
-  { name: "Odysee", domains: ["odysee.com"] },
-];
-
 /** Anything longer is not a link someone copied to download (and is never inspected). */
 export const MAX_LINK_LENGTH = 2048;
-
-function providerOf(host: string): Provider | undefined {
-  return PROVIDERS.find((p) => p.domains.some((d) => host === d || host.endsWith("." + d)));
-}
 
 function isIpHost(host: string): boolean {
   // IPv6 literals keep their brackets in URL.hostname; IPv4 is four dotted numbers

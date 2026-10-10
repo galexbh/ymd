@@ -8,6 +8,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Descargar con ymd desde el navegador.** Clic derecho en un enlace, un video o la página → **Descargar con ymd**, o el botón **Descargar con ymd** en la ventana de la extensión (**Esta página**). ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador tenía otro enlace, te pregunta antes de cambiarlo, y nada se descarga sin tu clic. Extensión «ymd Cookies» 1.3.0.
 - **Estado de la sesión de YouTube.** La ventana de la extensión y **Ajustes → Cuentas** dicen si la copia de cookies tiene tu sesión de YouTube (**Activa** o **Cerrada**), y el icono de la extensión muestra **!** cuando la sesión se cerró o no puede hablar con ymd. Se decide por el nombre de las cookies, nunca por su contenido.
+- **Agregar el sitio actual.** En un sitio que ymd conoce (Vimeo, SoundCloud, Twitch…), la ventana de la extensión ofrece **Usar mi sesión de …** para agregarlo a la lista con un clic, sin escribir el dominio.
 
 ### Seguridad
 
