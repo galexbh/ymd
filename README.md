@@ -132,7 +132,7 @@ ymd se distribuye bajo la [licencia MIT](LICENSE).
 
 El nombre **ymd** y su logotipo identifican al proyecto oficial y no están incluidos en la licencia; los proyectos derivados deben usar un nombre y un logotipo propios.
 
-yt-dlp ([Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE); sus ejecutables incluyen componentes GPLv3+) y FFmpeg (GPL) no se incluyen en el instalador: ymd los descarga desde sus fuentes oficiales al usarse.
+El instalador no incluye yt-dlp ni FFmpeg. ymd los descarga desde sus fuentes oficiales cuando los necesita, y cada uno conserva su propia licencia: consulta la de [yt-dlp](https://github.com/yt-dlp/yt-dlp#license) y la de [FFmpeg](https://ffmpeg.org/legal.html).
 
 ## Aviso
 
