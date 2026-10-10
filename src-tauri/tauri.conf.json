@@ -54,7 +54,10 @@
         "installerHooks": "windows/hooks.nsh"
       }
     },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "license": "MIT",
+    "licenseFile": "../LICENSE",
+    "copyright": "Copyright © 2026 galexbh"
   },
   "plugins": {
     "updater": {

@@ -2,6 +2,7 @@
   "name": "ymd-cookies-extension",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
   "description": "ymd Cookies: hands the cookies of allowed sites to ymd over Native Messaging.",
   "scripts": {
