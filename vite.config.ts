@@ -11,6 +11,23 @@ const PURE = { lines: 80 };
 export default defineConfig(() => ({
   plugins: [react()],
 
+  // Split the bundle so no chunk carries everything: framework, Tauri bindings and the
+  // generated yt-dlp site list (~95 KB) each get their own cacheable file.
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(rawId: string) {
+          const id = rawId.split("\\").join("/");
+          if (id.includes("supported-sites.json")) return "supported-sites";
+          if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react";
+          if (id.includes("node_modules/@tauri-apps/")) return "tauri";
+          if (/node_modules\/(i18next|react-i18next)\//.test(id)) return "i18n";
+          return undefined;
+        },
+      },
+    },
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
