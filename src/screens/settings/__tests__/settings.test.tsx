@@ -56,6 +56,7 @@ describe("Ajustes → Cuentas: origen de las cookies", () => {
     expect(within(info).getByText("Archivo importado")).toBeInTheDocument();
     expect(within(info).getByText("37")).toBeInTheDocument();
     expect(within(info).getByText(".youtube.com")).toBeInTheDocument();
+    expect(within(info).getByTestId("cookie-session")).toHaveTextContent("Activa");
     expect(calls(be, "cookies_import")[0].args!.path).toMatch(/cookies\.txt$/);
     await waitFor(() => expect(be.snapshot().settings.cookies).toEqual({ kind: "file" }));
 

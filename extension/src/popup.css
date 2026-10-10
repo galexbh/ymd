@@ -365,3 +365,11 @@ body {
 .field-note[data-tone="error"] {
   color: var(--danger);
 }
+
+/* «Sesión de YouTube»: closed reads as a warning. */
+.session[data-state="closed"] {
+  color: var(--warning);
+}
+.session[data-state="active"] {
+  color: var(--success);
+}

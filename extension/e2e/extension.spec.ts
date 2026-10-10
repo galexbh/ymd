@@ -263,6 +263,17 @@ test.describe.serial("ymd Cookies extension", () => {
     expect(dump).not.toContain("e2e-secret-sid");
     expect(dump).not.toContain("e2e-pref");
     expect(dump).toContain('"error":null');
+    // SID + PREF but no LOGIN_INFO/SAPISID: signed out, so the icon says so
+    expect(dump).toContain('"sessions":{"youtube.com":false}');
+    const badge = await worker.evaluate(() =>
+      (
+        globalThis as unknown as {
+          chrome: { action: { getBadgeText(d: object): Promise<string> } };
+        }
+      ).chrome.action.getBadgeText({}),
+    );
+    expect(badge).toBe("!");
+    await expect(page.locator("#session-youtube")).toHaveText("Cerrada: inicia sesión en YouTube");
     await page.close();
   });
 

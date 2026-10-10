@@ -529,6 +529,9 @@ pub struct CookieFileInfo {
     pub origin: String,
     pub cookie_count: u32,
     pub domains: Vec<String>,
+    /// Sites with a signed-in session in this jar ("youtube.com"), told from cookie names only.
+    #[serde(default)]
+    pub signed_in: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -569,6 +572,9 @@ pub struct ExtensionSync {
     pub browser: String,
     pub cookie_count: u32,
     pub domains: Vec<String>,
+    /// Sites with a signed-in session in the synced jar ("youtube.com").
+    #[serde(default)]
+    pub signed_in: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

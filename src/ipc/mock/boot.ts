@@ -45,6 +45,7 @@ export function extensionFromParam(value: string | null, now: number): MockExten
         browser: "brave",
         cookieCount: 42,
         domains: EXTENSION_SYNC_DOMAINS,
+        signedIn: ["youtube.com"],
       },
     };
   }

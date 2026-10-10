@@ -145,5 +145,20 @@
   },
   "downloadFailed": {
     "message": "Couldn't open ymd. Make sure it's installed and up to date."
+  },
+  "sessionYoutube": {
+    "message": "YouTube session"
+  },
+  "sessionActive": {
+    "message": "Active"
+  },
+  "sessionClosed": {
+    "message": "Signed out: sign in to YouTube"
+  },
+  "badgeSessionClosed": {
+    "message": "ymd Cookies: you're signed out of YouTube"
+  },
+  "badgeError": {
+    "message": "ymd Cookies: couldn't reach ymd"
   }
 }

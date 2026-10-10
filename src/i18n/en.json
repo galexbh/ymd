@@ -796,5 +796,11 @@
       "genericBody": "Paste the link anyway: ymd works with many pages that aren't on the list. If it fails, you can ask yt-dlp, the download engine, for support.",
       "genericAction": "Open yt-dlp's issues"
     }
+  },
+  "session": {
+    "youtube": "YouTube session",
+    "active": "Active",
+    "closed": "Signed out",
+    "closedHint": "The copy doesn't hold your YouTube session. Sign in to YouTube in {{browser}} and ymd will get it on its own."
   }
 }

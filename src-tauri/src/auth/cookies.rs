@@ -341,6 +341,7 @@ pub fn info(paths: &AppPaths) -> Option<CookieFileInfo> {
         origin,
         cookie_count,
         domains,
+        signed_in: signed_in(&text),
     })
 }
 
@@ -412,6 +413,42 @@ fn fail(code: ErrorCode, detail: &str) -> CookieTestResult {
             detail: detail.to_string(),
         }),
     }
+}
+
+/// Sites whose session can be told from cookie names alone, and the names that prove it.
+/// YouTube keeps `LOGIN_INFO` and the `SAPISID` pair only while you are signed in.
+const SESSION_RULES: &[(&str, &[&str])] = &[(
+    "youtube.com",
+    &["LOGIN_INFO", "SAPISID", "__Secure-3PAPISID"],
+)];
+
+/// Pure: sites with a signed-in session in a Netscape jar, judged by cookie *names* only
+/// (values are never looked at).
+pub fn signed_in(text: &str) -> Vec<String> {
+    let rows: Vec<(String, &str)> = text
+        .lines()
+        .filter_map(|raw| {
+            let line = raw.trim_end_matches('\r');
+            let line = line.strip_prefix("#HttpOnly_").unwrap_or(line);
+            if line.starts_with('#') {
+                return None;
+            }
+            let f: Vec<&str> = line.split('\t').collect();
+            (f.len() == 7).then(|| {
+                let domain = f[0].trim().trim_start_matches('.').to_ascii_lowercase();
+                (domain, f[5])
+            })
+        })
+        .collect();
+    SESSION_RULES
+        .iter()
+        .filter(|(site, names)| {
+            rows.iter().any(|(domain, name)| {
+                (domain == site || domain.ends_with(&format!(".{site}"))) && names.contains(name)
+            })
+        })
+        .map(|(site, _)| (*site).to_string())
+        .collect()
 }
 
 /// Pure: validate + summarize a Netscape cookies.txt.
@@ -639,6 +676,25 @@ mod tests {
 .example.com\tTRUE\t/\tTRUE\t2000000000\tSID\tsynthetic1\n\
 #HttpOnly_.Example.com\tTRUE\t/\tFALSE\t0\tHSID\tsynthetic2\n\
 sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
+
+    #[test]
+    fn signed_in_reads_names_only() {
+        let signed = "# Netscape HTTP Cookie File\n\
+#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t0\tLOGIN_INFO\tx\n\
+.youtube.com\tTRUE\t/\tTRUE\t0\tPREF\ty\n";
+        assert_eq!(signed_in(signed), vec!["youtube.com".to_string()]);
+        let sub = "www.youtube.com\tFALSE\t/\tTRUE\t0\t__Secure-3PAPISID\tz\n";
+        assert_eq!(signed_in(sub), vec!["youtube.com".to_string()]);
+        // signed out: only preferences; a look-alike domain doesn't count; values don't matter
+        for t in [
+            ".youtube.com\tTRUE\t/\tTRUE\t0\tPREF\tLOGIN_INFO\n",
+            ".notyoutube.com\tTRUE\t/\tTRUE\t0\tLOGIN_INFO\tx\n",
+            "# .youtube.com\tTRUE\t/\tTRUE\t0\tLOGIN_INFO\tx\n",
+            "",
+        ] {
+            assert!(signed_in(t).is_empty(), "{t:?}");
+        }
+    }
 
     #[test]
     fn parse_valid() {

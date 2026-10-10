@@ -23,6 +23,8 @@ export interface Status {
   count: number;
   domains: string[];
   error: StatusError | null;
+  /** Ruled sites on the list → signed in? From cookie names of the last sent jar. */
+  sessions: Record<string, boolean>;
 }
 
 export const EMPTY_STATUS: Status = {
@@ -31,6 +33,7 @@ export const EMPTY_STATUS: Status = {
   count: 0,
   domains: [],
   error: null,
+  sessions: {},
 };
 
 export type StampState = "connected" | "offline" | "error";
@@ -68,5 +71,13 @@ export function parseStatus(value: unknown): Status {
             detail: typeof v.error.detail === "string" ? v.error.detail : undefined,
           }
         : null,
+    sessions:
+      v.sessions && typeof v.sessions === "object"
+        ? Object.fromEntries(
+            Object.entries(v.sessions).filter(
+              ([k, b]) => typeof k === "string" && typeof b === "boolean",
+            ),
+          )
+        : {},
   };
 }

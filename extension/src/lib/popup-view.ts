@@ -109,6 +109,13 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
       last.title = new Date(status.lastSyncAt).toLocaleString(lang);
     }
     $("count").textContent = new Intl.NumberFormat(lang).format(status.count);
+    const yt = status.sessions["youtube.com"];
+    $("session-fact").hidden = yt === undefined;
+    if (yt !== undefined) {
+      const dd = $("session-youtube");
+      dd.textContent = yt ? t("sessionActive") : t("sessionClosed");
+      dd.dataset.state = yt ? "active" : "closed";
+    }
 
     const notice = $("notice");
     if (status.error) {

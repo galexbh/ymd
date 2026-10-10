@@ -20,6 +20,7 @@ const SYNC: ExtensionSync = {
   browser: "brave",
   cookieCount: 42,
   domains: [".youtube.com", ".google.com"],
+  signedIn: ["youtube.com"],
 };
 
 /** Cuentas with «Extensión» as the cookie source: the only place the card shows. */
@@ -57,6 +58,22 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
       "ymd recibe las cookies de Brave",
     );
     expect(await card()).toHaveAttribute("data-state", "connected");
+  });
+
+  it("shows whether the synced copy holds a YouTube session", async () => {
+    await renderApp({ ...accounts, extension: { lastSync: SYNC } });
+    await stamp();
+    expect(screen.getByTestId("extension-session")).toHaveTextContent("Activa");
+    expect(screen.queryByTestId("extension-session-hint")).toBeNull();
+  });
+
+  it("a signed-out copy says how to fix it", async () => {
+    await renderApp({ ...accounts, extension: { lastSync: { ...SYNC, signedIn: [] } } });
+    await stamp();
+    expect(screen.getByTestId("extension-session")).toHaveTextContent("Cerrada");
+    expect(screen.getByTestId("extension-session-hint")).toHaveTextContent(
+      "Inicia sesión en YouTube en Brave",
+    );
   });
 
   it("PENDIENTE: bridge registered, nothing synced yet", async () => {

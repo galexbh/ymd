@@ -111,6 +111,7 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 browser,
                 cookie_count: info.cookie_count,
                 domains: info.domains,
+                signed_in: info.signed_in,
             })
         });
         let default = crate::auth::default_browser::detect_info();

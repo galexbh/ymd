@@ -64,6 +64,9 @@ export async function writeStatus(api: Api, status: Status): Promise<void> {
           ...(status.error.detail ? { detail: status.error.detail } : {}),
         }
       : null,
+    sessions: Object.fromEntries(
+      Object.entries(status.sessions ?? {}).filter(([, b]) => typeof b === "boolean"),
+    ),
   };
   await api.storage.local.set({ [KEYS.status]: clean });
 }

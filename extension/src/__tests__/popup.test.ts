@@ -21,7 +21,15 @@ const BODY = /<body>([\s\S]*)<\/body>/.exec(html)?.[1] ?? "";
 const NOW = Date.UTC(2026, 9, 10, 12, 0, 0);
 
 function status(partial: Partial<Status>): Status {
-  return { lastSyncAt: null, checkedAt: null, count: 0, domains: [], error: null, ...partial };
+  return {
+    lastSyncAt: null,
+    checkedAt: null,
+    count: 0,
+    domains: [],
+    error: null,
+    sessions: {},
+    ...partial,
+  };
 }
 
 async function mount(locale: Locale, options: FakeOptions = {}, dark = false) {

@@ -396,6 +396,14 @@ export function AccountsSettings() {
                   <Figure value={cookieInfo.cookieCount} />
                 </dd>
               </div>
+              <div>
+                <dt>{t("session.youtube")}</dt>
+                <dd data-testid="cookie-session">
+                  {cookieInfo.signedIn.includes("youtube.com")
+                    ? t("session.active")
+                    : t("session.closed")}
+                </dd>
+              </div>
               <div className={s.factWide}>
                 <dt>{t("accounts.file.domains")}</dt>
                 <dd className={s.domains}>
