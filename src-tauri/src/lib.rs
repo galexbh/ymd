@@ -146,6 +146,8 @@ pub fn run() {
             commands::auth::credentials_list,
             commands::auth::credentials_set,
             commands::auth::credentials_delete,
+            commands::auth::extension_status,
+            commands::auth::extension_open_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ymd");

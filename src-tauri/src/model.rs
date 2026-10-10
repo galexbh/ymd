@@ -529,6 +529,43 @@ pub struct SiteCredential {
     pub username: String,
 }
 
+// ───────────────────────────── Cookie bridge (extension) ─────────────────────────────
+
+/// Where the native-messaging host is registered for one Chromium browser.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BridgeTarget {
+    pub browser: Browser,
+    /// The browser looks like it is installed on this machine.
+    pub installed: bool,
+    /// ymd wrote its host registration for this browser (registry key / manifest file).
+    pub registered: bool,
+}
+
+/// Last sync received from the extension (from the cookie meta with origin `extension:*`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExtensionSync {
+    /// RFC3339
+    pub at: String,
+    /// "brave", "chrome", "edge", ...
+    pub browser: String,
+    pub cookie_count: u32,
+    pub domains: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExtensionStatus {
+    pub extension_id: String,
+    /// Folder to "Load unpacked" from (bundled resources); `None` in dev builds without it.
+    pub extension_dir: Option<String>,
+    /// Path of the host manifest JSON ymd maintains.
+    pub host_manifest: Option<String>,
+    pub targets: Vec<BridgeTarget>,
+    pub last_sync: Option<ExtensionSync>,
+}
+
 // ───────────────────────────── Errors ─────────────────────────────
 
 /// Error returned by every command: a stable code the UI translates, plus raw detail.

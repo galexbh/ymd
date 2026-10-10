@@ -76,3 +76,23 @@ pub async fn credentials_delete(
     state.keychain.delete(&extractor)?;
     Ok(state.keychain.list()?)
 }
+
+/// State of the cookie bridge: host registration per browser, bundled extension folder and
+/// the last sync the extension delivered. Owner: bridge agent.
+#[tauri::command]
+pub async fn extension_status(state: State<'_>) -> CmdResult<crate::model::ExtensionStatus> {
+    let _ = state;
+    Err(CommandError::unknown(
+        "extension_status: not implemented yet",
+    ))
+}
+
+/// Opens `browser` on its extensions page (`brave://extensions`, ...). The opener plugin
+/// cannot open those schemes, so the browser executable is launched with the URL.
+#[tauri::command]
+pub async fn extension_open_page(state: State<'_>, browser: Browser) -> CmdResult<()> {
+    let _ = (state, browser);
+    Err(CommandError::unknown(
+        "extension_open_page: not implemented yet",
+    ))
+}

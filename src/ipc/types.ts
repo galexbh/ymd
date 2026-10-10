@@ -294,6 +294,29 @@ export interface SiteCredential {
   username: string;
 }
 
+// ───────────── Cookie bridge (extension) ─────────────
+export interface BridgeTarget {
+  browser: Browser;
+  installed: boolean;
+  registered: boolean;
+}
+
+export interface ExtensionSync {
+  at: string;
+  browser: string;
+  cookieCount: number;
+  domains: string[];
+}
+
+export interface ExtensionStatus {
+  extensionId: string;
+  /** folder to "Load unpacked" from; null in dev builds without bundled resources */
+  extensionDir: string | null;
+  hostManifest: string | null;
+  targets: BridgeTarget[];
+  lastSync: ExtensionSync | null;
+}
+
 // ───────────── Errors & events ─────────────
 /** Shape of every rejected command promise. */
 export interface CommandError {
