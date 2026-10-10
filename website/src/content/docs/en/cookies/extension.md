@@ -13,7 +13,7 @@ ymd ships the extension prebuilt in its resources folder and registers the bridg
 
 Steps, once:
 
-1. **Open extension folder**: opens the extension folder that ships with ymd.
+1. **Show extension folder**: opens your file manager with ymd's `extension` folder selected. That folder is the one you drag in step 3.
 2. **Open [browser] and copy the address**: copies its extensions-page address (for example `brave://extensions`) and opens the browser. Paste it into the address bar (Ctrl+V) and press Enter: browsers don't let other programs open that page directly.
 3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or press **Load unpacked** and choose it: it's the one containing `manifest.json`.
 4. Sign in to YouTube in that browser. ymd will receive the cookies on its own.
@@ -51,7 +51,7 @@ Pin "ymd Cookies" to the browser toolbar and open it:
 
 - The **Bridge to ymd** stamp reads **Connected**, **Offline** or **Error**, with the last send and the number of cookies.
 - **Send now** forces a send.
-- **Allowed sites**: `youtube.com` and `google.com` by default, with their subdomains. **Add a site** (for example `vimeo.com`) asks the browser for permission for that domain; removing it gives the permission back.
+- **Allowed sites**: only `youtube.com` by default, with its subdomains. Your YouTube session lives in its own cookies, so the extension doesn't read your Google account's. **Add a site** (for example `vimeo.com`) asks the browser for permission for that domain; removing it gives the permission back.
 
 ## What it sends and where
 

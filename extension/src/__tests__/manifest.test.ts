@@ -43,10 +43,10 @@ describe("manifest", () => {
     expect(manifest).toMatchObject({
       manifest_version: 3,
       name: "ymd Cookies",
-      version: "1.0.0",
+      version: "1.1.0",
       default_locale: "es",
       permissions: ["cookies", "nativeMessaging", "storage", "alarms"],
-      host_permissions: ["*://*.youtube.com/*", "*://*.google.com/*"],
+      host_permissions: ["*://*.youtube.com/*"],
       optional_host_permissions: ["*://*/*"],
       background: { service_worker: "background.js", type: "module" },
       action: { default_popup: "popup.html" },

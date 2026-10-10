@@ -642,11 +642,11 @@
       "cookies": "Cookies"
     },
     "steps": "Steps, once",
-    "step1": "Open the extension folder that ships with ymd.",
+    "step1": "Show the extension folder that ships with ymd: it's the one you'll drag.",
     "step2": "Open {{browser}} and go to its extensions page:",
     "step3": "Turn on “Developer mode”. Then drag the folder from step 1 onto the page, or press “Load unpacked” and choose it.",
     "step4": "Sign in to YouTube in that browser; ymd will receive the cookies on its own.",
-    "openFolder": "Open extension folder",
+    "openFolder": "Show extension folder",
     "noFolder": "This build doesn't include the extension folder (development mode).",
     "openPage": "Open {{browser}} and copy the address",
     "openFailed": "Couldn't open {{browser}}",
@@ -659,10 +659,10 @@
     "openedTitle": "{{browser}} is open",
     "openedCopied": "We copied {{url}}: paste it into the address bar (Ctrl+V) and press Enter. Browsers don’t let other programs open that page directly.",
     "openedType": "Type {{url}} into the address bar and press Enter. Browsers don’t let other programs open that page directly.",
-    "folderFailed": "Couldn’t open the folder",
+    "folderFailed": "Couldn’t show the folder",
     "folderFailedHint": "Open it from your file manager at this path:",
     "firefoxDefault": "Your default browser is Firefox",
-    "firefoxDefaultBody": "yt-dlp reads Firefox cookies directly, so you don’t need the extension. Sign in to YouTube in Firefox and use its cookies.",
+    "firefoxDefaultBody": "ymd reads Firefox cookies directly, so you don’t need the extension. Sign in to YouTube in Firefox and use its cookies.",
     "useFirefox": "Use Firefox cookies"
   },
   "accounts": {
@@ -677,9 +677,9 @@
       "browser": "Browser",
       "file": "cookies.txt file",
       "hint": {
-        "none": "yt-dlp downloads without being signed in.",
-        "browser": "yt-dlp reads the browser's cookies on every download.",
-        "file": "yt-dlp uses the imported copy; it works even with the browser open."
+        "none": "Downloads without being signed in.",
+        "browser": "ymd reads the browser's cookies on every download.",
+        "file": "ymd uses the imported copy; it works even with the browser open."
       }
     },
     "browser": {
@@ -694,11 +694,11 @@
       "recommended": "recommended on Windows",
       "notInstalled": "not installed",
       "getFirefox": "Get Firefox",
-      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies yt-dlp can read directly: Brave, Chrome, Edge, Opera and the other Chromium browsers encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here, or use the ymd extension."
+      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies ymd can read directly: Brave, Chrome, Edge, Opera and the other Chromium browsers encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here, or use the ymd extension."
     },
     "test": "Test cookies",
     "testOk": "The cookies work",
-    "testOkBody": "yt-dlp could read them. They'll be used for the next downloads.",
+    "testOkBody": "ymd could read them. They'll be used for the next downloads.",
     "snapshot": "Import from the browser now",
     "snapshotOk": "Cookie copy saved",
     "snapshotOkBody": "Choose “cookies.txt file” as the source to use it with the browser open.",
@@ -749,7 +749,7 @@
       "title": "Site accounts",
       "description": "For sites that ask for a username and password, such as Vimeo.",
       "site": "Site",
-      "siteHint": "Search the site by name. Only sites that take an account in yt-dlp are listed.",
+      "siteHint": "Search the site by name. Only sites that support signing in are listed.",
       "username": "Username",
       "password": "Password",
       "save": "Save account",
@@ -757,20 +757,20 @@
       "empty": "No saved accounts.",
       "deleteNamed": "Delete the {{site}} account",
       "failed": "The account couldn't be saved",
-      "keychain": "Passwords go to the system keychain and reach yt-dlp without touching the disk or the command line. ymd never shows them again.",
+      "keychain": "Passwords go to the system keychain and are used without touching the disk or the command line. ymd never shows them again.",
       "sitePlaceholder": "Vimeo, Udemy, Twitch…",
       "other": "Other (advanced)",
       "otherDesc": "Type the site key yourself if it isn't on the list.",
       "key": "Site key",
-      "keyHint": "yt-dlp's netrc key, for example vimeo.",
+      "keyHint": "The site's netrc key, for example vimeo.",
       "keyInvalid": "Use only lowercase letters, digits, dot, hyphen and underscore, not starting with a hyphen or underscore.",
-      "youtubeTitle": "YouTube doesn't accept a password in yt-dlp",
+      "youtubeTitle": "YouTube doesn't accept a username and password",
       "youtubeBody": "For YouTube, use the cookies section above.",
       "goToCookies": "Go to cookies"
     },
     "supported": {
-      "title": "Sites supported by yt-dlp",
-      "description": "yt-dlp's official extractor list, bundled with ymd and updated with each release.",
+      "title": "Supported sites",
+      "description": "The official list from yt-dlp, ymd's download engine. Bundled with ymd and updated with each release.",
       "show": "Show the list",
       "hide": "Hide the list",
       "sites": "sites",
@@ -785,7 +785,7 @@
       "colDescription": "Description",
       "colMarks": "Marks",
       "badgeAccount": "takes an account",
-      "badgeBroken": "broken per yt-dlp",
+      "badgeBroken": "not working for now",
       "empty": "No site matches. If yours isn't here, see “How do I add more?”.",
       "range": "{{from}}–{{to}} of {{total}}",
       "pages": "List pages",
@@ -796,12 +796,12 @@
     "howto": {
       "title": "How do I add more?",
       "accountTitle": "The site asks for an account",
-      "accountBody": "Pick it in “Site accounts” and save your username and password. ymd hands them to yt-dlp when it downloads from that site.",
-      "cookiesTitle": "The site has no account in yt-dlp or needs a browser login",
-      "cookiesBody": "Use cookies: sign in with your browser and ymd passes that session to yt-dlp.",
+      "accountBody": "Pick it in “Site accounts” and save your username and password. ymd uses them when you download from that site.",
+      "cookiesTitle": "The site has no account or needs a browser login",
+      "cookiesBody": "Use cookies: sign in with your browser and ymd uses that session.",
       "cookiesAction": "Go to cookies",
       "genericTitle": "The site isn't on the list",
-      "genericBody": "Paste the link anyway: yt-dlp's generic extractor works with many pages. If it fails, you can ask yt-dlp for support.",
+      "genericBody": "Paste the link anyway: ymd works with many pages that aren't on the list. If it fails, you can ask yt-dlp, the download engine, for support.",
       "genericAction": "Open yt-dlp's issues"
     }
   }
