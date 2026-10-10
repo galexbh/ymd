@@ -40,6 +40,26 @@ export interface Alarm {
 
 export type MessageSender = { id?: string; url?: string };
 
+export interface MenuClickInfo {
+  menuItemId: string | number;
+  linkUrl?: string;
+  srcUrl?: string;
+  pageUrl?: string;
+}
+
+export interface MenuProperties {
+  id: string;
+  title: string;
+  contexts: string[];
+  documentUrlPatterns?: string[];
+  targetUrlPatterns?: string[];
+}
+
+export interface Tab {
+  id?: number;
+  url?: string;
+}
+
 export interface ChromeApi {
   cookies: {
     getAll(details: { domain?: string }): Promise<ChromeCookie[]>;
@@ -87,6 +107,15 @@ export interface ChromeApi {
   i18n: {
     getMessage(name: string, substitutions?: string | string[]): string;
     getUILanguage(): string;
+  };
+  contextMenus: {
+    create(properties: MenuProperties): unknown;
+    removeAll(): Promise<void>;
+    onClicked: ChromeEvent<(info: MenuClickInfo, tab?: Tab) => void>;
+  };
+  tabs: {
+    /** With `activeTab`, the active tab's `url` is readable while the popup is open. */
+    query(query: { active?: boolean; currentWindow?: boolean }): Promise<Tab[]>;
   };
 }
 

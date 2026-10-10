@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **Descargar con ymd desde el navegador.** Clic derecho en un enlace, un video o la página → **Descargar con ymd**, o el botón **Descargar con ymd** en la ventana de la extensión (**Esta página**). ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador tenía otro enlace, te pregunta antes de cambiarlo, y nada se descarga sin tu clic. Extensión «ymd Cookies» 1.3.0.
+
 ### Seguridad
 
 - **Cookies cifradas en disco.** La copia de cookies de ymd se guarda cifrada (ChaCha20-Poly1305) con una clave aleatoria en el llavero del sistema, para que conserve la misma protección que el navegador da a tus sesiones. Las copias existentes se cifran solas la primera vez que ymd las lee. El texto plano solo existe durante una descarga, en la copia que recibe yt-dlp, y ymd borra al arrancar las que haya dejado un cierre forzado.

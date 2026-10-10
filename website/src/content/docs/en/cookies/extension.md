@@ -45,6 +45,15 @@ On Windows, ymd registers the bridge under Brave's, Edge's and Vivaldi's keys, a
 | Pending   | The bridge is ready. Install the extension; the first sync will arrive on its own.                       |
 | No bridge | ymd hasn't registered with your browsers yet. Restart ymd; if nothing changes, use the cookies.txt file. |
 
+## Download with ymd
+
+From the browser, no copying or pasting:
+
+- **Right-click** a link, a video or anywhere on the page → **Download with ymd**.
+- Or open the extension popup and, under **This page**, click **Download with ymd**.
+
+ymd opens, or comes to the front if it was already open, with the link in **Receive** and its card. If the counter already held another link, ymd asks before replacing it. Nothing downloads until you click **File it**.
+
 ## The extension popup
 
 Pin "ymd Cookies" to the browser toolbar and open it:

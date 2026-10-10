@@ -630,3 +630,5 @@ pub const EVT_JOB_UPDATE: &str = "job://update";
 pub const EVT_JOB_REMOVED: &str = "job://removed";
 pub const EVT_DEPS_PROGRESS: &str = "deps://progress";
 pub const EVT_DEPS_CHANGED: &str = "deps://changed";
+/// A link from the browser is waiting (`take_pending_url`); no payload.
+pub const EVT_OPEN_URL: &str = "app://open-url";

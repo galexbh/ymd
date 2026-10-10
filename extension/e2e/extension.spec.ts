@@ -166,6 +166,9 @@ test.describe.serial("ymd Cookies extension", () => {
     await expect(page.locator("#send-now")).toHaveText(/Enviar ahora/);
     await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com"]);
     await expect(page.locator(".privacy")).toContainText("sin red");
+    // Opened as a tab, the active page is the popup itself: nothing to download or add.
+    await expect(page.locator("#current")).toBeHidden();
+    await expect(page.locator("#session-fact")).toBeHidden();
     // Tokens applied: the stamp is drawn, the page has a themed ground.
     const theme = await page.evaluate(() => document.documentElement.dataset.theme);
     expect(["light", "dark"]).toContain(theme);
@@ -260,6 +263,44 @@ test.describe.serial("ymd Cookies extension", () => {
     expect(dump).not.toContain("e2e-secret-sid");
     expect(dump).not.toContain("e2e-pref");
     expect(dump).toContain('"error":null');
+    await page.close();
+  });
+
+  test("the «Descargar con ymd» menu exists and a link reaches ymd", async () => {
+    test.skip(!!registrationError, `native host registration failed: ${registrationError}`);
+    // the menu is created on install
+    const menus = await worker.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          const c = (
+            globalThis as unknown as {
+              chrome: {
+                contextMenus: { update(id: string, p: object, cb: () => void): void };
+                runtime: { lastError?: unknown };
+              };
+            }
+          ).chrome;
+          c.contextMenus.update("ymd-download", {}, () => resolve(c.runtime.lastError ? 0 : 1));
+        }),
+    );
+    expect(menus).toBe(1);
+
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
+    const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
+    const reply = await page.evaluate(
+      (u) =>
+        (
+          globalThis as unknown as {
+            chrome: { runtime: { sendMessage(m: object): Promise<unknown> } };
+          }
+        ).chrome.runtime.sendMessage({ type: "open", url: u }),
+      url,
+    );
+    expect(reply).toEqual({ ok: true, error: null });
+    expect(readRecord(recordFile).filter((m) => m.type === "open")).toEqual([
+      { type: "open", version: 1, url },
+    ]);
     await page.close();
   });
 });

@@ -109,6 +109,8 @@ export interface MockBackendOptions {
   seed?: number;
   /** Text on the simulated system clipboard (`plugin:clipboard-manager|read_text`). */
   clipboard?: string | null;
+  /** A link sent from the browser before start-up (cold start: `ymd --open-url`). */
+  pendingUrl?: string | null;
   /** Cookie bridge state. */
   extension?: MockExtensionOptions;
 }
@@ -281,6 +283,8 @@ export class MockBackend {
   readonly events: MockEvent[] = [];
 
   private emitter: MockEmitter;
+  /** link sent from the browser, waiting for `take_pending_url` */
+  private pendingUrl: string | null = null;
   private readonly delays: MockDelays;
   private readonly failDeps: Set<DepId>;
   private settings: Settings;
@@ -319,6 +323,7 @@ export class MockBackend {
     this.firefoxInstalled = options.firefoxInstalled ?? true;
     this.seed = options.seed ?? 7;
     this.clipboard = options.clipboard ?? null;
+    this.pendingUrl = options.pendingUrl ?? null;
     const ext = options.extension ?? {};
     this.extension = {
       extensionId: EXTENSION_ID,
@@ -372,6 +377,15 @@ export class MockBackend {
   /** Put text on the simulated system clipboard (null = empty, reading fails like the OS). */
   setClipboard(text: string | null): void {
     this.clipboard = text;
+  }
+
+  /**
+   * «Descargar con ymd» from the browser: the link waits for the UI, and a running app is told
+   * (like the single-instance callback). Before the UI listens it is just picked up on start.
+   */
+  simulateOpenUrl(url: string): void {
+    this.pendingUrl = url;
+    this.emit("app://open-url", null);
   }
 
   /** The extension delivered `count` cookies from `browser` (writes cookies.txt + meta). */
@@ -489,6 +503,11 @@ export class MockBackend {
         return clone(this.settings);
       case "settings_set":
         return this.setSettings(a.settings as Settings);
+      case "take_pending_url": {
+        const url = this.pendingUrl;
+        this.pendingUrl = null;
+        return url;
+      }
       // auth
       case "browsers_detect":
         return clone(browsersFixture(this.braveRunning, this.firefoxInstalled)) as BrowserInfo[];

@@ -33,3 +33,9 @@ pub async fn settings_set(state: State<'_>, settings: Settings) -> CmdResult<Set
     }
     Ok(new)
 }
+
+/// The link sent from the browser («Descargar con ymd»), handed over once.
+#[tauri::command]
+pub fn take_pending_url(pending: tauri::State<'_, crate::open_url::PendingUrl>) -> Option<String> {
+    pending.take()
+}

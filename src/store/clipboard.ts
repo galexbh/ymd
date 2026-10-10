@@ -6,6 +6,8 @@
 // kept, in memory, is the last URL offered and the last one dismissed, so nothing repeats.
 import { create } from "zustand";
 import { classify } from "../app/clipboardLink";
+import { api } from "../ipc/commands";
+import { events } from "../ipc/events";
 import { readClipboardText } from "../app/native";
 import { useJobs } from "./jobs";
 import { useNav } from "./nav";
@@ -15,8 +17,12 @@ import { useSettings } from "./settings";
 /** `filled`: pasted into the empty counter and probed. `suggest`: waiting for Usar/Descartar. */
 export type ClipboardOfferKind = "filled" | "suggest";
 
+/** Where the link came from: copied, or sent with «Descargar con ymd» from the browser. */
+export type ClipboardOfferSource = "clipboard" | "browser";
+
 export interface ClipboardOffer {
   kind: ClipboardOfferKind;
+  source: ClipboardOfferSource;
   url: string;
   provider: string;
   known: boolean;
@@ -30,6 +36,8 @@ interface ClipboardState {
   dismissed: string | null;
   /** read the clipboard once and offer what it holds, if anything */
   check: () => Promise<void>;
+  /** a link sent from the browser: always shown in Recibir (explicit intent, any site) */
+  receiveFromBrowser: (url: string) => void;
   /** suggestion → counter: fill the field and probe */
   use: () => void;
   /** autofill → back to an empty counter */
@@ -76,11 +84,29 @@ export const useClipboard = create<ClipboardState>((set, get) => ({
     const idle = !rx.url.trim() && rx.status === "idle" && !rx.enqueueing;
 
     if (idle && link.known) {
-      set({ lastOffered: link.url, offer: { ...link, kind: "filled" } });
+      set({ lastOffered: link.url, offer: { ...link, kind: "filled", source: "clipboard" } });
       void rx.runProbe(link.url);
     } else {
-      set({ lastOffered: link.url, offer: { ...link, kind: "suggest" } });
+      set({ lastOffered: link.url, offer: { ...link, kind: "suggest", source: "clipboard" } });
     }
+  },
+
+  receiveFromBrowser: (url) => {
+    // The person picked this link in the browser: no clipboard setting or site list applies.
+    const link = classify(url, "any");
+    if (!link) return;
+    useNav.getState().navigate("receive");
+    const rx = useReceive.getState();
+    const current = (rx.probe?.url ?? rx.url).trim();
+    if (current === link.url) return;
+    const idle = !rx.url.trim() && rx.status === "idle" && !rx.enqueueing;
+    // a clipboard check right after must not offer the same link again
+    set({
+      lastOffered: link.url,
+      dismissed: null,
+      offer: { ...link, kind: idle ? "filled" : "suggest", source: "browser" },
+    });
+    if (idle) void rx.runProbe(link.url);
   },
 
   use: () => {
@@ -105,8 +131,56 @@ export const useClipboard = create<ClipboardState>((set, get) => ({
   },
 }));
 
+/**
+ * Links sent from the browser («Descargar con ymd»): one is taken at start-up (a cold start
+ * carried it in argv) and then one per `app://open-url`. Before onboarding is done the link
+ * waits and is shown right after. Returns the unsubscribe.
+ */
+export function connectBrowserLinks(): () => void {
+  let alive = true;
+  const take = () =>
+    void api
+      .takePendingUrl()
+      // A taken link exists nowhere else, so it waits at module level: whichever mount is
+      // alive delivers it (React remounts effects in development; settings may still load).
+      .then((url) => {
+        if (url) {
+          waitingLink = url;
+          deliverWaitingLink();
+        }
+      })
+      .catch(() => {});
+  const offSettings = useSettings.subscribe(deliverWaitingLink);
+  let offEvent: (() => void) | null = null;
+  void events
+    .onOpenUrl(take)
+    .then((un) => {
+      if (alive) offEvent = un;
+      else un();
+    })
+    .catch(() => {});
+  deliverWaitingLink();
+  take();
+  return () => {
+    alive = false;
+    offSettings();
+    offEvent?.();
+  };
+}
+
+/** A browser link taken from the backend and not shown yet (onboarding not done). */
+let waitingLink: string | null = null;
+
+function deliverWaitingLink() {
+  if (!waitingLink || !useSettings.getState().settings?.onboarded) return;
+  const url = waitingLink;
+  waitingLink = null;
+  useClipboard.getState().receiveFromBrowser(url);
+}
+
 export function resetClipboardStore() {
   checking = false;
+  waitingLink = null;
   useClipboard.setState({ ...blank });
 }
 

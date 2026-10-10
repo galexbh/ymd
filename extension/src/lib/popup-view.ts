@@ -5,7 +5,8 @@ import { isDefaultDomain } from "./domains";
 import { addSite, removeSite } from "./sites";
 import { stampState, type Status, type StatusError } from "./status";
 import { KEYS, readAllowlist, readStatus } from "./storage";
-import { type PopupRequest, type PopupResponse } from "./sync";
+import { type PopupRequest, type PopupResponse, type OpenResult } from "./sync";
+import { webLink } from "./links";
 import { relativeTimeParts } from "./time";
 
 export interface PopupDeps {
@@ -232,10 +233,44 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     }
   });
 
+  // «Descargar con ymd» for the page in the active tab (readable thanks to activeTab).
+  let pageUrl: string | null = null;
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    pageUrl = webLink(tab?.url);
+  } catch {
+    pageUrl = null;
+  }
+  if (pageUrl) {
+    $("current").hidden = false;
+    $("current-host").textContent = new URL(pageUrl).hostname.replace(/^www\./, "");
+  }
+  const download = $<HTMLButtonElement>("download-page");
+  async function downloadPage(): Promise<void> {
+    if (!pageUrl || download.getAttribute("aria-busy") === "true") return;
+    download.setAttribute("aria-busy", "true");
+    const result = $("download-result");
+    try {
+      const res = (await api.runtime.sendMessage({
+        type: "open",
+        url: pageUrl,
+      } satisfies PopupRequest)) as OpenResult | undefined;
+      result.textContent = res?.ok ? t("downloadSent") : t("downloadFailed");
+      result.dataset.tone = res?.ok ? "ok" : "error";
+    } catch {
+      result.textContent = t("downloadFailed");
+      result.dataset.tone = "error";
+    } finally {
+      download.removeAttribute("aria-busy");
+    }
+  }
+  download.addEventListener("click", () => void downloadPage());
+
   renderStatus();
   renderSites();
 
   return {
+    downloadPage,
     sendNow,
     refresh: renderStatus,
     get sites() {

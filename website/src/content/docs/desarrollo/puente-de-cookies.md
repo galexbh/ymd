@@ -35,13 +35,16 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 ## Mensajes (extensión → host)
 
 - `{"type":"hello","version":1}`
-  → `{"ok":true,"app":"ymd","appVersion":"0.2.0","protocol":1}`
+  → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1,"features":["cookies","open"]}`
+  - `features` lista los mensajes que entiende este ymd; un ymd anterior no lo envía.
 - `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
   - `Cookie` refleja `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Los campos extra se ignoran.
   - Un `browser` desconocido se registra como `other`.
   - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, con caracteres de control en la ruta, el nombre o el valor, con un dominio que no sea un nombre de host válido, con una ruta que no empiece por `/`, o de más de 4096 bytes (nombre más valor). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
   - Más de 10.000 cookies en un mensaje es un error.
+- `{"type":"open","version":1,"url":"https://…"}` → `{"ok":true}` («Descargar con ymd»)
+  - Solo enlaces web: `http` o `https`, de 2048 caracteres como máximo, sin espacios ni caracteres de control, sin usuario ni contraseña y con un host con punto que no sea una IP. Otro enlace → `{"ok":false,"code":"unsupported_url"}`.
 - `version` es opcional; un valor mayor que `1` se rechaza.
 - Cualquier fallo → `{"ok":false,"code":"<ErrorCode en snake_case>","detail":"…"}`. El detalle nunca contiene valores de cookies.
 
@@ -50,14 +53,16 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 - El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
 - Escribe `cookies.meta.json` con `origin: "extension:<browser>"`.
 - La app lee ambos con `cookies_info` y `extension_status`.
+- `open` lanza `ymd --open-url <url>` y responde enseguida. Si ymd ya está abierto, esa segunda instancia le pasa el enlace y se cierra, y ymd pasa al frente; si no, ymd arranca con él. El enlace aparece en **Recibir** con su ficha. Nunca se descarga nada sin tu clic.
 
 ## Seguridad
 
-Lo que protege el puente, y lo que ningún diseño local puede proteger.
+Cómo cuida el puente tus cookies y los enlaces que envías.
 
 - **Sin red.** Las cookies viajan por Native Messaging, de proceso a proceso. No hay puertos abiertos, servidor ni telemetría.
 - **Solo esta extensión habla con el host.** El navegador solo lanza el host para el origen del ID fijo, y el host lo vuelve a comprobar. La extensión no acepta mensajes de otras extensiones ni de páginas web (`externally_connectable` vacío), y solo atiende a su propio popup.
 - **El host solo escribe.** Ninguna respuesta devuelve cookies: solo el conteo y los dominios. Quien lograra hablar con el host no podría leer nada.
+- **Los enlaces solo se revisan.** «Descargar con ymd» acepta únicamente enlaces web y ymd los muestra en **Recibir**; descargar siempre requiere tu clic.
 - **Lo mínimo.** Solo se envían los sitios de la lista (`youtube.com` por defecto). Cada sitio nuevo pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
 - **Validación estricta.** Mensajes de 16 MiB como máximo, 10.000 cookies como máximo, y cada cookie con un dominio y una ruta válidos, sin caracteres de control y de 4096 bytes como máximo. Lo que no cumple se descarta.
 - **Cifrado en disco.** `cookies.txt` se guarda cifrado con ChaCha20-Poly1305, con una clave aleatoria en el llavero del sistema (Administrador de credenciales, Llavero de macOS o Secret Service). El texto plano solo existe en memoria y en la copia que yt-dlp recibe durante una descarga; esa copia se borra al terminar, y al arrancar ymd si quedó alguna por un cierre forzado. Sin llavero disponible (algunos Linux sin Secret Service), el archivo se guarda sin cifrar, solo para tu usuario, y el log lo indica.

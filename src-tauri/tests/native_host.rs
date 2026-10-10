@@ -64,7 +64,8 @@ fn hello() {
     assert_eq!(code, 0);
     assert_eq!(
         reply(&out),
-        json!({"ok": true, "app": "ymd", "appVersion": env!("CARGO_PKG_VERSION"), "protocol": 1})
+        json!({"ok": true, "app": "ymd", "appVersion": env!("CARGO_PKG_VERSION"), "protocol": 1,
+               "features": ["cookies", "open"]})
     );
     // Without a trailing slash too.
     let (code, out) = run(
@@ -157,6 +158,51 @@ fn cookies_are_sealed_at_rest_when_a_key_is_available() {
         "# Netscape HTTP Cookie File\n\
          #HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t1999999999\tSID\tsynthetic-sealed-value\n"
     );
+}
+
+#[test]
+fn open_hands_a_valid_link_to_ymd() {
+    let dir = tempfile::tempdir().unwrap();
+    let record = dir.path().join("launched.txt");
+    let record_s = record.to_string_lossy().into_owned();
+    let url = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
+    let (code, out) = run_env(
+        &origin(),
+        dir.path(),
+        &frame(&json!({"type": "open", "version": 1, "url": url})),
+        &[("YMD_TEST_OPEN_RECORD", &record_s)],
+    );
+    assert_eq!(code, 0);
+    assert_eq!(reply(&out), json!({"ok": true}));
+    assert_eq!(
+        std::fs::read_to_string(&record).unwrap(),
+        format!("--open-url {url}")
+    );
+    assert!(!dir.path().join("auth").exists(), "open writes no cookies");
+}
+
+#[test]
+fn open_refuses_a_non_web_link_and_launches_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    let record = dir.path().join("launched.txt");
+    let record_s = record.to_string_lossy().into_owned();
+    for url in [
+        "file:///C:/Windows/system32/calc.exe",
+        "javascript:alert(1)",
+        "https://u:p@a.com/",
+    ] {
+        let (code, out) = run_env(
+            &origin(),
+            dir.path(),
+            &frame(&json!({"type": "open", "url": url})),
+            &[("YMD_TEST_OPEN_RECORD", &record_s)],
+        );
+        assert_eq!(code, 0);
+        let r = reply(&out);
+        assert_eq!(r["ok"], false, "{url}");
+        assert_eq!(r["code"], "unsupported_url");
+        assert!(!record.exists(), "{url} launched something");
+    }
 }
 
 #[test]

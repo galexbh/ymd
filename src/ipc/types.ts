@@ -340,3 +340,5 @@ export const EVT_JOB_UPDATE = "job://update";
 export const EVT_JOB_REMOVED = "job://removed";
 export const EVT_DEPS_PROGRESS = "deps://progress";
 export const EVT_DEPS_CHANGED = "deps://changed";
+/** A link from the browser is waiting (`take_pending_url`); no payload. */
+export const EVT_OPEN_URL = "app://open-url";

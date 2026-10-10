@@ -5,6 +5,7 @@ import {
   EVT_DEPS_PROGRESS,
   EVT_JOB_REMOVED,
   EVT_JOB_UPDATE,
+  EVT_OPEN_URL,
   type DepProgress,
   type DepsReport,
   type Job,
@@ -20,4 +21,6 @@ export const events = {
     listen<DepProgress>(EVT_DEPS_PROGRESS, (e) => cb(e.payload)),
   onDepsChanged: (cb: (r: DepsReport) => void): Promise<UnlistenFn> =>
     listen<DepsReport>(EVT_DEPS_CHANGED, (e) => cb(e.payload)),
+  /** A browser link is waiting: take it with `api.takePendingUrl()`. */
+  onOpenUrl: (cb: () => void): Promise<UnlistenFn> => listen(EVT_OPEN_URL, () => cb()),
 };

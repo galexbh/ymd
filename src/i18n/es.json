@@ -285,6 +285,10 @@
       "suggest": "¿Usar el enlace de {{provider}} copiado?",
       "use": "Usar",
       "dismiss": "Descartar"
+    },
+    "browser": {
+      "filled": "Enlace de {{provider}} enviado desde el navegador",
+      "suggest": "¿Usar el enlace de {{provider}} enviado desde el navegador?"
     }
   },
   "ledger": {

@@ -122,12 +122,20 @@ pub enum Request {
         browser: String,
         cookies: Vec<ChromeCookie>,
     },
+    /// «Descargar con ymd»: open `url` in ymd's Recibir (never downloads by itself).
+    Open {
+        #[serde(default)]
+        version: Option<u32>,
+        url: String,
+    },
 }
 
 impl Request {
     fn version(&self) -> Option<u32> {
         match self {
-            Request::Hello { version } | Request::Cookies { version, .. } => *version,
+            Request::Hello { version }
+            | Request::Cookies { version, .. }
+            | Request::Open { version, .. } => *version,
         }
     }
 }
@@ -167,6 +175,8 @@ fn hello_reply() -> Value {
         "app": "ymd",
         "appVersion": env!("CARGO_PKG_VERSION"),
         "protocol": PROTOCOL,
+        // What this host understands, so an extension can hide what an older ymd can't do.
+        "features": ["cookies", "open"],
     })
 }
 
@@ -255,6 +265,18 @@ pub fn cookies_to_netscape(cookies: &[ChromeCookie]) -> String {
 fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
     match req {
         Request::Hello { .. } => Ok(hello_reply()),
+        Request::Open { url, .. } => {
+            let url = crate::open_url::valid_open_url(&url).ok_or_else(|| {
+                CommandError::new(
+                    ErrorCode::UnsupportedUrl,
+                    "only http(s) web links can be opened",
+                )
+            })?;
+            crate::open_url::launch(&url)
+                .map_err(|e| CommandError::unknown(format!("cannot start ymd: {e}")))?;
+            log::info!("cookie bridge: opened a link from the browser");
+            Ok(json!({"ok": true}))
+        }
         Request::Cookies {
             browser, cookies, ..
         } => {

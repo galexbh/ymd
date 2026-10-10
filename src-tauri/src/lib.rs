@@ -4,6 +4,7 @@ pub mod deps;
 pub mod history;
 pub mod jobs;
 pub mod model;
+pub mod open_url;
 pub mod paths;
 pub mod process;
 pub mod settings;
@@ -130,6 +131,13 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let _ = env.inner.set(state.clone());
     app.manage(state.clone());
 
+    // «Descargar con ymd» on a cold start: the browser link came in this process's argv.
+    let pending = open_url::PendingUrl::default();
+    if let Some(url) = open_url::parse_open_url_arg(&std::env::args().collect::<Vec<_>>()) {
+        pending.set(url);
+    }
+    app.manage(pending);
+
     // Cookie bridge: (re)register the native-messaging host so it points at this executable.
     let bridge_dir = state.paths().data_dir;
     std::thread::spawn(move || match std::env::current_exe() {
@@ -154,6 +162,16 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // First: a second `ymd` (e.g. `ymd --open-url` from the cookie-bridge host) hands its
+        // argv to this one and exits.
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            use tauri::Emitter;
+            if let Some(url) = open_url::parse_open_url_arg(&argv) {
+                app.state::<open_url::PendingUrl>().set(url);
+                let _ = app.emit(model::EVT_OPEN_URL, ());
+            }
+            open_url::focus_main(app);
+        }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
@@ -180,6 +198,7 @@ pub fn run() {
             commands::history::history_clear,
             commands::settings::settings_get,
             commands::settings::settings_set,
+            commands::settings::take_pending_url,
             commands::auth::browsers_detect,
             commands::auth::cookies_snapshot,
             commands::auth::cookies_import,

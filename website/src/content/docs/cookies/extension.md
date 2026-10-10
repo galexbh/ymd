@@ -45,6 +45,15 @@ En Windows, ymd registra el puente en las claves de Brave, Edge y Vivaldi, y sie
 | Pendiente  | El puente está listo. Instala la extensión; la primera sincronización llegará sola.                  |
 | Sin puente | ymd aún no se registró en tus navegadores. Reinicia ymd; si sigue igual, usa el archivo cookies.txt. |
 
+## Descargar con ymd
+
+Desde el navegador, sin copiar ni pegar:
+
+- **Clic derecho** en un enlace, un video o en cualquier parte de la página → **Descargar con ymd**.
+- O abre la ventana de la extensión y, en **Esta página**, pulsa **Descargar con ymd**.
+
+ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador ya tenía otro enlace, ymd te pregunta antes de cambiarlo. Nada se descarga hasta que pulsas **Ingresar**.
+
 ## La ventana de la extensión
 
 Fija «ymd Cookies» en la barra del navegador y ábrela:

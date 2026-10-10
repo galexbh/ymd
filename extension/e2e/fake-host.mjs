@@ -30,7 +30,13 @@ function handle(buf) {
 
   let reply;
   if (message.type === "hello") {
-    reply = { ok: true, app: "ymd", appVersion: "0.0.0-e2e", protocol: 1 };
+    reply = {
+      ok: true,
+      app: "ymd",
+      appVersion: "0.0.0-e2e",
+      protocol: 1,
+      features: ["cookies", "open"],
+    };
   } else if (message.type === "cookies") {
     const domains = [
       ...new Set(
@@ -38,6 +44,8 @@ function handle(buf) {
       ),
     ];
     reply = { ok: true, count: message.cookies.length, domains };
+  } else if (message.type === "open") {
+    reply = { ok: true };
   } else {
     reply = { ok: false, code: "bad_message", detail: "unknown type" };
   }

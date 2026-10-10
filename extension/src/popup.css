@@ -1,6 +1,11 @@
 /* ymd Cookies popup: the same accession-register world as the app, read from its tokens. */
 @import "../../src/styles/base.css";
 
+/* `hidden` always wins over a class that sets `display` (sections, buttons…). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   height: auto;
@@ -338,4 +343,25 @@ body {
 }
 .privacy .icon {
   margin-top: 2px;
+}
+
+/* «Esta página»: the active tab's site and «Descargar con ymd». */
+.current-host {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.field-note {
+  min-height: 1.25em;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.field-note[data-tone="ok"] {
+  color: var(--success);
+}
+.field-note[data-tone="error"] {
+  color: var(--danger);
 }
