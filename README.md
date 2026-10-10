@@ -1,133 +1,143 @@
-# ymd
+<div align="center">
 
-**ymd** es una app de escritorio que convierte [yt-dlp](https://github.com/yt-dlp/yt-dlp) en una
-herramienta tranquila y fiable: pegas un enlace, eliges video o audio y la calidad, y sigues con
-lo tuyo. ymd instala y mantiene al día yt-dlp y sus dependencias, muestra el progreso en vivo y
-recuerda lo que descargaste. Nunca hace falta abrir una terminal.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ymd-logo-dark.svg">
+  <img src="docs/assets/ymd-logo-light.svg" alt="ymd" width="220">
+</picture>
 
-Windows, macOS y Linux. Interfaz en español e inglés.
+<p><strong>Aplicación de escritorio para descargar video y audio con yt-dlp.</strong></p>
 
-> _English below._
+[![CI](https://github.com/galexbh/ymd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/galexbh/ymd/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/galexbh/ymd?display_name=tag&sort=semver)](https://github.com/galexbh/ymd/releases/latest)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
+![Plataformas](https://img.shields.io/badge/plataformas-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
 
-## Funciones
+[Descargar](https://github.com/galexbh/ymd/releases/latest) ·
+[Changelog](CHANGELOG.md) ·
+[Contribuir](CONTRIBUTING.md) ·
+[English](README.en.md)
 
-- **Video o audio**: calidad y contenedor (MP4, MKV, WebM) o extracción de audio (MP3, M4A, Opus, FLAC).
-- **Playlists**: completas o eligiendo entradas sueltas.
-- **Cola concurrente** con progreso, velocidad y tiempo restante; cancelar y reintentar.
-- **Historial** con búsqueda, "abrir archivo" y "abrir carpeta".
-- **Post-proceso**: miniatura, metadatos y subtítulos incrustados; SponsorBlock.
-- **Presets** editables, cada uno con su propia carpeta si quieres.
-- **Dependencias gestionadas**: instala, verifica (SHA-256) y actualiza yt-dlp, ffmpeg y el resto con un clic.
-- **Errores que dicen qué hacer**: "cierra Brave y reintenta", "usa las cookies de tu navegador"…
-- **Temas claro y oscuro** con color de acento, densidad, radio y tamaño de texto personalizables.
+</div>
 
-## Capturas
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-receive-dark.png">
+  <img src="docs/assets/screenshot-receive-light.png" alt="Pantalla Recibir de ymd con la ficha de un video y el registro de descargas">
+</picture>
 
-_Pendiente: se añadirán cuando termine el rediseño (tema claro y oscuro)._
+## Características
+
+- **Video y audio:** MP4, MKV o WebM con calidad máxima configurable; extracción a MP3, M4A, Opus o FLAC.
+- **Playlists:** completas o con selección de entradas.
+- **Cola de descargas:** varias en paralelo, con progreso, velocidad y tiempo restante; cancelación y reintento.
+- **Catálogo:** historial con búsqueda, acceso al archivo y a su carpeta.
+- **Post-proceso:** miniatura, metadatos y subtítulos incrustados; SponsorBlock.
+- **Preajustes** editables, con carpeta de destino propia.
+- **Dependencias gestionadas:** instala y actualiza yt-dlp, ffmpeg y Deno en una carpeta del usuario, con verificación SHA-256.
+- **Cookies y cuentas:** extensión propia para Brave, Chrome y Edge; cookies de Firefox; importación de `cookies.txt`; credenciales en el llavero del sistema.
+- **Detección de enlaces** copiados al portapapeles, configurable.
+- **Diagnóstico de errores** de yt-dlp con la acción para resolverlos.
+- **Temas** claro y oscuro con color de acento, densidad y tamaño de texto configurables.
+- **Actualizaciones automáticas** firmadas.
+- Interfaz en **español e inglés**.
+
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-catalog-dark.png">
+        <img src="docs/assets/screenshot-catalog-light.png" alt="Catálogo de descargas">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-appearance-dark.png">
+        <img src="docs/assets/screenshot-appearance-light.png" alt="Ajustes de apariencia">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">Catálogo</td>
+    <td align="center">Apariencia</td>
+  </tr>
+</table>
 
 ## Instalación
 
-Descarga el instalador desde [Releases](../../releases):
+Descarga la última versión desde [Releases](https://github.com/galexbh/ymd/releases/latest).
 
-- **Windows**: `ymd_x.y.z_x64-setup.exe` (NSIS). Se instala **solo para tu usuario, sin pedir
-  permisos de administrador**, con selector de idioma. Al no estar firmado todavía, SmartScreen
-  puede mostrar un aviso ("Más información" → "Ejecutar de todas formas").
-- **macOS**: `.dmg` universal (Apple Silicon e Intel).
-- **Linux**: `.AppImage` o `.deb`.
+| Plataforma          | Archivo                                 | Notas                                                   |
+| ------------------- | --------------------------------------- | ------------------------------------------------------- |
+| Windows 10/11 (x64) | `ymd_<versión>_x64-setup.exe`           | Instalación por usuario, sin permisos de administrador. |
+| macOS 11+           | `ymd_<versión>_universal.dmg`           | Universal: Apple Silicon e Intel.                       |
+| Linux (x64)         | `ymd_<versión>_amd64.AppImage` / `.deb` |                                                         |
+
+> [!NOTE]
+> El instalador de Windows aún no tiene firma Authenticode, por lo que SmartScreen puede mostrar un aviso la primera vez. Selecciona **Más información → Ejecutar de todas formas**.
+
+Al abrir ymd por primera vez, la pantalla de inicio instala lo necesario. Desde entonces ymd mantiene sus dependencias y se actualiza a sí misma.
 
 ## Dependencias
 
-En el primer arranque, ymd ofrece instalar lo necesario en una carpeta propia
-(Windows: `%LOCALAPPDATA%\ymd\bin`; se puede cambiar en Ajustes). Nada se instala a nivel sistema.
+ymd descarga las herramientas en `%LOCALAPPDATA%\ymd\bin` (Windows) o en su carpeta de datos (macOS y Linux), sin instalar nada a nivel de sistema. La ubicación se puede cambiar en **Ajustes → Avanzado**.
 
-| Dependencia                               | Nivel                    | Para qué                                          | Cómo la resuelve ymd                                                                                                  |
-| ----------------------------------------- | ------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **yt-dlp**                                | Requerida                | El motor de descarga                              | Descarga el ejecutable oficial (que ya incluye curl_cffi, mutagen, etc.), verifica `SHA2-256SUMS` y lo actualiza solo |
-| **ffmpeg + ffprobe**                      | Requerida en la práctica | Unir video y audio, convertir a MP3, post-proceso | Builds de `yt-dlp/FFmpeg-Builds` (Windows/Linux); en macOS usa Homebrew si existe o un build estático                 |
-| **Runtime JS** (Deno, Node, Bun, QuickJS) | Recomendada              | Resolver los desafíos JS de YouTube               | Detecta uno instalado; si no hay, "Instalar Deno" con un clic                                                         |
-| **aria2c**                                | Opcional                 | Descargas más rápidas                             | Un clic en Windows; en macOS/Linux muestra el comando (`brew`/`apt`)                                                  |
-| **AtomicParsley**                         | Opcional                 | Miniaturas en mp4/m4a en casos raros              | Un clic en las tres plataformas                                                                                       |
+| Herramienta                                                                              | Uso                                                 | Origen                                                                                               |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp)                                               | Motor de descarga                                   | Ejecutable oficial, verificado con `SHA2-256SUMS`; canal estable, nightly o master                   |
+| [FFmpeg](https://ffmpeg.org/)                                                            | Unión de pistas, conversión y post-proceso          | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) (Windows y Linux), Homebrew en macOS |
+| [Deno](https://deno.com/)                                                                | Entorno JavaScript que yt-dlp necesita para YouTube | Se usa Node, Bun o QuickJS si ya están instalados                                                    |
+| [aria2](https://aria2.github.io/), [AtomicParsley](https://github.com/wez/atomicparsley) | Opcionales                                          | Instalación desde la pantalla Dependencias                                                           |
 
-Si una fuente no publica checksum, la app lo marca como "sin verificación" y descarga por HTTPS
-desde el host oficial.
+## Cookies y cuentas
 
-## Autenticación
+Algunos videos solo se descargan con una sesión iniciada. ymd ofrece varias opciones, todas opcionales:
 
-Para videos con restricción de edad, privados o cuando el sitio pide "confirma que no eres un
-bot", ymd usa, por capas y siempre de forma opcional:
+- **Extensión ymd Cookies** para Brave, Chrome y Edge: sincroniza las cookies de los sitios que elijas mediante Native Messaging, sin red. En Windows es la vía recomendada para navegadores Chromium. Ver [`extension/README.md`](extension/README.md).
+- **Cookies del navegador** (Firefox recomendado en Windows) o un archivo **`cookies.txt`** importado.
+- **Cuentas por sitio**, guardadas en el llavero del sistema y entregadas a yt-dlp con `--netrc-cmd`.
 
-1. **Cookies del navegador** (`--cookies-from-browser`), con soporte de primera para los
-   perfiles de **Brave**. Como los navegadores Chromium bloquean su base de cookies mientras
-   están abiertos, ymd puede crear una **instantánea** (con el navegador cerrado) y usarla
-   después aunque lo vuelvas a abrir. También puedes importar un `cookies.txt`.
-2. **Cuentas por sitio** guardadas en el **llavero del sistema** (Administrador de credenciales,
-   Llavero de macOS, Secret Service) y entregadas a yt-dlp con `--netrc-cmd`: la contraseña
-   nunca toca el disco ni los argumentos del proceso.
-3. **Contraseña de video y código 2FA**: se piden en el momento y no se guardan.
+Las contraseñas no se escriben en disco ni en los argumentos de los procesos. El archivo de cookies se guarda en la carpeta privada del usuario y se puede borrar desde **Ajustes → Cuentas**.
 
-Todo se borra con un clic desde Ajustes.
+## Desarrollo
 
-## Compilar desde el código
+Requisitos: Node 22+, Rust estable y, en Linux, los [prerrequisitos de Tauri 2](https://v2.tauri.app/start/prerequisites/).
 
 ```sh
 corepack enable
 pnpm install
-pnpm tauri dev          # desarrollo
-pnpm tauri build        # instaladores en src-tauri/target/release/bundle
-pnpm dev:mock           # solo la interfaz en el navegador, con un backend simulado
+
+pnpm tauri dev        # aplicación en modo desarrollo
+pnpm dev:mock         # solo la interfaz, en el navegador, con un backend simulado
+pnpm test             # tests de la interfaz
+pnpm e2e              # tests end-to-end (Playwright)
+pnpm ext:build        # extensión ymd Cookies
+pnpm tauri build      # instaladores en src-tauri/target/release/bundle
 ```
 
-Requisitos: Node 22+, Rust estable y, en Linux, las
-[dependencias de Tauri v2](https://v2.tauri.app/start/prerequisites/). Guía completa, tests y
-normas en [CONTRIBUTING.md](CONTRIBUTING.md).
+Los tests de Rust se ejecutan con `cargo test --features test-support` dentro de `src-tauri/`. La guía completa, las convenciones y el flujo de releases están en [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Licencias
+### Estructura
 
-- **ymd** se publica bajo la [licencia MIT](LICENSE): puedes usar, modificar y redistribuir el
-  código, conservando el aviso de copyright.
-- El nombre **ymd** y el isotipo «Sello de entrada» identifican al proyecto oficial y **no** se
-  incluyen en esa licencia: un fork o derivado debe usar otro nombre y otro logo.
-- yt-dlp se publica bajo [Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE), pero
-  sus ejecutables oficiales (PyInstaller) incluyen componentes bajo **GPLv3+**.
-- Los builds de ffmpeg que se usan son **GPL**.
-- Por eso **ninguno se incluye en el instalador**: ymd los descarga en tiempo de ejecución desde
-  sus fuentes oficiales, a petición del usuario.
+| Ruta         | Contenido                                                                               |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `src/`       | Interfaz (React 19, TypeScript)                                                         |
+| `src-tauri/` | Backend (Rust, Tauri 2): cola, dependencias, autenticación, historial                   |
+| `extension/` | Extensión ymd Cookies (Manifest V3)                                                     |
+| `e2e/`       | Tests end-to-end                                                                        |
+| `docs/`      | Documentación técnica, como el [protocolo del puente de cookies](docs/cookie-bridge.md) |
 
-## Uso responsable
+## Licencia
 
-ymd es una herramienta para el usuario. Descargar contenido puede ir contra los términos de
-servicio de algunos sitios o contra los derechos de autor. **Respeta los términos de cada sitio y
-descarga solo contenido que tengas derecho a guardar.**
+ymd se distribuye bajo la [licencia MIT](LICENSE).
 
-## Créditos
+El nombre **ymd** y su logotipo identifican al proyecto oficial y no están incluidos en la licencia; los proyectos derivados deben usar un nombre y un logotipo propios.
 
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) y sus colaboradores — todo el trabajo duro.
-- [FFmpeg](https://ffmpeg.org/) y [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds).
-- [Deno](https://deno.com/), [aria2](https://aria2.github.io/), [AtomicParsley](https://github.com/wez/atomicparsley).
-- [Tauri](https://tauri.app/), [React](https://react.dev/), [Lucide](https://lucide.dev/).
+yt-dlp ([Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE); sus ejecutables incluyen componentes GPLv3+) y FFmpeg (GPL) no se incluyen en el instalador: ymd los descarga desde sus fuentes oficiales al usarse.
 
-ymd usa su propio logotipo y no está afiliado a YouTube ni a ningún otro sitio.
+## Aviso
 
----
+ymd no está afiliado a YouTube ni a ningún otro sitio. Respeta los términos de servicio de cada sitio y descarga solo contenido que tengas derecho a guardar.
 
-## English
+## Agradecimientos
 
-**ymd** is a calm desktop front end for yt-dlp (Windows, macOS, Linux; Spanish and English UI).
-Paste a link, pick video or audio and a quality, and move on. ymd installs, verifies (SHA-256)
-and auto-updates yt-dlp, ffmpeg and an optional JS runtime into a per-user folder; it runs a
-concurrent download queue with live progress, supports playlists, keeps a searchable history and
-turns yt-dlp errors into next steps.
-
-- **Install**: grab the installer from Releases. On Windows it's a per-user NSIS installer (no
-  admin rights); macOS gets a universal `.dmg`; Linux an `.AppImage` or `.deb`.
-- **Auth**: browser cookies (first-class Brave profile support, plus a cookie snapshot taken while
-  the browser is closed), an imported `cookies.txt`, or site accounts stored in the OS keychain
-  and handed to yt-dlp via `--netrc-cmd`. No plaintext secrets on disk or in process arguments.
-- **Build**: `corepack enable && pnpm install && pnpm tauri dev`; `pnpm dev:mock` runs the UI in a
-  browser against a simulated backend. See [CONTRIBUTING.md](CONTRIBUTING.md).
-- **License**: ymd is [MIT](LICENSE). The "ymd" name and the «Sello de entrada» isotype identify
-  the official project and are not covered by it; forks should use their own name and logo.
-- **Third-party licenses**: yt-dlp is Unlicense, but its PyInstaller executables bundle GPLv3+ code; ffmpeg
-  builds are GPL. Neither is bundled — both are downloaded at runtime.
-- **Terms of use**: respect each site's terms and copyright; only download what you have the
-  right to keep.
+[yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Deno](https://deno.com/), [Tauri](https://tauri.app/), [React](https://react.dev/) y [Lucide](https://lucide.dev/).
