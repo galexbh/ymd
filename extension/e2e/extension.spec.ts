@@ -139,6 +139,9 @@ test.describe.serial("ymd Cookies extension", () => {
       headless: true,
       locale: "es-ES",
       args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`, "--lang=es"],
+      // On Linux Chromium takes its UI language (and so chrome.i18n) from the environment,
+      // not from --lang.
+      env: { ...process.env, LANGUAGE: "es", LANG: "es_ES.UTF-8", LC_ALL: "es_ES.UTF-8" },
     });
     worker = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
   });
