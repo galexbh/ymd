@@ -35,6 +35,8 @@ export default defineConfig({
         en: { label: "English", lang: "en" },
       },
       customCss: ["./src/styles/ymd.css"],
+      // Themes and sizes the embedded Archify diagrams (public/diagramas/).
+      head: [{ tag: "script", attrs: { src: "/ymd/diagramas/embed.js", defer: true } }],
       plugins: [starlightLinksValidator({ errorOnInconsistentLocale: true })],
       sidebar: [
         {

@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Cookie bridge: from the extension to yt-dlp",
+    "output": ".archify/sequence-cookie-bridge-en-20261010-122000/cookie-bridge.html",
+    "locale": "en",
+    "column_fit": "spread",
+    "viewBox": [1080, 694],
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:galexbh/ymd.git",
+      "link_mode": "local-only",
+      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+    },
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "emphasis": {
+          "label": "main step"
+        },
+        "security": {
+          "label": "origin check"
+        },
+        "return": {
+          "label": "reply"
+        },
+        "default": {
+          "label": "call"
+        }
+      }
+    }
+  },
+  "participants": [
+    {
+      "id": "ext",
+      "type": "frontend",
+      "label": "ymd Cookies",
+      "sublabel": "service worker",
+      "sources": [
+        {
+          "path": "extension/src/lib/sync.ts",
+          "line": 111,
+          "end_line": 145,
+          "label": "runSync"
+        },
+        {
+          "path": "extension/src/lib/sync.ts",
+          "line": 183,
+          "end_line": 197,
+          "label": "debounce 3 s"
+        }
+      ]
+    },
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Chromium browser",
+      "sublabel": "Brave, Chrome, Edge…"
+    },
+    {
+      "id": "host",
+      "type": "security",
+      "label": "ymd.exe",
+      "sublabel": "native host",
+      "sources": [
+        {
+          "path": "src-tauri/src/lib.rs",
+          "line": 34,
+          "end_line": 52,
+          "label": "maybe_run_native_host"
+        },
+        {
+          "path": "src-tauri/src/auth/native_host.rs",
+          "line": 250,
+          "end_line": 279,
+          "label": "host_main"
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "auth/",
+      "sublabel": "cookies.txt + meta",
+      "sources": [
+        {
+          "path": "src-tauri/src/auth/cookies.rs",
+          "line": 157,
+          "end_line": 176,
+          "label": "store / write_meta"
+        },
+        {
+          "path": "src-tauri/src/auth/cookies.rs",
+          "line": 542,
+          "label": "write_private"
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "ymd",
+      "sublabel": "app and queue",
+      "sources": [
+        {
+          "path": "src-tauri/src/commands/auth.rs",
+          "line": 88,
+          "label": "extension_status"
+        },
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 284,
+          "end_line": 295,
+          "label": "copia por trabajo"
+        }
+      ]
+    },
+    {
+      "id": "ytdlp",
+      "type": "external",
+      "label": "yt-dlp",
+      "sublabel": "one download",
+      "sources": [
+        {
+          "path": "src-tauri/src/auth/cookies.rs",
+          "line": 181,
+          "end_line": 220,
+          "label": "ephemeral_args"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 312,
+      "label": "In the browser"
+    },
+    {
+      "from": 322,
+      "to": 482,
+      "label": "Native host"
+    },
+    {
+      "from": 492,
+      "to": 594,
+      "label": "Used by ymd"
+    }
+  ],
+  "messages": [
+    {
+      "id": "trigger",
+      "from": "browser",
+      "to": "ext",
+      "y": 194,
+      "label": "cookie changes (3 s) · 30 min alarm",
+      "variant": "default",
+      "note": "“Send now” in the popup forces a send even when nothing changed."
+    },
+    {
+      "id": "getall",
+      "from": "ext",
+      "to": "browser",
+      "y": 226,
+      "label": "cookies.getAll per allowed site",
+      "variant": "default"
+    },
+    {
+      "id": "jar",
+      "from": "browser",
+      "to": "ext",
+      "y": 256,
+      "label": "decrypted cookies",
+      "variant": "return"
+    },
+    {
+      "id": "send",
+      "from": "ext",
+      "to": "browser",
+      "y": 290,
+      "label": "sendNativeMessage if the hash changed",
+      "variant": "emphasis",
+      "note": "Nothing is sent when nothing changed since the last accepted send."
+    },
+    {
+      "id": "spawn",
+      "from": "browser",
+      "to": "host",
+      "y": 336,
+      "label": "launches ymd.exe chrome-extension://<id>/",
+      "variant": "security",
+      "note": "Any other origin: exit code 1 without reading anything."
+    },
+    {
+      "id": "frame",
+      "from": "browser",
+      "to": "host",
+      "y": 368,
+      "label": "u32 LE + JSON (≤ 16 MiB)",
+      "variant": "default"
+    },
+    {
+      "id": "write",
+      "from": "host",
+      "to": "store",
+      "y": 402,
+      "label": "atomic Netscape, owner-only",
+      "variant": "emphasis",
+      "note": "Writes cookies.txt and cookies.meta.json with origin extension:<browser>."
+    },
+    {
+      "id": "reply",
+      "from": "host",
+      "to": "browser",
+      "y": 436,
+      "label": "{ok, count, domains} · exit 0",
+      "variant": "return"
+    },
+    {
+      "id": "status",
+      "from": "browser",
+      "to": "ext",
+      "y": 468,
+      "label": "stores status and hash, no values",
+      "variant": "return"
+    },
+    {
+      "id": "read",
+      "from": "app",
+      "to": "store",
+      "y": 508,
+      "label": "extension_status · cookies_info",
+      "variant": "default"
+    },
+    {
+      "id": "meta",
+      "from": "store",
+      "to": "app",
+      "y": 538,
+      "label": "count, domains, origin",
+      "variant": "return"
+    },
+    {
+      "id": "copy",
+      "from": "app",
+      "to": "ytdlp",
+      "y": 574,
+      "label": "--cookies with a per-run copy",
+      "variant": "default",
+      "note": "yt-dlp rewrites its jar on exit; the copy keeps it from clobbering freshly synced cookies."
+    }
+  ],
+  "activations": [
+    {
+      "participant": "ext",
+      "from": 190,
+      "to": 474,
+      "type": "frontend"
+    },
+    {
+      "participant": "host",
+      "from": 332,
+      "to": 442,
+      "type": "security"
+    },
+    {
+      "participant": "store",
+      "from": 398,
+      "to": 408,
+      "type": "database"
+    },
+    {
+      "participant": "app",
+      "from": 504,
+      "to": 580,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Security",
+      "items": [
+        "Native Messaging: no network ports, no server",
+        "Only the fixed extension ID is accepted as origin",
+        "Neither the log nor the stored status keeps cookie values"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "One process per message",
+      "items": [
+        "The browser launches ymd.exe for every send",
+        "It reads one frame, replies and exits",
+        "Unreadable frame: error reply and exit code 1"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "When something fails",
+      "items": [
+        "Reply {ok:false, code, detail}",
+        "With no valid cookies the previous cookies.txt is kept",
+        "The popup shows the error"
+      ]
+    }
+  ]
+}

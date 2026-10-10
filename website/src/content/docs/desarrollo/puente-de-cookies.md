@@ -1,9 +1,15 @@
 ---
 title: Protocolo del puente de cookies
 description: Contrato de Native Messaging entre la extensión ymd Cookies y ymd.
+tableOfContents: false
 ---
 
 Contrato compartido por `extension/` y `src-tauri/src/auth/native_host.rs`. Un cambio en uno se hace en el otro en el mismo PR, junto con esta página y su versión en inglés.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/puente-de-cookies.html" title="Diagrama de secuencia del puente de cookies" loading="lazy"></iframe>
+  <figcaption>Un envío completo, desde que cambia una cookie hasta que yt-dlp la usa. <a href="/ymd/diagramas/puente-de-cookies.html" target="_blank" rel="noopener">Abrir el diagrama interactivo, con las fuentes de cada paso</a></figcaption>
+</figure>
 
 ## Identidad
 
@@ -20,7 +26,7 @@ La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd
 
 ## Transporte
 
-Chrome, Brave y Edge lanzan el host como `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, un proceso por cada llamada a `chrome.runtime.sendNativeMessage`. Cada mensaje es una longitud en bytes u32 little-endian seguida de JSON en UTF-8, con un máximo de 16 MiB de entrada.
+Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, un proceso por cada llamada a `chrome.runtime.sendNativeMessage`. Cada mensaje es una longitud en bytes u32 little-endian seguida de JSON en UTF-8, con un máximo de 16 MiB de entrada.
 
 - El host lee exactamente un mensaje, escribe exactamente una respuesta y termina con código 0.
 - Si el origen no es el permitido, termina con código 1 sin leer nada.
@@ -46,7 +52,7 @@ Chrome, Brave y Edge lanzan el host como `ymd.exe chrome-extension://<id>/ [--pa
 
 ## Registro del host
 
-ymd se registra como host `com.ymd.cookies` en cada arranque (de forma idempotente, para que el manifiesto apunte siempre al ejecutable actual), en Brave, Chrome, Edge, Chromium y Vivaldi, solo si existe su carpeta de datos:
+ymd se registra como host `com.ymd.cookies` en cada arranque (de forma idempotente, para que el manifiesto apunte siempre al ejecutable actual), en Brave, Edge y Vivaldi si existe su carpeta de datos, y siempre en Chrome y Chromium:
 
-- **Windows:** `HKCU\Software\<fabricante>\NativeMessagingHosts\com.ymd.cookies`, cuyo valor es la ruta del manifiesto JSON del host. HKCU no requiere elevación. El desinstalador borra las claves.
+- **Windows:** `HKCU\Software\<fabricante>\NativeMessagingHosts\com.ymd.cookies`, cuyo valor es la ruta del manifiesto JSON del host. HKCU no requiere elevación. Las claves de Chrome y Chromium se escriben aunque esos navegadores no estén instalados: Opera, Arc, Yandex, Whale, Thorium y otros forks las usan como respaldo. El desinstalador borra las claves.
 - **macOS y Linux:** el manifiesto JSON se copia en la carpeta `NativeMessagingHosts` de cada navegador.

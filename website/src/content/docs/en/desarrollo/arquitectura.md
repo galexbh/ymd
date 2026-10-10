@@ -1,9 +1,15 @@
 ---
 title: Architecture
 description: Rust modules, frontend, IPC contract and mock backend.
+tableOfContents: false
 ---
 
 ymd is a [Tauri 2](https://v2.tauri.app/) app: a Rust backend (`src-tauri/`) and a React 19 + TypeScript UI (`src/`) talking over IPC.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/en/architecture.html" title="ymd architecture diagram" loading="lazy"></iframe>
+  <figcaption>How a link travels from the interface to yt-dlp, and where ymd keeps each thing. <a href="/ymd/diagramas/en/architecture.html" target="_blank" rel="noopener">Open the interactive diagram</a></figcaption>
+</figure>
 
 | Path         | Contents                                                              |
 | ------------ | --------------------------------------------------------------------- |
@@ -26,11 +32,20 @@ ymd is a [Tauri 2](https://v2.tauri.app/) app: a Rust backend (`src-tauri/`) and
   - `progress.rs`: parses the progress markers on standard output.
   - `errors.rs`: maps stderr to an `ErrorCode` (see [Troubleshooting](/ymd/en/solucion-de-problemas/)).
   - `probe.rs`: turns `-J` output into the link's card.
-- **`jobs.rs`**: the queue, with a semaphore for concurrency; cancel kills the process tree.
+- **`jobs.rs`**: the FIFO queue, with a limit on simultaneous downloads (1 to 8); cancel kills the process tree. See the [download lifecycle](#download-lifecycle).
 - **`history.rs`**: the catalog, in SQLite.
 - **`settings.rs`**: JSON settings, sanitized on read.
 - **`auth/`**: browsers and profiles, cookies, system keychain, the `--netrc-cmd` helper, and the [cookie bridge](/ymd/en/desarrollo/puente-de-cookies/) native host with its browser registration.
 - **`paths.rs`**, **`process.rs`** (console-less processes in their own group), **`state.rs`**.
+
+## Download lifecycle
+
+Every queued job goes through these stages (`JobStage` in `model.rs`). Merging and Processing only show up when needed.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/en/download-lifecycle.html" title="Download state diagram" loading="lazy"></iframe>
+  <figcaption>Retry doesn't revive the job: it enqueues a new one with the same request. <a href="/ymd/diagramas/en/download-lifecycle.html" target="_blank" rel="noopener">Open the interactive diagram</a></figcaption>
+</figure>
 
 ## Frontend (`src/`)
 

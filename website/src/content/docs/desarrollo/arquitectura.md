@@ -1,9 +1,15 @@
 ---
 title: Arquitectura
 description: Módulos de Rust, frontend, contrato IPC y backend simulado.
+tableOfContents: false
 ---
 
 ymd es una aplicación [Tauri 2](https://v2.tauri.app/): un backend en Rust (`src-tauri/`) y una interfaz en React 19 y TypeScript (`src/`) que se comunican por IPC.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/arquitectura.html" title="Diagrama de arquitectura de ymd" loading="lazy"></iframe>
+  <figcaption>Cómo viaja un enlace desde la interfaz hasta yt-dlp, y dónde guarda ymd cada cosa. <a href="/ymd/diagramas/arquitectura.html" target="_blank" rel="noopener">Abrir el diagrama interactivo</a></figcaption>
+</figure>
 
 | Ruta         | Contenido                                                             |
 | ------------ | --------------------------------------------------------------------- |
@@ -26,11 +32,20 @@ ymd es una aplicación [Tauri 2](https://v2.tauri.app/): un backend en Rust (`sr
   - `progress.rs`: interpreta las marcas de progreso de la salida estándar.
   - `errors.rs`: traduce stderr a un `ErrorCode` (ver [Solución de problemas](/ymd/solucion-de-problemas/)).
   - `probe.rs`: convierte la salida de `-J` en la ficha del enlace.
-- **`jobs.rs`**: la cola, con un semáforo para la concurrencia; cancelar mata el árbol de procesos.
+- **`jobs.rs`**: la cola FIFO, con un límite de descargas simultáneas (1 a 8); cancelar mata el árbol de procesos. Ver el [ciclo de una descarga](#ciclo-de-una-descarga).
 - **`history.rs`**: el catálogo, en SQLite.
 - **`settings.rs`**: ajustes en JSON, saneados al leer.
 - **`auth/`**: navegadores y perfiles, cookies, llavero del sistema, ayudante `--netrc-cmd`, y el host nativo del [puente de cookies](/ymd/desarrollo/puente-de-cookies/) con su registro en los navegadores.
 - **`paths.rs`**, **`process.rs`** (procesos sin consola, en su propio grupo), **`state.rs`**.
+
+## Ciclo de una descarga
+
+Cada trabajo de la cola pasa por estas etapas (`JobStage` en `model.rs`). Uniendo y Procesando solo aparecen cuando hacen falta.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/ciclo-de-descarga.html" title="Diagrama de estados de una descarga" loading="lazy"></iframe>
+  <figcaption>Reintentar no revive el trabajo: encola uno nuevo con la misma petición. <a href="/ymd/diagramas/ciclo-de-descarga.html" target="_blank" rel="noopener">Abrir el diagrama interactivo</a></figcaption>
+</figure>
 
 ## Frontend (`src/`)
 

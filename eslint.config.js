@@ -69,13 +69,13 @@ export default tseslint.config(
   },
   {
     files: ["**/*.js", "scripts/**/*.mjs", "extension/scripts/**/*.mjs", "extension/e2e/**/*.mjs"],
-    ignores: ["public/**"],
+    ignores: ["public/**", "website/public/**"],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node, sourceType: "module" },
   },
   {
-    // Classic browser script loaded before the bundle (theme boot).
-    files: ["public/**/*.js"],
+    // Classic browser scripts: theme boot before the bundle, and the docs diagram embedder.
+    files: ["public/**/*.js", "website/public/**/*.js"],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.browser, sourceType: "script" },
     rules: { "no-unused-vars": ["error", { caughtErrors: "none" }] },

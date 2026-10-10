@@ -1,0 +1,232 @@
+{
+  "schema_version": 2,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Download lifecycle",
+    "output": ".archify/lifecycle-download-en-20261010-122000/download-lifecycle.html",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:galexbh/ymd.git",
+      "link_mode": "local-only",
+      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+    }
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "In progress"
+    },
+    {
+      "id": "terminal",
+      "label": "Final"
+    }
+  ],
+  "states": [
+    {
+      "id": "queued",
+      "type": "start",
+      "label": "Queued",
+      "sublabel": "waits for a slot",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "tag": "queued",
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 170,
+          "label": "enqueue"
+        }
+      ]
+    },
+    {
+      "id": "downloading",
+      "type": "active",
+      "label": "Downloading",
+      "sublabel": "yt-dlp running",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "downloading",
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 213,
+          "end_line": 216,
+          "label": "pump"
+        }
+      ]
+    },
+    {
+      "id": "merging",
+      "type": "active",
+      "label": "Merging",
+      "sublabel": "video + audio",
+      "lane": "main",
+      "col": 2,
+      "step": "03",
+      "tag": "merging",
+      "sources": [
+        {
+          "path": "src-tauri/src/ytdlp/progress.rs",
+          "line": 79,
+          "label": "[Merger]"
+        }
+      ]
+    },
+    {
+      "id": "postprocessing",
+      "type": "active",
+      "label": "Processing",
+      "sublabel": "MP3, thumbnail, subtitles",
+      "lane": "main",
+      "col": 3,
+      "step": "04",
+      "tag": "postprocessing",
+      "sources": [
+        {
+          "path": "src-tauri/src/ytdlp/progress.rs",
+          "line": 80,
+          "label": "otros [PP]"
+        }
+      ]
+    },
+    {
+      "id": "done",
+      "type": "success",
+      "label": "Archived",
+      "sublabel": "added to the Catalog",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "done",
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 469,
+          "end_line": 472,
+          "label": "finish: Done"
+        },
+        {
+          "path": "src-tauri/src/state.rs",
+          "line": 89,
+          "end_line": 92,
+          "label": "history.record"
+        }
+      ]
+    },
+    {
+      "id": "canceled",
+      "type": "neutral",
+      "label": "Canceled",
+      "sublabel": "by the person",
+      "lane": "terminal",
+      "col": 0,
+      "tag": "canceled",
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 493,
+          "end_line": 518,
+          "label": "cancel"
+        }
+      ]
+    },
+    {
+      "id": "error",
+      "type": "failure",
+      "label": "Error",
+      "sublabel": "ErrorCode with its fix",
+      "lane": "terminal",
+      "col": 2,
+      "tag": "error",
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 478,
+          "end_line": 481,
+          "label": "finish: Error"
+        },
+        {
+          "path": "src-tauri/src/ytdlp/errors.rs",
+          "line": 1,
+          "label": "stderr → ErrorCode"
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "from": "queued",
+      "to": "downloading",
+      "label": "slot free"
+    },
+    {
+      "from": "downloading",
+      "to": "merging",
+      "label": "[Merger]"
+    },
+    {
+      "from": "merging",
+      "to": "postprocessing"
+    },
+    {
+      "from": "postprocessing",
+      "to": "done",
+      "label": "exit 0",
+      "variant": "emphasis"
+    },
+    {
+      "from": "queued",
+      "to": "canceled",
+      "label": "cancel",
+      "variant": "dashed"
+    },
+    {
+      "from": "downloading",
+      "to": "canceled",
+      "label": "kills the tree",
+      "variant": "dashed"
+    },
+    {
+      "from": "downloading",
+      "to": "error",
+      "label": "fails",
+      "variant": "security"
+    },
+    {
+      "from": "postprocessing",
+      "to": "error",
+      "label": "fails",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Slots",
+      "items": [
+        "The queue is FIFO and runs 1 to 8 downloads at once",
+        "Raising the limit starts waiting jobs"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Optional stages",
+      "items": [
+        "Merging only shows up when video and audio arrive separately",
+        "Processing, when the preset converts or embeds something"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Endings",
+      "items": [
+        "Cancel works at any stage and kills the process tree",
+        "An error carries its code and the suggested fix",
+        "Retry creates a new job in the queue"
+      ]
+    }
+  ]
+}
