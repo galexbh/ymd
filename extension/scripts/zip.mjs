@@ -1,7 +1,9 @@
-// Packs extension/dist into extension/ymd-cookies-extension.zip (store upload / release asset).
-// A minimal ZIP writer on node:zlib, so packaging needs no extra dependency.
+// Packs extension/dist into a zip with a minimal ZIP writer on node:zlib (no dependency).
 //
-//   pnpm ext:build && pnpm ext:zip
+//   pnpm ext:build && pnpm ext:zip         → ymd-cookies-extension.zip (release asset; keeps the
+//                                            manifest `key`, so the unpacked ID stays fixed)
+//   pnpm ext:build && pnpm ext:zip:store   → ymd-cookies-store.zip (Chrome Web Store upload:
+//                                            the store assigns the ID, so `key` is left out)
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +11,8 @@ import { crc32, deflateRawSync } from "node:zlib";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(here, "../dist");
-const out = resolve(here, "../ymd-cookies-extension.zip");
+const store = process.argv.includes("--store");
+const out = resolve(here, store ? "../ymd-cookies-store.zip" : "../ymd-cookies-extension.zip");
 
 if (!existsSync(join(dist, "manifest.json"))) {
   console.error("extension/dist/manifest.json is missing: run `pnpm ext:build` first.");
@@ -35,7 +38,12 @@ let offset = 0;
 
 for (const file of walk(dist)) {
   const name = Buffer.from(relative(dist, file).split("\\").join("/"), "utf8");
-  const data = readFileSync(file);
+  let data = readFileSync(file);
+  if (store && relative(dist, file) === "manifest.json") {
+    const manifest = JSON.parse(data.toString("utf8"));
+    delete manifest.key;
+    data = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  }
   const deflated = deflateRawSync(data, { level: 9 });
   const crc = crc32(data);
 

@@ -20,6 +20,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Brave, Chrome, Edge y demás navegadores Chromium solo con la extensión.** **Origen de las cookies** ahora ofrece **Ninguno**, **Extensión**, **Firefox** (o **Firefox o Safari** en macOS) y **Archivo cookies.txt**. ymd ya no intenta leer directamente los navegadores Chromium: en Windows sus cookies están cifradas, y quedan bloqueadas mientras el navegador sigue en segundo plano (por ejemplo, el «Inicio rápido» de Edge), así que aparecían como «abiertos» sin ninguna ventana. Si tenías elegido uno, ymd pasa a **Extensión** solo.
 
+### Proyecto
+
+- Preparación para publicar «ymd Cookies» en la Chrome Web Store: paquete sin `key` (`pnpm ext:zip:store`, también en cada release), capturas para la ficha (`pnpm ext:shots`), [política de privacidad pública](https://galexbh.github.io/ymd/cookies/privacidad-extension/) y ymd preparado para aceptar el ID que asigne la tienda.
+
 ## [0.3.1] - 2026-10-10
 
 ### Novedades
