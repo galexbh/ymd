@@ -3,6 +3,8 @@ name = "ymd"
 version = "0.2.0"
 description = "A calm desktop front end for yt-dlp"
 authors = ["galexbh"]
+license = "MIT"
+repository = "https://github.com/galexbh/ymd"
 edition = "2021"
 rust-version = "1.80"
 

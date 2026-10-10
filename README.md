@@ -83,6 +83,10 @@ normas en [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licencias
 
+- **ymd** se publica bajo la [licencia MIT](LICENSE): puedes usar, modificar y redistribuir el
+  código, conservando el aviso de copyright.
+- El nombre **ymd** y el isotipo «Sello de entrada» identifican al proyecto oficial y **no** se
+  incluyen en esa licencia: un fork o derivado debe usar otro nombre y otro logo.
 - yt-dlp se publica bajo [Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE), pero
   sus ejecutables oficiales (PyInstaller) incluyen componentes bajo **GPLv3+**.
 - Los builds de ffmpeg que se usan son **GPL**.
@@ -121,7 +125,9 @@ turns yt-dlp errors into next steps.
   and handed to yt-dlp via `--netrc-cmd`. No plaintext secrets on disk or in process arguments.
 - **Build**: `corepack enable && pnpm install && pnpm tauri dev`; `pnpm dev:mock` runs the UI in a
   browser against a simulated backend. See [CONTRIBUTING.md](CONTRIBUTING.md).
-- **Licenses**: yt-dlp is Unlicense, but its PyInstaller executables bundle GPLv3+ code; ffmpeg
+- **License**: ymd is [MIT](LICENSE). The "ymd" name and the «Sello de entrada» isotype identify
+  the official project and are not covered by it; forks should use their own name and logo.
+- **Third-party licenses**: yt-dlp is Unlicense, but its PyInstaller executables bundle GPLv3+ code; ffmpeg
   builds are GPL. Neither is bundled — both are downloaded at runtime.
 - **Terms of use**: respect each site's terms and copyright; only download what you have the
   right to keep.
