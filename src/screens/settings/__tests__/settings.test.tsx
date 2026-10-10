@@ -2,16 +2,19 @@ import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { describe, expect, it } from "vitest";
 import { calls, renderApp } from "../../../app/__tests__/harness";
 import { resetAppUpdate, useAppUpdate } from "../../../store/appUpdate";
+import { useNav } from "../../../store/nav";
 import { useSettings } from "../../../store/settings";
 import { renderTemplate, templateHasExt } from "../template";
 
 describe("Ajustes → Cuentas: origen de las cookies", () => {
-  it("offers Ninguno, Extensión, Firefox and cookies.txt; Chromium browsers are not listed", async () => {
+  it("offers Ninguno, Extensión and Firefox; no manual cookies.txt, no Chromium browsers", async () => {
     const { user, tick } = await renderApp({ route: "settings", section: "accounts" });
-    for (const name of ["Ninguno", "Extensión", "Firefox", "Archivo cookies.txt"]) {
+    for (const name of ["Ninguno", "Extensión", "Firefox"]) {
       expect(screen.getByRole("radio", { name })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("radio", { name: "Archivo cookies.txt" })).toBeNull();
     expect(screen.queryByRole("radio", { name: "Navegador" })).toBeNull();
+    expect(screen.queryByText(/cookies\.txt/)).toBeNull();
     // nothing extra until a source is picked
     expect(screen.queryByTestId("extension-card")).toBeNull();
     expect(screen.queryByTestId("cookie-guide")).toBeNull();
@@ -36,37 +39,26 @@ describe("Ajustes → Cuentas: origen de las cookies", () => {
     expect(screen.getByText(/navegadores Chromium: la extensión de ymd envía/)).toBeInTheDocument();
   });
 
-  it("cookies.txt shows the export guide and imports from the file picker", async () => {
-    const { be, user, tick } = await renderApp({ route: "settings", section: "accounts" });
-    await screen.findByText(
-      "Aún no hay una copia. La crean la extensión, Firefox o un archivo importado.",
-    );
-    await user.click(screen.getByRole("radio", { name: "Archivo cookies.txt" }));
-    await tick(0);
-    const guide = await screen.findByTestId("cookie-guide");
-    expect(
-      within(guide).getByRole("heading", { name: "Exportar cookies.txt" }),
-    ).toBeInTheDocument();
-    expect(within(guide).getByText(/Get cookies.txt LOCALLY/)).toBeInTheDocument();
-    expect(within(guide).getAllByRole("listitem")).toHaveLength(5);
-
-    await user.click(screen.getByTestId("cookie-pick"));
+  it("the copy comes from the extension and «Borrar copia» deletes it", async () => {
+    const { be, user, tick } = await renderApp();
+    be.simulateExtensionSync("brave", 42, [".youtube.com"]);
+    act(() => useNav.getState().navigate("settings", "accounts"));
     await tick(0);
     const info = await screen.findByTestId("cookie-info");
-    expect(within(info).getByText("Archivo importado")).toBeInTheDocument();
-    expect(within(info).getByText("37")).toBeInTheDocument();
-    expect(within(info).getByText(".youtube.com")).toBeInTheDocument();
+    expect(within(info).getByText("extension:brave")).toBeInTheDocument();
+    expect(within(info).getByText("42")).toBeInTheDocument();
     expect(within(info).getByTestId("cookie-session")).toHaveTextContent("Activa");
-    expect(calls(be, "cookies_import")[0].args!.path).toMatch(/cookies\.txt$/);
-    await waitFor(() => expect(be.snapshot().settings.cookies).toEqual({ kind: "file" }));
 
     await user.click(screen.getByRole("button", { name: "Borrar copia" }));
     await tick(0);
     expect(screen.queryByTestId("cookie-info")).toBeNull();
     expect(be.snapshot().cookies).toBeNull();
+    expect(
+      screen.getByText("Aún no hay una copia. La crea la extensión de ymd al sincronizar."),
+    ).toBeInTheDocument();
   });
 
-  it("Firefox: test and snapshot read it directly", async () => {
+  it("Firefox: the test reads it directly, with no manual copy", async () => {
     const { be, user, tick } = await renderApp({ route: "settings", section: "accounts" });
     await user.click(screen.getByRole("radio", { name: "Firefox" }));
     await tick(0);
@@ -76,10 +68,8 @@ describe("Ajustes → Cuentas: origen de las cookies", () => {
     await user.click(screen.getByTestId("cookies-test"));
     await tick(0);
     expect(await screen.findByText("Las cookies funcionan")).toBeInTheDocument();
-    await user.click(screen.getByTestId("cookies-snapshot"));
-    await tick(0);
-    expect(await screen.findByText("Copia de cookies guardada")).toBeInTheDocument();
-    expect(screen.getByTestId("cookie-info")).toHaveTextContent(/firefox:/);
+    expect(screen.queryByTestId("cookies-snapshot")).toBeNull();
+    expect(screen.queryByText("Importar desde el navegador ahora")).toBeNull();
   });
 
   it("an absent Firefox is listed with its download link", async () => {

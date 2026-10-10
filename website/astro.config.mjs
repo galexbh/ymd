@@ -59,7 +59,6 @@ export default defineConfig({
             "cookies/por-que",
             "cookies/extension",
             "cookies/navegador",
-            "cookies/cookies-txt",
             "cookies/cuentas",
             "cookies/privacidad-extension",
           ],

@@ -1,5 +1,6 @@
 //! Authentication, in layers. Owner: auth agent (C).
-//! 1. cookies (`--cookies-from-browser` live, or a snapshot / imported cookies.txt);
+//! 1. cookies (`--cookies-from-browser` live for Firefox/Safari, or ymd's cookies.txt kept up
+//!    to date by the ymd Cookies extension);
 //! 2. site accounts in the OS keychain, handed to yt-dlp through `--netrc-cmd` with ymd itself as
 //!    the helper (`ymd --netrc-helper <extractor>`), so passwords never touch disk or argv;
 //! 3. transient `--video-password` / `--twofactor` from the enqueue request (memory only).
@@ -56,9 +57,8 @@ pub fn args_for(
             args.push("--cookies-from-browser".to_string());
             args.push(browser_spec(*browser, profile.as_deref()));
         }
-        CookieSource::File | CookieSource::Extension => {
-            // Always ymd's own copy (snapshot or imported), never the user's original file:
-            // yt-dlp writes the jar back on exit, which keeps our snapshot fresh.
+        CookieSource::Extension => {
+            // Always ymd's own copy (the one the extension keeps up to date).
             let file = paths.cookies_file();
             if file.is_file() {
                 args.push("--cookies".to_string());
@@ -159,7 +159,6 @@ mod tests {
                 browser: Browser::Chrome,
                 profile: None,
             },
-            CookieSource::File,
             CookieSource::Extension,
         ];
         let reqs = [
@@ -186,7 +185,7 @@ mod tests {
                                 want.push("--cookies-from-browser".into());
                                 want.push(browser_spec(*browser, profile.as_deref()));
                             }
-                            CookieSource::File | CookieSource::Extension => {
+                            CookieSource::Extension => {
                                 if file_exists {
                                     want.push("--cookies".into());
                                     want.push(cookie_file.to_string_lossy().into_owned());
@@ -245,8 +244,8 @@ mod tests {
                 "123456"
             ]
         );
-        // File source without a file on disk adds nothing.
-        assert!(args_for(&CookieSource::File, &p, false, &helper(), None).is_empty());
+        // Extension source without a copy on disk adds nothing.
+        assert!(args_for(&CookieSource::Extension, &p, false, &helper(), None).is_empty());
         let with_creds = args_for(&CookieSource::None, &p, true, &helper(), None);
         assert_eq!(with_creds[0], "--netrc-cmd");
         if cfg!(windows) {

@@ -16,16 +16,6 @@ export async function pickFolder(defaultPath?: string | null): Promise<string | 
   return typeof picked === "string" ? picked : null;
 }
 
-/** Ask for a cookies.txt file; null when the user closes the picker. */
-export async function pickCookieFile(filterName: string): Promise<string | null> {
-  const picked = await open({
-    directory: false,
-    multiple: false,
-    filters: [{ name: filterName, extensions: ["txt"] }],
-  });
-  return typeof picked === "string" ? picked : null;
-}
-
 export async function openFile(path: string): Promise<void> {
   await openPath(path);
 }
@@ -86,23 +76,4 @@ export async function readClipboardText(): Promise<string | null> {
 export function parentDir(path: string): string {
   const i = Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/"));
   return i > 0 ? path.slice(0, i) : path;
-}
-
-export type DropHandler = (e: {
-  type: "enter" | "over" | "leave" | "drop";
-  paths: string[];
-}) => void;
-
-/** Native file drag-and-drop over the webview. Returns an unsubscribe. */
-export async function onFileDrop(handler: DropHandler): Promise<() => void> {
-  try {
-    const { getCurrentWebview } = await import("@tauri-apps/api/webview");
-    const un = await getCurrentWebview().onDragDropEvent((ev) => {
-      const p = ev.payload;
-      handler({ type: p.type, paths: "paths" in p ? p.paths : [] });
-    });
-    return un;
-  } catch {
-    return () => {};
-  }
 }

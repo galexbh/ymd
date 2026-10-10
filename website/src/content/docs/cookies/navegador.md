@@ -15,8 +15,6 @@ En **Ajustes → Cuentas → Cookies del navegador**:
 
 Firefox puede estar abierto mientras descargas: ymd lee una copia de sus cookies.
 
-**Importar desde el navegador ahora** guarda una copia en el `cookies.txt` de ymd. Elige luego **Archivo cookies.txt** como origen para usar esa copia en lugar de leer Firefox en cada descarga.
-
 ## ¿Y Brave, Chrome o Edge?
 
 Los navegadores Chromium no se leen directamente; para ellos está la [extensión ymd Cookies](/ymd/cookies/extension/) (origen **Extensión**). Hay dos motivos:

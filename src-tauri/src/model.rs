@@ -327,9 +327,9 @@ pub enum CookieSource {
         browser: Browser,
         profile: Option<String>,
     },
-    /// Use the snapshot / imported cookies.txt in the app data dir.
-    File,
-    /// The same cookies.txt, kept up to date by the ymd Cookies extension (Chromium browsers).
+    /// ymd's cookies.txt in the app data dir, kept up to date by the ymd Cookies extension
+    /// (Chromium browsers). A setting saved as the retired `file` source (manual import)
+    /// loads as `None`.
     Extension,
 }
 
@@ -523,9 +523,9 @@ pub struct BrowserInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CookieFileInfo {
-    /// RFC3339 of the snapshot/import.
+    /// RFC3339 of when the copy was written.
     pub created_at: String,
-    /// "brave:Default" or "import".
+    /// "extension:brave", or "unknown" when the meta file is missing.
     pub origin: String,
     pub cookie_count: u32,
     pub domains: Vec<String>,

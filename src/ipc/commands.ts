@@ -60,9 +60,6 @@ export const api = {
 
   // auth
   browsersDetect: () => invoke<BrowserInfo[]>("browsers_detect"),
-  cookiesSnapshot: (browser: Browser, profile: string | null) =>
-    invoke<CookieFileInfo>("cookies_snapshot", { browser, profile }),
-  cookiesImport: (path: string) => invoke<CookieFileInfo>("cookies_import", { path }),
   cookiesInfo: () => invoke<CookieFileInfo | null>("cookies_info"),
   cookiesClear: () => invoke<void>("cookies_clear"),
   cookiesTest: (source: CookieSource) => invoke<CookieTestResult>("cookies_test", { source }),

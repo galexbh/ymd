@@ -110,11 +110,11 @@
     },
     "cookies_locked": {
       "title": "The browser is locking its cookies",
-      "action": "Quit the browser completely and retry, or use a cookie snapshot in Settings → Accounts."
+      "action": "Quit the browser completely and retry. With Brave, Chrome or Edge, use the ymd extension in Settings → Accounts."
     },
     "cookies_decrypt": {
       "title": "Couldn't read the browser's cookies",
-      "action": "Quit the browser and retry. If it keeps failing, import a cookies.txt file in Settings → Accounts."
+      "action": "Quit the browser and retry. With Brave, Chrome or Edge, use the ymd extension in Settings → Accounts."
     },
     "disk_full": {
       "title": "The disk is full",
@@ -235,7 +235,7 @@
     "installMissing": "Install what's missing",
     "closedRetry": "I closed the browser, retry",
     "closedRetryNamed": "I closed {{browser}}, retry",
-    "useCookieFile": "Use a cookies.txt file",
+    "cookieSource": "Choose the cookie source",
     "folders": "Change folder in Settings",
     "updateYtdlp": "Check yt-dlp in Dependencies"
   },
@@ -640,7 +640,7 @@
     "status": {
       "connected": "ymd receives {{browser}}'s cookies with nothing else to do.",
       "pending": "The bridge is ready. Install the extension with the steps below; the first sync will arrive on its own.",
-      "noBridge": "ymd hasn't registered with your browsers yet. Restart ymd to register it; if nothing changes, use the cookies.txt file.",
+      "noBridge": "ymd hasn't registered with your browsers yet. Restart ymd to register it; if nothing changes, reinstall ymd.",
       "unavailable": "Couldn't check the extension status. ymd tries again every few seconds."
     },
     "fact": {
@@ -683,13 +683,11 @@
       "extension": "Extension",
       "browser": "Firefox",
       "browserMac": "Firefox or Safari",
-      "file": "cookies.txt file",
       "hint": {
         "none": "Downloads without being signed in.",
         "extension": "For Brave, Chrome, Edge and other Chromium browsers: the ymd extension sends your cookies whenever they change.",
         "browser": "ymd reads Firefox's cookies on every download, even while it's open.",
-        "browserMac": "ymd reads Firefox's or Safari's cookies on every download.",
-        "file": "ymd uses a cookies.txt file you export yourself. Works with any browser."
+        "browserMac": "ymd reads Firefox's or Safari's cookies on every download."
       }
     },
     "browser": {
@@ -705,32 +703,10 @@
     "test": "Test cookies",
     "testOk": "The cookies work",
     "testOkBody": "ymd could read them. They'll be used for the next downloads.",
-    "snapshot": "Import from the browser now",
-    "snapshotOk": "Cookie copy saved",
-    "snapshotOkBody": "Choose “cookies.txt file” as the source to use this copy instead of reading Firefox on every download.",
-    "guide": {
-      "title": "Export cookies.txt",
-      "why": "A cookies.txt file works with any browser, even while it's open. For Brave, Chrome or Edge the ymd extension is easier.",
-      "step1": "In your browser, install an open-source cookie export extension, such as “Get cookies.txt LOCALLY”.",
-      "step2": "Open a private window and allow the extension there.",
-      "step3": "Sign in to YouTube (or the site you need) in that window.",
-      "step4": "Use the extension to export the cookies in Netscape format (cookies.txt), then close the private window.",
-      "step5": "Drag the file here or pick it with the button."
-    },
     "file": {
       "title": "ymd's cookie copy",
-      "drop": "Drop your cookies.txt here",
-      "release": "Release to import",
-      "dropHint": "Netscape format, the one extensions export.",
-      "pick": "Choose file…",
-      "filter": "Cookie file",
-      "imported": "Cookies imported",
-      "importedBody": "The source changed to “cookies.txt file”.",
-      "importFailed": "The file couldn't be imported",
-      "importFailedHint": "Check that it's a cookies.txt in Netscape format.",
-      "noneYet": "No copy yet. The extension, Firefox or an imported file creates it.",
+      "noneYet": "No copy yet. The ymd extension creates it when it syncs.",
       "origin": "Origin",
-      "originFile": "Imported file",
       "date": "Date",
       "count": "Cookies",
       "domains": "Domains",

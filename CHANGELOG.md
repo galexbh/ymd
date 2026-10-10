@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Seguridad
+
+- **Se quitó la importación manual de `cookies.txt`.** Un archivo exportado a mano guarda todas tus sesiones en texto plano, fuera de la protección del navegador. **Origen de las cookies** queda con **Ninguno**, **Extensión** y **Firefox**, y también desaparece **Importar desde el navegador ahora**. Si usabas un archivo importado, el origen pasa a **Ninguno** y ymd borra esa copia al arrancar. Usa la extensión o Firefox.
+
 ### Cambios
 
 - **Página de bienvenida de la extensión.** Al instalar «ymd Cookies» se abre una página que guía para fijarla en la barra (y confirma cuando queda fijada) y para elegir sitios. Extensión 1.4.0.

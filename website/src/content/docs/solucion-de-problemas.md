@@ -11,7 +11,7 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `bot_check`. YouTube bloqueó la petición hasta que confirmes que eres una persona, algo que exige una sesión iniciada.
 
-**Arreglo:** activa las cookies de tu navegador en **Ajustes → Cuentas** y vuelve a intentarlo. El botón **Abrir Ajustes → Cuentas** lleva ahí. En Windows con Brave, Chrome o Edge, usa la [extensión ymd Cookies](/ymd/cookies/extension/); si no, [Firefox](/ymd/cookies/navegador/) o un [cookies.txt](/ymd/cookies/cookies-txt/).
+**Arreglo:** activa las cookies de tu navegador en **Ajustes → Cuentas** y vuelve a intentarlo. El botón **Abrir Ajustes → Cuentas** lleva ahí. En Windows con Brave, Chrome o Edge, usa la [extensión ymd Cookies](/ymd/cookies/extension/); si no, [Firefox](/ymd/cookies/navegador/).
 
 ### Video con restricción de edad
 
@@ -55,7 +55,7 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `cookies_decrypt`. yt-dlp encontró las cookies pero no pudo descifrarlas. En Windows, Brave, Chrome y Edge las cifran de forma que ningún otro programa puede leerlas (ver [Cookies de Firefox](/ymd/cookies/navegador/#y-brave-chrome-o-edge)).
 
-**Arreglo:** elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/). También puedes usar Firefox o un archivo `cookies.txt`.
+**Arreglo:** elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/). También puedes usar Firefox.
 
 ## Herramientas
 

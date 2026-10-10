@@ -141,7 +141,6 @@ export type Browser =
 export type CookieSource =
   | { kind: "none" }
   | { kind: "browser"; browser: Browser; profile: string | null }
-  | { kind: "file" }
   /** the same cookies.txt, kept up to date by the ymd Cookies extension */
   | { kind: "extension" };
 

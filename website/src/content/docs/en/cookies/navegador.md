@@ -15,8 +15,6 @@ In **Settings → Accounts → Browser cookies**:
 
 Firefox can stay open while you download: ymd reads a copy of its cookies.
 
-**Import from the browser now** saves a copy into ymd's `cookies.txt`. Then choose **cookies.txt file** as the source to use that copy instead of reading Firefox on every download.
-
 ## What about Brave, Chrome or Edge?
 
 Chromium browsers aren't read directly; they use the [ymd Cookies extension](/ymd/en/cookies/extension/) (source **Extension**). Two reasons:

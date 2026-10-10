@@ -91,7 +91,7 @@ export function useErrorFixes() {
           });
         }
         out.push({
-          label: t("fix.useCookieFile"),
+          label: t("fix.cookieSource"),
           onClick: () => navigate("settings", "accounts"),
         });
         return out;
