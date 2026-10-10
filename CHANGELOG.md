@@ -8,6 +8,16 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Se quitó la importación manual de `cookies.txt`.** Un archivo exportado a mano guarda todas tus sesiones en texto plano, fuera de la protección del navegador. **Origen de las cookies** queda con **Ninguno**, **Extensión** y **Firefox**, y también desaparece **Importar desde el navegador ahora**. Si usabas un archivo importado, el origen pasa a **Ninguno** y ymd borra esa copia al arrancar. Usa la extensión o Firefox.
 
+### Cambios
+
+- **Página de bienvenida de la extensión.** Al instalar «ymd Cookies» se abre una página que guía para fijarla en la barra (y confirma cuando queda fijada) y para elegir sitios. Extensión 1.4.0.
+- **Sitios sugeridos.** La ventana de la extensión ofrece YouTube, Vimeo, SoundCloud y Twitch para agregarlos con un clic, y **Permitir** en un sitio que perdió su permiso.
+- **YouTube sigue listo sin pasos en la extensión que trae ymd.** La versión para la Chrome Web Store no trae ningún sitio de serie: su bienvenida ofrece **Usar YouTube**, y el navegador pide permiso para cada sitio que agregas. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión no envía YouTube.
+
+### Proyecto
+
+- ymd acepta el ID que la Chrome Web Store asignó a «ymd Cookies» (`hhojlkpllmndkaolmebblijfcjkjpdpi`), además del de la versión descomprimida, para que ambas puedan hablar con ymd. La instalación automática desde el instalador de ymd sigue apagada hasta que la tienda publique la extensión.
+
 ## [0.4.0] - 2026-10-10
 
 ### Novedades

@@ -81,11 +81,23 @@ export interface FakeOptions {
   /** Answer of permissions.request (the user's click in the prompt). */
   grant?: boolean;
   storage?: Record<string, unknown>;
+  /** Sites already on the list, with their permission granted (as after adding them). */
+  sites?: string[];
+  /** Sites on the list whose permission is gone (revoked in the browser, or lost on an update). */
+  revoked?: string[];
   /** The active tab the popup sees (via activeTab). */
   activeTab?: { url?: string };
+  /**
+   * The manifest's required host permissions, granted on load. Default: none (like the store
+   * build); `["*://*.youtube.com/*"]` is the build ymd ships.
+   */
+  hostPermissions?: string[];
+  /** Whether the extension is pinned to the toolbar (action.getUserSettings). */
+  pinned?: boolean;
 }
 
-const REQUIRED_ORIGINS = ["*://*.youtube.com/*"];
+/** The required host permissions of the build ymd ships. */
+export const SHIPPED_HOSTS = ["*://*.youtube.com/*"];
 
 function patternCovers(pattern: string, host: string): boolean {
   if (pattern === "*://*/*" || pattern === "<all_urls>") return true;
@@ -114,7 +126,15 @@ export function createChromeFake(options: FakeOptions = {}) {
   const jar: ChromeCookie[] = [...(options.cookies ?? [])];
   const store = new Map<string, unknown>(Object.entries(options.storage ?? {}));
   const alarms = new Map<string, Alarm>();
-  const granted = new Set<string>(REQUIRED_ORIGINS);
+  const required = [...(options.hostPermissions ?? [])];
+  const granted = new Set<string>(required);
+  let pinned = options.pinned ?? false;
+  for (const site of options.sites ?? []) granted.add(`*://*.${site}/*`);
+  if (options.sites && !store.has("allowlist")) store.set("allowlist", [...options.sites]);
+  // A stored list means the person added those sites, so their permissions were granted.
+  const stored = store.get("allowlist");
+  if (Array.isArray(stored)) for (const site of stored) granted.add(`*://*.${String(site)}/*`);
+  for (const site of options.revoked ?? []) granted.delete(`*://*.${site}/*`);
   const locale = options.locale ?? "es";
   const messages = loadMessages(locale);
 
@@ -144,6 +164,8 @@ export function createChromeFake(options: FakeOptions = {}) {
     /** Context menu items currently created. */
     menus: [] as MenuProperties[],
     permissionRemovals: [] as string[][],
+    /** Tabs opened with tabs.create. */
+    tabsCreated: [] as string[],
   };
 
   let native: NativeBehavior = options.native ?? { reply: { ok: true, count: 0, domains: [] } };
@@ -169,6 +191,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       });
     },
     id: FAKE_ID,
+    getManifest: () => ({ host_permissions: [...required] }),
     getURL: (path: string) => `chrome-extension://${FAKE_ID}/${path.replace(/^\//, "")}`,
     sendMessage(message) {
       return new Promise((resolve) => {
@@ -253,10 +276,17 @@ export function createChromeFake(options: FakeOptions = {}) {
       async setTitle({ title }: { title: string }) {
         record.badge.title = title;
       },
+      async getUserSettings() {
+        return { isOnToolbar: pinned };
+      },
     },
     tabs: {
       async query() {
         return options.activeTab ? [{ id: 1, ...options.activeTab }] : [];
+      },
+      async create({ url }: { url: string }) {
+        record.tabsCreated.push(url);
+        return { id: 2, url };
       },
     },
     permissions: {
@@ -267,7 +297,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       },
       async remove({ origins = [] }) {
         record.permissionRemovals.push(origins);
-        if (origins.some((o) => REQUIRED_ORIGINS.includes(o))) {
+        if (origins.some((o) => required.includes(o))) {
           throw new Error("You cannot remove required permissions.");
         }
         origins.forEach((o) => granted.delete(o));
@@ -299,6 +329,10 @@ export function createChromeFake(options: FakeOptions = {}) {
     },
     setGrant(g: boolean) {
       grant = g;
+    },
+    /** The person pins (or unpins) the extension in the toolbar. */
+    setPinned(p: boolean) {
+      pinned = p;
     },
     /** Changes the jar and fires cookies.onChanged like the browser. */
     setCookie(c: ChromeCookie) {

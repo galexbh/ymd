@@ -15,14 +15,15 @@ Contrato compartido por `extension/` y `src-tauri/src/auth/native_host.rs`. Un c
 
 - Nombre del host nativo: `com.ymd.cookies`
 - ID de la extensión (fijado por la `key` del manifiesto): `gicaphbpepkphmeciigjhdpnbcaflfgd`
-- Origen permitido: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/`
+- ID de la versión de la Chrome Web Store (la tienda asigna el suyo): `hhojlkpllmndkaolmebblijfcjkjpdpi`
+- Orígenes permitidos: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/` y `chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/`. ymd rechaza cualquier otro.
 - `key` del manifiesto (pública, SPKI DER en base64). `extension/src/__tests__/manifest.test.ts` lee este bloque y comprueba que coincide con `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
 ```
 
-La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd/extension-key.pem` en la máquina del mantenedor y solo hace falta para subir un CRX empaquetado a la Chrome Web Store con el mismo ID.
+La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd/extension-key.pem` en la máquina del mantenedor y no se sube a la tienda: la versión de la Chrome Web Store tiene su propio ID, y ymd acepta los dos.
 
 ## Transporte
 
@@ -63,7 +64,7 @@ Cómo cuida el puente tus cookies y los enlaces que envías.
 - **Solo esta extensión habla con el host.** El navegador solo lanza el host para el origen del ID fijo, y el host lo vuelve a comprobar. La extensión no acepta mensajes de otras extensiones ni de páginas web (`externally_connectable` vacío), y solo atiende a su propio popup.
 - **El host solo escribe.** Ninguna respuesta devuelve cookies: solo el conteo y los dominios. Quien lograra hablar con el host no podría leer nada.
 - **Los enlaces solo se revisan.** «Descargar con ymd» acepta únicamente enlaces web y ymd los muestra en **Recibir**; descargar siempre requiere tu clic.
-- **Lo mínimo.** Solo se envían los sitios de la lista (`youtube.com` por defecto). Cada sitio nuevo pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
+- **Lo mínimo.** Solo se envían los sitios de la lista. La extensión que trae ymd pide en su manifiesto solo `*://*.youtube.com/*`; el paquete de la Chrome Web Store no pide ninguno. Cada sitio que se agrega pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
 - **Validación estricta.** Mensajes de 16 MiB como máximo, 10.000 cookies como máximo, y cada cookie con un dominio y una ruta válidos, sin caracteres de control y de 4096 bytes como máximo. Lo que no cumple se descarta.
 - **Cifrado en disco.** `cookies.txt` se guarda cifrado con ChaCha20-Poly1305, con una clave aleatoria en el llavero del sistema (Administrador de credenciales, Llavero de macOS o Secret Service). El texto plano solo existe en memoria y en la copia que yt-dlp recibe durante una descarga; esa copia se borra al terminar, y al arrancar ymd si quedó alguna por un cierre forzado. Sin llavero disponible (algunos Linux sin Secret Service), el archivo se guarda sin cifrar, solo para tu usuario, y el log lo indica.
 - **La extensión no guarda valores.** En el navegador solo guarda la lista de sitios, el estado y una huella SHA-256 del conjunto.

@@ -38,15 +38,13 @@ const BROWSERS: [&str; 7] = [
     "brave", "chrome", "edge", "chromium", "vivaldi", "opera", "other",
 ];
 
-/// ID the Chrome Web Store assigns to the published extension; `None` until it is published.
-/// The unpacked build ([`EXTENSION_ID`]) and the store build can then both talk to ymd.
-pub const STORE_EXTENSION_ID: Option<&str> = None;
+/// ID the Chrome Web Store assigned to the extension (its own key, so it differs from the
+/// unpacked [`EXTENSION_ID`]). Both builds can talk to ymd.
+pub const STORE_EXTENSION_ID: &str = "hhojlkpllmndkaolmebblijfcjkjpdpi";
 
 /// Every extension ID allowed to talk to the host: the unpacked one, then the store one.
 pub fn allowed_extension_ids() -> Vec<&'static str> {
-    std::iter::once(EXTENSION_ID)
-        .chain(STORE_EXTENSION_ID)
-        .collect()
+    vec![EXTENSION_ID, STORE_EXTENSION_ID]
 }
 
 /// `chrome-extension://<EXTENSION_ID>/`, the unpacked extension's origin.
@@ -546,10 +544,25 @@ mod tests {
     }
 
     #[test]
+    fn the_store_id_is_allowed_and_others_are_not() {
+        assert!(is_allowed_origin(
+            "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/"
+        ));
+        assert!(is_allowed_origin(
+            "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi"
+        ));
+        assert!(!is_allowed_origin(
+            "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/"
+        ));
+        assert!(!is_allowed_origin("hhojlkpllmndkaolmebblijfcjkjpdpi"));
+    }
+
+    #[test]
     fn the_unpacked_id_is_always_allowed() {
         let ids = allowed_extension_ids();
         assert_eq!(ids[0], EXTENSION_ID);
-        assert_eq!(ids.len(), 1 + usize::from(STORE_EXTENSION_ID.is_some()));
+        assert_eq!(ids, [EXTENSION_ID, STORE_EXTENSION_ID]);
+        assert_ne!(EXTENSION_ID, STORE_EXTENSION_ID);
         assert_eq!(allowed_origins()[0], allowed_origin());
         for id in ids {
             assert_eq!(id.len(), 32);

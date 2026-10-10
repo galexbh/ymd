@@ -13,8 +13,10 @@ function placeholderNames(entry: { placeholders?: Record<string, unknown> }): st
 /** Every key the code and markup ask chrome.i18n for. */
 function usedKeys(): Set<string> {
   const keys = new Set<string>();
-  const html = readFileSync(resolve(EXTENSION_DIR, "popup.html"), "utf8");
-  for (const m of html.matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
+  for (const page of ["popup.html", "welcome.html"]) {
+    const html = readFileSync(resolve(EXTENSION_DIR, page), "utf8");
+    for (const m of html.matchAll(/data-i18n="([^"]+)"/g)) keys.add(m[1]);
+  }
   const manifest = readFileSync(resolve(EXTENSION_DIR, "manifest.json"), "utf8");
   for (const m of manifest.matchAll(/__MSG_([A-Za-z0-9_@]+)__/g)) keys.add(m[1]);
   const lib = resolve(EXTENSION_DIR, "src/lib");

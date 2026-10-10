@@ -10,9 +10,9 @@
 
 !macro NSIS_HOOK_POSTINSTALL
   !ifdef YMD_STORE_EXTENSION
-    WriteRegStr HKCU "Software\Google\Chrome\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd" "update_url" "https://clients2.google.com/service/update2/crx"
-    WriteRegStr HKCU "Software\BraveSoftware\Brave-Browser\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd" "update_url" "https://clients2.google.com/service/update2/crx"
-    WriteRegStr HKCU "Software\Microsoft\Edge\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd" "update_url" "https://clients2.google.com/service/update2/crx"
+    WriteRegStr HKCU "Software\Google\Chrome\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi" "update_url" "https://clients2.google.com/service/update2/crx"
+    WriteRegStr HKCU "Software\BraveSoftware\Brave-Browser\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi" "update_url" "https://clients2.google.com/service/update2/crx"
+    WriteRegStr HKCU "Software\Microsoft\Edge\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi" "update_url" "https://clients2.google.com/service/update2/crx"
   !endif
 !macroend
 
@@ -22,7 +22,7 @@
   DeleteRegKey HKCU "Software\Microsoft\Edge\NativeMessagingHosts\com.ymd.cookies"
   DeleteRegKey HKCU "Software\Chromium\NativeMessagingHosts\com.ymd.cookies"
   DeleteRegKey HKCU "Software\Vivaldi\NativeMessagingHosts\com.ymd.cookies"
-  DeleteRegKey HKCU "Software\Google\Chrome\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd"
-  DeleteRegKey HKCU "Software\BraveSoftware\Brave-Browser\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd"
-  DeleteRegKey HKCU "Software\Microsoft\Edge\Extensions\gicaphbpepkphmeciigjhdpnbcaflfgd"
+  DeleteRegKey HKCU "Software\Google\Chrome\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi"
+  DeleteRegKey HKCU "Software\BraveSoftware\Brave-Browser\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi"
+  DeleteRegKey HKCU "Software\Microsoft\Edge\Extensions\hhojlkpllmndkaolmebblijfcjkjpdpi"
 !macroend

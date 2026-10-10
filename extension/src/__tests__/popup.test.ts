@@ -108,13 +108,27 @@ describe("popup in Spanish", () => {
     expect(text("notice-text")).toBe("ymd no pudo guardar las cookies (io_error).");
   });
 
-  it("lists the allowed sites with the default tag", async () => {
+  it("starts empty and suggests a few sites", async () => {
     await mount("es");
+    expect(document.querySelectorAll("#site-list li")).toHaveLength(0);
+    expect(text("sites-empty")).toBe("Aún no hay sitios. Agrega los sitios donde inicias sesión.");
+    expect($("suggest").hidden).toBe(false);
+    const chips = [...document.querySelectorAll("#suggest-list button")];
+    expect(chips.map((c) => c.textContent)).toEqual(["YouTube", "Vimeo", "SoundCloud", "Twitch"]);
+    expect(chips[0].getAttribute("aria-label")).toBe("Agregar YouTube");
+  });
+
+  it("lists the sites the person added", async () => {
+    await mount("es", { sites: ["youtube.com"] });
+    await flush();
     const rows = [...document.querySelectorAll("#site-list li")];
     expect(rows.map((r) => r.querySelector(".domain")?.textContent)).toEqual(["youtube.com"]);
-    expect(rows[0].querySelector(".tag")?.textContent).toBe("Predeterminado");
+    expect(rows[0].querySelector(".grant")).toBeNull();
     expect(rows[0].querySelector("button")?.getAttribute("aria-label")).toBe("Quitar youtube.com");
     expect($("sites-empty").hidden).toBe(true);
+    // YouTube is covered, so it is no longer suggested
+    const chips = [...document.querySelectorAll("#suggest-list button")];
+    expect(chips.map((c) => c.textContent)).toEqual(["Vimeo", "SoundCloud", "Twitch"]);
   });
 
   it("follows a dark system theme", async () => {
@@ -173,7 +187,7 @@ describe("popup actions", () => {
   });
 
   it("adds a site after the permission prompt", async () => {
-    const { fake } = await mount("es", { grant: true });
+    const { fake } = await mount("es", { grant: true, sites: ["youtube.com"] });
     ($("add-input") as HTMLInputElement).value = "vimeo.com";
     ($("add-form") as HTMLFormElement).requestSubmit();
     await flush();
@@ -209,8 +223,42 @@ describe("popup actions", () => {
     await flush();
     expect(document.querySelectorAll("#site-list li")).toHaveLength(0);
     expect($("sites-empty").hidden).toBe(false);
-    expect(text("sites-empty")).toBe("La lista está vacía: no se envía ninguna cookie.");
+    expect(text("sites-empty")).toBe("Aún no hay sitios. Agrega los sitios donde inicias sesión.");
+    expect(fake.record.permissionRemovals).toEqual([["*://*.youtube.com/*"]]);
     expect(fake.store.get(KEYS.allowlist)).toEqual([]);
+  });
+
+  it("a suggested site is one click: permission, then on the list", async () => {
+    const { fake } = await mount("es", { grant: true });
+    (document.querySelector("#suggest-list button") as HTMLElement).click();
+    await flush();
+    expect(fake.record.permissionRequests).toEqual([["*://*.youtube.com/*"]]);
+    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
+    expect([...document.querySelectorAll("#site-list .domain")].map((d) => d.textContent)).toEqual([
+      "youtube.com",
+    ]);
+  });
+
+  it("a denied suggestion explains why and adds nothing", async () => {
+    const { fake } = await mount("es", { grant: false });
+    (document.querySelector("#suggest-list button") as HTMLElement).click();
+    await flush();
+    expect(text("add-error")).toBe(
+      "Sin el permiso del navegador no se pueden leer las cookies de youtube.com.",
+    );
+    expect(fake.store.has(KEYS.allowlist)).toBe(false);
+  });
+
+  it("offers «Permitir» on a site whose permission is gone, and grants it in the click", async () => {
+    const { fake } = await mount("es", { sites: ["youtube.com"], revoked: ["youtube.com"] });
+    await flush();
+    const grant = document.querySelector("#site-list .grant") as HTMLElement;
+    expect(grant.textContent).toBe("Permitir");
+    expect(grant.getAttribute("aria-label")).toBe("Volver a permitir youtube.com");
+    grant.click();
+    await flush();
+    expect(fake.record.permissionRequests).toEqual([["*://*.youtube.com/*"]]);
+    expect(document.querySelector("#site-list .grant")).toBeNull();
   });
 
   it("follows status written by the service worker while open", async () => {

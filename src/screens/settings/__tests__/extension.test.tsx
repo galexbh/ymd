@@ -76,6 +76,18 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
     );
   });
 
+  it("a copy without YouTube says to add it in the extension (no site is preset)", async () => {
+    await renderApp({
+      ...accounts,
+      extension: { lastSync: { ...SYNC, domains: [".vimeo.com"], signedIn: [] } },
+    });
+    await stamp();
+    expect(screen.getByTestId("extension-session")).toHaveTextContent("Sin agregar");
+    expect(screen.getByTestId("extension-session-hint")).toHaveTextContent(
+      "Ábrela en Brave y agrega YouTube desde «Sitios sugeridos»",
+    );
+  });
+
   it("PENDIENTE: bridge registered, nothing synced yet", async () => {
     await renderApp(accounts);
     expect(await stamp()).toHaveTextContent("Pendiente");

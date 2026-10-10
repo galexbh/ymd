@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { ALLOWLIST_VERSION, ensureAllowlist, KEYS, readAllowlist } from "../lib/storage";
-import { createChromeFake } from "../test/chrome-fake";
+import { createChromeFake, SHIPPED_HOSTS } from "../test/chrome-fake";
 
 describe("ensureAllowlist", () => {
-  it("seeds only youtube.com on a fresh install", async () => {
-    const fake = createChromeFake();
+  it("the build ymd ships starts with YouTube, already granted", async () => {
+    const fake = createChromeFake({ hostPermissions: SHIPPED_HOSTS });
     await ensureAllowlist(fake.api);
     expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
+    expect(await fake.api.permissions.contains({ origins: SHIPPED_HOSTS })).toBe(true);
+  });
+
+  it("the store build starts with an empty list", async () => {
+    const fake = createChromeFake();
+    await ensureAllowlist(fake.api);
+    expect(fake.store.get(KEYS.allowlist)).toEqual([]);
     expect(fake.store.get(KEYS.allowlistVersion)).toBe(ALLOWLIST_VERSION);
   });
 

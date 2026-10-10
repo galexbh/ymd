@@ -74,7 +74,7 @@ describe("badge", () => {
   }
 
   it("follows each stored status", async () => {
-    const { fake, engine } = setup({ cookies: SIGNED_OUT });
+    const { fake, engine } = setup({ cookies: SIGNED_OUT, sites: ["youtube.com"] });
     await engine.syncNow(true);
     await flush();
     expect(fake.record.badge).toMatchObject({

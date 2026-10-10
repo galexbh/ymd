@@ -1,7 +1,7 @@
 // Adding and removing allowed sites, with the optional host permission each one needs.
 
 import { type ChromeApi } from "./chrome-api";
-import { isDefaultDomain, isPublicSuffix, normalizeDomain, originPattern } from "./domains";
+import { isPublicSuffix, normalizeDomain, originPattern } from "./domains";
 import { writeAllowlist } from "./storage";
 
 type Api = Pick<ChromeApi, "permissions" | "storage">;
@@ -26,19 +26,16 @@ export async function addSite(
   // Refused before any permission prompt: the grant would cover unrelated sites.
   if (isPublicSuffix(domain)) return { ok: false, reason: "shared", domain };
   if (current.includes(domain)) return { ok: false, reason: "duplicate", domain };
-  // Defaults are covered by the manifest's required host permissions.
-  if (!isDefaultDomain(domain)) {
-    const granted = await api.permissions
-      .request({ origins: [originPattern(domain)] })
-      .catch(() => false);
-    if (!granted) return { ok: false, reason: "denied", domain };
-  }
+  const granted = await api.permissions
+    .request({ origins: [originPattern(domain)] })
+    .catch(() => false);
+  if (!granted) return { ok: false, reason: "denied", domain };
   const list = [...current, domain];
   await writeAllowlist(api, list);
   return { ok: true, domain, list };
 }
 
-/** Removes a site and gives its host permission back, unless it is one of the defaults. */
+/** Removes a site and gives its host permission back. */
 export async function removeSite(
   api: Api,
   current: readonly string[],
@@ -46,12 +43,10 @@ export async function removeSite(
 ): Promise<string[]> {
   const list = current.filter((d) => d !== domain);
   await writeAllowlist(api, list);
-  if (!isDefaultDomain(domain)) {
-    try {
-      await api.permissions.remove({ origins: [originPattern(domain)] });
-    } catch {
-      // A permission that was never granted cannot be removed; the list is what matters.
-    }
+  try {
+    await api.permissions.remove({ origins: [originPattern(domain)] });
+  } catch {
+    // A permission that was never granted cannot be removed; the list is what matters.
   }
   return list;
 }

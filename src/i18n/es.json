@@ -631,7 +631,7 @@
   },
   "extension": {
     "title": "Extensión de ymd para navegadores Chromium",
-    "lead": "La extensión envía a ymd tus cookies de YouTube cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.",
+    "lead": "La extensión envía a ymd las cookies de los sitios que elijas cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.",
     "state": {
       "connected": "Conectada",
       "pending": "Pendiente",
@@ -652,7 +652,7 @@
     "step1": "Muestra la carpeta de la extensión que viene con ymd: es la que vas a arrastrar.",
     "step2": "Abre {{browser}} y ve a la página de extensiones:",
     "step3": "Activa «Modo de desarrollador». Luego arrastra a la página la carpeta del paso 1, o pulsa «Cargar descomprimida» y elígela.",
-    "step4": "Inicia sesión en YouTube en ese navegador; ymd recibirá las cookies solo.",
+    "step4": "Se abre una página de bienvenida: fija la extensión en la barra. YouTube ya viene agregado, así que solo inicia sesión en YouTube en ese navegador y ymd recibirá las cookies solo. Otros sitios se agregan desde la extensión.",
     "openFolder": "Mostrar la carpeta de la extensión",
     "noFolder": "Esta compilación no incluye la carpeta de la extensión (modo desarrollo).",
     "openPage": "Abrir {{browser}} y copiar la dirección",
@@ -777,6 +777,8 @@
     "youtube": "Sesión de YouTube",
     "active": "Activa",
     "closed": "Cerrada",
+    "notAdded": "Sin agregar",
+    "notAddedHint": "La extensión aún no envía YouTube. Ábrela en {{browser}} y agrega YouTube desde «Sitios sugeridos».",
     "closedHint": "La copia no tiene tu sesión de YouTube. Inicia sesión en YouTube en {{browser}} y ymd la recibirá sola."
   }
 }
