@@ -93,3 +93,43 @@ jobs:
           # releases/latest/download/latest.json, so a release must be published (not draft)
           # before installed copies see it.
           includeUpdaterJson: true
+
+  # The ymd Cookies browser extension, zipped and attached to the same draft release. Runs after
+  # the installers so tauri-action has already created the draft for this tag.
+  extension:
+    name: release (extension zip)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: release
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test, build and zip
+        run: |
+          pnpm ext:test
+          pnpm ext:build
+          pnpm ext:zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ymd-cookies-extension
+          path: extension/ymd-cookies-extension.zip
+          if-no-files-found: error
+
+      - name: Attach to the draft release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: extension/ymd-cookies-extension.zip
+          fail_on_unmatched_files: true

@@ -1,5 +1,6 @@
 # Gate for every change: nothing merges unless all jobs are green.
-# Branch protection on `main` should require: audit, frontend, rust (3 OS), build-check (3 OS).
+# Branch protection on `main` should require: audit, frontend, extension, rust (3 OS),
+# build-check (3 OS).
 name: CI
 
 on:
@@ -109,6 +110,59 @@ jobs:
             playwright-report/
             test-results/
             e2e/__screenshots__/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  extension:
+    name: extension (lint, unit, build, e2e)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint + types
+        run: pnpm ext:lint
+
+      - name: Unit tests
+        run: pnpm ext:test
+
+      - name: Build
+        run: pnpm ext:build
+
+      - name: Zip
+        run: pnpm ext:zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ymd-cookies-extension
+          path: extension/ymd-cookies-extension.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Install Playwright (chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Real Chromium with the built extension and a fake native host.
+      - name: E2E (extension + native messaging)
+        run: pnpm ext:e2e
+
+      - name: Upload e2e report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-e2e-report
+          path: |
+            playwright-report/extension/
+            test-results/extension/
           if-no-files-found: ignore
           retention-days: 14
 
