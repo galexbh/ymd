@@ -79,6 +79,7 @@ Scenarios: `first-run`, `ready`, `outdated`, `complete`.
    cookies or credentials.
 5. **Formatting**: Prettier for TS/JSON/MD/YAML, rustfmt for Rust; LF line endings.
 6. Keep `@tauri-apps/*` npm packages on the same major.minor as the Rust crates.
+   npm dependencies are pinned to exact versions (no `^`/`~`; `.npmrc` has `save-exact`).
 7. **Docs**: a user-visible behavior change updates the matching `website/` page in both es and
    en, using the app's real UI labels (`src/i18n/*.json`). `pnpm docs:build` must pass (it fails
    on broken internal links).
