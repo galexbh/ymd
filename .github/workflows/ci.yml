@@ -1,6 +1,8 @@
 # Gate for every change: nothing merges unless all jobs are green.
-# Branch protection on `main` should require: audit, frontend, extension, rust (3 OS),
-# build-check (3 OS).
+#
+# Pull requests run the suites the change can affect (a docs-only PR runs only the format
+# check); pushes to `main` always run everything, including the 3-OS app build and coverage.
+# Skipped jobs count as passing for branch protection.
 name: CI
 
 on:
@@ -21,14 +23,97 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   RUST_BACKTRACE: short
+  # Less debug info in test/dev builds: much faster linking (Windows above all), smaller caches.
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
 defaults:
   run:
     shell: bash
 
 jobs:
+  # Which areas a change touches. Everything is "true" on main, manual runs and CI edits.
+  changes:
+    name: changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      full: ${{ steps.mode.outputs.full }}
+      rust: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.rust == 'true' }}
+      frontend: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.frontend == 'true' }}
+      extension: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.extension == 'true' }}
+      deps: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.deps == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || \
+             { [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; }; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "full=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ci: &ci
+              - .github/workflows/ci.yml
+            rust:
+              - *ci
+              - src-tauri/**
+            frontend:
+              - *ci
+              - src/**
+              - e2e/**
+              - public/**
+              - scripts/**
+              - index.html
+              - package.json
+              - pnpm-lock.yaml
+              - vite.config.ts
+              - tsconfig*.json
+              - eslint.config.js
+              - playwright.config.ts
+              - src-tauri/tauri.conf.json
+              - src-tauri/capabilities/**
+            extension:
+              - *ci
+              - extension/**
+              - src/styles/**
+              - src/assets/brand/**
+              - package.json
+              - pnpm-lock.yaml
+              - pnpm-workspace.yaml
+            deps:
+              - *ci
+              - package.json
+              - pnpm-lock.yaml
+              - extension/package.json
+              - src-tauri/Cargo.toml
+              - src-tauri/Cargo.lock
+
+  # Cheap and always on: formatting covers docs too (README, CHANGELOG…).
+  format:
+    name: format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+
   audit:
     name: dependency audit (npm + RustSec)
+    needs: changes
+    if: needs.changes.outputs.deps == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -45,20 +130,25 @@ jobs:
       - name: pnpm audit (fails on high or critical)
         run: pnpm audit --audit-level high
 
+      # Prebuilt binary: seconds instead of compiling cargo-audit on every run.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
       - name: cargo audit
         working-directory: src-tauri
-        run: |
-          cargo install cargo-audit --locked
-          cargo audit
+        run: cargo audit
 
   frontend:
     name: frontend (lint, types, unit, e2e)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
 
-      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v5
         with:
@@ -69,9 +159,6 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-
-      - name: Format
-        run: pnpm format:check
 
       - name: Typecheck
         run: pnpm typecheck
@@ -94,8 +181,24 @@ jobs:
       - name: Production build
         run: pnpm build
 
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(node -p 'require("@playwright/test/package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
       - name: Install Playwright (chromium)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Playwright system deps (cached browsers)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: E2E (mock backend)
         run: pnpm e2e
@@ -115,6 +218,8 @@ jobs:
 
   extension:
     name: extension (lint, unit, build, e2e)
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -148,8 +253,24 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(node -p 'require("@playwright/test/package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
       - name: Install Playwright (chromium)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Playwright system deps (cached browsers)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       # Real Chromium with the built extension and a fake native host.
       - name: E2E (extension + native messaging)
@@ -168,6 +289,8 @@ jobs:
 
   rust:
     name: rust (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -181,9 +304,11 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      # PRs read main's cache but never overwrite it.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Linux system dependencies (Tauri v2 prerequisites)
         if: runner.os == 'Linux'
@@ -211,11 +336,13 @@ jobs:
         working-directory: src-tauri
         run: cargo test --features test-support
 
+  # Instrumented rebuild: a report, not a gate. Only on main.
   rust-coverage:
     name: rust coverage (report)
+    needs: [changes, rust]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-22.04
     timeout-minutes: 45
-    needs: rust
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -224,6 +351,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: coverage
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
@@ -251,15 +379,18 @@ jobs:
           path: src-tauri/lcov.info
           retention-days: 14
 
+  # The real app build (frontend + extension + Tauri). All 3 OS on main; Linux on PRs that
+  # touch the app (the rust job already compiles the crate on every OS).
   build-check:
     name: build-check (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.rust == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.extension == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    needs: frontend
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-22.04]
+        os: ${{ fromJSON(needs.changes.outputs.full == 'true' && '["windows-latest","macos-latest","ubuntu-22.04"]' || '["ubuntu-22.04"]') }}
     steps:
       - uses: actions/checkout@v5
 
@@ -276,6 +407,7 @@ jobs:
         with:
           workspaces: src-tauri
           key: build-check
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Linux system dependencies
         if: runner.os == 'Linux'
@@ -287,6 +419,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Runs `beforeBuildCommand` (pnpm build) then compiles the app; no installers.
+      # Runs `beforeBuildCommand` (frontend + extension) then compiles the app; no installers.
       - name: tauri build (no bundle)
         run: pnpm tauri build --debug --no-bundle
