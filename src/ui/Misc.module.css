@@ -95,31 +95,52 @@
   text-align: start;
   white-space: normal;
   pointer-events: none;
+  /* Hidden tooltips are out of layout entirely: an invisible box near a table edge would
+     still count as scrollable overflow and put a horizontal scrollbar on the ledger. */
+  display: none;
   opacity: 0;
-  visibility: hidden;
   transform: translate(-50%, 2px);
   transition:
     opacity var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out),
-    visibility 0s linear var(--dur-fast);
+    display var(--dur-fast) allow-discrete;
+}
+/* For triggers at the end of a row: grow leftwards so the tip stays inside the table. */
+.tipEnd {
+  left: auto;
+  right: 0;
+  transform: translate(0, 2px);
 }
 .tipBottom {
   bottom: auto;
   top: calc(100% + 6px);
   transform: translate(-50%, -2px);
 }
+.tipBottom.tipEnd {
+  transform: translate(0, -2px);
+}
 .tipWrap:hover .tip,
 .tipWrap:focus-within .tip,
 .tip[data-demo-state="open"] {
+  display: block;
   opacity: 1;
-  visibility: visible;
   transform: translate(-50%, 0);
   transition-delay: 300ms, 300ms, 0s;
+}
+.tipWrap:hover .tipEnd,
+.tipWrap:focus-within .tipEnd,
+.tipEnd[data-demo-state="open"] {
+  transform: translate(0, 0);
+}
+@starting-style {
+  .tipWrap:hover .tip,
+  .tipWrap:focus-within .tip {
+    opacity: 0;
+  }
 }
 .tipWrap:focus-within .tip {
   transition-delay: 0s;
 }
 .tipWrap[data-dismissed="true"] .tip {
-  opacity: 0;
-  visibility: hidden;
+  display: none;
 }

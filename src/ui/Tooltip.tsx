@@ -14,6 +14,8 @@ export interface TooltipProps {
   /** a single focusable element; it receives aria-describedby */
   children: ReactElement<{ "aria-describedby"?: string }>;
   placement?: "top" | "bottom";
+  /** "end" for triggers at the end of a row: the tip grows leftwards and stays in view */
+  align?: "center" | "end";
   className?: string;
   "data-demo-state"?: string;
 }
@@ -26,6 +28,7 @@ export function Tooltip({
   content,
   children,
   placement = "top",
+  align = "center",
   className,
   "data-demo-state": demo,
 }: TooltipProps) {
@@ -50,7 +53,7 @@ export function Tooltip({
       <span
         role="tooltip"
         id={id}
-        className={cx(s.tip, placement === "bottom" && s.tipBottom)}
+        className={cx(s.tip, placement === "bottom" && s.tipBottom, align === "end" && s.tipEnd)}
         data-demo-state={demo}
       >
         {content}

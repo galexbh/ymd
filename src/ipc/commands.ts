@@ -9,6 +9,7 @@ import type {
   CookieTestResult,
   DepId,
   DepsReport,
+  ExtensionStatus,
   EnqueueRequest,
   HistoryPage,
   HistoryQuery,
@@ -68,6 +69,11 @@ export const api = {
     invoke<SiteCredential[]>("credentials_set", { extractor, username, password }),
   credentialsDelete: (extractor: string) =>
     invoke<SiteCredential[]>("credentials_delete", { extractor }),
+
+  // cookie bridge (ymd Cookies extension)
+  extensionStatus: () => invoke<ExtensionStatus>("extension_status"),
+  /** opens the browser on its extensions page (brave://extensions, edge://extensions, …) */
+  extensionOpenPage: (browser: Browser) => invoke<void>("extension_open_page", { browser }),
 };
 
 export type Api = typeof api;

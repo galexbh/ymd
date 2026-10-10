@@ -1,9 +1,11 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { clearMocks } from "@tauri-apps/api/mocks";
 import { setupI18n } from "../../i18n";
 import i18n from "../../i18n";
 import { installMockBackend } from "../../ipc/mock";
 import { useTheme } from "../../theme/useTheme";
 import {
+  SAVED_VISIBLE_MS,
   newPresetId,
   presetsOfKind,
   resetSettingsStore,
@@ -85,6 +87,50 @@ describe("settings store", () => {
     await useSettings.getState().flush();
     await wait(10);
     expect(useSettings.getState().settings?.concurrency).toBe(6);
+  });
+
+  describe("«Guardado» is a confirmation that fades", () => {
+    afterEach(() => vi.useRealTimers());
+
+    it("returns to idle after a short delay", async () => {
+      installMockBackend();
+      await useSettings.getState().load();
+      vi.useFakeTimers();
+      useSettings.getState().update({ askEachTime: true });
+      await useSettings.getState().flush();
+      expect(useSettings.getState().status).toBe("saved");
+      await vi.advanceTimersByTimeAsync(SAVED_VISIBLE_MS - 100);
+      expect(useSettings.getState().status).toBe("saved");
+      await vi.advanceTimersByTimeAsync(200);
+      expect(useSettings.getState().status).toBe("idle");
+    });
+
+    it("a new save restarts the delay", async () => {
+      installMockBackend();
+      await useSettings.getState().load();
+      vi.useFakeTimers();
+      useSettings.getState().update({ askEachTime: true });
+      await useSettings.getState().flush();
+      await vi.advanceTimersByTimeAsync(SAVED_VISIBLE_MS - 500);
+      useSettings.getState().update({ askEachTime: false });
+      await useSettings.getState().flush();
+      await vi.advanceTimersByTimeAsync(SAVED_VISIBLE_MS - 500);
+      expect(useSettings.getState().status).toBe("saved");
+      await vi.advanceTimersByTimeAsync(600);
+      expect(useSettings.getState().status).toBe("idle");
+    });
+
+    it("an error stays until the user retries", async () => {
+      installMockBackend();
+      await useSettings.getState().load();
+      clearMocks(); // no backend: the next write fails
+      vi.useFakeTimers();
+      useSettings.getState().update({ askEachTime: true });
+      await useSettings.getState().flush();
+      expect(useSettings.getState().status).toBe("error");
+      await vi.advanceTimersByTimeAsync(SAVED_VISIBLE_MS * 4);
+      expect(useSettings.getState().status).toBe("error");
+    });
   });
 
   it("reports a failed load", async () => {

@@ -37,8 +37,12 @@ export function sanitizeLocal(s: Settings): Settings {
   };
 }
 
+/** How long «Guardado» stays before the indicator goes quiet again. */
+export const SAVED_VISIBLE_MS = 2500;
+
 let version = 0;
 let timer: ReturnType<typeof setTimeout> | null = null;
+let savedTimer: ReturnType<typeof setTimeout> | null = null;
 let pending: Promise<void> | null = null;
 
 function applySideEffects(prev: Settings | null, next: Settings) {
@@ -53,6 +57,8 @@ export const useSettings = create<SettingsState>((set, get) => {
     const current = get().settings;
     if (!current) return;
     const sent = version;
+    if (savedTimer) clearTimeout(savedTimer);
+    savedTimer = null;
     set({ status: "saving", saveError: null });
     try {
       const saved = await api.settingsSet(current);
@@ -60,6 +66,11 @@ export const useSettings = create<SettingsState>((set, get) => {
         const prev = get().settings;
         set({ settings: saved, status: "saved" });
         applySideEffects(prev, saved);
+        // «Guardado» is a confirmation, not a state: it fades back to idle. Errors stay.
+        savedTimer = setTimeout(() => {
+          savedTimer = null;
+          if (get().status === "saved") set({ status: "idle" });
+        }, SAVED_VISIBLE_MS);
       } else {
         set({ status: "saving" });
       }
@@ -123,6 +134,8 @@ export const useSettings = create<SettingsState>((set, get) => {
 export function resetSettingsStore() {
   if (timer) clearTimeout(timer);
   timer = null;
+  if (savedTimer) clearTimeout(savedTimer);
+  savedTimer = null;
   pending = null;
   version = 0;
   useSettings.setState({
