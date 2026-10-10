@@ -623,7 +623,7 @@
     }
   },
   "extension": {
-    "title": "ymd extension for Brave, Chrome and Edge",
+    "title": "ymd extension for Chromium browsers",
     "lead": "The extension sends your YouTube cookies to ymd whenever they change. It works with the browser open and without exporting files.",
     "state": {
       "connected": "Connected",
@@ -694,7 +694,7 @@
       "recommended": "recommended on Windows",
       "notInstalled": "not installed",
       "getFirefox": "Get Firefox",
-      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies yt-dlp can read directly: Brave, Chrome and Edge encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here."
+      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies yt-dlp can read directly: Brave, Chrome, Edge, Opera and the other Chromium browsers encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here, or use the ymd extension."
     },
     "test": "Test cookies",
     "testOk": "The cookies work",

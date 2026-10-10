@@ -113,6 +113,7 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 domains: info.domains,
             })
         });
+        let default = crate::auth::default_browser::detect_info();
         ExtensionStatus {
             extension_id: native_host::EXTENSION_ID.to_string(),
             extension_dir,
@@ -121,7 +122,9 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 .then(|| manifest.to_string_lossy().into_owned()),
             targets: native_registry::status(&paths.data_dir),
             last_sync,
-            default_browser: crate::auth::default_browser::detect(),
+            default_browser: default.as_ref().and_then(|d| d.browser),
+            default_browser_name: default.as_ref().map(|d| d.name.clone()),
+            default_browser_chromium: default.as_ref().is_some_and(|d| d.chromium),
         }
     })
     .await
@@ -132,12 +135,25 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
 /// such as `brave://extensions` passed by another program, so the UI copies that address for
 /// the user to paste.
 #[tauri::command]
-pub async fn extension_open_page(state: State<'_>, browser: Browser) -> CmdResult<()> {
+/// `browser: None` launches the default browser by its own executable (Chromium forks such as
+/// Arc or Yandex have no yt-dlp browser key).
+pub async fn extension_open_page(state: State<'_>, browser: Option<Browser>) -> CmdResult<()> {
     let _ = state;
-    let (program, args) =
-        tokio::task::spawn_blocking(move || crate::auth::browser_exe::launch_command(browser))
-            .await
-            .map_err(CommandError::unknown)??;
+    let (program, args) = tokio::task::spawn_blocking(move || match browser {
+        Some(b) => crate::auth::browser_exe::launch_command(b),
+        None => crate::auth::default_browser::detect_info()
+            .and_then(|d| d.exe)
+            .filter(|p| p.is_file())
+            .map(|exe| (exe, Vec::new()))
+            .ok_or_else(|| {
+                CommandError::new(
+                    crate::model::ErrorCode::BinaryMissing,
+                    "could not find the default browser executable",
+                )
+            }),
+    })
+    .await
+    .map_err(CommandError::unknown)??;
     let mut cmd = crate::process::command(&program);
     // The browser must outlive this call (and ymd).
     cmd.kill_on_drop(false)

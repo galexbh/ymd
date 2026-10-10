@@ -9,6 +9,8 @@ import {
   EXTENSION_POLL_MS,
   bridgeState,
   extensionsUrl,
+  cardTarget,
+  forkExtensionsUrl,
   pageBrowser,
   syncBrowserName,
 } from "../extension";
@@ -180,6 +182,26 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     expect(within(c).getByText(/resources\\extension/)).toBeInTheDocument();
   });
 
+  it("a Chromium fork as default (Opera GX) is opened by its own executable", async () => {
+    const { be, user, tick } = await renderApp({
+      ...accounts,
+      extension: {
+        defaultBrowser: "opera",
+        defaultBrowserName: "Opera GX",
+        defaultBrowserChromium: true,
+      },
+    });
+    const c = await card();
+    await user.click(
+      await within(c).findByRole("button", { name: "Abrir Opera GX y copiar la dirección" }),
+    );
+    await tick(0);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: null }]);
+    const notice = await within(c).findByTestId("extension-opened");
+    expect(notice).toHaveTextContent("Opera GX está abierto");
+    expect(notice).toHaveTextContent("opera://extensions");
+  });
+
   it("with Firefox as the default browser, offers its cookies instead of the extension", async () => {
     const { be, user, tick } = await renderApp({
       ...accounts,
@@ -324,7 +346,7 @@ describe("Ajustes → Cuentas: extensión de ymd — idiomas", () => {
   it("renders in English", async () => {
     await renderApp({ ...accounts, settings: { language: "en" }, extension: { lastSync: SYNC } });
     expect(
-      await screen.findByRole("heading", { name: "ymd extension for Brave, Chrome and Edge" }),
+      await screen.findByRole("heading", { name: "ymd extension for Chromium browsers" }),
     ).toBeInTheDocument();
     expect(await stamp()).toHaveTextContent("Connected");
     expect(
@@ -345,6 +367,8 @@ describe("extension helpers", () => {
     ],
     lastSync: null,
     defaultBrowser: null,
+    defaultBrowserName: null,
+    defaultBrowserChromium: false,
   };
 
   it("bridgeState", () => {
@@ -366,6 +390,46 @@ describe("extension helpers", () => {
     expect(pageBrowser({ ...status, defaultBrowser: "edge" }, "chrome")).toBe("edge");
     expect(pageBrowser({ ...status, defaultBrowser: "firefox" }, "edge")).toBe("edge");
     expect(pageBrowser({ ...status, defaultBrowser: "safari" }, null)).toBe("chrome");
+  });
+
+  it("cardTarget: a Chromium fork as default is launched by its executable, with its own page", () => {
+    expect(
+      cardTarget(
+        {
+          ...status,
+          defaultBrowser: "opera",
+          defaultBrowserName: "Opera GX",
+          defaultBrowserChromium: true,
+        },
+        null,
+      ),
+    ).toEqual({ browser: null, name: "Opera GX", url: "opera://extensions" });
+    expect(
+      cardTarget({ ...status, defaultBrowserName: "Yandex", defaultBrowserChromium: true }, null),
+    ).toEqual({ browser: null, name: "Yandex", url: "browser://extensions" });
+    expect(
+      cardTarget({ ...status, defaultBrowserName: "Arc", defaultBrowserChromium: true }, null),
+    ).toEqual({ browser: null, name: "Arc", url: "chrome://extensions" });
+    // a browser ymd registers by name keeps its own target
+    expect(
+      cardTarget(
+        {
+          ...status,
+          defaultBrowser: "edge",
+          defaultBrowserName: "Edge",
+          defaultBrowserChromium: true,
+        },
+        null,
+      ),
+    ).toEqual({ browser: "edge", name: "Edge", url: "edge://extensions" });
+  });
+
+  it("forkExtensionsUrl", () => {
+    expect(forkExtensionsUrl("Opera")).toBe("opera://extensions");
+    expect(forkExtensionsUrl("Opera GX")).toBe("opera://extensions");
+    expect(forkExtensionsUrl("Yandex")).toBe("browser://extensions");
+    expect(forkExtensionsUrl("Whale")).toBe("whale://extensions");
+    expect(forkExtensionsUrl("Thorium")).toBe("chrome://extensions");
   });
 
   it("extensionsUrl", () => {

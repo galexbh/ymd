@@ -25,8 +25,38 @@ export function syncBrowserName(browser: string): string {
   return browser ? browser[0].toUpperCase() + browser.slice(1) : browser;
 }
 
-/** Chromium browsers the bridge supports (the ones ymd registers its host for). */
+/** Chromium browsers ymd registers its host for by name (forks use the Chrome fallback). */
 const BRIDGE_BROWSERS: Browser[] = ["brave", "chrome", "chromium", "edge", "vivaldi"];
+
+/** Extensions page of a Chromium fork, by its display name; most forks accept chrome://. */
+export function forkExtensionsUrl(name: string): string {
+  const n = name.toLowerCase();
+  if (n.startsWith("opera")) return "opera://extensions";
+  if (n.startsWith("yandex")) return "browser://extensions";
+  if (n.startsWith("whale")) return "whale://extensions";
+  if (n.startsWith("vivaldi")) return "vivaldi://extensions";
+  if (n.startsWith("brave")) return "brave://extensions";
+  if (n.startsWith("edge")) return "edge://extensions";
+  return "chrome://extensions";
+}
+
+/** What the card sets up: a browser to launch (null = the default one by its executable). */
+export interface CardTarget {
+  browser: Browser | null;
+  name: string;
+  url: string;
+}
+
+export function cardTarget(st: ExtensionStatus, chosen: Browser | null): CardTarget {
+  const d = st.defaultBrowser;
+  if (st.defaultBrowserChromium && !(d && BRIDGE_BROWSERS.includes(d))) {
+    // A Chromium fork ymd knows only by name (Opera GX, Arc, Yandex, Thorium…).
+    const name = st.defaultBrowserName ?? "Chromium";
+    return { browser: null, name, url: forkExtensionsUrl(name) };
+  }
+  const browser = pageBrowser(st, chosen);
+  return { browser, name: BROWSER_NAMES[browser], url: extensionsUrl(browser) };
+}
 
 /** The browser's internal extensions page (it can't be opened by another program: paste it). */
 export function extensionsUrl(b: Browser): string {

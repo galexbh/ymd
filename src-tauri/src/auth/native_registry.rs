@@ -187,7 +187,12 @@ fn register_named(
         .iter()
         .map(|&browser| {
             let installed = installed(os, env, browser);
-            let registered = installed
+            // On Windows, Chromium forks without their own documented key (Opera, Arc, Yandex,
+            // Whale, Thorium…) fall back to Chrome's and Chromium's, so those two are always
+            // written, installed or not.
+            let fallback =
+                os == Os::Windows && matches!(browser, Browser::Chrome | Browser::Chromium);
+            let registered = (installed || fallback)
                 && own_ok
                 && match register_one(name, browser, &own, &manifest, os, env) {
                     Ok(()) => true,

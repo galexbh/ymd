@@ -119,6 +119,174 @@ fn run(program: &str, args: &[&str]) -> Option<String> {
         .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
 }
 
+/// The default browser as the extension card needs it: a display name, whether it is a
+/// Chromium browser (so the ymd extension can be installed in it), the yt-dlp `Browser` when
+/// it is one, and on Windows the executable to launch it with.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DefaultBrowser {
+    pub name: String,
+    pub chromium: bool,
+    pub browser: Option<Browser>,
+    pub exe: Option<std::path::PathBuf>,
+}
+
+/// Pure: name / Chromium-ness of a browser executable. Many Chromium forks have no yt-dlp
+/// browser key (Arc, Yandex, Thorium…), so they are recognised by their executable.
+pub fn classify_exe(path: &std::path::Path) -> (String, bool, Option<Browser>) {
+    let file = path
+        .file_name()
+        .map(|f| f.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    let full = path.to_string_lossy().to_ascii_lowercase();
+    let named = |n: &str, chromium: bool, b: Option<Browser>| (n.to_string(), chromium, b);
+    match file.as_str() {
+        "brave.exe" => named("Brave", true, Some(Browser::Brave)),
+        "msedge.exe" => named("Edge", true, Some(Browser::Edge)),
+        "vivaldi.exe" => named("Vivaldi", true, Some(Browser::Vivaldi)),
+        "whale.exe" => named("Whale", true, Some(Browser::Whale)),
+        "chrome.exe" if full.contains("chromium") => {
+            named("Chromium", true, Some(Browser::Chromium))
+        }
+        "chrome.exe" => named("Chrome", true, Some(Browser::Chrome)),
+        "opera.exe" | "launcher.exe" if full.contains("opera gx") => {
+            named("Opera GX", true, Some(Browser::Opera))
+        }
+        "opera.exe" | "launcher.exe" if full.contains("opera") => {
+            named("Opera", true, Some(Browser::Opera))
+        }
+        "browser.exe" if full.contains("yandex") => named("Yandex", true, None),
+        "arc.exe" => named("Arc", true, None),
+        "thorium.exe" => named("Thorium", true, None),
+        "firefox.exe" => named("Firefox", false, Some(Browser::Firefox)),
+        _ => {
+            let stem = path
+                .file_stem()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            let mut c = stem.chars();
+            let name = c
+                .next()
+                .map(|f| f.to_uppercase().collect::<String>() + c.as_str())
+                .unwrap_or_default();
+            (name, false, None)
+        }
+    }
+}
+
+/// Pure: the executable from a shell `open\command` value (`"C:\…\opera.exe" --single-argument %1`).
+pub fn exe_from_open_command(command: &str) -> Option<std::path::PathBuf> {
+    let c = command.trim();
+    let exe = if let Some(rest) = c.strip_prefix('"') {
+        rest.split('"').next()?
+    } else {
+        c.split_whitespace().next()?
+    };
+    (!exe.is_empty()).then(|| std::path::PathBuf::from(exe))
+}
+
+#[cfg(windows)]
+fn windows_exe_for_progid(progid: &str) -> Option<std::path::PathBuf> {
+    use winreg::enums::{HKEY_CLASSES_ROOT, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+    use winreg::RegKey;
+    let read = |hive, key: String| {
+        RegKey::predef(hive)
+            .open_subkey(key)
+            .and_then(|k| k.get_value::<String, _>(""))
+            .ok()
+    };
+    let rel = format!(r"{progid}\shell\open\command");
+    read(HKEY_CURRENT_USER, format!(r"Software\Classes\{rel}"))
+        .or_else(|| read(HKEY_LOCAL_MACHINE, format!(r"Software\Classes\{rel}")))
+        .or_else(|| read(HKEY_CLASSES_ROOT, rel))
+        .and_then(|c| exe_from_open_command(&c))
+}
+
+#[cfg(not(windows))]
+fn windows_exe_for_progid(_progid: &str) -> Option<std::path::PathBuf> {
+    None
+}
+
+/// Pure: Chromium forks without a yt-dlp key, by macOS bundle id / Linux desktop id.
+fn chromium_fork_name(id: &str) -> Option<&'static str> {
+    let id = id.to_ascii_lowercase();
+    Some(match () {
+        _ if id.contains("thebrowser") || id.starts_with("arc") => "Arc",
+        _ if id.contains("yandex") => "Yandex",
+        _ if id.contains("thorium") => "Thorium",
+        _ if id.contains("operagx") || id.contains("opera-gx") => "Opera GX",
+        _ => return None,
+    })
+}
+
+fn from_browser(b: Browser) -> DefaultBrowser {
+    let name = match b {
+        Browser::Brave => "Brave",
+        Browser::Chrome => "Chrome",
+        Browser::Chromium => "Chromium",
+        Browser::Edge => "Edge",
+        Browser::Firefox => "Firefox",
+        Browser::Opera => "Opera",
+        Browser::Safari => "Safari",
+        Browser::Vivaldi => "Vivaldi",
+        Browser::Whale => "Whale",
+    };
+    DefaultBrowser {
+        name: name.into(),
+        chromium: !matches!(b, Browser::Firefox | Browser::Safari),
+        browser: Some(b),
+        exe: None,
+    }
+}
+
+/// Best effort: everything the card needs about the default browser.
+pub fn detect_info() -> Option<DefaultBrowser> {
+    match Os::current() {
+        Os::Windows => {
+            let progid = windows_progid()?;
+            if let Some(exe) = windows_exe_for_progid(&progid) {
+                let (name, chromium, browser) = classify_exe(&exe);
+                return Some(DefaultBrowser {
+                    name,
+                    chromium,
+                    browser: browser.or_else(|| from_windows_progid(&progid)),
+                    exe: Some(exe),
+                });
+            }
+            from_windows_progid(&progid).map(from_browser)
+        }
+        Os::Mac => {
+            let id = run(
+                "defaults",
+                &[
+                    "read",
+                    "com.apple.LaunchServices/com.apple.launchservices.secure",
+                    "LSHandlers",
+                ],
+            )
+            .and_then(|o| mac_https_handler(&o))?;
+            from_mac_bundle_id(&id).map(from_browser).or_else(|| {
+                chromium_fork_name(&id).map(|n| DefaultBrowser {
+                    name: n.into(),
+                    chromium: true,
+                    browser: None,
+                    exe: None,
+                })
+            })
+        }
+        Os::Linux => {
+            let id = run("xdg-settings", &["get", "default-web-browser"])?;
+            from_desktop_id(&id).map(from_browser).or_else(|| {
+                chromium_fork_name(&id).map(|n| DefaultBrowser {
+                    name: n.into(),
+                    chromium: true,
+                    browser: None,
+                    exe: None,
+                })
+            })
+        }
+    }
+}
+
 /// Best effort: the user's default browser, or `None` when it can't be told.
 pub fn detect() -> Option<Browser> {
     match Os::current() {
@@ -241,5 +409,81 @@ mod tests {
     #[test]
     fn detect_on_this_machine_does_not_panic() {
         let _ = detect();
+        let _ = detect_info();
+    }
+
+    #[test]
+    fn exes_of_chromium_forks() {
+        use std::path::Path;
+        let c = |p: &str| classify_exe(Path::new(p));
+        assert_eq!(
+            c(r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"),
+            ("Brave".into(), true, Some(Browser::Brave))
+        );
+        assert_eq!(
+            c(r"C:\Users\u\AppData\Local\Programs\Opera GX\launcher.exe"),
+            ("Opera GX".into(), true, Some(Browser::Opera))
+        );
+        assert_eq!(
+            c(r"C:\Users\u\AppData\Local\Programs\Opera\opera.exe"),
+            ("Opera".into(), true, Some(Browser::Opera))
+        );
+        assert_eq!(
+            c(r"C:\Users\u\AppData\Local\Yandex\YandexBrowser\Application\browser.exe"),
+            ("Yandex".into(), true, None)
+        );
+        assert_eq!(
+            c(r"C:\Program Files\WindowsApps\TheBrowserCompany.Arc_1\Arc.exe"),
+            ("Arc".into(), true, None)
+        );
+        assert_eq!(
+            c(r"C:\Users\u\AppData\Local\Chromium\Application\chrome.exe"),
+            ("Chromium".into(), true, Some(Browser::Chromium))
+        );
+        assert_eq!(
+            c(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+            ("Chrome".into(), true, Some(Browser::Chrome))
+        );
+        assert_eq!(
+            c(r"C:\Program Files\Mozilla Firefox\firefox.exe"),
+            ("Firefox".into(), false, Some(Browser::Firefox))
+        );
+        assert_eq!(
+            c(r"C:\Apps\librewolf.exe"),
+            ("Librewolf".into(), false, None)
+        );
+    }
+
+    #[test]
+    fn open_commands() {
+        assert_eq!(
+            exe_from_open_command(r#""C:\Program Files\Opera\opera.exe" --single-argument %1"#),
+            Some(std::path::PathBuf::from(
+                r"C:\Program Files\Opera\opera.exe"
+            ))
+        );
+        assert_eq!(
+            exe_from_open_command(r"C:\Apps\browser.exe -- %1"),
+            Some(std::path::PathBuf::from(r"C:\Apps\browser.exe"))
+        );
+        assert_eq!(exe_from_open_command("  "), None);
+    }
+
+    #[test]
+    fn fork_ids() {
+        assert_eq!(
+            chromium_fork_name("company.thebrowser.Browser"),
+            Some("Arc")
+        );
+        assert_eq!(
+            chromium_fork_name("ru.yandex.desktop.yandex-browser"),
+            Some("Yandex")
+        );
+        assert_eq!(chromium_fork_name("yandex-browser.desktop"), Some("Yandex"));
+        assert_eq!(
+            chromium_fork_name("com.operasoftware.OperaGX"),
+            Some("Opera GX")
+        );
+        assert_eq!(chromium_fork_name("org.gnome.Epiphany"), None);
     }
 }

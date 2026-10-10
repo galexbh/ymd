@@ -72,8 +72,8 @@ export const api = {
 
   // cookie bridge (ymd Cookies extension)
   extensionStatus: () => invoke<ExtensionStatus>("extension_status"),
-  /** opens the browser on its extensions page (brave://extensions, edge://extensions, …) */
-  extensionOpenPage: (browser: Browser) => invoke<void>("extension_open_page", { browser }),
+  /** launches (or focuses) a browser; null = the default browser by its own executable */
+  extensionOpenPage: (browser: Browser | null) => invoke<void>("extension_open_page", { browser }),
 };
 
 export type Api = typeof api;
