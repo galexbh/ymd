@@ -1142,7 +1142,7 @@ export class MockBackend {
   private async cookiesTest(source: CookieSource): Promise<CookieTestResult> {
     if (this.delays.auth > 0) await this.wait(this.delays.auth);
     if (!source || source.kind === "none") return { ok: true, error: null };
-    if (source.kind === "file") {
+    if (source.kind === "file" || source.kind === "extension") {
       return this.cookies
         ? { ok: true, error: null }
         : { ok: false, error: { code: "unknown", detail: "No cookies.txt has been imported yet" } };

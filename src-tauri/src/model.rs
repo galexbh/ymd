@@ -321,13 +321,16 @@ pub enum Browser {
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CookieSource {
     None,
-    /// Read live from the browser on each download.
+    /// Read live from the browser on each download. Firefox and Safari only: Chromium browsers
+    /// go through the extension (Windows encrypts their cookies so yt-dlp cannot read them).
     Browser {
         browser: Browser,
         profile: Option<String>,
     },
     /// Use the snapshot / imported cookies.txt in the app data dir.
     File,
+    /// The same cookies.txt, kept up to date by the ymd Cookies extension (Chromium browsers).
+    Extension,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

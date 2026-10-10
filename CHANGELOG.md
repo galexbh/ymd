@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Cambios
+
+- **Brave, Chrome, Edge y demás navegadores Chromium solo con la extensión.** **Origen de las cookies** ahora ofrece **Ninguno**, **Extensión**, **Firefox** (o **Firefox o Safari** en macOS) y **Archivo cookies.txt**. ymd ya no intenta leer directamente los navegadores Chromium: en Windows sus cookies están cifradas, y quedan bloqueadas mientras el navegador sigue en segundo plano (por ejemplo, el «Inicio rápido» de Edge), así que aparecían como «abiertos» sin ninguna ventana. Si tenías elegido uno, ymd pasa a **Extensión** solo.
+
 ## [0.3.1] - 2026-10-10
 
 ### Novedades
@@ -94,6 +100,7 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/galexbh/ymd/releases/tag/v0.3.1
 [0.3.0]: https://github.com/galexbh/ymd/releases/tag/v0.3.0
 [0.2.0]: https://github.com/galexbh/ymd/releases/tag/v0.2.0

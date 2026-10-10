@@ -22,7 +22,9 @@ const SYNC: ExtensionSync = {
   domains: [".youtube.com", ".google.com"],
 };
 
-const accounts = { route: "settings", section: "accounts" } as const;
+/** Cuentas with «Extensión» as the cookie source: the only place the card shows. */
+const EXT_SETTINGS = { language: "es", cookies: { kind: "extension" } } as const;
+const accounts = { route: "settings", section: "accounts", settings: EXT_SETTINGS } as const;
 
 const card = () => screen.findByTestId("extension-card");
 const stamp = async () => within(await card()).findByTestId("extension-stamp");
@@ -72,30 +74,18 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
     expect(screen.getByTestId("extension-status")).toHaveTextContent(/Reinicia ymd/);
   });
 
-  it("leads the cookie remedies on Windows with Brave: above the cookies.txt guide, now the alternative", async () => {
-    await renderApp(accounts);
+  it("shows its id and four steps, and leaves when another source is picked", async () => {
+    const { user, tick } = await renderApp(accounts);
     const c = await card();
-    const guide = screen.getByTestId("cookie-guide");
     expect(c).toHaveAttribute("data-prominent", "true");
-    expect(c.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(
-      within(guide).getByRole("heading", { name: "Alternativa: exportar cookies.txt a mano" }),
-    ).toBeInTheDocument();
     expect(within(c).getByTestId("extension-id")).toHaveTextContent(
       "gicaphbpepkphmeciigjhdpnbcaflfgd",
     );
     expect(within(c).getAllByRole("listitem")).toHaveLength(4);
-  });
-
-  it("stays available but secondary elsewhere (Linux): after the guide", async () => {
-    await renderApp({ ...accounts, platform: "linux" });
-    const c = await card();
-    const guide = screen.getByTestId("cookie-guide");
-    expect(c).not.toHaveAttribute("data-prominent");
-    expect(guide.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(
-      within(guide).getByRole("heading", { name: "Exportar cookies.txt" }),
-    ).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Archivo cookies.txt" }));
+    await tick(0);
+    expect(screen.queryByTestId("extension-card")).toBeNull();
+    expect(screen.getByTestId("cookie-guide")).toBeInTheDocument();
   });
 });
 
@@ -124,7 +114,7 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     const { be, user, tick } = await renderApp({
       ...accounts,
       extension: { defaultBrowser: "edge" },
-      settings: { language: "es", cookies: { kind: "browser", browser: "brave", profile: null } },
+      settings: EXT_SETTINGS,
     });
     const c = await card();
     await user.click(
@@ -135,11 +125,10 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     expect(within(c).getAllByText("edge://extensions").length).toBeGreaterThan(0);
   });
 
-  it("with no known default, uses the Chromium browser picked as cookie source", async () => {
+  it("with no known default, uses the browser that last synced", async () => {
     const { be, user, tick } = await renderApp({
       ...accounts,
-      extension: { defaultBrowser: null },
-      settings: { language: "es", cookies: { kind: "browser", browser: "edge", profile: null } },
+      extension: { defaultBrowser: null, lastSync: { ...SYNC, browser: "edge" } },
     });
     const c = await card();
     await user.click(
@@ -230,11 +219,8 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
 });
 
 describe("Ajustes → Cuentas: extensión de ymd — sondeo", () => {
-  it("picks up the first sync, switches the source to the file and says so quietly", async () => {
-    const { be, tick } = await renderApp({
-      ...accounts,
-      settings: { language: "es", cookies: { kind: "browser", browser: "brave", profile: null } },
-    });
+  it("picks up the first sync and says so quietly", async () => {
+    const { be, tick } = await renderApp(accounts);
     expect(await stamp()).toHaveTextContent("Pendiente");
     const before = calls(be, "extension_status").length;
 
@@ -244,18 +230,15 @@ describe("Ajustes → Cuentas: extensión de ymd — sondeo", () => {
 
     await waitFor(async () => expect(await stamp()).toHaveTextContent("Conectada"));
     const notice = await screen.findByText("Brave conectado: 42 cookies sincronizadas");
-    expect(notice.closest("[role=status]")).toHaveTextContent(/cambió a «Archivo cookies.txt»/);
-    await waitFor(() => expect(be.snapshot().settings.cookies).toEqual({ kind: "file" }));
+    expect(notice.closest("[role=status]")).not.toHaveTextContent(/cambió/);
+    expect(be.snapshot().settings.cookies).toEqual({ kind: "extension" });
     // the cookie copy section reflects the synced file
     const info = await screen.findByTestId("cookie-info");
     await waitFor(() => expect(info).toHaveTextContent("extension:brave"));
   });
 
-  it("keeps an existing file source and does not repeat the notice on later syncs", async () => {
-    const { be, tick } = await renderApp({
-      ...accounts,
-      settings: { language: "es", cookies: { kind: "file" } },
-    });
+  it("keeps the source and does not repeat the notice on later syncs", async () => {
+    const { be, tick } = await renderApp(accounts);
     await stamp();
     be.simulateExtensionSync("edge", 7, []);
     await poll(tick);
@@ -276,7 +259,7 @@ describe("Ajustes → Cuentas: extensión de ymd — sondeo", () => {
     await stamp();
     await poll(tick);
     expect(screen.queryByText(/cookies sincronizadas/)).toBeNull();
-    expect(be.snapshot().settings.cookies).toEqual({ kind: "none" });
+    expect(be.snapshot().settings.cookies).toEqual({ kind: "extension" });
   });
 
   it("refreshes on window focus", async () => {
@@ -309,25 +292,6 @@ describe("Ajustes → Cuentas: extensión de ymd — sondeo", () => {
   });
 });
 
-describe("Ajustes → Cuentas: extensión de ymd — aviso de descifrado", () => {
-  it("«Usar la extensión de ymd» scrolls to and focuses the card; the other actions remain", async () => {
-    const { user, tick } = await renderApp({ ...accounts, braveRunning: false });
-    await user.click(screen.getByRole("radio", { name: "Navegador" }));
-    await tick(0);
-    await user.click(screen.getByTestId("cookies-test"));
-    await tick(0);
-    await screen.findByText(/Failed to decrypt with DPAPI/);
-    const spy = vi.spyOn(Element.prototype, "scrollIntoView");
-    expect(screen.getByRole("button", { name: "Usar cookies.txt" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Usar Firefox" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Usar la extensión de ymd" }));
-    const c = await card();
-    expect(c).toHaveFocus();
-    expect(c).toHaveAttribute("data-ring", "true");
-    expect(spy.mock.contexts).toContain(c);
-  });
-});
-
 describe("Ajustes → Cuentas: extensión de ymd — idiomas", () => {
   type Tree = { [k: string]: string | Tree };
   const keys = (tree: Tree, prefix = ""): string[] =>
@@ -339,14 +303,16 @@ describe("Ajustes → Cuentas: extensión de ymd — idiomas", () => {
     const esKeys = keys(es.extension as Tree).sort();
     expect(keys(en.extension as Tree).sort()).toEqual(esKeys);
     expect(esKeys.length).toBeGreaterThan(20);
-    expect(es.accounts.guide.titleAlt).toBeTruthy();
-    expect(en.accounts.guide.titleAlt).toBeTruthy();
-    expect(es.accounts.decrypt.useExtension).toBe("Usar la extensión de ymd");
-    expect(en.accounts.decrypt.useExtension).toBe("Use the ymd extension");
+    expect(es.accounts.source.extension).toBe("Extensión");
+    expect(en.accounts.source.extension).toBe("Extension");
   });
 
   it("renders in English", async () => {
-    await renderApp({ ...accounts, settings: { language: "en" }, extension: { lastSync: SYNC } });
+    await renderApp({
+      ...accounts,
+      settings: { ...EXT_SETTINGS, language: "en" },
+      extension: { lastSync: SYNC },
+    });
     expect(
       await screen.findByRole("heading", { name: "ymd extension for Chromium browsers" }),
     ).toBeInTheDocument();

@@ -5,7 +5,7 @@ description: The Chromium-browser extension that hands your cookies to ymd witho
 
 **ymd Cookies** is a Manifest V3 extension for Chromium browsers: Brave, Chrome, Edge, Opera, Vivaldi and others. It hands ymd, on the same computer, the cookies of the sites you choose, whenever they change. It works with the browser open and without exporting files.
 
-On Windows it's the recommended route for Chromium browsers, which encrypt their cookies so yt-dlp can't read them (see [Browser cookies](/ymd/en/cookies/navegador/)).
+It's how ymd uses a Chromium browser's cookies: it doesn't read them directly (see [Firefox cookies](/ymd/en/cookies/navegador/#what-about-brave-chrome-or-edge)). Choose **Extension** as the **Cookie source** and the card shows the steps.
 
 ## Install
 

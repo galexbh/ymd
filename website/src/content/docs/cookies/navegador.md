@@ -1,36 +1,29 @@
 ---
-title: Cookies del navegador
-description: Que yt-dlp lea las cookies directamente del navegador, y por qué en Windows conviene Firefox.
+title: Cookies de Firefox
+description: Que ymd lea las cookies de Firefox (o Safari en macOS) directamente, y por qué los navegadores Chromium van por la extensión.
 ---
 
-Con **Origen de las cookies → Navegador**, yt-dlp lee las cookies del navegador en cada descarga (`--cookies-from-browser`).
+Con **Origen de las cookies → Firefox**, ymd lee las cookies de Firefox en cada descarga (`--cookies-from-browser`). En macOS la opción se llama **Firefox o Safari** y permite elegir cualquiera de los dos.
 
-## Elegir navegador y perfil
+## Elegir perfil
 
 En **Ajustes → Cuentas → Cookies del navegador**:
 
-1. Elige el **Navegador**. ymd detecta los instalados (**Volver a detectar** repite la búsqueda) y marca los que están abiertos.
-2. Elige el **Perfil** si el navegador tiene varios. Brave tiene soporte de primera clase: los perfiles se leen de su configuración.
+1. Elige **Firefox** como origen. ymd lo detecta (**Volver a detectar** repite la búsqueda). Si no lo tienes, **Descargar Firefox** abre su página.
+2. Elige el **Perfil** si tienes varios.
 3. Pulsa **Probar cookies**. Si funcionan, se usan en las próximas descargas.
 
-**Importar desde el navegador ahora** guarda una copia en el `cookies.txt` de ymd. Elige luego **Archivo cookies.txt** como origen para usarla con el navegador abierto.
+Firefox puede estar abierto mientras descargas: ymd lee una copia de sus cookies.
 
-## Windows: Firefox recomendado
+**Importar desde el navegador ahora** guarda una copia en el `cookies.txt` de ymd. Elige luego **Archivo cookies.txt** como origen para usar esa copia en lugar de leer Firefox en cada descarga.
 
-En Windows, Firefox es el único navegador cuyas cookies yt-dlp puede leer directamente. Brave, Chrome y Edge las cifran con cifrado ligado a la aplicación (_app-bound encryption_): solo el propio navegador puede descifrarlas, así que ningún otro programa, tampoco yt-dlp, las abre. Además mantienen bloqueada la base de cookies mientras están abiertos.
+## ¿Y Brave, Chrome o Edge?
 
-Por eso la lista marca Firefox como **recomendado en Windows**. Inicia sesión en YouTube en Firefox y elígelo como navegador. Si no lo tienes, **Descargar Firefox** abre su página.
+Los navegadores Chromium no se leen directamente; para ellos está la [extensión ymd Cookies](/ymd/cookies/extension/) (origen **Extensión**). Hay dos motivos:
 
-Si usas Brave, Chrome o Edge en Windows, tienes dos alternativas:
+- En Windows cifran sus cookies con cifrado ligado a la aplicación (_app-bound encryption_): solo el propio navegador puede descifrarlas, así que ningún otro programa las abre.
+- Mantienen bloqueada la base de cookies mientras corren, y muchos siguen corriendo en segundo plano después de cerrar la última ventana (por ejemplo, el «Inicio rápido» de Edge).
 
-- La [extensión ymd Cookies](/ymd/cookies/extension/), que envía las cookies desde dentro del navegador.
-- Un [archivo cookies.txt](/ymd/cookies/cookies-txt/) exportado a mano.
-
-En macOS y Linux, yt-dlp puede leer las cookies de los navegadores Chromium y de Firefox (y Safari en macOS).
-
-## Errores frecuentes
-
-- **El navegador tiene bloqueadas sus cookies**: ciérralo por completo, incluido el icono junto al reloj, y pulsa **Ya cerré Brave, probar otra vez** (con el nombre de tu navegador). O usa un `cookies.txt`, que funciona con el navegador abierto.
-- **No se pudieron leer las cookies del navegador**: es el cifrado de Windows descrito arriba. Usa la extensión de ymd, Firefox o un `cookies.txt`.
+La extensión evita las dos cosas: lee las cookies desde dentro del navegador y funciona con el navegador abierto, en Windows, macOS y Linux.
 
 Más en [Solución de problemas](/ymd/solucion-de-problemas/).

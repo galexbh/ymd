@@ -1,7 +1,6 @@
 // Pure helpers of the cookie bridge card (ExtensionCard.tsx).
 import type { Browser, ExtensionStatus, JobStage } from "../../ipc/types";
 import { BROWSER_NAMES } from "../shared/errorFixes";
-import { CHROMIUM } from "./constants";
 
 /** How often the card asks for the bridge state while Cuentas is open. */
 export const EXTENSION_POLL_MS = 5000;
@@ -80,7 +79,7 @@ export function extensionsUrl(b: Browser): string {
 export function pageBrowser(st: ExtensionStatus, chosen: Browser | null): Browser {
   const installed = st.targets.filter((t) => t.installed).map((t) => t.browser);
   if (st.defaultBrowser && BRIDGE_BROWSERS.includes(st.defaultBrowser)) return st.defaultBrowser;
-  if (chosen && CHROMIUM.includes(chosen) && installed.includes(chosen)) return chosen;
+  if (chosen && BRIDGE_BROWSERS.includes(chosen) && installed.includes(chosen)) return chosen;
   const synced = st.lastSync?.browser as Browser | undefined;
   if (synced && installed.includes(synced)) return synced;
   return installed[0] ?? st.targets[0]?.browser ?? "brave";

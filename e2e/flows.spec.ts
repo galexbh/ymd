@@ -49,7 +49,7 @@ test.describe("flows", () => {
       timeout: 10_000,
     });
     await page.getByRole("button", { name: "Abrir Ajustes → Cuentas" }).click();
-    await expect(page.getByTestId("cookie-guide")).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Extensión" })).toBeVisible();
   });
 
   test("catalog search narrows the ledger", async ({ page, app }) => {

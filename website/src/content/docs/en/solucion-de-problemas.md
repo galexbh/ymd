@@ -49,13 +49,13 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `cookies_locked`. The browser is open and keeps its cookie database locked, so yt-dlp can't read it.
 
-**Fix:** quit the browser completely, including the icon next to the clock, and click **I closed the browser, retry** (shown with its name). Or click **Use a cookies.txt file**: a cookie copy works with the browser open.
+**Fix:** it happens with Chromium browsers, which ymd no longer reads directly. Choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/), which works with the browser open.
 
 ### Couldn't read the browser's cookies
 
-`cookies_decrypt`. yt-dlp found the cookies but couldn't decrypt them. On Windows, Brave, Chrome and Edge encrypt them so no other program can read them (see [Browser cookies](/ymd/en/cookies/navegador/#windows-firefox-recommended)).
+`cookies_decrypt`. yt-dlp found the cookies but couldn't decrypt them. On Windows, Brave, Chrome and Edge encrypt them so no other program can read them (see [Firefox cookies](/ymd/en/cookies/navegador/#what-about-brave-chrome-or-edge)).
 
-**Fix:** quit the browser and retry. If it keeps failing, import a `cookies.txt` file in **Settings → Accounts**, use the [ymd Cookies extension](/ymd/en/cookies/extension/) or switch to Firefox.
+**Fix:** choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/). Firefox or a `cookies.txt` file also work.
 
 ## Tools
 
