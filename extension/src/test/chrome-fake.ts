@@ -13,6 +13,9 @@ import {
   type ChromeEvent,
   type CookieChangeInfo,
   type StorageChange,
+  type MenuClickInfo,
+  type MenuProperties,
+  type Tab,
 } from "../lib/chrome-api";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -78,6 +81,8 @@ export interface FakeOptions {
   /** Answer of permissions.request (the user's click in the prompt). */
   grant?: boolean;
   storage?: Record<string, unknown>;
+  /** The active tab the popup sees (via activeTab). */
+  activeTab?: { url?: string };
 }
 
 const REQUIRED_ORIGINS = ["*://*.youtube.com/*"];
@@ -127,12 +132,15 @@ export function createChromeFake(options: FakeOptions = {}) {
       >(),
     installed: fakeEvent<(details: { reason: string }) => void>(),
     startup: fakeEvent<() => void>(),
+    menuClicked: fakeEvent<(info: MenuClickInfo, tab?: Tab) => void>(),
   };
 
   const record = {
     native: [] as Array<{ host: string; message: Record<string, unknown> }>,
     getAll: [] as Array<{ domain?: string }>,
     permissionRequests: [] as string[][],
+    /** Context menu items currently created. */
+    menus: [] as MenuProperties[],
     permissionRemovals: [] as string[][],
   };
 
@@ -223,6 +231,21 @@ export function createChromeFake(options: FakeOptions = {}) {
       onAlarm: events.alarm,
     },
     runtime,
+    contextMenus: {
+      create(properties: MenuProperties) {
+        record.menus.push(structuredClone(properties));
+        return properties.id;
+      },
+      async removeAll() {
+        record.menus.length = 0;
+      },
+      onClicked: events.menuClicked,
+    },
+    tabs: {
+      async query() {
+        return options.activeTab ? [{ id: 1, ...options.activeTab }] : [];
+      },
+    },
     permissions: {
       async request({ origins = [] }) {
         record.permissionRequests.push(origins);

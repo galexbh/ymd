@@ -35,13 +35,16 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 ## Messages (extension → host)
 
 - `{"type":"hello","version":1}`
-  → `{"ok":true,"app":"ymd","appVersion":"0.2.0","protocol":1}`
+  → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1,"features":["cookies","open"]}`
+  - `features` lists the messages this ymd understands; an older ymd doesn't send it.
 - `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
   - `Cookie` mirrors `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Extra fields are ignored.
   - An unknown `browser` is recorded as `other`.
   - `count` / `domains` describe what was written: cookies with an empty name, control characters in the path, name or value, a domain that isn't a valid hostname, a path not starting with `/`, or more than 4096 bytes (name plus value) are skipped. If none remain, the reply is an error and the previous `cookies.txt` is kept.
   - More than 10,000 cookies in one message is an error.
+- `{"type":"open","version":1,"url":"https://…"}` → `{"ok":true}` (“Download with ymd”)
+  - Web links only: `http` or `https`, at most 2048 characters, no spaces or control characters, no username or password, and a host with a dot that isn't an IP. Anything else → `{"ok":false,"code":"unsupported_url"}`.
 - `version` is optional; a value above `1` is rejected.
 - Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}`. The detail never contains cookie values.
 
@@ -50,14 +53,16 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
 - It writes `cookies.meta.json` with `origin: "extension:<browser>"`.
 - The app reads both through `cookies_info` / `extension_status`.
+- `open` launches `ymd --open-url <url>` and replies right away. If ymd is already open, that second instance hands it the link and exits, and ymd comes to the front; otherwise ymd starts with it. The link shows up in **Receive** with its card. Nothing is ever downloaded without your click.
 
 ## Security
 
-What the bridge protects, and what no local design can.
+How the bridge looks after your cookies and the links you send.
 
 - **No network.** Cookies travel over Native Messaging, process to process. No open ports, no server, no telemetry.
 - **Only this extension talks to the host.** The browser launches the host only for the fixed ID's origin, and the host checks it again. The extension accepts no messages from other extensions or web pages (empty `externally_connectable`), and only answers its own popup.
 - **The host only writes.** No reply carries cookies: only the count and the domains. Anything that managed to talk to the host couldn't read a thing.
+- **Links are only reviewed.** “Download with ymd” accepts web links only and ymd shows them in **Receive**; downloading always takes your click.
 - **The minimum.** Only the sites on the list are sent (`youtube.com` by default). Each new site asks the browser for permission, and domains shared by many sites (`co.uk`, `github.io`, `blogspot.com`…) are refused, since they'd grant access to unrelated sites.
 - **Strict validation.** Messages of at most 16 MiB, at most 10,000 cookies, and each cookie with a valid domain and path, no control characters and at most 4096 bytes. Anything else is dropped.
 - **Encrypted at rest.** `cookies.txt` is sealed with ChaCha20-Poly1305 under a random key kept in the system keychain (Credential Manager, macOS Keychain or Secret Service). Plain text only exists in memory and in the copy yt-dlp gets during a download; that copy is deleted when it ends, and at ymd's start-up if one was left by a forced quit. With no keychain available (some Linux setups without a Secret Service) the file is stored unencrypted, owner-only, and the log says so.

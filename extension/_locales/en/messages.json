@@ -130,5 +130,20 @@
   },
   "privacyNote": {
     "message": "Cookies only travel to ymd on this computer, never over the network. Only from the sites on the list."
+  },
+  "menuDownload": {
+    "message": "Download with ymd"
+  },
+  "currentHeading": {
+    "message": "This page"
+  },
+  "downloadPage": {
+    "message": "Download with ymd"
+  },
+  "downloadSent": {
+    "message": "Sent to ymd. Check the ymd window."
+  },
+  "downloadFailed": {
+    "message": "Couldn't open ymd. Make sure it's installed and up to date."
   }
 }

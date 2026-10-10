@@ -43,9 +43,9 @@ describe("manifest", () => {
     expect(manifest).toMatchObject({
       manifest_version: 3,
       name: "ymd Cookies",
-      version: "1.2.0",
+      version: "1.3.0",
       default_locale: "es",
-      permissions: ["cookies", "nativeMessaging", "storage", "alarms"],
+      permissions: ["cookies", "nativeMessaging", "storage", "alarms", "contextMenus", "activeTab"],
       host_permissions: ["*://*.youtube.com/*"],
       optional_host_permissions: ["*://*/*"],
       background: { service_worker: "background.js", type: "module" },

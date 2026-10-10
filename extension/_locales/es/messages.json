@@ -130,5 +130,20 @@
   },
   "privacyNote": {
     "message": "Las cookies solo viajan a ymd en este equipo, sin red. Solo de los sitios de la lista."
+  },
+  "menuDownload": {
+    "message": "Descargar con ymd"
+  },
+  "currentHeading": {
+    "message": "Esta página"
+  },
+  "downloadPage": {
+    "message": "Descargar con ymd"
+  },
+  "downloadSent": {
+    "message": "Enviado a ymd. Revisa la ventana de ymd."
+  },
+  "downloadFailed": {
+    "message": "No se pudo abrir ymd. Comprueba que esté instalado y actualizado."
   }
 }

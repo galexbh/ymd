@@ -6,7 +6,7 @@ import { useToasts } from "../ui";
 import { connectDeps } from "../store/deps";
 import { useHistory } from "../store/history";
 import { connectJobs, onJobChange } from "../store/jobs";
-import { connectClipboard } from "../store/clipboard";
+import { connectBrowserLinks, connectClipboard } from "../store/clipboard";
 import { useSettings } from "../store/settings";
 import { showInFolder } from "./native";
 import { connectAppUpdates } from "./updateNotice";
@@ -36,6 +36,7 @@ export function useBootstrap() {
     const offs: (() => void)[] = [];
     offs.push(onJobChange(announce));
     offs.push(connectClipboard());
+    offs.push(connectBrowserLinks());
     void useSettings.getState().load();
     offs.push(connectAppUpdates());
     void Promise.all([connectJobs(), connectDeps()]).then((fns) => {

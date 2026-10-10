@@ -55,6 +55,8 @@ export const api = {
   // settings
   settingsGet: () => invoke<Settings>("settings_get"),
   settingsSet: (settings: Settings) => invoke<Settings>("settings_set", { settings }),
+  /** The link sent from the browser («Descargar con ymd»), handed over once. */
+  takePendingUrl: () => invoke<string | null>("take_pending_url"),
 
   // auth
   browsersDetect: () => invoke<BrowserInfo[]>("browsers_detect"),

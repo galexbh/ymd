@@ -262,4 +262,42 @@ test.describe.serial("ymd Cookies extension", () => {
     expect(dump).toContain('"error":null');
     await page.close();
   });
+
+  test("the «Descargar con ymd» menu exists and a link reaches ymd", async () => {
+    test.skip(!!registrationError, `native host registration failed: ${registrationError}`);
+    // the menu is created on install
+    const menus = await worker.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          const c = (
+            globalThis as unknown as {
+              chrome: {
+                contextMenus: { update(id: string, p: object, cb: () => void): void };
+                runtime: { lastError?: unknown };
+              };
+            }
+          ).chrome;
+          c.contextMenus.update("ymd-download", {}, () => resolve(c.runtime.lastError ? 0 : 1));
+        }),
+    );
+    expect(menus).toBe(1);
+
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
+    const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
+    const reply = await page.evaluate(
+      (u) =>
+        (
+          globalThis as unknown as {
+            chrome: { runtime: { sendMessage(m: object): Promise<unknown> } };
+          }
+        ).chrome.runtime.sendMessage({ type: "open", url: u }),
+      url,
+    );
+    expect(reply).toEqual({ ok: true, error: null });
+    expect(readRecord(recordFile).filter((m) => m.type === "open")).toEqual([
+      { type: "open", version: 1, url },
+    ]);
+    await page.close();
+  });
 });

@@ -5,6 +5,7 @@ import { type BrowserName } from "./browser";
 import { type ChromeApi, type MessageSender, type CookieChangeInfo } from "./chrome-api";
 import { collectCookies, domainsOf, hashCookies, type WireCookie } from "./cookies";
 import { cookieDomainAllowed } from "./domains";
+import { clickedLink, webLink } from "./links";
 import { mapLastError, type Status, type StatusError } from "./status";
 import {
   ensureAllowlist,
@@ -34,8 +35,25 @@ export interface CookiesMessage {
   cookies: WireCookie[];
 }
 
+/** «Descargar con ymd»: ymd opens the link in Recibir (it never downloads by itself). */
+export interface OpenMessage {
+  type: "open";
+  version: typeof PROTOCOL_VERSION;
+  url: string;
+}
+
 /** Messages the popup sends to the service worker. */
-export type PopupRequest = { type: "send-now" } | { type: "hello" };
+export type PopupRequest = { type: "send-now" } | { type: "hello" } | { type: "open"; url: string };
+
+/** Reply to an `open` request. */
+export interface OpenResult {
+  ok: boolean;
+  error: StatusError | null;
+}
+
+/** Context-menu entry id. */
+export const MENU_ID = "ymd-download";
+const WEB_PATTERNS = ["http://*/*", "https://*/*"];
 
 export interface PopupResponse {
   ok: boolean;
@@ -48,7 +66,7 @@ export type NativeResult =
 /** One `sendNativeMessage` round trip, with `lastError` and `{ok:false}` folded into a result. */
 export function sendNative(
   api: Pick<ChromeApi, "runtime">,
-  message: HelloMessage | CookiesMessage,
+  message: HelloMessage | CookiesMessage | OpenMessage,
 ): Promise<NativeResult> {
   return new Promise((resolve) => {
     try {
@@ -196,7 +214,20 @@ export function createSyncEngine(deps: EngineDeps) {
     return true;
   }
 
-  return { syncNow, hello, schedule, onCookieChanged };
+  /** Hands a link to ymd. A broken bridge is also recorded so the popup shows it. */
+  async function open(raw: string): Promise<OpenResult> {
+    const url = webLink(raw);
+    if (!url) return { ok: false, error: { code: "unknown", detail: "not a web link" } };
+    const result = await sendNative(api, { type: "open", version: PROTOCOL_VERSION, url });
+    if (result.ok) return { ok: true, error: null };
+    if (result.error.code !== "host_rejected") {
+      const previous = await readStatus(api);
+      await writeStatus(api, { ...previous, error: result.error }).catch(() => undefined);
+    }
+    return { ok: false, error: result.error };
+  }
+
+  return { syncNow, hello, schedule, onCookieChanged, open };
 }
 
 export type SyncEngine = ReturnType<typeof createSyncEngine>;
@@ -208,11 +239,22 @@ export async function ensureAlarm(api: Pick<ChromeApi, "alarms">): Promise<void>
 }
 
 function isPopupRequest(m: unknown): m is PopupRequest {
-  return (
-    !!m &&
-    typeof m === "object" &&
-    ((m as PopupRequest).type === "send-now" || (m as PopupRequest).type === "hello")
-  );
+  if (!m || typeof m !== "object") return false;
+  const r = m as { type?: unknown; url?: unknown };
+  if (r.type === "send-now" || r.type === "hello") return true;
+  return r.type === "open" && typeof r.url === "string";
+}
+
+/** (Re)creates the «Descargar con ymd» entry for links, media and pages on the web. */
+export async function installMenu(api: Pick<ChromeApi, "contextMenus" | "i18n">): Promise<void> {
+  await api.contextMenus.removeAll();
+  api.contextMenus.create({
+    id: MENU_ID,
+    title: api.i18n.getMessage("menuDownload") || "Descargar con ymd",
+    contexts: ["link", "video", "audio", "page"],
+    documentUrlPatterns: WEB_PATTERNS,
+    targetUrlPatterns: WEB_PATTERNS,
+  });
 }
 
 /**
@@ -236,13 +278,21 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
   api.runtime.onInstalled.addListener(() => {
     void (async () => {
       await ensureAllowlist(api);
+      await installMenu(api).catch(() => undefined);
       await ensureAlarm(api);
       await engine.syncNow(false);
     })();
   });
 
   api.runtime.onStartup.addListener(() => {
+    void installMenu(api).catch(() => undefined);
     void ensureAlarm(api).then(() => engine.syncNow(false));
+  });
+
+  api.contextMenus.onClicked.addListener((info) => {
+    if (info.menuItemId !== MENU_ID) return;
+    const url = clickedLink(info);
+    if (url) void engine.open(url);
   });
 
   api.alarms.onAlarm.addListener((alarm) => {
@@ -260,9 +310,11 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
   api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!fromOwnPopup(api, sender) || !isPopupRequest(message)) return false;
     const reply =
-      message.type === "send-now"
-        ? engine.syncNow(true).then((r): PopupResponse => ({ ok: r.sent, status: r.status }))
-        : engine.hello();
+      message.type === "open"
+        ? engine.open(message.url)
+        : message.type === "send-now"
+          ? engine.syncNow(true).then((r): PopupResponse => ({ ok: r.sent, status: r.status }))
+          : engine.hello();
     void reply.then(sendResponse);
     return true; // keeps the channel open for the async reply
   });
