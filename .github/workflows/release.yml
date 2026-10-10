@@ -105,7 +105,7 @@ jobs:
           # Signed updater artifacts + latest.json for tauri-plugin-updater. The app reads
           # releases/latest/download/latest.json, so a release must be published (not draft)
           # before installed copies see it.
-          includeUpdaterJson: true
+          uploadUpdaterJson: true
 
   # The ymd Cookies browser extension, zipped and attached to the same draft release. Runs after
   # the installers so tauri-action has already created the draft for this tag.
