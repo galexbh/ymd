@@ -151,6 +151,74 @@ pub fn import(paths: &AppPaths, source: &std::path::Path) -> CmdResult<CookieFil
     info(paths).ok_or_else(|| CommandError::unknown("import written but unreadable"))
 }
 
+/// Write `text` (a Netscape jar) as ymd's cookies.txt plus its meta, both owner-only and
+/// atomic, after validating it. Used by the native-messaging host
+/// (`origin = "extension:<browser>"`).
+pub(crate) fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
+    parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
+    ensure_private_dir(&paths.auth_dir())?;
+    write_private(&paths.cookies_file(), normalize_for_ytdlp(text).as_bytes())?;
+    write_meta(paths, origin)?;
+    info(paths).ok_or_else(|| CommandError::unknown("cookies written but unreadable"))
+}
+
+/// Record when and where the current cookies.txt came from.
+pub(crate) fn write_meta(paths: &AppPaths, origin: &str) -> CmdResult<()> {
+    let meta = Meta {
+        created_at: chrono::Utc::now().to_rfc3339(),
+        origin: origin.to_string(),
+    };
+    write_private(
+        &meta_file(paths),
+        &serde_json::to_vec(&meta).unwrap_or_default(),
+    )
+}
+
+/// Copy `src` to a fresh owner-only file inside `dir` and return its path.
+///
+/// yt-dlp rewrites the `--cookies` jar on exit; handing it a per-run copy keeps a stale jar
+/// from clobbering cookies the extension (or an import) wrote while it ran.
+pub fn ephemeral_copy(src: &Path, dir: &Path) -> CmdResult<PathBuf> {
+    let bytes = std::fs::read(src).map_err(|e| io_err(src, e))?;
+    std::fs::create_dir_all(dir).map_err(|e| io_err(dir, e))?;
+    let path = dir.join(format!("cookies-{}.txt", uuid::Uuid::new_v4().simple()));
+    write_private_new(&path, &bytes)?;
+    Ok(path)
+}
+
+/// Per-run cookie copy, deleted when dropped.
+#[derive(Debug, Default)]
+pub struct EphemeralJar(Option<PathBuf>);
+
+impl EphemeralJar {
+    pub fn path(&self) -> Option<&Path> {
+        self.0.as_deref()
+    }
+}
+
+impl Drop for EphemeralJar {
+    fn drop(&mut self) {
+        if let Some(p) = &self.0 {
+            let _ = std::fs::remove_file(p);
+        }
+    }
+}
+
+/// `args` with the value of `--cookies <file>` replaced by an [`ephemeral_copy`] in `dir`.
+/// Arguments without `--cookies` come back unchanged and nothing is written.
+pub fn ephemeral_args(args: &[String], dir: &Path) -> CmdResult<(Vec<String>, EphemeralJar)> {
+    let mut out = args.to_vec();
+    let Some(i) = out.iter().position(|a| a == "--cookies") else {
+        return Ok((out, EphemeralJar::default()));
+    };
+    let Some(src) = out.get(i + 1).cloned() else {
+        return Ok((out, EphemeralJar::default()));
+    };
+    let copy = ephemeral_copy(Path::new(&src), dir)?;
+    out[i + 1] = copy.to_string_lossy().into_owned();
+    Ok((out, EphemeralJar(Some(copy))))
+}
+
 /// Ensure the magic header yt-dlp requires on the first line, and `\n` line ends.
 fn normalize_for_ytdlp(text: &str) -> String {
     let body: Vec<&str> = text.lines().collect();
@@ -532,6 +600,75 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         assert_eq!(n, format!("{HEADER}\n.a.com\tTRUE\t/\tFALSE\t1\tn\tv\n"));
         let n2 = normalize_for_ytdlp("# HTTP Cookie File\n.a.com\tTRUE\t/\tFALSE\t1\tn\tv\n");
         assert!(n2.starts_with("# HTTP Cookie File\n.a.com"));
+    }
+
+    #[test]
+    fn ephemeral_copy_is_private_and_independent() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("cookies.txt");
+        std::fs::write(&src, VALID).unwrap();
+        let tmp = dir.path().join("job");
+        let a = ephemeral_copy(&src, &tmp).unwrap();
+        let b = ephemeral_copy(&src, &tmp).unwrap();
+        assert_ne!(a, b);
+        assert_eq!(a.parent().unwrap(), tmp);
+        assert_eq!(std::fs::read_to_string(&a).unwrap(), VALID);
+        std::fs::write(&a, "clobbered").unwrap();
+        assert_eq!(std::fs::read_to_string(&src).unwrap(), VALID);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::metadata(&b).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600);
+        }
+        assert!(ephemeral_copy(&dir.path().join("missing"), &tmp).is_err());
+    }
+
+    #[test]
+    fn ephemeral_args_rewrites_only_cookies() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("cookies.txt");
+        std::fs::write(&src, VALID).unwrap();
+        let tmp = dir.path().join("tmp");
+        let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+
+        let plain = s(&["--cookies-from-browser", "brave", "--netrc-cmd", "x"]);
+        let (out, jar) = ephemeral_args(&plain, &tmp).unwrap();
+        assert_eq!(out, plain);
+        assert!(jar.path().is_none());
+        assert!(!tmp.exists());
+
+        let src_s = src.to_string_lossy().into_owned();
+        let args = s(&["--cookies", &src_s, "--netrc-cmd", "x"]);
+        let (out, jar) = ephemeral_args(&args, &tmp).unwrap();
+        let copy = jar.path().unwrap().to_path_buf();
+        assert_eq!(out[0], "--cookies");
+        assert_eq!(out[1], copy.to_string_lossy());
+        assert_eq!(&out[2..], &args[2..]);
+        assert!(copy.starts_with(&tmp));
+        assert_eq!(std::fs::read_to_string(&copy).unwrap(), VALID);
+        drop(jar);
+        assert!(!copy.exists());
+        assert!(src.exists());
+
+        // A trailing `--cookies` without a value is left alone.
+        let dangling = s(&["--cookies"]);
+        assert_eq!(ephemeral_args(&dangling, &tmp).unwrap().0, dangling);
+    }
+
+    #[test]
+    fn store_writes_jar_and_meta() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = AppPaths {
+            bin_dir: dir.path().join("bin"),
+            data_dir: dir.path().join("data"),
+            config_dir: dir.path().join("config"),
+        };
+        assert!(store(&p, "# only a comment\n", "extension:brave").is_err());
+        assert!(!p.cookies_file().exists());
+        let info = store(&p, VALID, "extension:brave").unwrap();
+        assert_eq!(info.origin, "extension:brave");
+        assert_eq!(info.cookie_count, 3);
     }
 
     #[test]

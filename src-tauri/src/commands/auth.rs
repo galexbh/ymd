@@ -1,8 +1,10 @@
 use super::State;
+use crate::auth::{native_host, native_registry};
 use crate::model::{
     Browser, BrowserInfo, CmdResult, CommandError, CookieFileInfo, CookieSource, CookieTestResult,
-    SiteCredential,
+    ErrorCode, ExtensionStatus, ExtensionSync, SiteCredential,
 };
+use tauri::Manager;
 
 #[tauri::command]
 pub async fn browsers_detect() -> CmdResult<Vec<BrowserInfo>> {
@@ -40,13 +42,16 @@ pub async fn cookies_clear(state: State<'_>) -> CmdResult<()> {
 #[tauri::command]
 pub async fn cookies_test(state: State<'_>, source: CookieSource) -> CmdResult<CookieTestResult> {
     let tools = state.tools().await;
+    let paths = state.paths();
     let args = crate::auth::args_for(
         &source,
-        &state.paths(),
+        &paths,
         false,
         &crate::state::AppState::helper_exe(),
         None,
     );
+    // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
+    let (args, _jar) = crate::auth::cookies::ephemeral_args(&args, &paths.tmp_dir())?;
     Ok(crate::auth::cookies::test(&tools, &args).await)
 }
 
@@ -80,19 +85,73 @@ pub async fn credentials_delete(
 /// State of the cookie bridge: host registration per browser, bundled extension folder and
 /// the last sync the extension delivered. Owner: bridge agent.
 #[tauri::command]
-pub async fn extension_status(state: State<'_>) -> CmdResult<crate::model::ExtensionStatus> {
-    let _ = state;
-    Err(CommandError::unknown(
-        "extension_status: not implemented yet",
-    ))
+pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
+    let paths = state.paths();
+    let resource = state.app.path().resource_dir().ok();
+    tokio::task::spawn_blocking(move || {
+        let dev = cfg!(debug_assertions).then(|| {
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .unwrap_or(std::path::Path::new("."))
+                .join("extension")
+                .join("dist")
+        });
+        // Dev builds prefer the live `extension/dist`; release uses the bundled copy. An empty
+        // folder (no extension built yet) does not count.
+        let extension_dir = dev
+            .into_iter()
+            .chain(resource.map(|r| r.join("extension")))
+            .find(|d| d.join("manifest.json").is_file())
+            .map(|d| d.to_string_lossy().into_owned());
+        let manifest = native_registry::manifest_path(&paths.data_dir);
+        let last_sync = crate::auth::cookies::info(&paths).and_then(|info| {
+            let browser = info.origin.strip_prefix("extension:")?.to_string();
+            Some(ExtensionSync {
+                at: info.created_at,
+                browser,
+                cookie_count: info.cookie_count,
+                domains: info.domains,
+            })
+        });
+        ExtensionStatus {
+            extension_id: native_host::EXTENSION_ID.to_string(),
+            extension_dir,
+            host_manifest: manifest
+                .is_file()
+                .then(|| manifest.to_string_lossy().into_owned()),
+            targets: native_registry::status(&paths.data_dir),
+            last_sync,
+        }
+    })
+    .await
+    .map_err(CommandError::unknown)
 }
 
 /// Opens `browser` on its extensions page (`brave://extensions`, ...). The opener plugin
 /// cannot open those schemes, so the browser executable is launched with the URL.
 #[tauri::command]
 pub async fn extension_open_page(state: State<'_>, browser: Browser) -> CmdResult<()> {
-    let _ = (state, browser);
-    Err(CommandError::unknown(
-        "extension_open_page: not implemented yet",
-    ))
+    let _ = state;
+    let (program, args) =
+        tokio::task::spawn_blocking(move || crate::auth::browser_exe::launch_command(browser))
+            .await
+            .map_err(CommandError::unknown)??;
+    let mut cmd = crate::process::command(&program);
+    // The browser must outlive this call (and ymd).
+    cmd.kill_on_drop(false)
+        .args(&args)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    let mut child = cmd.spawn().map_err(|e| {
+        CommandError::new(
+            ErrorCode::BinaryMissing,
+            format!("{}: {e}", program.display()),
+        )
+    })?;
+    // Reap it whenever it exits.
+    tokio::spawn(async move {
+        let _ = child.wait().await;
+    });
+    Ok(())
 }

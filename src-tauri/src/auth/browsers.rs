@@ -161,7 +161,7 @@ pub(crate) enum Os {
 }
 
 impl Os {
-    fn current() -> Self {
+    pub(crate) fn current() -> Self {
         if cfg!(windows) {
             Os::Windows
         } else if cfg!(target_os = "macos") {
@@ -185,7 +185,7 @@ pub(crate) struct Env {
 }
 
 impl Env {
-    fn from_process() -> Self {
+    pub(crate) fn from_process() -> Self {
         let var = |k: &str| {
             std::env::var_os(k)
                 .filter(|v| !v.is_empty())
@@ -215,7 +215,7 @@ const ORDER: [Browser; 9] = [
 ];
 
 /// Chromium user-data dir (the one holding `Local State`), as yt-dlp resolves it.
-fn chromium_dir(os: Os, env: &Env, b: Browser) -> Option<PathBuf> {
+pub(crate) fn chromium_dir(os: Os, env: &Env, b: Browser) -> Option<PathBuf> {
     match os {
         Os::Windows => {
             let local = env.local_appdata.as_ref();

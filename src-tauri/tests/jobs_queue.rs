@@ -20,6 +20,8 @@ struct FakeEnv {
     first_seq: u64,
     events: Mutex<Vec<(Instant, Job)>>,
     completed: Mutex<Vec<(Job, String)>>,
+    /// Canonical cookies.txt handed over as `--cookies` (cookie source "file").
+    cookies: Mutex<Option<PathBuf>>,
 }
 
 impl JobEnv for FakeEnv {
@@ -30,10 +32,15 @@ impl JobEnv for FakeEnv {
         Box::pin(async move { self.tools.clone() })
     }
     fn auth_args(&self, req: &EnqueueRequest) -> Vec<String> {
-        match &req.video_password {
+        let mut args: Vec<String> = match &req.video_password {
             Some(p) => vec!["--video-password".into(), p.clone()],
             None => vec![],
+        };
+        if let Some(c) = self.cookies.lock().unwrap().as_ref() {
+            args.push("--cookies".into());
+            args.push(c.to_string_lossy().into_owned());
         }
+        args
     }
     fn tmp_dir(&self) -> PathBuf {
         self.tmp.clone()
@@ -113,6 +120,7 @@ fn harness_with(concurrency: u32, ytdlp: Option<PathBuf>) -> Harness {
         first_seq: 41,
         events: Mutex::new(vec![]),
         completed: Mutex::new(vec![]),
+        cookies: Mutex::new(None),
     });
     let jobs = JobManager::new(env.clone());
     Harness {
@@ -584,4 +592,37 @@ async fn throttling_keeps_terminal_event() {
         }
     }
     assert!(events.len() < 20, "throttled: {} emissions", events.len());
+}
+
+/// yt-dlp rewrites the `--cookies` jar on exit; jobs must hand it a per-run copy so the
+/// canonical cookies.txt (written by the extension / import) is never clobbered.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn cookies_jar_is_an_ephemeral_copy() {
+    let h = harness(1);
+    let canonical = h.root.join("auth").join("cookies.txt");
+    std::fs::create_dir_all(canonical.parent().unwrap()).unwrap();
+    let jar = "# Netscape HTTP Cookie File\n.a.com\tTRUE\t/\tFALSE\t0\tn\tv\n";
+    std::fs::write(&canonical, jar).unwrap();
+    *h.env.cookies.lock().unwrap() = Some(canonical.clone());
+
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    let done = h.wait_terminal(&job.id).await;
+    assert_eq!(done.stage, JobStage::Done, "{:?}", done.error);
+    assert_eq!(std::fs::read_to_string(&canonical).unwrap(), jar);
+    // The copy lived in the job's tmp dir, which is gone with it.
+    assert!(!h.env.tmp.join(&job.id).exists());
+
+    // A missing jar fails the job cleanly instead of running without cookies.
+    std::fs::remove_file(&canonical).unwrap();
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    let failed = h.wait_terminal(&job.id).await;
+    assert_eq!(failed.stage, JobStage::Error);
 }

@@ -17,7 +17,7 @@ The matching private key is **not** in the repo. It lives at `~/.ymd/extension-k
 
 ## Transport
 
-Chrome/Brave/Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON. Max 16 MiB inbound. The host reads exactly one message, writes exactly one reply and exits 0. If the origin is not the allowed one, it exits 1 without reading.
+Chrome/Brave/Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON. Max 16 MiB inbound. The host reads exactly one message, writes exactly one reply and exits 0. If the origin is not the allowed one, it exits 1 without reading. If the frame itself is unreadable (truncated, or a length over 16 MiB) it still writes an error reply, then exits 1.
 
 ## Messages (extension → host)
 
@@ -25,7 +25,10 @@ Chrome/Brave/Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent
   → `{"ok":true,"app":"ymd","appVersion":"0.2.0","protocol":1}`
 - `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
-  - `Cookie` mirrors `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`.
+  - `Cookie` mirrors `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Extra fields are ignored.
+  - An unknown `browser` is recorded as `other`.
+  - `count` / `domains` describe what was written: cookies with an empty name, or a tab or line break in the domain, path, name or value, are skipped (Netscape cannot represent them). If none remain, the reply is an error and the previous `cookies.txt` is kept.
+- `version` is optional; a value above `1` is rejected.
 - Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}` (the detail never contains cookie values).
 
 ## Effects

@@ -281,6 +281,18 @@ impl JobManager {
         let archive_file = settings
             .use_download_archive
             .then(|| self.env.archive_file());
+        // yt-dlp rewrites the `--cookies` jar on exit: give it a copy inside the job's tmp dir
+        // (removed with it) so it never clobbers cookies synced while the job ran.
+        let (auth_args, _jar) =
+            match crate::auth::cookies::ephemeral_args(&self.env.auth_args(&req), &tmp_dir) {
+                Ok(v) => v,
+                Err(e) => {
+                    return Outcome::Failed(JobError {
+                        code: e.code,
+                        detail: e.detail,
+                    })
+                }
+            };
         let argv = args::download_args(&args::DownloadSpec {
             url: &req.url,
             preset: &preset,
@@ -291,7 +303,7 @@ impl JobManager {
             playlist_items: req.playlist_items.as_deref(),
             archive_file,
             use_aria2c: settings.use_aria2c,
-            auth_args: self.env.auth_args(&req),
+            auth_args,
         });
         drop(req);
 

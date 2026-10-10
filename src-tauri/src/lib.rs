@@ -31,7 +31,36 @@ pub fn maybe_run_netrc_helper() -> Option<i32> {
     Some(auth::netrc::helper_main(&args[1..], &store))
 }
 
+/// Runs the cookie-bridge native-messaging host when a Chromium browser launched ymd as
+/// `ymd chrome-extension://<id>/ ...`; returns its exit code, or `None` for a normal launch.
+pub fn maybe_run_native_host() -> Option<i32> {
+    let args: Vec<String> = std::env::args().collect();
+    if !args
+        .get(1)
+        .is_some_and(|a| a.starts_with("chrome-extension://"))
+    {
+        return None;
+    }
+    // `YMD_DATA_DIR` exists for the integration tests (tests/native_host.rs).
+    let data_dir = std::env::var_os("YMD_DATA_DIR")
+        .filter(|v| !v.is_empty())
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(helper_data_dir);
+    Some(auth::native_host::host_main(
+        &args[1..],
+        &data_dir,
+        std::io::stdin().lock(),
+        std::io::stdout().lock(),
+    ))
+}
+
 fn helper_index_file() -> std::path::PathBuf {
+    helper_data_dir().join("auth").join("accounts.json")
+}
+
+/// The app data dir Tauri would resolve (`%APPDATA%\com.ymd.app` and equivalents), for the
+/// helper modes that run without a Tauri context.
+fn helper_data_dir() -> std::path::PathBuf {
     let base = if cfg!(windows) {
         std::env::var_os("APPDATA").map(std::path::PathBuf::from)
     } else if cfg!(target_os = "macos") {
@@ -44,10 +73,7 @@ fn helper_index_file() -> std::path::PathBuf {
                 std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".local/share"))
             })
     };
-    base.unwrap_or_default()
-        .join(IDENTIFIER)
-        .join("auth")
-        .join("accounts.json")
+    base.unwrap_or_default().join(IDENTIFIER)
 }
 
 pub const IDENTIFIER: &str = "com.ymd.app";
@@ -98,6 +124,17 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     });
     let _ = env.inner.set(state.clone());
     app.manage(state.clone());
+
+    // Cookie bridge: (re)register the native-messaging host so it points at this executable.
+    let bridge_dir = state.paths().data_dir;
+    std::thread::spawn(move || match std::env::current_exe() {
+        Ok(exe) => {
+            let targets = auth::native_registry::register(&bridge_dir, &exe);
+            let n = targets.iter().filter(|t| t.registered).count();
+            log::info!("cookie bridge: host registered for {n} browser(s)");
+        }
+        Err(e) => log::warn!("cookie bridge: cannot resolve the executable: {e}"),
+    });
 
     // yt-dlp auto-update: on startup, then every 24h.
     tauri::async_runtime::spawn(async move {
