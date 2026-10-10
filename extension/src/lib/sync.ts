@@ -45,9 +45,9 @@ export interface OpenMessage {
 }
 
 /** Messages the popup sends to the service worker. */
-export type PopupRequest = { type: "send-now" } | { type: "hello" } | { type: "open"; url: string };
+export type PopupRequest = { type: "send-now" } | { type: "hello" };
 
-/** Reply to an `open` request. */
+/** Result of handing a link to ymd. */
 export interface OpenResult {
   ok: boolean;
   error: StatusError | null;
@@ -55,6 +55,10 @@ export interface OpenResult {
 
 /** Context-menu entry id. */
 export const MENU_ID = "ymd-download";
+/** Keyboard shortcut (manifest `commands`) that sends the active tab to ymd. */
+export const COMMAND_ID = "download-page";
+/** Where the menu appears: everywhere a link can come from, on web pages only. */
+export const MENU_CONTEXTS = ["link", "video", "audio", "frame", "selection", "page"];
 const WEB_PATTERNS = ["http://*/*", "https://*/*"];
 
 export interface PopupResponse {
@@ -244,20 +248,22 @@ export async function ensureAlarm(api: Pick<ChromeApi, "alarms">): Promise<void>
 
 function isPopupRequest(m: unknown): m is PopupRequest {
   if (!m || typeof m !== "object") return false;
-  const r = m as { type?: unknown; url?: unknown };
-  if (r.type === "send-now" || r.type === "hello") return true;
-  return r.type === "open" && typeof r.url === "string";
+  const r = m as { type?: unknown };
+  return r.type === "send-now" || r.type === "hello";
 }
 
-/** (Re)creates the «Descargar con ymd» entry for links, media and pages on the web. */
+/**
+ * (Re)creates the «Descargar con ymd» entry on web pages. There is no `targetUrlPatterns` on
+ * purpose: Chrome matches it against a video's `srcUrl`, which on YouTube is a `blob:` URL, and
+ * the item would vanish from the player's menu. `clickedLink` picks the right link instead.
+ */
 export async function installMenu(api: Pick<ChromeApi, "contextMenus" | "i18n">): Promise<void> {
   await api.contextMenus.removeAll();
   api.contextMenus.create({
     id: MENU_ID,
     title: api.i18n.getMessage("menuDownload") || "Descargar con ymd",
-    contexts: ["link", "video", "audio", "page"],
+    contexts: [...MENU_CONTEXTS],
     documentUrlPatterns: WEB_PATTERNS,
-    targetUrlPatterns: WEB_PATTERNS,
   });
 }
 
@@ -306,6 +312,19 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
     if (url) void engine.open(url);
   });
 
+  // Alt+Shift+Y: the active tab goes to ymd. The shortcut grants `activeTab`, so its URL is
+  // readable here.
+  api.commands.onCommand.addListener((command) => {
+    if (command !== COMMAND_ID) return;
+    void api.tabs
+      .query({ active: true, currentWindow: true })
+      .then(([tab]) => {
+        const url = webLink(tab?.url);
+        if (url) void engine.open(url);
+      })
+      .catch(() => undefined);
+  });
+
   api.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_NAME) void engine.syncNow(false);
   });
@@ -327,11 +346,9 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
   api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!fromOwnPopup(api, sender) || !isPopupRequest(message)) return false;
     const reply =
-      message.type === "open"
-        ? engine.open(message.url)
-        : message.type === "send-now"
-          ? engine.syncNow(true).then((r): PopupResponse => ({ ok: r.sent, status: r.status }))
-          : engine.hello();
+      message.type === "send-now"
+        ? engine.syncNow(true).then((r): PopupResponse => ({ ok: r.sent, status: r.status }))
+        : engine.hello();
     void reply.then(sendResponse);
     return true; // keeps the channel open for the async reply
   });

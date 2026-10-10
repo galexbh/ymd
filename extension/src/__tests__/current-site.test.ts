@@ -88,15 +88,51 @@ describe("popup «Usar mi sesión de…»", () => {
     expect($("add-current").hidden).toBe(false);
   });
 
-  it("stays hidden on YouTube (already on the list) and on unknown sites", async () => {
+  it("«Esta página» shows on vimeo.com, with the site and the offer", async () => {
+    await mount({ activeTab: { url: "https://vimeo.com/76979871" }, sites: ["youtube.com"] });
+    expect($("current").hidden).toBe(false);
+    expect($("current-host").textContent).toBe("vimeo.com");
+  });
+
+  it("the whole section stays hidden on YouTube (already added) and on unknown sites", async () => {
     await mount({
       activeTab: { url: "https://www.youtube.com/watch?v=1" },
       sites: ["youtube.com"],
     });
     expect($("add-current").hidden).toBe(true);
+    expect($("current").hidden).toBe(true);
     document.body.innerHTML = BODY;
     await mount({ activeTab: { url: "https://www.example.org/" } });
     expect($("add-current").hidden).toBe(true);
+    expect($("current").hidden).toBe(true);
+  });
+
+  it("stays hidden on browser pages and with no tab", async () => {
+    await mount({ activeTab: { url: "chrome://extensions" } });
+    expect($("current").hidden).toBe(true);
+    document.body.innerHTML = BODY;
+    await mount({});
+    expect($("current").hidden).toBe(true);
+  });
+
+  it("keeps the confirmation on screen after the offer is used", async () => {
+    const { view } = await mount({
+      activeTab: { url: "https://vimeo.com/1" },
+      grant: true,
+      sites: ["youtube.com"],
+    });
+    await view.addCurrentSite();
+    expect($("add-current").hidden).toBe(true);
+    expect($("current").hidden).toBe(false);
+    expect($("add-current-result").textContent).toBe("Listo: ymd recibirá tu sesión de Vimeo.");
+  });
+
+  it("a site added from «Esta página» is shown even past the fifth row", async () => {
+    const sites = ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com"];
+    const { view } = await mount({ activeTab: { url: "https://vimeo.com/1" }, grant: true, sites });
+    await view.addCurrentSite();
+    const domains = [...document.querySelectorAll("#site-list .domain")].map((d) => d.textContent);
+    expect(domains).toContain("vimeo.com");
   });
 
   it("reads in English", async () => {

@@ -53,6 +53,8 @@ sin que ymd tenga que leer la base de datos del navegador.
 - Puedes agregar o quitar sitios; cada uno pide su propio permiso.
 - Nunca guarda los valores de las cookies: solo la fecha del último envío, cuántas fueron y un
   hash para saber si cambiaron.
+- «Descargar con ymd» con clic derecho, o Alt+Shift+Y para la pestaña abierta, abre el enlace
+  en ymd.
 
 Requiere ymd instalado en el mismo equipo.
 
@@ -69,6 +71,7 @@ browser's cookie database.
 - You can add or remove sites; each one asks for its own permission.
 - It never stores cookie values: only the time of the last send, how many there were, and a
   hash to tell whether they changed.
+- «Download with ymd» on right-click, or Alt+Shift+Y for the open tab, opens the link in ymd.
 
 Requires ymd installed on the same computer.
 
@@ -86,8 +89,8 @@ on request, the link the user wants to download.
 | `nativeMessaging`                  | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                                                                            |
 | `storage`                          | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                                                                                     |
 | `alarms`                           | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                                                                                |
-| `contextMenus`                     | Adds one entry, «Download with ymd», on links, media and pages, which sends that link to ymd on the user's click.                                                                                                                                            |
-| `activeTab`                        | Reads the address of the open tab only while the user has the popup open, for «Download with ymd» and «Use my … session» on that page. No other tab is read.                                                                                                 |
+| `contextMenus`                     | Adds one entry, «Download with ymd», on links, media, embedded players, selected text and pages, which sends that link to ymd on the user's click.                                                                                                           |
+| `activeTab`                        | Reads the address of the open tab only while the user has the popup open (for «Use my … session» on that page) or presses the Alt+Shift+Y shortcut (to send that page to ymd). No other tab is read.                                                         |
 | Optional host permission `*://*/*` | No site is granted at install. When the user adds a site, the extension requests only that domain (`*://*.<domain>/*`), as `chrome.cookies.getAll` needs, and gives it back when they remove it. The extension injects no scripts and reads no page content. |
 
 **Remote code:** none. All code ships in the package; the CSP allows only the extension's own files (`default-src 'none'; script-src 'self'`) and no network connections.

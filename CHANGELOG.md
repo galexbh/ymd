@@ -2,6 +2,13 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Cambios
+
+- **«Descargar con ymd» en más sitios.** El clic derecho ahora funciona sobre el video de YouTube, un texto seleccionado que sea un enlace y los reproductores incrustados en otras páginas, además de enlaces y la página. Nuevo atajo **Alt+Shift+Y** para enviar la pestaña abierta (se cambia en `brave://extensions/shortcuts`). Extensión 1.4.1.
+- **Ventana de la extensión más compacta.** Se quitó el botón **Descargar con ymd** (lo hacen el clic derecho y el atajo); **Esta página** solo aparece cuando puede ofrecer **Usar mi sesión de …**; y con más de cinco sitios, **Sitios permitidos** se pliega tras **Mostrar todos**.
+
 ## [0.5.0] - 2026-10-10
 
 ### Novedades

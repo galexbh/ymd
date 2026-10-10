@@ -25,11 +25,23 @@ export function webLink(raw: unknown): string | null {
   return s;
 }
 
-/** The link a context-menu click points at: the link, then the media, then the page. */
+/**
+ * The link a context-menu click points at: the link, the media, the embedded player (frame),
+ * the selected text, then the page. Anything that isn't a web link (a `blob:` video, a
+ * `mailto:`) falls through to the next one, so the page is the last resort.
+ */
 export function clickedLink(info: {
   linkUrl?: string;
   srcUrl?: string;
+  frameUrl?: string;
+  selectionText?: string;
   pageUrl?: string;
 }): string | null {
-  return webLink(info.linkUrl) ?? webLink(info.srcUrl) ?? webLink(info.pageUrl);
+  return (
+    webLink(info.linkUrl) ??
+    webLink(info.srcUrl) ??
+    webLink(info.frameUrl) ??
+    webLink(info.selectionText) ??
+    webLink(info.pageUrl)
+  );
 }
