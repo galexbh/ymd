@@ -3,7 +3,7 @@ import { addSite, removeSite } from "../lib/sites";
 import { KEYS } from "../lib/storage";
 import { createChromeFake } from "../test/chrome-fake";
 
-const DEFAULTS = ["youtube.com", "google.com"];
+const DEFAULTS = ["youtube.com"];
 
 describe("adding a site (optional host permission)", () => {
   it("requests *://*.<domain>/* and stores the normalized domain when granted", async () => {
@@ -38,8 +38,8 @@ describe("adding a site (optional host permission)", () => {
 
   it("re-adding a default needs no prompt", async () => {
     const fake = createChromeFake({ grant: false });
-    const res = await addSite(fake.api, ["youtube.com"], "google.com");
-    expect(res).toMatchObject({ ok: true, list: ["youtube.com", "google.com"] });
+    const res = await addSite(fake.api, [], "youtube.com");
+    expect(res).toMatchObject({ ok: true, list: ["youtube.com"] });
     expect(fake.record.permissionRequests).toEqual([]);
   });
 
@@ -65,10 +65,10 @@ describe("removing a site", () => {
 
   it("keeps the permission of a default site", async () => {
     const fake = createChromeFake();
-    const list = await removeSite(fake.api, DEFAULTS, "google.com");
-    expect(list).toEqual(["youtube.com"]);
+    const list = await removeSite(fake.api, DEFAULTS, "youtube.com");
+    expect(list).toEqual([]);
     expect(fake.record.permissionRemovals).toEqual([]);
-    expect(fake.granted.has("*://*.google.com/*")).toBe(true);
+    expect(fake.granted.has("*://*.youtube.com/*")).toBe(true);
   });
 
   it("still removes the site when revoking fails", async () => {

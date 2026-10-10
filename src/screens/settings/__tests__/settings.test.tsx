@@ -187,7 +187,7 @@ describe("Ajustes → Cuentas: site accounts", () => {
     const { user } = await renderApp({ route: "settings", section: "accounts" });
     const form = screen.getByRole("form", { name: "Agregar cuenta" });
     await user.type(within(form).getByRole("combobox", { name: "Sitio" }), "youtube");
-    expect(within(form).getByText("YouTube no acepta contraseña en yt-dlp")).toBeInTheDocument();
+    expect(within(form).getByText("YouTube no acepta usuario y contraseña")).toBeInTheDocument();
     expect(within(form).queryByRole("option", { name: /^youtube/i })).toBeNull();
     const cookies = document.getElementById("accounts-cookies")!;
     await user.click(within(form).getByRole("button", { name: "Ir a las cookies" }));
@@ -220,7 +220,7 @@ describe("Ajustes → Cuentas: sitios compatibles", () => {
     await user.click(within(section).getByRole("radio", { name: "Roto" }));
     const broken = within(section).getAllByTestId("supported-row");
     for (const row of broken)
-      expect(within(row).getByText("roto según yt-dlp")).toBeInTheDocument();
+      expect(within(row).getByText("no funciona por ahora")).toBeInTheDocument();
 
     await user.click(within(section).getByRole("radio", { name: "Admite cuenta" }));
     for (const row of within(section).getAllByTestId("supported-row"))

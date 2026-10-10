@@ -104,11 +104,11 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     const { be, user, tick } = await renderApp(accounts);
     const c = await card();
     await user.click(
-      await within(c).findByRole("button", { name: "Abrir carpeta de la extensión" }),
+      await within(c).findByRole("button", { name: "Mostrar la carpeta de la extensión" }),
     );
     await user.click(within(c).getByRole("button", { name: "Abrir Brave y copiar la dirección" }));
     await tick(0);
-    const opened = calls(be, "plugin:opener|open_path");
+    const opened = calls(be, "plugin:opener|reveal_item_in_dir");
     expect(opened).toHaveLength(1);
     expect(JSON.stringify(opened[0].args)).toContain(
       JSON.stringify("C:\\Program Files\\ymd\\resources\\extension").slice(1, -1),
@@ -172,13 +172,13 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     const c = await card();
     const orig = be.invoke.bind(be);
     vi.spyOn(be, "invoke").mockImplementation((cmd, args) =>
-      cmd === "plugin:opener|open_path" ? Promise.reject("not allowed") : orig(cmd, args),
+      cmd === "plugin:opener|reveal_item_in_dir" ? Promise.reject("not allowed") : orig(cmd, args),
     );
     await user.click(
-      await within(c).findByRole("button", { name: "Abrir carpeta de la extensión" }),
+      await within(c).findByRole("button", { name: "Mostrar la carpeta de la extensión" }),
     );
     await tick(0);
-    expect(await within(c).findByText("No se pudo abrir la carpeta")).toBeInTheDocument();
+    expect(await within(c).findByText("No se pudo mostrar la carpeta")).toBeInTheDocument();
     expect(within(c).getByText(/resources\\extension/)).toBeInTheDocument();
   });
 
@@ -220,10 +220,12 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
   it("disables the folder button with an explanation when the build has no folder (dev)", async () => {
     const { be } = await renderApp({ ...accounts, extension: { extensionDir: false } });
     const c = await card();
-    const btn = await within(c).findByRole("button", { name: "Abrir carpeta de la extensión" });
+    const btn = await within(c).findByRole("button", {
+      name: "Mostrar la carpeta de la extensión",
+    });
     expect(btn).toBeDisabled();
     expect(btn).toHaveAccessibleDescription(/no incluye la carpeta de la extensión/);
-    expect(calls(be, "plugin:opener|open_path")).toHaveLength(0);
+    expect(calls(be, "plugin:opener|reveal_item_in_dir")).toHaveLength(0);
   });
 });
 

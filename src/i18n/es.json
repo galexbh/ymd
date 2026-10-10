@@ -642,11 +642,11 @@
       "cookies": "Cookies"
     },
     "steps": "Pasos, una sola vez",
-    "step1": "Abre la carpeta de la extensión que viene con ymd.",
+    "step1": "Muestra la carpeta de la extensión que viene con ymd: es la que vas a arrastrar.",
     "step2": "Abre {{browser}} y ve a la página de extensiones:",
     "step3": "Activa «Modo de desarrollador». Luego arrastra a la página la carpeta del paso 1, o pulsa «Cargar descomprimida» y elígela.",
     "step4": "Inicia sesión en YouTube en ese navegador; ymd recibirá las cookies solo.",
-    "openFolder": "Abrir carpeta de la extensión",
+    "openFolder": "Mostrar la carpeta de la extensión",
     "noFolder": "Esta compilación no incluye la carpeta de la extensión (modo desarrollo).",
     "openPage": "Abrir {{browser}} y copiar la dirección",
     "openFailed": "No se pudo abrir {{browser}}",
@@ -659,10 +659,10 @@
     "openedTitle": "{{browser}} está abierto",
     "openedCopied": "Copiamos {{url}}: pégala en la barra de direcciones (Ctrl+V) y pulsa Enter. Los navegadores no dejan que otros programas abran esa página directamente.",
     "openedType": "Escribe {{url}} en la barra de direcciones y pulsa Enter. Los navegadores no dejan que otros programas abran esa página directamente.",
-    "folderFailed": "No se pudo abrir la carpeta",
+    "folderFailed": "No se pudo mostrar la carpeta",
     "folderFailedHint": "Ábrela desde el Explorador de archivos en esta ruta:",
     "firefoxDefault": "Tu navegador predeterminado es Firefox",
-    "firefoxDefaultBody": "yt-dlp lee las cookies de Firefox directamente, así que no necesitas la extensión. Inicia sesión en YouTube en Firefox y usa sus cookies.",
+    "firefoxDefaultBody": "ymd lee las cookies de Firefox directamente, así que no necesitas la extensión. Inicia sesión en YouTube en Firefox y usa sus cookies.",
     "useFirefox": "Usar cookies de Firefox"
   },
   "accounts": {
@@ -677,9 +677,9 @@
       "browser": "Navegador",
       "file": "Archivo cookies.txt",
       "hint": {
-        "none": "yt-dlp descarga sin sesión iniciada.",
-        "browser": "yt-dlp lee las cookies del navegador en cada descarga.",
-        "file": "yt-dlp usa la copia importada; funciona aunque el navegador esté abierto."
+        "none": "Descarga sin sesión iniciada.",
+        "browser": "ymd lee las cookies del navegador en cada descarga.",
+        "file": "ymd usa la copia importada; funciona aunque el navegador esté abierto."
       }
     },
     "browser": {
@@ -694,11 +694,11 @@
       "recommended": "recomendado en Windows",
       "notInstalled": "no instalado",
       "getFirefox": "Descargar Firefox",
-      "firefoxWhy": "En Windows, Firefox es el único navegador cuyas cookies yt-dlp puede leer directamente: Brave, Chrome, Edge, Opera y los demás navegadores Chromium las cifran para que ningún otro programa las abra. Inicia sesión en YouTube en Firefox y elígelo aquí, o usa la extensión de ymd."
+      "firefoxWhy": "En Windows, Firefox es el único navegador cuyas cookies ymd puede leer directamente: Brave, Chrome, Edge, Opera y los demás navegadores Chromium las cifran para que ningún otro programa las abra. Inicia sesión en YouTube en Firefox y elígelo aquí, o usa la extensión de ymd."
     },
     "test": "Probar cookies",
     "testOk": "Las cookies funcionan",
-    "testOkBody": "yt-dlp pudo leerlas. Se usarán en las próximas descargas.",
+    "testOkBody": "ymd pudo leerlas. Se usarán en las próximas descargas.",
     "snapshot": "Importar desde el navegador ahora",
     "snapshotOk": "Copia de cookies guardada",
     "snapshotOkBody": "Elige «Archivo cookies.txt» como origen para usarla con el navegador abierto.",
@@ -749,7 +749,7 @@
       "title": "Cuentas de sitios",
       "description": "Para sitios que piden usuario y contraseña, como Vimeo.",
       "site": "Sitio",
-      "siteHint": "Busca el sitio por su nombre. Solo aparecen los que admiten cuenta en yt-dlp.",
+      "siteHint": "Busca el sitio por su nombre. Solo aparecen los que admiten iniciar sesión.",
       "username": "Usuario",
       "password": "Contraseña",
       "save": "Guardar cuenta",
@@ -757,20 +757,20 @@
       "empty": "No hay cuentas guardadas.",
       "deleteNamed": "Borrar la cuenta de {{site}}",
       "failed": "No se pudo guardar la cuenta",
-      "keychain": "Las contraseñas se guardan en el llavero del sistema y llegan a yt-dlp sin pasar por el disco ni por la línea de comandos. ymd nunca las vuelve a mostrar.",
+      "keychain": "Las contraseñas se guardan en el llavero del sistema y se usan sin pasar por el disco ni por la línea de comandos. ymd nunca las vuelve a mostrar.",
       "sitePlaceholder": "Vimeo, Udemy, Twitch…",
       "other": "Otro (avanzado)",
       "otherDesc": "Escribe a mano la clave del sitio si no aparece en la lista.",
       "key": "Clave del sitio",
-      "keyHint": "La clave netrc de yt-dlp, por ejemplo vimeo.",
+      "keyHint": "La clave netrc del sitio, por ejemplo vimeo.",
       "keyInvalid": "Usa solo minúsculas, números, punto, guion y guion bajo, sin empezar por guion ni guion bajo.",
-      "youtubeTitle": "YouTube no acepta contraseña en yt-dlp",
+      "youtubeTitle": "YouTube no acepta usuario y contraseña",
       "youtubeBody": "Para YouTube usa las cookies de la sección de arriba.",
       "goToCookies": "Ir a las cookies"
     },
     "supported": {
-      "title": "Sitios compatibles con yt-dlp",
-      "description": "La lista oficial de extractores de yt-dlp, incluida en ymd y actualizada con cada versión.",
+      "title": "Sitios compatibles",
+      "description": "La lista oficial de yt-dlp, el motor de descargas de ymd. Viene incluida y se actualiza con cada versión.",
       "show": "Mostrar la lista",
       "hide": "Ocultar la lista",
       "sites": "sitios",
@@ -785,7 +785,7 @@
       "colDescription": "Descripción",
       "colMarks": "Marcas",
       "badgeAccount": "admite cuenta",
-      "badgeBroken": "roto según yt-dlp",
+      "badgeBroken": "no funciona por ahora",
       "empty": "Ningún sitio coincide. Si el tuyo no está, mira «¿Cómo agrego más?».",
       "range": "{{from}}–{{to}} de {{total}}",
       "pages": "Páginas de la lista",
@@ -796,12 +796,12 @@
     "howto": {
       "title": "¿Cómo agrego más?",
       "accountTitle": "El sitio pide cuenta",
-      "accountBody": "Elígelo en «Cuentas de sitios» y guarda tu usuario y contraseña. ymd se los pasa a yt-dlp cuando descarga de ese sitio.",
-      "cookiesTitle": "El sitio no tiene cuenta en yt-dlp o exige iniciar sesión en el navegador",
-      "cookiesBody": "Usa las cookies: inicia sesión en tu navegador y ymd le pasa esa sesión a yt-dlp.",
+      "accountBody": "Elígelo en «Cuentas de sitios» y guarda tu usuario y contraseña. ymd los usa cuando descargas de ese sitio.",
+      "cookiesTitle": "El sitio no admite cuenta o exige iniciar sesión en el navegador",
+      "cookiesBody": "Usa las cookies: inicia sesión en tu navegador y ymd usa esa sesión.",
       "cookiesAction": "Ir a las cookies",
       "genericTitle": "El sitio no está en la lista",
-      "genericBody": "Prueba igual pegando el enlace: el extractor genérico de yt-dlp funciona con muchas páginas. Si falla, puedes pedir soporte a yt-dlp.",
+      "genericBody": "Prueba igual pegando el enlace: ymd funciona con muchas páginas que no están en la lista. Si falla, puedes pedir soporte a yt-dlp, el motor de descargas.",
       "genericAction": "Abrir los issues de yt-dlp"
     }
   }

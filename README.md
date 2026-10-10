@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ymd-logo-dark.svg">
-  <img src="docs/assets/ymd-logo-light.svg" alt="ymd" width="220">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ymd-isotype-dark.svg">
+  <img src="docs/assets/ymd-isotype-light.svg" alt="ymd" width="96">
 </picture>
 
 <p><strong>Aplicación de escritorio para descargar video y audio con yt-dlp.</strong></p>

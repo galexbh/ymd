@@ -103,10 +103,7 @@ describe("popup in Spanish", () => {
   it("lists the allowed sites with the default tag", async () => {
     await mount("es");
     const rows = [...document.querySelectorAll("#site-list li")];
-    expect(rows.map((r) => r.querySelector(".domain")?.textContent)).toEqual([
-      "youtube.com",
-      "google.com",
-    ]);
+    expect(rows.map((r) => r.querySelector(".domain")?.textContent)).toEqual(["youtube.com"]);
     expect(rows[0].querySelector(".tag")?.textContent).toBe("Predeterminado");
     expect(rows[0].querySelector("button")?.getAttribute("aria-label")).toBe("Quitar youtube.com");
     expect($("sites-empty").hidden).toBe(true);
@@ -173,7 +170,7 @@ describe("popup actions", () => {
     ($("add-form") as HTMLFormElement).requestSubmit();
     await flush();
     expect(fake.record.permissionRequests).toEqual([["*://*.vimeo.com/*"]]);
-    expect(document.querySelectorAll("#site-list li")).toHaveLength(3);
+    expect(document.querySelectorAll("#site-list li")).toHaveLength(2);
     expect(($("add-input") as HTMLInputElement).value).toBe("");
     expect($("add-error").hidden).toBe(true);
   });

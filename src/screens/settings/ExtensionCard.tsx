@@ -8,7 +8,7 @@ import { api } from "../../ipc/commands";
 import type { ExtensionStatus, ExtensionSync } from "../../ipc/types";
 import { Button, Figure, Notice, Stamp, formatStampDate } from "../../ui";
 import { currentLocale } from "../../i18n";
-import { copyText, openFile } from "../../app/native";
+import { copyText, showInFolder } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import {
@@ -162,7 +162,8 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
   const openFolder = async (dir: string) => {
     setFolderError(null);
     try {
-      await openFile(dir);
+      // Revealed, not opened: the folder itself is what gets dragged onto the extensions page.
+      await showInFolder(dir);
     } catch {
       setFolderError(dir);
     }

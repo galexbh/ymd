@@ -56,8 +56,11 @@ function setup(options: FakeOptions = {}) {
   const fake = createChromeFake({
     cookies: SEED,
     native: { reply: { ok: true, count: 2, domains: ["google.com", "youtube.com"] } },
+    // google.com as a site the person added: on the list, with its permission granted.
+    storage: { [KEYS.allowlist]: ["youtube.com", "google.com"] },
     ...options,
   });
+  fake.granted.add("*://*.google.com/*");
   fake.granted.add("*://*.example.com/*"); // even when readable, it is not on the list
   const timers = manualTimers();
   let t = 1_700_000_000_000;
@@ -288,11 +291,11 @@ describe("hello", () => {
 
 describe("lifecycle", () => {
   it("on install seeds the defaults, creates the 30 min alarm and syncs", async () => {
-    const { fake, engine } = setup();
+    const { fake, engine } = setup({ storage: {} });
     installBackground(engine, fake.api);
     fake.events.installed.emit({ reason: "install" });
     await flush();
-    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com", "google.com"]);
+    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
     expect(fake.alarms.get(ALARM_NAME)?.periodInMinutes).toBe(ALARM_PERIOD_MINUTES);
     expect(cookiesSent(fake)).toHaveLength(1);
   });

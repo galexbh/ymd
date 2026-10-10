@@ -13,7 +13,7 @@ ymd trae la extensión ya compilada en su carpeta de recursos y registra el puen
 
 Pasos, una sola vez:
 
-1. **Abrir carpeta de la extensión**: abre la carpeta de la extensión que viene con ymd.
+1. **Mostrar la carpeta de la extensión**: abre el Explorador con la carpeta `extension` de ymd seleccionada. Esa carpeta es la que arrastras en el paso 3.
 2. **Abrir [navegador] y copiar la dirección**: copia la dirección de su página de extensiones (por ejemplo `brave://extensions`) y abre el navegador. Pégala en la barra de direcciones (Ctrl+V) y pulsa Enter: los navegadores no dejan que otro programa abra esa página directamente.
 3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
 4. Inicia sesión en YouTube en ese navegador. ymd recibirá las cookies solo.
@@ -51,7 +51,7 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
 
 - El sello **Puente con ymd** dice **Conectada**, **Sin conexión** o **Error**, con el último envío y el número de cookies.
 - **Enviar ahora** fuerza un envío.
-- **Sitios permitidos**: por defecto `youtube.com` y `google.com`, con sus subdominios. **Agregar un sitio** (por ejemplo `vimeo.com`) pide el permiso del navegador para ese dominio; quitarlo devuelve el permiso.
+- **Sitios permitidos**: por defecto solo `youtube.com`, con sus subdominios. La sesión de YouTube vive en sus propias cookies, así que la extensión no lee las de tu cuenta de Google. **Agregar un sitio** (por ejemplo `vimeo.com`) pide el permiso del navegador para ese dominio; quitarlo devuelve el permiso.
 
 ## Qué envía y adónde
 

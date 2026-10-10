@@ -76,7 +76,7 @@ export interface FakeOptions {
   storage?: Record<string, unknown>;
 }
 
-const REQUIRED_ORIGINS = ["*://*.youtube.com/*", "*://*.google.com/*"];
+const REQUIRED_ORIGINS = ["*://*.youtube.com/*"];
 
 function patternCovers(pattern: string, host: string): boolean {
   if (pattern === "*://*/*" || pattern === "<all_urls>") return true;

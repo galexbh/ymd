@@ -1,7 +1,7 @@
 // chrome.storage.local keys and typed accessors. Shared by the service worker and the popup.
 
 import { type ChromeApi } from "./chrome-api";
-import { DEFAULT_DOMAINS, sanitizeAllowlist } from "./domains";
+import { DEFAULT_DOMAINS, RETIRED_DEFAULTS, sanitizeAllowlist } from "./domains";
 import { parseStatus, type Status } from "./status";
 
 export const KEYS = {
@@ -9,7 +9,11 @@ export const KEYS = {
   status: "status",
   /** SHA-256 of the last jar ymd accepted. The only trace of cookie content we keep. */
   lastHash: "lastHash",
+  /** Schema of the stored allowlist; 2 = google.com is no longer a default (extension 1.1.0). */
+  allowlistVersion: "allowlistVersion",
 } as const;
+
+export const ALLOWLIST_VERSION = 2;
 
 type Api = Pick<ChromeApi, "storage">;
 
@@ -22,10 +26,23 @@ export async function writeAllowlist(api: Api, domains: readonly string[]): Prom
   await api.storage.local.set({ [KEYS.allowlist]: sanitizeAllowlist([...domains]) });
 }
 
-/** Seeds the defaults on first install without touching a list the user already edited. */
+/**
+ * Seeds the defaults on first install without touching a list the user already edited. On the
+ * first run after an update it drops the retired defaults once; a site the person adds again
+ * afterwards stays.
+ */
 export async function ensureAllowlist(api: Api): Promise<void> {
-  const got = await api.storage.local.get(KEYS.allowlist);
-  if (!(KEYS.allowlist in got)) await writeAllowlist(api, DEFAULT_DOMAINS);
+  const got = await api.storage.local.get([KEYS.allowlist, KEYS.allowlistVersion]);
+  if (!(KEYS.allowlist in got)) {
+    await writeAllowlist(api, DEFAULT_DOMAINS);
+  } else if (got[KEYS.allowlistVersion] !== ALLOWLIST_VERSION) {
+    const list = sanitizeAllowlist(got[KEYS.allowlist]);
+    await writeAllowlist(
+      api,
+      list.filter((d) => !RETIRED_DEFAULTS.includes(d)),
+    );
+  }
+  await api.storage.local.set({ [KEYS.allowlistVersion]: ALLOWLIST_VERSION });
 }
 
 export async function readStatus(api: Api): Promise<Status> {

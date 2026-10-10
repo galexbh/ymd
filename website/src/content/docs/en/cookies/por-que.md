@@ -22,9 +22,9 @@ yt-dlp doesn't have your session on its own. ymd can give it one in several ways
 
 In **Settings → Accounts → Browser cookies**, **Cookie source** has three values:
 
-- **None**: yt-dlp downloads without being signed in.
-- **Browser**: yt-dlp reads the browser's cookies on every download.
-- **cookies.txt file**: yt-dlp uses the imported copy; it works even with the browser open. The extension writes to this same copy.
+- **None**: downloads without being signed in.
+- **Browser**: ymd reads the browser's cookies on every download.
+- **cookies.txt file**: ymd uses the imported copy; it works even with the browser open. The extension writes to this same copy.
 
 ## Privacy
 

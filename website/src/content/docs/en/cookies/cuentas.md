@@ -13,7 +13,7 @@ Some sites, such as Vimeo, accept a username and password in yt-dlp. ymd keeps t
 
 If the site isn't listed, **Other (advanced)** lets you type the **Site key** yourself: yt-dlp's netrc key, for example `vimeo`. Only lowercase letters, digits, dot, hyphen and underscore are allowed, not starting with a hyphen or underscore.
 
-YouTube doesn't accept a password in yt-dlp. For YouTube, use [cookies](/ymd/en/cookies/por-que/).
+YouTube doesn't accept a username and password. For YouTube, use [cookies](/ymd/en/cookies/por-que/).
 
 ## How they're stored
 
@@ -23,10 +23,10 @@ YouTube doesn't accept a password in yt-dlp. For YouTube, use [cookies](/ymd/en/
 
 ## Supported sites
 
-**Sites supported by yt-dlp** shows the official extractor list (about 1,700), bundled with ymd and updated with each release. You can search by name or description and filter by **Takes an account** or **Broken** (per yt-dlp).
+**Supported sites** shows the official extractor list of yt-dlp, ymd's download engine (about 1,700), bundled with ymd and updated with each release. You can search by name or description and filter by **Takes an account** or **Broken** (per yt-dlp).
 
 **How do I add more?** sums up the options:
 
 - **The site asks for an account**: pick it in **Site accounts** and save your username and password.
-- **The site has no account in yt-dlp or needs a browser login**: use cookies.
+- **The site has no account or needs a browser login**: use cookies.
 - **The site isn't on the list**: paste the link anyway; yt-dlp's generic extractor works with many pages. If it fails, you can ask for support in [yt-dlp's issues](https://github.com/yt-dlp/yt-dlp/issues).
