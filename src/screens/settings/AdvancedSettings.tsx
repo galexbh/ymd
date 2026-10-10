@@ -73,9 +73,27 @@ function AppUpdateSection() {
           max={u.total}
         />
       )}
-      {u.status === "error" && (
-        <Notice tone="error" title={t("settings.advanced.app.error", { error: u.error ?? "" })} />
+      {u.status === "noReleases" && (
+        <p className={s.fieldHint} data-testid="app-update-no-releases">
+          {t("settings.advanced.app.noReleases")}
+        </p>
       )}
+      {u.status === "error" &&
+        (u.errorKind === "offline" ? (
+          <Notice
+            tone="warning"
+            title={t("settings.advanced.app.offline")}
+            detail={u.error ?? undefined}
+          />
+        ) : (
+          <Notice
+            tone="error"
+            title={t("settings.advanced.app.failed")}
+            detail={u.error ?? undefined}
+          >
+            {t("settings.advanced.app.failedHint")}
+          </Notice>
+        ))}
     </Section>
   );
 }

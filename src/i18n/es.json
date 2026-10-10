@@ -611,10 +611,13 @@
         "install": "Instalar y reiniciar",
         "downloading": "Descargando la actualización",
         "installing": "Instalando; ymd se reiniciará.",
-        "error": "No se pudo buscar la actualización: {{error}}",
         "unknown": "desconocida",
         "hint": "Las actualizaciones de ymd vienen firmadas de GitHub Releases y se verifican antes de instalarse.",
-        "dev": "Las actualizaciones solo funcionan en la app instalada."
+        "dev": "Las actualizaciones solo funcionan en la app instalada.",
+        "noReleases": "Aún no hay versiones publicadas de ymd. Cuando salga la primera, aparecerá aquí.",
+        "offline": "No se pudo conectar con GitHub. Revisa tu conexión y vuelve a intentar.",
+        "failed": "No se pudo buscar la actualización",
+        "failedHint": "Vuelve a intentarlo más tarde. Si sigue fallando, descarga la última versión desde la página de releases de ymd en GitHub."
       }
     }
   },

@@ -611,10 +611,13 @@
         "install": "Install and restart",
         "downloading": "Downloading the update",
         "installing": "Installing; ymd will restart.",
-        "error": "Could not check for updates: {{error}}",
         "unknown": "unknown",
         "hint": "ymd updates are signed, come from GitHub Releases and are verified before installing.",
-        "dev": "Updates only work in the installed app."
+        "dev": "Updates only work in the installed app.",
+        "noReleases": "No ymd versions have been published yet. The first one will show up here.",
+        "offline": "Couldn’t reach GitHub. Check your connection and try again.",
+        "failed": "Couldn’t check for updates",
+        "failedHint": "Try again later. If it keeps failing, download the latest version from ymd’s releases page on GitHub."
       }
     }
   },

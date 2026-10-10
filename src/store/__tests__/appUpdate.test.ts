@@ -7,7 +7,7 @@ vi.mock("@tauri-apps/plugin-updater", () => ({ check: () => checkMock() }));
 vi.mock("@tauri-apps/plugin-process", () => ({ relaunch: () => relaunchMock() }));
 vi.mock("@tauri-apps/api/app", () => ({ getVersion: async () => "0.2.0" }));
 
-import { resetAppUpdate, useAppUpdate } from "../appUpdate";
+import { classifyUpdateError, resetAppUpdate, useAppUpdate } from "../appUpdate";
 
 function fakeUpdate(version: string) {
   return {
@@ -55,6 +55,35 @@ describe("app update store", () => {
     await useAppUpdate.getState().check();
     expect(useAppUpdate.getState().status).toBe("error");
     expect(useAppUpdate.getState().error).toBe("offline");
+    expect(useAppUpdate.getState().errorKind).toBe("offline");
+  });
+
+  it("no published release yet is a calm state, not an error", async () => {
+    // What tauri-plugin-updater reports when releases/latest/download/latest.json is a 404.
+    checkMock.mockRejectedValue(new Error("Could not fetch a valid release JSON from the remote"));
+    await useAppUpdate.getState().check();
+    expect(useAppUpdate.getState().status).toBe("noReleases");
+    expect(useAppUpdate.getState().error).toBeNull();
+  });
+
+  it("other failures keep the raw detail for the details line", async () => {
+    checkMock.mockRejectedValue(new Error("signature verification failed"));
+    await useAppUpdate.getState().check();
+    expect(useAppUpdate.getState().status).toBe("error");
+    expect(useAppUpdate.getState().errorKind).toBe("other");
+    expect(useAppUpdate.getState().error).toBe("signature verification failed");
+  });
+
+  it("classifies the plugin's messages", () => {
+    expect(classifyUpdateError("Could not fetch a valid release JSON from the remote")).toBe(
+      "noReleases",
+    );
+    expect(classifyUpdateError("status 404 Not Found")).toBe("noReleases");
+    expect(classifyUpdateError("error sending request for url (https://github.com/…)")).toBe(
+      "offline",
+    );
+    expect(classifyUpdateError("operation timed out")).toBe("offline");
+    expect(classifyUpdateError("signature verification failed")).toBe("other");
   });
 
   it("downloads with progress, then relaunches", async () => {
