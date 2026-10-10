@@ -26,6 +26,12 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  # Same Cargo settings as ci.yml: rust-cache hashes them into the key, and matching them lets
+  # this job restore CI's Linux debug cache instead of keeping its own.
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_PROFILE_TEST_DEBUG: line-tables-only
   SMOKE_URL: ${{ inputs.url || vars.SMOKE_URL || 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }}
 
 defaults:
@@ -34,7 +40,8 @@ defaults:
 
 jobs:
   smoke:
-    runs-on: ubuntu-24.04
+    # 22.04 like CI's rust job, whose debug cache this run restores.
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
@@ -108,7 +115,8 @@ jobs:
         if: always() && steps.video.outcome != 'skipped'
         with:
           workspaces: src-tauri
-          key: nightly-smoke
+          shared-key: debug
+          save-if: false
       - name: Linux system dependencies
         if: always() && steps.video.outcome != 'skipped'
         run: |

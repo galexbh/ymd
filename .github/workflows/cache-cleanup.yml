@@ -1,0 +1,25 @@
+# Deletes a pull request's caches when it closes. They are scoped to refs/pull/N/merge, so no
+# other run can restore them, and left alone they push main's caches out of the 10 GB budget.
+name: Cache cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    name: delete PR caches
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Delete caches of refs/pull/${{ github.event.pull_request.number }}/merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id' |
+            while read -r id; do gh cache delete "$id"; done
