@@ -15,8 +15,9 @@ manifest `key`) and the store one (`STORE_EXTENSION_ID` in
    Productivity.
 4. **Privacy:** single purpose, permission justifications and data usage from this file. Privacy
    policy URL: <https://galexbh.github.io/ymd/en/cookies/privacidad-extension/>.
-5. **Graphics:** `pnpm ext:shots` writes the 1280×800 screenshots to `extension/store/`; the
-   128×128 icon is `extension/icons/icon-128.png`.
+5. **Graphics:** `pnpm ext:shots` writes JPEGs (24-bit, no alpha) to `extension/store/`:
+   `screenshot-<es|en>-<light|dark>.jpg` (1280×800), `tile-small.jpg` (440×280) and
+   `tile-marquee.jpg` (1400×560). The 128×128 icon is `extension/icons/icon-128.png`.
 6. Visibility: **Unlisted** is enough (installable by link and from ymd).
 7. Submit for review. Once published, note the item ID and set `STORE_EXTENSION_ID` to it
    (phase 2: preinstall from the ymd installer and point the card at the store).
