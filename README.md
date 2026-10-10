@@ -89,7 +89,7 @@ Para videos que exigen sesión: extensión ymd Cookies para Brave, Chrome y Edge
 
 ## Desarrollo
 
-Requisitos: Node 22+, Rust estable y, en Linux, los [prerrequisitos de Tauri 2](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` arranca la app; `pnpm dev:mock`, solo la interfaz con un backend simulado.
+Requisitos: Node 24+, Rust estable y, en Linux, los [prerrequisitos de Tauri 2](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` arranca la app; `pnpm dev:mock`, solo la interfaz con un backend simulado.
 
 Guía, arquitectura, tests y releases en [Desarrollo](https://galexbh.github.io/ymd/desarrollo/contribuir/) y en [CONTRIBUTING.md](CONTRIBUTING.md).
 

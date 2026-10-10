@@ -7,7 +7,7 @@ Guidance for AI coding sessions in this repo. Product context: `PRODUCT.md`. Hum
 
 ymd = desktop GUI for yt-dlp. Tauri v2 (Rust, `src-tauri/`) + React 18 + TypeScript + Vite,
 zustand, i18next. pnpm via corepack (`corepack pnpm …`; set `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`
-in non-interactive shells). Node 22+.
+in non-interactive shells). Node 24+.
 
 ## Commands
 
@@ -80,6 +80,7 @@ Scenarios: `first-run`, `ready`, `outdated`, `complete`.
    cookies or credentials.
 5. **Formatting**: Prettier for TS/JSON/MD/YAML, rustfmt for Rust; LF line endings.
 6. Keep `@tauri-apps/*` npm packages on the same major.minor as the Rust crates.
+   npm dependencies are pinned to exact versions (no `^`/`~`; `.npmrc` has `save-exact`).
 7. **Docs**: a user-visible behavior change updates the matching `website/` page in both es and
    en, using the app's real UI labels (`src/i18n/*.json`). `pnpm docs:build` must pass (it fails
    on broken internal links).
