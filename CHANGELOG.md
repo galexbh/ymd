@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Cambios
+
+- **Pie de la barra lateral más simple.** Se quitó la fila **Entorno JS** (el entorno sigue en **Dependencias**) y se agregó un enlace a **galexbh.dev**, el sitio del autor.
+
 ## [0.5.0] - 2026-10-10
 
 ### Novedades
@@ -135,6 +141,7 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.5.0...HEAD
 [0.5.0]: https://github.com/galexbh/ymd/releases/tag/v0.5.0
 [0.4.0]: https://github.com/galexbh/ymd/releases/tag/v0.4.0
 [0.3.1]: https://github.com/galexbh/ymd/releases/tag/v0.3.1

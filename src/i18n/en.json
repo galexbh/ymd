@@ -193,7 +193,7 @@
     "skip": "Skip to content",
     "pending": "{{n}} downloads running or queued",
     "attention": "Some dependencies need attention",
-    "js": "JS runtime",
+    "author": "Made by galexbh.dev",
     "missing": "not installed"
   },
   "shortcuts": {
