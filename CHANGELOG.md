@@ -2,7 +2,7 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
-## [Unreleased]
+## [0.3.1] - 2026-10-10
 
 ### Novedades
 
@@ -14,6 +14,12 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **La extensión «ymd Cookies» solo lee YouTube por defecto** (versión 1.1.0). Ya no incluye `google.com`: la sesión de YouTube vive en sus propias cookies, así que no hace falta tocar las de tu cuenta de Google. Al actualizarse la quita de la lista una vez; si la necesitas para otro sitio, puedes volver a agregarla.
 - **«Mostrar la carpeta de la extensión»** abre el Explorador con la carpeta `extension` seleccionada, lista para arrastrarla a la página de extensiones.
 - Ajustes → Cuentas menciona yt-dlp solo donde importa: su lista de sitios y su página de soporte.
+
+### Proyecto
+
+- Diagramas en la documentación de desarrollo: el puente de cookies, la arquitectura y el ciclo de una descarga.
+- Node 24 (LTS) en CI y como requisito para desarrollar; dependencias de npm con versión exacta.
+- GitHub Actions actualizadas, incluida `tauri-action` v1.
 
 ## [0.3.0] - 2026-10-10
 
@@ -88,6 +94,6 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.3.0...HEAD
+[0.3.1]: https://github.com/galexbh/ymd/releases/tag/v0.3.1
 [0.3.0]: https://github.com/galexbh/ymd/releases/tag/v0.3.0
 [0.2.0]: https://github.com/galexbh/ymd/releases/tag/v0.2.0
