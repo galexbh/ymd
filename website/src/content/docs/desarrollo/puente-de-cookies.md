@@ -15,14 +15,15 @@ Contrato compartido por `extension/` y `src-tauri/src/auth/native_host.rs`. Un c
 
 - Nombre del host nativo: `com.ymd.cookies`
 - ID de la extensión (fijado por la `key` del manifiesto): `gicaphbpepkphmeciigjhdpnbcaflfgd`
-- Origen permitido: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/`
+- ID de la versión de la Chrome Web Store (la tienda asigna el suyo): `hhojlkpllmndkaolmebblijfcjkjpdpi`
+- Orígenes permitidos: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/` y `chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/`. ymd rechaza cualquier otro.
 - `key` del manifiesto (pública, SPKI DER en base64). `extension/src/__tests__/manifest.test.ts` lee este bloque y comprueba que coincide con `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
 ```
 
-La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd/extension-key.pem` en la máquina del mantenedor y solo hace falta para subir un CRX empaquetado a la Chrome Web Store con el mismo ID.
+La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd/extension-key.pem` en la máquina del mantenedor y no se sube a la tienda: la versión de la Chrome Web Store tiene su propio ID, y ymd acepta los dos.
 
 ## Transporte
 

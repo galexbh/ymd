@@ -10,6 +10,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **Sitios sugeridos.** La ventana de la extensión ofrece YouTube, Vimeo, SoundCloud y Twitch para agregarlos con un clic, y **Permitir** en un sitio que perdió su permiso.
 - **YouTube sigue listo sin pasos en la extensión que trae ymd.** La versión para la Chrome Web Store no trae ningún sitio de serie: su bienvenida ofrece **Usar YouTube**, y el navegador pide permiso para cada sitio que agregas. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión no envía YouTube.
 
+### Proyecto
+
+- ymd acepta el ID que la Chrome Web Store asignó a «ymd Cookies» (`hhojlkpllmndkaolmebblijfcjkjpdpi`), además del de la versión descomprimida, para que ambas puedan hablar con ymd. La instalación automática desde el instalador de ymd sigue apagada hasta que la tienda publique la extensión.
+
 ## [0.4.0] - 2026-10-10
 
 ### Novedades

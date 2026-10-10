@@ -1,8 +1,8 @@
 # ymd Cookies: Chrome Web Store listing (draft)
 
-Prepared for a future submission. Nothing has been submitted yet.
+Store item: **hhojlkpllmndkaolmebblijfcjkjpdpi**, status **Draft** (not submitted yet).
 
-The store assigns its own extension ID. ymd accepts both IDs: the unpacked one (fixed by the
+The store assigned its own extension ID. ymd accepts both IDs: the unpacked one (fixed by the
 manifest `key`) and the store one (`STORE_EXTENSION_ID` in
 `src-tauri/src/auth/native_host.rs`), so no private key has to be uploaded.
 
@@ -23,8 +23,9 @@ youtube.com.
    `screenshot-<es|en>-<light|dark>.jpg` (1280×800), `tile-small.jpg` (440×280) and
    `tile-marquee.jpg` (1400×560). The 128×128 icon is `extension/icons/icon-128.png`.
 6. Visibility: **Unlisted** is enough (installable by link and from ymd).
-7. Submit for review. Once published, note the item ID and set `STORE_EXTENSION_ID` to it
-   (phase 2: preinstall from the ymd installer and point the card at the store).
+7. Submit for review. `STORE_EXTENSION_ID` is already set. Once published, phase 2: turn on
+   `STORE_EXTENSION_ENABLED` and the `YMD_STORE_EXTENSION` installer define (preinstall from the
+   ymd installer) and point the card at the store.
 
 ## Listing
 

@@ -20,7 +20,7 @@ Pasos, una sola vez:
 
 Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Extensión**. Si **Sesión de YouTube** dice **Sin agregar**, la extensión todavía no envía YouTube: agrégalo desde la extensión.
 
-El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones: ymd solo acepta mensajes de ese ID.
+El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones. La versión de la Chrome Web Store, cuando esté publicada, tiene su propio ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`; ymd solo acepta mensajes de esos dos.
 
 Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta.
 
