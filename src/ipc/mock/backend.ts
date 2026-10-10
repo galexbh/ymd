@@ -121,6 +121,8 @@ export interface MockExtensionOptions {
   extensionDir?: boolean;
   /** Last sync delivered by the extension. Default null (installed, nothing synced yet). */
   lastSync?: ExtensionSync | null;
+  /** The user's default browser. Default "brave". */
+  defaultBrowser?: Browser | null;
 }
 
 export type MockEmitter = (event: string, payload: unknown) => void;
@@ -296,6 +298,7 @@ export class MockBackend {
       hostManifest: hostManifestFor(this.platform),
       targets: bridgeTargetsFixture(ext.registered ?? true),
       lastSync: clone(ext.lastSync ?? null),
+      defaultBrowser: ext.defaultBrowser === undefined ? "brave" : ext.defaultBrowser,
     };
     this.settingsFallback = defaultSettings(this.platform);
     this.settings = sanitizeSettings(
@@ -370,6 +373,7 @@ export class MockBackend {
       this.extension.extensionDir = state.extensionDir ? extensionDirFor(this.platform) : null;
     }
     if (state.lastSync !== undefined) this.extension.lastSync = clone(state.lastSync);
+    if (state.defaultBrowser !== undefined) this.extension.defaultBrowser = state.defaultBrowser;
   }
 
   setDepFails(id: DepId, fails: boolean): void {

@@ -1,6 +1,9 @@
-//! Locating a Chromium browser's executable to open its extensions page
-//! (`brave://extensions`, ...). The opener plugin cannot open those schemes, so the browser
-//! itself is launched with the URL.
+//! Locating a Chromium browser's executable to bring it to the front for the extension setup.
+//!
+//! Chromium refuses internal pages (`brave://extensions`, `chrome://…`) passed by another
+//! program: on the command line they open a blank new tab instead (verified with Brave on
+//! Windows). So ymd only launches or focuses the browser; the UI copies the extensions-page
+//! address for the user to paste.
 
 use super::browsers::Os;
 use crate::model::{Browser, CmdResult, CommandError, ErrorCode};
@@ -117,7 +120,7 @@ fn app_paths_lookup(_name: &str) -> Option<PathBuf> {
     None
 }
 
-/// Program + argv that open `browser` on its extensions page.
+/// Program + argv that launch (or focus) `browser`, with no URL (see the module docs).
 pub fn launch_command(browser: Browser) -> CmdResult<(PathBuf, Vec<String>)> {
     let not_supported = || {
         CommandError::new(
@@ -125,7 +128,7 @@ pub fn launch_command(browser: Browser) -> CmdResult<(PathBuf, Vec<String>)> {
             format!("{browser:?} is not supported by the cookie bridge"),
         )
     };
-    let url = extensions_url(browser).ok_or_else(not_supported)?;
+    extensions_url(browser).ok_or_else(not_supported)?;
     let not_found = || {
         CommandError::new(
             ErrorCode::BinaryMissing,
@@ -142,13 +145,13 @@ pub fn launch_command(browser: Browser) -> CmdResult<(PathBuf, Vec<String>)> {
                         .find(|p| p.is_file())
                 })
                 .ok_or_else(not_found)?;
-            Ok((exe, vec![url.to_string()]))
+            Ok((exe, Vec::new()))
         }
         Os::Mac => {
             let app = mac_app_name(browser).ok_or_else(not_supported)?;
             Ok((
                 PathBuf::from("/usr/bin/open"),
-                vec!["-a".into(), app.into(), url.into()],
+                vec!["-a".into(), app.into()],
             ))
         }
         Os::Linux => {
@@ -156,7 +159,7 @@ pub fn launch_command(browser: Browser) -> CmdResult<(PathBuf, Vec<String>)> {
                 .iter()
                 .find_map(|n| which::which(n).ok())
                 .ok_or_else(not_found)?;
-            Ok((exe, vec![url.to_string()]))
+            Ok((exe, Vec::new()))
         }
     }
 }

@@ -25,12 +25,31 @@ export function syncBrowserName(browser: string): string {
   return browser ? browser[0].toUpperCase() + browser.slice(1) : browser;
 }
 
+/** Chromium browsers the bridge supports (the ones ymd registers its host for). */
+const BRIDGE_BROWSERS: Browser[] = ["brave", "chrome", "chromium", "edge", "vivaldi"];
+
+/** The browser's internal extensions page (it can't be opened by another program: paste it). */
+export function extensionsUrl(b: Browser): string {
+  switch (b) {
+    case "brave":
+      return "brave://extensions";
+    case "edge":
+      return "edge://extensions";
+    case "vivaldi":
+      return "vivaldi://extensions";
+    default:
+      return "chrome://extensions";
+  }
+}
+
 /**
- * Browser whose extensions page the card opens: the Chromium browser picked as cookie source,
- * else the one that last synced, else the first installed target (Brave leads).
+ * Browser the card sets up: the user's default browser when the bridge supports it, else the
+ * Chromium browser picked as cookie source, else the one that last synced, else the first
+ * installed target (Brave leads).
  */
 export function pageBrowser(st: ExtensionStatus, chosen: Browser | null): Browser {
   const installed = st.targets.filter((t) => t.installed).map((t) => t.browser);
+  if (st.defaultBrowser && BRIDGE_BROWSERS.includes(st.defaultBrowser)) return st.defaultBrowser;
   if (chosen && CHROMIUM.includes(chosen) && installed.includes(chosen)) return chosen;
   const synced = st.lastSync?.browser as Browser | undefined;
   if (synced && installed.includes(synced)) return synced;

@@ -5,7 +5,13 @@ import en from "../../../i18n/en.json";
 import es from "../../../i18n/es.json";
 import type { ExtensionSync } from "../../../ipc/types";
 import { useNav } from "../../../store/nav";
-import { EXTENSION_POLL_MS, bridgeState, pageBrowser, syncBrowserName } from "../extension";
+import {
+  EXTENSION_POLL_MS,
+  bridgeState,
+  extensionsUrl,
+  pageBrowser,
+  syncBrowserName,
+} from "../extension";
 
 const SYNC: ExtensionSync = {
   at: "2026-10-08T14:56:00.000Z",
@@ -98,9 +104,7 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     await user.click(
       await within(c).findByRole("button", { name: "Abrir carpeta de la extensión" }),
     );
-    await user.click(
-      within(c).getByRole("button", { name: "Abrir página de extensiones de Brave" }),
-    );
+    await user.click(within(c).getByRole("button", { name: "Abrir Brave y copiar la dirección" }));
     await tick(0);
     const opened = calls(be, "plugin:opener|open_path");
     expect(opened).toHaveLength(1);
@@ -108,16 +112,36 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
       JSON.stringify("C:\\Program Files\\ymd\\resources\\extension").slice(1, -1),
     );
     expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "brave" }]);
+    // Chromium won't open brave://extensions for another program: the card says what to paste.
+    const notice = await within(c).findByTestId("extension-opened");
+    expect(notice).toHaveTextContent("Brave está abierto");
+    expect(notice).toHaveTextContent("brave://extensions");
   });
 
-  it("uses the Chromium browser picked as cookie source", async () => {
+  it("targets the user's default browser first", async () => {
     const { be, user, tick } = await renderApp({
       ...accounts,
+      extension: { defaultBrowser: "edge" },
+      settings: { language: "es", cookies: { kind: "browser", browser: "brave", profile: null } },
+    });
+    const c = await card();
+    await user.click(
+      await within(c).findByRole("button", { name: "Abrir Edge y copiar la dirección" }),
+    );
+    await tick(0);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "edge" }]);
+    expect(within(c).getAllByText("edge://extensions").length).toBeGreaterThan(0);
+  });
+
+  it("with no known default, uses the Chromium browser picked as cookie source", async () => {
+    const { be, user, tick } = await renderApp({
+      ...accounts,
+      extension: { defaultBrowser: null },
       settings: { language: "es", cookies: { kind: "browser", browser: "edge", profile: null } },
     });
     const c = await card();
     await user.click(
-      await within(c).findByRole("button", { name: "Abrir página de extensiones de Edge" }),
+      await within(c).findByRole("button", { name: "Abrir Edge y copiar la dirección" }),
     );
     await tick(0);
     expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "edge" }]);
@@ -134,11 +158,41 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
         : orig(cmd, args),
     );
     await user.click(
-      await within(c).findByRole("button", { name: "Abrir página de extensiones de Brave" }),
+      await within(c).findByRole("button", { name: "Abrir Brave y copiar la dirección" }),
     );
     await tick(0);
     expect(await within(c).findByText("No se pudo abrir Brave")).toBeInTheDocument();
-    expect(within(c).getByText(/brave:\/\/extensions/)).toBeInTheDocument();
+    expect(within(c).getAllByText(/brave:\/\/extensions/).length).toBeGreaterThan(0);
+  });
+
+  it("shows the folder path when it can't be opened", async () => {
+    const { be, user, tick } = await renderApp(accounts);
+    const c = await card();
+    const orig = be.invoke.bind(be);
+    vi.spyOn(be, "invoke").mockImplementation((cmd, args) =>
+      cmd === "plugin:opener|open_path" ? Promise.reject("not allowed") : orig(cmd, args),
+    );
+    await user.click(
+      await within(c).findByRole("button", { name: "Abrir carpeta de la extensión" }),
+    );
+    await tick(0);
+    expect(await within(c).findByText("No se pudo abrir la carpeta")).toBeInTheDocument();
+    expect(within(c).getByText(/resources\\extension/)).toBeInTheDocument();
+  });
+
+  it("with Firefox as the default browser, offers its cookies instead of the extension", async () => {
+    const { be, user, tick } = await renderApp({
+      ...accounts,
+      extension: { defaultBrowser: "firefox" },
+    });
+    const c = await card();
+    const notice = await within(c).findByTestId("extension-firefox-default");
+    expect(notice).toHaveTextContent("Tu navegador predeterminado es Firefox");
+    await user.click(within(notice).getByRole("button", { name: "Usar cookies de Firefox" }));
+    await tick(0);
+    await waitFor(() =>
+      expect(be.snapshot().settings.cookies).toMatchObject({ kind: "browser", browser: "firefox" }),
+    );
   });
 
   it("disables the folder button with an explanation when the build has no folder (dev)", async () => {
@@ -273,7 +327,9 @@ describe("Ajustes → Cuentas: extensión de ymd — idiomas", () => {
       await screen.findByRole("heading", { name: "ymd extension for Brave, Chrome and Edge" }),
     ).toBeInTheDocument();
     expect(await stamp()).toHaveTextContent("Connected");
-    expect(screen.getByRole("button", { name: "Open Brave extensions page" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open Brave and copy the address" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -288,6 +344,7 @@ describe("extension helpers", () => {
       { browser: "edge" as const, installed: true, registered: true },
     ],
     lastSync: null,
+    defaultBrowser: null,
   };
 
   it("bridgeState", () => {
@@ -303,6 +360,20 @@ describe("extension helpers", () => {
     expect(pageBrowser(status, "firefox")).toBe("chrome");
     expect(pageBrowser({ ...status, lastSync: { ...SYNC, browser: "edge" } }, null)).toBe("edge");
     expect(pageBrowser({ ...status, targets: [] }, null)).toBe("brave");
+  });
+
+  it("pageBrowser: a supported default browser wins; Firefox or Safari as default don't", () => {
+    expect(pageBrowser({ ...status, defaultBrowser: "edge" }, "chrome")).toBe("edge");
+    expect(pageBrowser({ ...status, defaultBrowser: "firefox" }, "edge")).toBe("edge");
+    expect(pageBrowser({ ...status, defaultBrowser: "safari" }, null)).toBe("chrome");
+  });
+
+  it("extensionsUrl", () => {
+    expect(extensionsUrl("brave")).toBe("brave://extensions");
+    expect(extensionsUrl("chrome")).toBe("chrome://extensions");
+    expect(extensionsUrl("chromium")).toBe("chrome://extensions");
+    expect(extensionsUrl("edge")).toBe("edge://extensions");
+    expect(extensionsUrl("vivaldi")).toBe("vivaldi://extensions");
   });
 
   it("syncBrowserName", () => {

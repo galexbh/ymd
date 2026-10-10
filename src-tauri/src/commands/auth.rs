@@ -121,14 +121,16 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 .then(|| manifest.to_string_lossy().into_owned()),
             targets: native_registry::status(&paths.data_dir),
             last_sync,
+            default_browser: crate::auth::default_browser::detect(),
         }
     })
     .await
     .map_err(CommandError::unknown)
 }
 
-/// Opens `browser` on its extensions page (`brave://extensions`, ...). The opener plugin
-/// cannot open those schemes, so the browser executable is launched with the URL.
+/// Launches (or focuses) `browser` for the extension setup. Chromium ignores internal pages
+/// such as `brave://extensions` passed by another program, so the UI copies that address for
+/// the user to paste.
 #[tauri::command]
 pub async fn extension_open_page(state: State<'_>, browser: Browser) -> CmdResult<()> {
     let _ = state;

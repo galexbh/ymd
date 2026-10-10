@@ -11,7 +11,14 @@ import { currentLocale } from "../../i18n";
 import { copyText, openFile } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
-import { EXTENSION_POLL_MS, STAMP, bridgeState, pageBrowser, syncBrowserName } from "./extension";
+import {
+  EXTENSION_POLL_MS,
+  STAMP,
+  bridgeState,
+  extensionsUrl,
+  pageBrowser,
+  syncBrowserName,
+} from "./extension";
 import s from "./ExtensionCard.module.css";
 import settings from "./settings.module.css";
 
@@ -70,6 +77,8 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
   const [failed, setFailed] = useState(false);
   const [first, setFirst] = useState<{ sync: ExtensionSync; switched: boolean } | null>(null);
   const [openError, setOpenError] = useState<Browser | null>(null);
+  const [opened, setOpened] = useState<{ browser: Browser; copied: boolean } | null>(null);
+  const [folderError, setFolderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointer = useRef(false);
@@ -134,14 +143,30 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
   const sync = status?.lastSync ?? null;
   const locale = currentLocale();
 
+  // Chromium won't open brave://extensions for another program: copy it, then bring the
+  // browser up so the user pastes it.
   const openPage = async () => {
     setOpenError(null);
+    setOpened(null);
+    const copied = await copyText(extensionsUrl(target));
     try {
       await api.extensionOpenPage(target);
+      setOpened({ browser: target, copied });
     } catch {
       setOpenError(target);
     }
   };
+
+  const openFolder = async (dir: string) => {
+    setFolderError(null);
+    try {
+      await openFile(dir);
+    } catch {
+      setFolderError(dir);
+    }
+  };
+
+  const defaultIsFirefox = status?.defaultBrowser === "firefox";
 
   return (
     <section
@@ -189,6 +214,29 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
             browser: sync ? syncBrowserName(sync.browser) : targetName,
           })}
         </p>
+      )}
+
+      {defaultIsFirefox && (
+        <div data-testid="extension-firefox-default">
+          <Notice
+            tone="info"
+            title={t("extension.firefoxDefault")}
+            actions={
+              source?.kind === "browser" && source.browser === "firefox"
+                ? undefined
+                : [
+                    {
+                      label: t("extension.useFirefox"),
+                      primary: true,
+                      onClick: () =>
+                        update({ cookies: { kind: "browser", browser: "firefox", profile: null } }),
+                    },
+                  ]
+            }
+          >
+            {t("extension.firefoxDefaultBody")}
+          </Notice>
+        </div>
       )}
 
       {sync && (
@@ -240,7 +288,7 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
                     disabled={!status.extensionDir}
                     aria-describedby={status.extensionDir ? undefined : folderHintId}
                     onClick={() => {
-                      if (status.extensionDir) void openFile(status.extensionDir).catch(() => {});
+                      if (status.extensionDir) void openFolder(status.extensionDir);
                     }}
                     data-testid="extension-open-folder"
                   >
@@ -254,7 +302,10 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
                 </div>
               </li>
               <li>
-                <span>{t("extension.step2", { browser: targetName })}</span>
+                <span>
+                  {t("extension.step2", { browser: targetName })}{" "}
+                  <code className={s.url}>{extensionsUrl(target)}</code>
+                </span>
                 <div className={s.stepAction}>
                   <Button
                     size="sm"
@@ -271,6 +322,29 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
               <li>{t("extension.step4")}</li>
             </ol>
           </StepsFrame>
+          {folderError && (
+            <Notice
+              tone="warning"
+              title={t("extension.folderFailed")}
+              detail={folderError}
+              onDismiss={() => setFolderError(null)}
+            >
+              {t("extension.folderFailedHint")}
+            </Notice>
+          )}
+          {opened && (
+            <div data-testid="extension-opened">
+              <Notice
+                tone="info"
+                title={t("extension.openedTitle", { browser: BROWSER_NAMES[opened.browser] })}
+                onDismiss={() => setOpened(null)}
+              >
+                {t(opened.copied ? "extension.openedCopied" : "extension.openedType", {
+                  url: extensionsUrl(opened.browser),
+                })}
+              </Notice>
+            </div>
+          )}
           {openError && (
             <Notice
               tone="warning"
@@ -279,7 +353,7 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
             >
               {t("extension.openFailedHint", {
                 browser: BROWSER_NAMES[openError],
-                url: `${openError}://extensions`,
+                url: extensionsUrl(openError),
               })}
             </Notice>
           )}

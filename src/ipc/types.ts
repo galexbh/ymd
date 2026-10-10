@@ -319,6 +319,8 @@ export interface ExtensionStatus {
   hostManifest: string | null;
   targets: BridgeTarget[];
   lastSync: ExtensionSync | null;
+  /** the user's default web browser, when it can be told */
+  defaultBrowser: Browser | null;
 }
 
 // ───────────── Errors & events ─────────────
