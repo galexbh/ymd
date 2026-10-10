@@ -22,9 +22,9 @@ yt-dlp no tiene tu sesión por sí mismo. ymd se la puede dar de varias formas, 
 
 En **Ajustes → Cuentas → Cookies del navegador**, **Origen de las cookies** tiene tres valores:
 
-- **Ninguno**: yt-dlp descarga sin sesión iniciada.
-- **Navegador**: yt-dlp lee las cookies del navegador en cada descarga.
-- **Archivo cookies.txt**: yt-dlp usa la copia importada; funciona aunque el navegador esté abierto. La extensión escribe en esta misma copia.
+- **Ninguno**: descarga sin sesión iniciada.
+- **Navegador**: ymd lee las cookies del navegador en cada descarga.
+- **Archivo cookies.txt**: ymd usa la copia importada; funciona aunque el navegador esté abierto. La extensión escribe en esta misma copia.
 
 ## Privacidad
 

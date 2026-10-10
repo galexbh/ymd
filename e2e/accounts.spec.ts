@@ -85,7 +85,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 
     const site = page.getByRole("combobox", { name: "Sitio" });
     await site.fill("you");
-    await expect(page.getByText("YouTube no acepta contraseña en yt-dlp")).toBeVisible();
+    await expect(page.getByText("YouTube no acepta usuario y contraseña")).toBeVisible();
     await site.fill("vi");
     await site.press("ArrowDown");
     const form = page.getByRole("form", { name: "Agregar cuenta" });
