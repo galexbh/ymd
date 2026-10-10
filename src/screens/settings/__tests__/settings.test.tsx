@@ -348,15 +348,15 @@ describe("Ajustes → Preajustes", () => {
     await tick(0);
     await waitFor(() => {
       const s = be.snapshot().settings;
-      expect(s.presets.some((p) => p.id === "custom-6" && p.audio.format === "flac")).toBe(true);
-      expect(s.defaultPresetId).toBe("custom-6");
+      expect(s.presets.some((p) => p.id === "custom-7" && p.audio.format === "flac")).toBe(true);
+      expect(s.defaultPresetId).toBe("custom-7");
     });
 
     await user.click(screen.getByRole("button", { name: /^Borrar MP3 320 kbps \(copia\)/ }));
     await tick(0);
     await waitFor(() => {
       const s = be.snapshot().settings;
-      expect(s.presets.some((p) => p.id === "custom-6")).toBe(false);
+      expect(s.presets.some((p) => p.id === "custom-7")).toBe(false);
       expect(s.defaultPresetId).toBe("best");
     });
     expect(screen.getByText(/Preajuste «MP3 320 kbps \(copia\)» borrado/)).toBeInTheDocument();

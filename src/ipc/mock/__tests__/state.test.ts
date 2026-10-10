@@ -218,6 +218,7 @@ describe("mock backend — settings", () => {
       "mp4-1080",
       "mp4-720",
       "mp3-320",
+      "m4a",
       "audio-original",
     ]);
     expect(s.concurrency).toBe(3);
@@ -252,7 +253,7 @@ describe("mock backend — settings", () => {
     expect(low.concurrency).toBe(1);
     expect(low.theme.fontScale).toBe(0.875);
     expect(low.theme.accent).toBeNull();
-    expect(low.presets).toHaveLength(5);
+    expect(low.presets).toHaveLength(6);
   });
 
   it("returned settings are copies (no shared mutable state)", async () => {

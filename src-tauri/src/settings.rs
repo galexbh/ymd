@@ -113,7 +113,7 @@ fn audio_preset(id: &str, name: &str, format: AudioFormat, quality: &str) -> Pre
     }
 }
 
-/// Builtin presets: best, mp4-1080, mp4-720, mp3-320, audio-original.
+/// Builtin presets: best, mp4-1080, mp4-720, mp3-320, m4a, audio-original.
 ///
 /// Ids are stable (the UI maps them to i18n keys); `name` is a Spanish-neutral fallback.
 /// `best` uses container Mp4: the args builder sorts with `-S res,ext:mp4:m4a` and merges
@@ -125,6 +125,8 @@ pub fn builtin_presets() -> Vec<Preset> {
         video_preset("mp4-1080", "MP4 1080p", Some(1080)),
         video_preset("mp4-720", "MP4 720p", Some(720)),
         audio_preset("mp3-320", "MP3 320", AudioFormat::Mp3, "320K"),
+        // AAC in an m4a container; YouTube already serves AAC, so this usually remuxes only.
+        audio_preset("m4a", "M4A (AAC)", AudioFormat::M4a, "0"),
         audio_preset(
             "audio-original",
             "Audio original (m4a/opus)",

@@ -217,6 +217,7 @@
       "mp4-1080": "MP4 1080p",
       "mp4-720": "MP4 720p",
       "mp3-320": "MP3 320 kbps",
+      "m4a": "M4A (AAC)",
       "audio-original": "Original audio"
     },
     "code": {
