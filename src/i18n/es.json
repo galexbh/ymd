@@ -593,6 +593,40 @@
       }
     }
   },
+  "extension": {
+    "title": "Extensión de ymd para Brave, Chrome y Edge",
+    "lead": "La extensión envía a ymd tus cookies de YouTube cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.",
+    "state": {
+      "connected": "Conectada",
+      "pending": "Pendiente",
+      "noBridge": "Sin puente"
+    },
+    "status": {
+      "connected": "ymd recibe las cookies de {{browser}} sin que hagas nada más.",
+      "pending": "El puente está listo. Instala la extensión con los pasos de abajo; la primera sincronización llegará sola.",
+      "noBridge": "ymd aún no se registró en tus navegadores. Reinicia ymd para registrarlo; si sigue igual, usa el archivo cookies.txt.",
+      "unavailable": "No se pudo consultar el estado de la extensión. ymd lo vuelve a intentar cada pocos segundos."
+    },
+    "fact": {
+      "browser": "Navegador",
+      "lastSync": "Última sincronización",
+      "cookies": "Cookies"
+    },
+    "steps": "Pasos, una sola vez",
+    "step1": "Abre la carpeta de la extensión que viene con ymd.",
+    "step2": "Abre la página de extensiones de {{browser}}.",
+    "step3": "Activa «Modo de desarrollador» y pulsa «Cargar descomprimida»; elige la carpeta del paso 1.",
+    "step4": "Inicia sesión en YouTube en ese navegador; ymd recibirá las cookies solo.",
+    "openFolder": "Abrir carpeta de la extensión",
+    "noFolder": "Esta compilación no incluye la carpeta de la extensión (modo desarrollo).",
+    "openPage": "Abrir página de extensiones de {{browser}}",
+    "openFailed": "No se pudo abrir {{browser}}",
+    "openFailedHint": "Abre {{browser}} y escribe {{url}} en la barra de direcciones.",
+    "id": "ID de la extensión",
+    "idHint": "Para comprobar en la página de extensiones que es la de ymd.",
+    "synced": "{{browser}} conectado: {{count}} cookies sincronizadas",
+    "syncedBody": "El origen de las cookies cambió a «Archivo cookies.txt» y se mantiene al día solo."
+  },
   "accounts": {
     "theBrowser": "el navegador",
     "cookies": {
@@ -637,14 +671,16 @@
       "useFile": "Usar cookies.txt"
     },
     "decrypt": {
-      "body": "En Windows, {{browser}} cifra sus cookies de forma que otros programas no pueden leerlas. Exporta un archivo cookies.txt con los pasos de abajo.",
+      "body": "En Windows, {{browser}} cifra sus cookies de forma que otros programas no pueden leerlas. La extensión de ymd las envía directamente desde el navegador; también puedes exportar un archivo cookies.txt.",
+      "useExtension": "Usar la extensión de ymd",
       "orFirefox": "También puedes usar Firefox, cuyas cookies sí se pueden leer.",
       "switchFirefox": "Usar Firefox"
     },
     "guide": {
       "title": "Exportar cookies.txt",
+      "titleAlt": "Alternativa: exportar cookies.txt a mano",
       "why": "Un archivo cookies.txt funciona con cualquier navegador y aunque esté abierto.",
-      "whyWindows": "En Windows, {{browser}} y otros navegadores Chromium no dejan leer sus cookies mientras están abiertos y las cifran al cerrarse. La forma fiable es exportar un archivo cookies.txt:",
+      "whyWindows": "En Windows, {{browser}} y otros navegadores Chromium no dejan leer sus cookies mientras están abiertos y las cifran al cerrarse. Si prefieres no instalar la extensión de ymd, exporta un archivo cookies.txt:",
       "step1": "En {{browser}}, instala una extensión de código abierto para exportar cookies, como «Get cookies.txt LOCALLY».",
       "step2": "Abre una ventana privada y permite la extensión en ella.",
       "step3": "Inicia sesión en YouTube (o en el sitio que necesites) dentro de esa ventana.",

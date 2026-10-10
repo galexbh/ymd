@@ -10,6 +10,8 @@ export interface OpenOptions {
   speed?: number;
   /** Brave closed → cookie snapshot/test succeed. */
   braveClosed?: boolean;
+  /** Cookie bridge: `none` = registered, nothing synced (default); `synced`; `nobridge`. */
+  ext?: "none" | "synced" | "nobridge";
 }
 
 /** Open the app in mock mode with a given backend scenario. */
@@ -18,6 +20,7 @@ export async function openApp(page: Page, opts: OpenOptions = {}): Promise<void>
     scenario: opts.scenario ?? "ready",
     speed: String(opts.speed ?? 8),
     brave: opts.braveClosed ? "closed" : "open",
+    ext: opts.ext ?? "none",
   });
   await page.goto(`/?${params.toString()}`);
   await page.waitForFunction(() => Boolean(window.__YMD_MOCK__));

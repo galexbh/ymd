@@ -7,7 +7,14 @@ import { MockBackend, type MockBackendOptions } from "./backend";
 import type { MockPlatform } from "./fixtures";
 
 export { MockBackend, sanitizeSettings, FAILURE_RULES, PROBE_FAILURE_RULES } from "./backend";
-export type { DepsScenario, MockBackendOptions, MockCall, MockDelays, MockEvent } from "./backend";
+export type {
+  DepsScenario,
+  MockBackendOptions,
+  MockCall,
+  MockDelays,
+  MockEvent,
+  MockExtensionOptions,
+} from "./backend";
 export { ManualClock, RealClock, flushMicrotasks } from "./clock";
 export type { MockClock } from "./clock";
 export { thumbnail } from "./fixtures";

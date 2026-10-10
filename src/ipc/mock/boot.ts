@@ -3,9 +3,16 @@
 // tree-shaken out of the bundle.
 //
 // Pick a scenario with `?scenario=first-run|ready|outdated|complete` (remembered in
-// localStorage), speed with `?speed=4`, and Brave state with `?brave=closed`.
+// localStorage), speed with `?speed=4`, Brave state with `?brave=closed`, and the cookie bridge
+// with `?ext=synced|none|nobridge` (default `none`: bridge registered, nothing synced yet).
 // The live backend is available in devtools as `window.__YMD_MOCK__`.
-import { installMockBackend, type DepsScenario, type MockBackend } from "./index";
+import {
+  installMockBackend,
+  type DepsScenario,
+  type MockBackend,
+  type MockExtensionOptions,
+} from "./index";
+import { EXTENSION_SYNC_DOMAINS } from "./fixtures";
 
 declare global {
   interface Window {
@@ -25,6 +32,23 @@ function readParam(name: string): string | null {
   }
 }
 
+/** `?ext=` → cookie bridge state for dev. */
+export function extensionFromParam(value: string | null, now: number): MockExtensionOptions {
+  if (value === "nobridge") return { registered: false, lastSync: null };
+  if (value === "synced") {
+    return {
+      registered: true,
+      lastSync: {
+        at: new Date(now - 4 * 60_000).toISOString(),
+        browser: "brave",
+        cookieCount: 42,
+        domains: EXTENSION_SYNC_DOMAINS,
+      },
+    };
+  }
+  return { registered: true, lastSync: null };
+}
+
 export function bootMock(): MockBackend {
   const s = readParam("scenario");
   const scenario = SCENARIOS.includes(s as DepsScenario) ? (s as DepsScenario) : "ready";
@@ -35,6 +59,7 @@ export function bootMock(): MockBackend {
     braveRunning: readParam("brave") !== "closed",
     firefoxInstalled: readParam("firefox") !== "missing",
     delays: { command: 40, probe: 900, auth: 700 },
+    extension: extensionFromParam(readParam("ext"), Date.now()),
   });
   window.__YMD_MOCK__ = backend;
   console.info(

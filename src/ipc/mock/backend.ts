@@ -19,6 +19,8 @@ import {
   type DepStatus,
   type EnqueueRequest,
   type ErrorCode,
+  type ExtensionStatus,
+  type ExtensionSync,
   type HistoryItem,
   type HistoryPage,
   type HistoryQuery,
@@ -33,13 +35,18 @@ import {
 } from "../types";
 import { ManualClock, RealClock, type MockClock, type TimerId } from "./clock";
 import {
+  BRIDGE_BROWSERS,
   DEFAULT_FILENAME_TEMPLATE,
+  EXTENSION_ID,
   DEP_CATALOG,
   DEP_ORDER,
   browsersFixture,
+  bridgeTargetsFixture,
   builtinPresets,
   defaultSettings,
+  extensionDirFor,
   hash,
+  hostManifestFor,
   isPlaylistUrl,
   joinPath,
   platformPaths,
@@ -99,6 +106,18 @@ export interface MockBackendOptions {
   settings?: Partial<Settings>;
   /** Seed for speed jitter. */
   seed?: number;
+  /** Cookie bridge state. */
+  extension?: MockExtensionOptions;
+}
+
+/** State of the cookie bridge (ymd Cookies extension ↔ native host). */
+export interface MockExtensionOptions {
+  /** ymd registered its native-messaging host with the browsers. Default true. */
+  registered?: boolean;
+  /** The build bundles the extension folder (false = dev build). Default true. */
+  extensionDir?: boolean;
+  /** Last sync delivered by the extension. Default null (installed, nothing synced yet). */
+  lastSync?: ExtensionSync | null;
 }
 
 export type MockEmitter = (event: string, payload: unknown) => void;
@@ -244,6 +263,7 @@ export class MockBackend {
   private braveRunning: boolean;
   private firefoxInstalled: boolean;
   private probeCache = new Map<string, ProbeResult>();
+  private extension: ExtensionStatus;
   private seed: number;
   private disposed = false;
 
@@ -262,6 +282,14 @@ export class MockBackend {
     this.braveRunning = options.braveRunning ?? true;
     this.firefoxInstalled = options.firefoxInstalled ?? true;
     this.seed = options.seed ?? 7;
+    const ext = options.extension ?? {};
+    this.extension = {
+      extensionId: EXTENSION_ID,
+      extensionDir: (ext.extensionDir ?? true) ? extensionDirFor(this.platform) : null,
+      hostManifest: hostManifestFor(this.platform),
+      targets: bridgeTargetsFixture(ext.registered ?? true),
+      lastSync: clone(ext.lastSync ?? null),
+    };
     this.settingsFallback = defaultSettings(this.platform);
     this.settings = sanitizeSettings(
       { ...this.settingsFallback, ...options.settings } as Settings,
@@ -303,6 +331,35 @@ export class MockBackend {
     if (browser === "brave") this.braveRunning = running;
   }
 
+  /** The extension delivered `count` cookies from `browser` (writes cookies.txt + meta). */
+  simulateExtensionSync(browser: string, count: number, domains: string[]): ExtensionSync {
+    const at = new Date(this.clock.now()).toISOString();
+    const sync: ExtensionSync = { at, browser, cookieCount: count, domains: [...domains] };
+    this.extension.lastSync = sync;
+    // a message got through, so the host is registered for that browser
+    for (const t of this.extension.targets) {
+      if (t.browser === browser) t.registered = true;
+    }
+    this.cookies = {
+      createdAt: at,
+      origin: `extension:${browser}`,
+      cookieCount: count,
+      domains: [...domains],
+    };
+    return clone(sync);
+  }
+
+  /** Change the bridge registration / bundled folder / last sync. */
+  setExtensionState(state: MockExtensionOptions): void {
+    if (state.registered !== undefined) {
+      for (const t of this.extension.targets) t.registered = state.registered;
+    }
+    if (state.extensionDir !== undefined) {
+      this.extension.extensionDir = state.extensionDir ? extensionDirFor(this.platform) : null;
+    }
+    if (state.lastSync !== undefined) this.extension.lastSync = clone(state.lastSync);
+  }
+
   setDepFails(id: DepId, fails: boolean): void {
     if (fails) this.failDeps.add(id);
     else this.failDeps.delete(id);
@@ -317,6 +374,7 @@ export class MockBackend {
       history: clone(this.history),
       cookies: clone(this.cookies),
       credentials: this.credentialList(),
+      extension: clone(this.extension),
     };
   }
 
@@ -406,6 +464,11 @@ export class MockBackend {
       case "credentials_delete":
         this.credentials.delete(String(a.extractor ?? "").trim());
         return this.credentialList();
+      // cookie bridge
+      case "extension_status":
+        return clone(this.extension);
+      case "extension_open_page":
+        return this.extensionOpenPage(a.browser as Browser);
       default:
         if (cmd.startsWith("plugin:")) return this.plugin(cmd, a);
         throw commandError("unknown", `mock backend: unhandled command "${cmd}"`);
@@ -1062,6 +1125,15 @@ export class MockBackend {
     }
     this.credentials.set(e, { username: u, password });
     return this.credentialList();
+  }
+
+  private extensionOpenPage(browser: Browser): null {
+    const target = this.extension.targets.find((t) => t.browser === browser);
+    if (!target || !BRIDGE_BROWSERS.includes(browser)) {
+      throw commandError("unknown", `extensions page not supported for ${String(browser)}`);
+    }
+    if (!target.installed) throw commandError("unknown", `${browser} is not installed`);
+    return null;
   }
 
   // ───────────── Tauri plugins used by the app ─────────────
