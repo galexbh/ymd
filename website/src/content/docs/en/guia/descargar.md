@@ -18,15 +18,16 @@ For protected videos, **Options for this download** takes a **Video password** a
 
 ## Presets
 
-A preset sets the format, the quality and what gets embedded. ymd ships five:
+A preset sets the format, the quality and what gets embedded. ymd ships six:
 
-| Preset         | Type  | Result                                                     |
-| -------------- | ----- | ---------------------------------------------------------- |
-| Best quality   | Video | The best quality available                                 |
-| MP4 1080p      | Video | MP4 up to 1080p                                            |
-| MP4 720p       | Video | MP4 up to 720p                                             |
-| MP3 320 kbps   | Audio | Extracted to MP3                                           |
-| Original audio | Audio | The audio as the site serves it (m4a or opus), unconverted |
+| Preset         | Type  | Result                                                       |
+| -------------- | ----- | ------------------------------------------------------------ |
+| Best quality   | Video | The best quality available                                   |
+| MP4 1080p      | Video | MP4 up to 1080p                                              |
+| MP4 720p       | Video | MP4 up to 720p                                               |
+| MP3 320 kbps   | Audio | Extracted to MP3                                             |
+| M4A (AAC)      | Audio | AAC in an m4a container; from YouTube usually not re-encoded |
+| Original audio | Audio | The audio as the site serves it (m4a or opus), unconverted   |
 
 In **Settings → Presets** you can create your own (**New preset**) or duplicate a built-in one. Each preset defines:
 

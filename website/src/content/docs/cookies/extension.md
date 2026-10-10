@@ -1,21 +1,21 @@
 ---
 title: Extensión ymd Cookies
-description: La extensión para Brave, Chrome y Edge que entrega tus cookies a ymd sin red.
+description: La extensión para navegadores Chromium que entrega tus cookies a ymd sin red.
 ---
 
-**ymd Cookies** es una extensión (Manifest V3) para Brave, Chrome y Edge. Entrega a ymd, en el mismo equipo, las cookies de los sitios que elijas, cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.
+**ymd Cookies** es una extensión (Manifest V3) para navegadores Chromium: Brave, Chrome, Edge, Opera, Vivaldi y otros. Entrega a ymd, en el mismo equipo, las cookies de los sitios que elijas, cada vez que cambian. Funciona con el navegador abierto y sin exportar archivos.
 
-En Windows es la vía recomendada para navegadores Chromium: Brave, Chrome y Edge cifran sus cookies de forma que yt-dlp no puede leerlas (ver [Cookies del navegador](/ymd/cookies/navegador/)).
+En Windows es la vía recomendada para navegadores Chromium, que cifran sus cookies de forma que yt-dlp no puede leerlas (ver [Cookies del navegador](/ymd/cookies/navegador/)).
 
 ## Instalar
 
-ymd trae la extensión ya compilada en su carpeta de recursos y registra el puente con los navegadores al arrancar. La tarjeta **Extensión de ymd para Brave, Chrome y Edge**, en **Ajustes → Cuentas**, guía la instalación. Brave aparece primero; **Instalar en otro navegador** muestra los pasos para los demás.
+ymd trae la extensión ya compilada en su carpeta de recursos y registra el puente con los navegadores al arrancar. La tarjeta **Extensión de ymd para navegadores Chromium**, en **Ajustes → Cuentas**, guía la instalación en tu **navegador predeterminado**: ymd lo detecta y muestra sus pasos. Si tu navegador predeterminado es Firefox, la tarjeta te ofrece usar sus cookies directamente, porque no necesitas la extensión.
 
 Pasos, una sola vez:
 
 1. **Abrir carpeta de la extensión**: abre la carpeta de la extensión que viene con ymd.
-2. **Abrir página de extensiones**: abre `brave://extensions` (o `chrome://extensions`, `edge://extensions`). Si el botón no puede abrir el navegador, escribe esa dirección en la barra.
-3. Activa **Modo de desarrollador** y pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada»). Elige la carpeta del paso 1, la que contiene `manifest.json`.
+2. **Abrir [navegador] y copiar la dirección**: copia la dirección de su página de extensiones (por ejemplo `brave://extensions`) y abre el navegador. Pégala en la barra de direcciones (Ctrl+V) y pulsa Enter: los navegadores no dejan que otro programa abra esa página directamente.
+3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
 4. Inicia sesión en YouTube en ese navegador. ymd recibirá las cookies solo.
 
 Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Archivo cookies.txt**.
@@ -23,6 +23,19 @@ Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestr
 El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones: ymd solo acepta mensajes de ese ID.
 
 Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta.
+
+### Navegadores compatibles
+
+| Navegador                      | Página de extensiones  |
+| ------------------------------ | ---------------------- |
+| Brave                          | `brave://extensions`   |
+| Chrome, Chromium, Arc, Thorium | `chrome://extensions`  |
+| Edge                           | `edge://extensions`    |
+| Opera, Opera GX                | `opera://extensions`   |
+| Vivaldi                        | `vivaldi://extensions` |
+| Yandex                         | `browser://extensions` |
+
+En Windows, ymd registra el puente en las claves de Brave, Edge y Vivaldi, y siempre en las de Chrome y Chromium, que el resto de navegadores Chromium usa como respaldo. Si un navegador poco común no encuentra el puente, usa el [archivo cookies.txt](/ymd/cookies/cookies-txt/).
 
 ### Estados de la tarjeta
 

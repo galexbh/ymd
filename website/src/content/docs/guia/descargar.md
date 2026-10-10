@@ -18,15 +18,16 @@ Para videos protegidos, **Opciones de esta descarga** acepta una **Contraseña d
 
 ## Preajustes
 
-Un preajuste fija el formato, la calidad y lo que se incrusta. ymd trae cinco:
+Un preajuste fija el formato, la calidad y lo que se incrusta. ymd trae seis:
 
-| Preajuste      | Tipo  | Resultado                                                         |
-| -------------- | ----- | ----------------------------------------------------------------- |
-| Mejor calidad  | Video | La mejor calidad disponible                                       |
-| MP4 1080p      | Video | MP4 hasta 1080p                                                   |
-| MP4 720p       | Video | MP4 hasta 720p                                                    |
-| MP3 320 kbps   | Audio | Extracción a MP3                                                  |
-| Audio original | Audio | El audio tal como lo entrega el sitio (m4a u opus), sin convertir |
+| Preajuste      | Tipo  | Resultado                                                          |
+| -------------- | ----- | ------------------------------------------------------------------ |
+| Mejor calidad  | Video | La mejor calidad disponible                                        |
+| MP4 1080p      | Video | MP4 hasta 1080p                                                    |
+| MP4 720p       | Video | MP4 hasta 720p                                                     |
+| MP3 320 kbps   | Audio | Extracción a MP3                                                   |
+| M4A (AAC)      | Audio | AAC en contenedor m4a; con YouTube suele guardarse sin recodificar |
+| Audio original | Audio | El audio tal como lo entrega el sitio (m4a u opus), sin convertir  |
 
 En **Ajustes → Preajustes** puedes crear los tuyos (**Nuevo preajuste**) o duplicar uno incluido. Cada preajuste define:
 

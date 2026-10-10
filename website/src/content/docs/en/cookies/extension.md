@@ -1,21 +1,21 @@
 ---
 title: ymd Cookies extension
-description: The Brave, Chrome and Edge extension that hands your cookies to ymd without any network.
+description: The Chromium-browser extension that hands your cookies to ymd without any network.
 ---
 
-**ymd Cookies** is a Manifest V3 extension for Brave, Chrome and Edge. It hands ymd, on the same computer, the cookies of the sites you choose, whenever they change. It works with the browser open and without exporting files.
+**ymd Cookies** is a Manifest V3 extension for Chromium browsers: Brave, Chrome, Edge, Opera, Vivaldi and others. It hands ymd, on the same computer, the cookies of the sites you choose, whenever they change. It works with the browser open and without exporting files.
 
-On Windows it's the recommended route for Chromium browsers: Brave, Chrome and Edge encrypt their cookies so yt-dlp can't read them (see [Browser cookies](/ymd/en/cookies/navegador/)).
+On Windows it's the recommended route for Chromium browsers, which encrypt their cookies so yt-dlp can't read them (see [Browser cookies](/ymd/en/cookies/navegador/)).
 
 ## Install
 
-ymd ships the extension prebuilt in its resources folder and registers the bridge with the browsers on startup. The **ymd extension for Brave, Chrome and Edge** card, in **Settings → Accounts**, walks you through the install. Brave comes first; **Install in another browser** shows the steps for the others.
+ymd ships the extension prebuilt in its resources folder and registers the bridge with the browsers on startup. The **ymd extension for Chromium browsers** card, in **Settings → Accounts**, walks you through the install in your **default browser**: ymd detects it and shows its steps. If your default browser is Firefox, the card offers to use its cookies directly, since you don't need the extension.
 
 Steps, once:
 
 1. **Open extension folder**: opens the extension folder that ships with ymd.
-2. **Open extensions page**: opens `brave://extensions` (or `chrome://extensions`, `edge://extensions`). If the button can't open the browser, type that address in the address bar.
-3. Turn on **Developer mode** and click **Load unpacked**. Pick the folder from step 1, the one containing `manifest.json`.
+2. **Open [browser] and copy the address**: copies its extensions-page address (for example `brave://extensions`) and opens the browser. Paste it into the address bar (Ctrl+V) and press Enter: browsers don't let other programs open that page directly.
+3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or press **Load unpacked** and choose it: it's the one containing `manifest.json`.
 4. Sign in to YouTube in that browser. ymd will receive the cookies on its own.
 
 When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **cookies.txt file**.
@@ -23,6 +23,19 @@ When the first sync arrives, the card switches to **Connected**, shows the brows
 The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page: ymd only accepts messages from that ID.
 
 When ymd updates, the extension is updated in the same folder.
+
+### Supported browsers
+
+| Browser                        | Extensions page        |
+| ------------------------------ | ---------------------- |
+| Brave                          | `brave://extensions`   |
+| Chrome, Chromium, Arc, Thorium | `chrome://extensions`  |
+| Edge                           | `edge://extensions`    |
+| Opera, Opera GX                | `opera://extensions`   |
+| Vivaldi                        | `vivaldi://extensions` |
+| Yandex                         | `browser://extensions` |
+
+On Windows, ymd registers the bridge under Brave's, Edge's and Vivaldi's keys, and always under Chrome's and Chromium's, which other Chromium browsers fall back to. If an uncommon browser can't find the bridge, use a [cookies.txt file](/ymd/en/cookies/cookies-txt/).
 
 ### Card states
 
