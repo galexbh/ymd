@@ -61,10 +61,13 @@ jobs:
         with:
           targets: ${{ matrix.rust-targets }}
 
+      # Read-only: a cache saved from a tag is scoped to that tag, so the next release could
+      # never restore it; saving only cost minutes and pushed main's caches out of the budget.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
           key: release-${{ matrix.name }}
+          save-if: false
 
       - name: Linux system dependencies
         if: runner.os == 'Linux'

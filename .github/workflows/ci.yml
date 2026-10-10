@@ -40,6 +40,8 @@ jobs:
     outputs:
       full: ${{ steps.mode.outputs.full }}
       rust: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.rust == 'true' }}
+      # What the commit itself touched, even on main (rust-coverage is skipped otherwise).
+      rust-changed: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.rust == 'true' }}
       frontend: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.frontend == 'true' }}
       extension: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.extension == 'true' }}
       deps: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.deps == 'true' }}
@@ -338,10 +340,12 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      # PRs read main's cache but never overwrite it.
+      # PRs read main's cache but never overwrite it. build-check restores this same cache
+      # (shared-key), so each OS keeps one debug cache instead of two.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          shared-key: debug
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Linux system dependencies (Tauri v2 prerequisites)
@@ -370,11 +374,12 @@ jobs:
         working-directory: src-tauri
         run: cargo test --features test-support
 
-  # Instrumented rebuild: a report, not a gate. Only on main.
+  # Instrumented rebuild: a report, not a gate. Only on main, and only when Rust changed (its
+  # ~800 MB cache is the largest one; the repository's cache budget is 10 GB).
   rust-coverage:
     name: rust coverage (report)
     needs: [changes, rust]
-    if: needs.changes.outputs.full == 'true'
+    if: needs.changes.outputs.full == 'true' && needs.changes.outputs.rust-changed == 'true'
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
@@ -437,11 +442,13 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      # Restores the rust job's cache: same dependencies (test-support adds none), and saving a
+      # second copy would only push other caches out of the 10 GB budget.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          key: build-check
-          save-if: ${{ github.ref == 'refs/heads/main' }}
+          shared-key: debug
+          save-if: false
 
       - name: Linux system dependencies
         if: runner.os == 'Linux'
