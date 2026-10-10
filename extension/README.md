@@ -38,8 +38,8 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd) por Native Messaging. El
   navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No
   hay red, servidor ni telemetría.
-- **Qué:** las cookies de los dominios de la lista (empieza vacía; cada dominio, con sus
-  subdominios), con los campos de `chrome.cookies.Cookie`: `domain`, `hostOnly`,
+- **Qué:** las cookies de los dominios de la lista (`youtube.com` de serie en el paquete
+  descomprimido, ninguno en el de la tienda; cada dominio, con sus subdominios), con los campos de `chrome.cookies.Cookie`: `domain`, `hostOnly`,
   `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name` y `value`. También el
   nombre del navegador (`brave`, `chrome`, `edge`…).
 - **Cuándo:** 3 s después de que cambie una cookie de la lista, cada 30 min como
@@ -52,9 +52,15 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
 - **Quién puede hablar con la extensión:** solo su propio popup. No acepta mensajes de otras
   extensiones ni de páginas web, y el host de ymd nunca devuelve cookies.
 
-Ningún sitio viene de serie: el manifiesto no pide permisos de host obligatorios, solo el opcional
-`*://*/*`. Agregar un sitio (escribiéndolo o desde «Sitios sugeridos») pide el permiso del navegador
-para ese dominio, y quitarlo lo devuelve. Un sitio que perdió el permiso muestra «Permitir».
+Los sitios de serie salen del manifiesto (`presetDomains` en `src/lib/domains.ts`). El paquete
+descomprimido que trae ymd pide `*://*.youtube.com/*`, que el navegador concede al cargarlo sin
+diálogo, así que YouTube funciona sin ningún paso. `pnpm ext:zip:store` quita ese permiso y la
+`key` (`src/lib/store-manifest.ts`): la versión de la tienda empieza vacía. Al instalarse, las dos
+abren `welcome.html`, que guía para fijar la extensión en la barra y elegir sitios.
+
+Agregar un sitio (escribiéndolo o desde «Sitios sugeridos») pide el permiso del navegador para ese
+dominio, y quitarlo lo devuelve (salvo YouTube en el paquete descomprimido, cuyo permiso es del
+manifiesto). Un sitio que perdió el permiso muestra «Permitir».
 
 ## Desarrollo
 

@@ -274,14 +274,21 @@ export function fromOwnPopup(api: Pick<ChromeApi, "runtime">, sender: MessageSen
   );
 }
 
+/** Opened once, on a fresh install. */
+export const WELCOME_PAGE = "welcome.html";
+
 /**
  * Wires every listener synchronously, as MV3 requires (listeners added after an await are lost
  * when the worker is woken by that event).
  */
 export function installBackground(engine: SyncEngine, api: ChromeApi): void {
-  api.runtime.onInstalled.addListener(() => {
+  api.runtime.onInstalled.addListener((details) => {
     void (async () => {
       await ensureAllowlist(api);
+      // A fresh install opens the welcome page: pin the extension, choose the sites.
+      if (details?.reason === "install") {
+        await api.tabs.create({ url: api.runtime.getURL(WELCOME_PAGE) }).catch(() => undefined);
+      }
       await installMenu(api).catch(() => undefined);
       await ensureAlarm(api);
       await engine.syncNow(false);

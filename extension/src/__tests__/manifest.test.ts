@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { storeManifest } from "../lib/store-manifest";
 import { EXTENSION_DIR } from "../test/chrome-fake";
 
 const manifest = JSON.parse(readFileSync(resolve(EXTENSION_DIR, "manifest.json"), "utf8")) as {
@@ -46,15 +47,25 @@ describe("manifest", () => {
       version: "1.4.0",
       default_locale: "es",
       permissions: ["cookies", "nativeMessaging", "storage", "alarms", "contextMenus", "activeTab"],
+      host_permissions: ["*://*.youtube.com/*"],
       optional_host_permissions: ["*://*/*"],
       background: { service_worker: "background.js", type: "module" },
       action: { default_popup: "popup.html" },
     });
   });
 
-  it("asks for no site up front: every site is optional, granted when the person adds it", () => {
-    expect(manifest).not.toHaveProperty("host_permissions");
+  it("presets only YouTube; every other site is optional, granted when the person adds it", () => {
+    expect(manifest.host_permissions).toEqual(["*://*.youtube.com/*"]);
     expect(manifest.optional_host_permissions).toEqual(["*://*/*"]);
+  });
+
+  it("the store package drops the key and the preset site, and nothing else", () => {
+    const store = storeManifest(manifest);
+    expect(store).not.toHaveProperty("key");
+    expect(store).not.toHaveProperty("host_permissions");
+    const { key: _key, host_permissions: _hosts, ...rest } = manifest;
+    expect(store).toEqual(rest);
+    expect(manifest.key).toBeDefined(); // the input is left alone
   });
 
   it("lets no other extension or web page connect to it", () => {

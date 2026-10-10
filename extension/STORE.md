@@ -6,6 +6,10 @@ The store assigns its own extension ID. ymd accepts both IDs: the unpacked one (
 manifest `key`) and the store one (`STORE_EXTENSION_ID` in
 `src-tauri/src/auth/native_host.rs`), so no private key has to be uploaded.
 
+The store package (`pnpm ext:zip:store`) has no `key` and no required host permission, so it
+presets no site: its welcome page offers «Use YouTube». The unpacked build ymd ships presets
+youtube.com.
+
 ## Publishing checklist
 
 1. Developer account at <https://chrome.google.com/webstore/devconsole> (one-time USD 5 fee).

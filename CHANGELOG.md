@@ -6,7 +6,9 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Cambios
 
-- **La extensión «ymd Cookies» ya no trae ningún sitio de serie.** Al instalarla no pide acceso a ningún sitio: tú agregas los que usas, con un clic desde **Sitios sugeridos** (YouTube, Vimeo, SoundCloud, Twitch) o escribiendo el dominio, y el navegador pide permiso para cada uno. Si un sitio de la lista perdió su permiso, aparece **Permitir**. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión aún no envía YouTube. Extensión 1.4.0.
+- **Página de bienvenida de la extensión.** Al instalar «ymd Cookies» se abre una página que guía para fijarla en la barra (y confirma cuando queda fijada) y para elegir sitios. Extensión 1.4.0.
+- **Sitios sugeridos.** La ventana de la extensión ofrece YouTube, Vimeo, SoundCloud y Twitch para agregarlos con un clic, y **Permitir** en un sitio que perdió su permiso.
+- **YouTube sigue listo sin pasos en la extensión que trae ymd.** La versión para la Chrome Web Store no trae ningún sitio de serie: su bienvenida ofrece **Usar YouTube**, y el navegador pide permiso para cada sitio que agregas. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión no envía YouTube.
 
 ## [0.4.0] - 2026-10-10
 

@@ -1,7 +1,8 @@
 // The allowlist: which sites' cookies may travel to ymd. Pure functions only.
 
-// No site comes preset: the person adds the sites they sign in to (the popup suggests a few),
-// and each one asks the browser for its own permission at that moment.
+// Preset sites come from the running manifest: the build ymd ships asks for youtube.com up
+// front (granted on load, no prompt); the Chrome Web Store build asks for none, and the person
+// adds the sites they sign in to, each one asking the browser for its own permission.
 
 /** Defaults earlier versions seeded and later dropped: removed once from stored lists. */
 export const RETIRED_DEFAULTS: readonly string[] = ["google.com"];
@@ -91,6 +92,18 @@ export function isPublicSuffix(domain: string): boolean {
 export function cookieDomainAllowed(cookieDomain: string, allowlist: readonly string[]): boolean {
   const host = cookieDomain.replace(/^\./, "").toLowerCase();
   return allowlist.some((d) => host === d || host.endsWith(`.${d}`));
+}
+
+/**
+ * The sites a fresh install starts with: the domains of the manifest's required host
+ * permissions (`*://*.<domain>/*`). Anything broader or malformed is ignored.
+ */
+export function presetDomains(hostPermissions: readonly string[] | undefined): string[] {
+  const domains = (hostPermissions ?? []).flatMap((p) => {
+    const m = /^\*:\/\/\*\.([^/*]+)\/\*$/.exec(p);
+    return m ? [m[1]] : [];
+  });
+  return sanitizeAllowlist(domains);
 }
 
 /** The host-permission match pattern that covers a domain and its subdomains. */

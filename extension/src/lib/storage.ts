@@ -1,7 +1,7 @@
 // chrome.storage.local keys and typed accessors. Shared by the service worker and the popup.
 
 import { type ChromeApi } from "./chrome-api";
-import { RETIRED_DEFAULTS, sanitizeAllowlist } from "./domains";
+import { presetDomains, RETIRED_DEFAULTS, sanitizeAllowlist } from "./domains";
 import { parseStatus, type Status } from "./status";
 
 export const KEYS = {
@@ -27,14 +27,16 @@ export async function writeAllowlist(api: Api, domains: readonly string[]): Prom
 }
 
 /**
- * Starts an empty list on first install (no site is preset) without touching an existing one. On the
+ * Starts the list on first install with the preset sites (the manifest's required host
+ * permissions: youtube.com in the build ymd ships, none in the store build), without touching
+ * an existing one. On the
  * first run after an update it drops the retired defaults once; a site the person adds again
  * afterwards stays.
  */
-export async function ensureAllowlist(api: Api): Promise<void> {
+export async function ensureAllowlist(api: Pick<ChromeApi, "storage" | "runtime">): Promise<void> {
   const got = await api.storage.local.get([KEYS.allowlist, KEYS.allowlistVersion]);
   if (!(KEYS.allowlist in got)) {
-    await writeAllowlist(api, []);
+    await writeAllowlist(api, presetDomains(api.runtime.getManifest().host_permissions));
   } else if (got[KEYS.allowlistVersion] !== ALLOWLIST_VERSION) {
     const list = sanitizeAllowlist(got[KEYS.allowlist]);
     await writeAllowlist(

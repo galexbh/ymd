@@ -199,5 +199,41 @@
         "example": "youtube.com"
       }
     }
+  },
+  "welcomeTitle": {
+    "message": "ymd Cookies está instalada"
+  },
+  "welcomeLead": {
+    "message": "Entrega a ymd, en este equipo, las cookies de los sitios que elijas, para que descargue con tu sesión. Dos pasos y listo."
+  },
+  "welcomePinHeading": {
+    "message": "Fija la extensión en la barra"
+  },
+  "welcomePinBody": {
+    "message": "Pulsa el icono de extensiones (la pieza de rompecabezas, junto a la barra de direcciones) y luego la chincheta junto a ymd Cookies. Así ves de un vistazo si tu sesión llega a ymd."
+  },
+  "welcomePinWaiting": {
+    "message": "Aún no está fijada."
+  },
+  "welcomePinDone": {
+    "message": "Fijada: ya la tienes en la barra."
+  },
+  "welcomeSitesHeading": {
+    "message": "Elige tus sitios"
+  },
+  "welcomeSitesBody": {
+    "message": "La extensión solo envía las cookies de los sitios de tu lista. El navegador te pide permiso para cada sitio que agregas."
+  },
+  "welcomeYoutubeReady": {
+    "message": "YouTube ya está listo: ymd recibirá tu sesión cuando la inicies en este navegador."
+  },
+  "welcomeUseYoutube": {
+    "message": "Usar YouTube"
+  },
+  "welcomeOthers": {
+    "message": "Otros sitios"
+  },
+  "welcomeDone": {
+    "message": "Puedes cerrar esta pestaña. Para cambiar tus sitios más tarde, abre ymd Cookies desde la barra."
   }
 }

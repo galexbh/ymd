@@ -4,6 +4,7 @@ import {
   isPublicSuffix,
   normalizeDomain,
   originPattern,
+  presetDomains,
   sanitizeAllowlist,
   RETIRED_DEFAULTS,
 } from "../lib/domains";
@@ -61,6 +62,16 @@ describe("allowlist helpers", () => {
 
   it("builds the host match pattern", () => {
     expect(originPattern("vimeo.com")).toBe("*://*.vimeo.com/*");
+  });
+
+  it("takes the preset sites from the required host permissions", () => {
+    expect(presetDomains(["*://*.youtube.com/*"])).toEqual(["youtube.com"]);
+    expect(presetDomains(undefined)).toEqual([]);
+    expect(presetDomains([])).toEqual([]);
+    // broader or odd patterns never become a site
+    expect(
+      presetDomains(["*://*/*", "<all_urls>", "https://vimeo.com/*", "*://*.co.uk/*"]),
+    ).toEqual([]);
   });
 
   it("sanitizes a stored list", () => {

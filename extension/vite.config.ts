@@ -1,8 +1,8 @@
 /// <reference types="vitest/config" />
 // Builds the ymd Cookies extension into extension/dist and runs its unit tests.
 //
-// Two entries: popup.html (→ popup.html + popup.js + popup.css) and the service worker
-// (→ background.js, an ES module). The manifest, locales and icons are copied verbatim.
+// Three entries: popup.html (→ popup.html + popup.js + popup.css), welcome.html (opened once
+// after install) and the service worker (→ background.js, an ES module). The manifest, locales and icons are copied verbatim.
 // No inline scripts are emitted, so the default MV3 CSP holds.
 import { cpSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -41,6 +41,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(here, "popup.html"),
+        welcome: resolve(here, "welcome.html"),
         background: resolve(here, "src/background.ts"),
       },
       output: {

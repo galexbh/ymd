@@ -199,5 +199,41 @@
         "example": "youtube.com"
       }
     }
+  },
+  "welcomeTitle": {
+    "message": "ymd Cookies is installed"
+  },
+  "welcomeLead": {
+    "message": "It hands ymd, on this computer, the cookies of the sites you choose, so it downloads with your session. Two steps and you're done."
+  },
+  "welcomePinHeading": {
+    "message": "Pin the extension to the toolbar"
+  },
+  "welcomePinBody": {
+    "message": "Click the extensions icon (the puzzle piece next to the address bar), then the pin next to ymd Cookies. That way you can tell at a glance whether your session reaches ymd."
+  },
+  "welcomePinWaiting": {
+    "message": "Not pinned yet."
+  },
+  "welcomePinDone": {
+    "message": "Pinned: it's on your toolbar."
+  },
+  "welcomeSitesHeading": {
+    "message": "Choose your sites"
+  },
+  "welcomeSitesBody": {
+    "message": "The extension only sends the cookies of the sites on your list. The browser asks for permission for each site you add."
+  },
+  "welcomeYoutubeReady": {
+    "message": "YouTube is ready: ymd will get your session once you sign in in this browser."
+  },
+  "welcomeUseYoutube": {
+    "message": "Use YouTube"
+  },
+  "welcomeOthers": {
+    "message": "Other sites"
+  },
+  "welcomeDone": {
+    "message": "You can close this tab. To change your sites later, open ymd Cookies from the toolbar."
   }
 }

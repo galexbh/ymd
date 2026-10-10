@@ -652,7 +652,7 @@
     "step1": "Muestra la carpeta de la extensión que viene con ymd: es la que vas a arrastrar.",
     "step2": "Abre {{browser}} y ve a la página de extensiones:",
     "step3": "Activa «Modo de desarrollador». Luego arrastra a la página la carpeta del paso 1, o pulsa «Cargar descomprimida» y elígela.",
-    "step4": "Abre la extensión y agrega YouTube (o el sitio que necesites) desde «Sitios sugeridos»; el navegador te pedirá permiso para ese sitio. Con la sesión iniciada, ymd recibirá las cookies solo.",
+    "step4": "Se abre una página de bienvenida: fija la extensión en la barra. YouTube ya viene agregado, así que solo inicia sesión en YouTube en ese navegador y ymd recibirá las cookies solo. Otros sitios se agregan desde la extensión.",
     "openFolder": "Mostrar la carpeta de la extensión",
     "noFolder": "Esta compilación no incluye la carpeta de la extensión (modo desarrollo).",
     "openPage": "Abrir {{browser}} y copiar la dirección",

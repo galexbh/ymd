@@ -49,8 +49,8 @@ const MONO = "ui-monospace,Consolas,monospace";
 /** The real popup, connected, as a 2× PNG (only an input to the JPEGs below). */
 async function popupShot(locale, scheme) {
   const userDataDir = mkdtempSync(join(tmpdir(), "ymd-shots-"));
-  // The shown sites as already added: a copy of dist with their host permissions granted
-  // (a script cannot click the browser's permission prompt).
+  // The shown sites as already added: youtube.com comes in the manifest; vimeo.com is granted
+  // in a copy of dist (a script cannot click the browser's permission prompt).
   const ext = join(userDataDir, "extension");
   cpSync(DIST, ext, { recursive: true });
   const manifest = JSON.parse(readFileSync(join(ext, "manifest.json"), "utf8"));

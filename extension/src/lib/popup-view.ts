@@ -1,14 +1,14 @@
 // The popup, in plain DOM over the static markup of popup.html.
 
 import { type ChromeApi } from "./chrome-api";
-import { PROVIDERS } from "../../../src/shared/providers";
-import { cookieDomainAllowed, originPattern } from "./domains";
+import { originPattern } from "./domains";
 import { addSite, removeSite } from "./sites";
 import { stampState, type Status, type StatusError } from "./status";
 import { KEYS, readAllowlist, readStatus } from "./storage";
 import { type PopupRequest, type PopupResponse, type OpenResult } from "./sync";
 import { siteToOffer } from "./current-site";
 import { webLink } from "./links";
+import { siteOf, suggestedProviders } from "./suggestions";
 import { relativeTimeParts } from "./time";
 
 export interface PopupDeps {
@@ -68,9 +68,6 @@ export function applySystemTheme(
   set();
   mq?.addEventListener?.("change", set);
 }
-
-/** Sites suggested in the popup, by provider name (the list shared with the app). */
-const SUGGESTED = ["YouTube", "Vimeo", "SoundCloud", "Twitch"] as const;
 
 export async function mountPopup(doc: Document, deps: PopupDeps) {
   const { api } = deps;
@@ -188,9 +185,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
 
   /** «Sitios sugeridos»: known sites not on the list yet, one click each (permission included). */
   function renderSuggestions(): void {
-    const options = SUGGESTED.map((name) => PROVIDERS.find((p) => p.name === name))
-      .filter((p): p is (typeof PROVIDERS)[number] => !!p)
-      .filter((p) => !sites.some((s) => cookieDomainAllowed(p.domains[0], [s])));
+    const options = suggestedProviders(sites);
     $("suggest").hidden = options.length === 0;
     $("suggest-list").replaceChildren(
       ...options.map((p) => {
@@ -201,7 +196,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
         chip.setAttribute("aria-label", t("suggestAdd", p.name));
         chip.addEventListener("click", () => {
           // addSite asks for the permission first, inside this click's user gesture.
-          void addSite(api, sites, p.domains[0]).then((res) => {
+          void addSite(api, sites, siteOf(p)).then((res) => {
             if (res.ok) {
               sites = res.list;
               showAddError(null);

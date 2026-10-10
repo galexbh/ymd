@@ -652,7 +652,7 @@
     "step1": "Show the extension folder that ships with ymd: it's the one you'll drag.",
     "step2": "Open {{browser}} and go to its extensions page:",
     "step3": "Turn on “Developer mode”. Then drag the folder from step 1 onto the page, or press “Load unpacked” and choose it.",
-    "step4": "Open the extension and add YouTube (or the site you need) from “Suggested sites”; the browser will ask for permission for that site. Once you are signed in, ymd will receive the cookies on its own.",
+    "step4": "A welcome page opens: pin the extension to the toolbar. YouTube is already added, so just sign in to YouTube in that browser and ymd will receive the cookies on its own. Other sites are added from the extension.",
     "openFolder": "Show extension folder",
     "noFolder": "This build doesn't include the extension folder (development mode).",
     "openPage": "Open {{browser}} and copy the address",
