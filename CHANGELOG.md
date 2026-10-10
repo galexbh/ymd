@@ -2,7 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
-## [Unreleased]
+## [0.5.0] - 2026-10-10
+
+### Novedades
+
+- **Página de bienvenida de la extensión.** Al instalar «ymd Cookies» se abre una página que guía para fijarla en la barra (y confirma cuando queda fijada) y para elegir sitios. Extensión 1.4.0.
+- **Sitios sugeridos.** La ventana de la extensión ofrece YouTube, Vimeo, SoundCloud y Twitch para agregarlos con un clic, y **Permitir** en un sitio que perdió su permiso.
 
 ### Seguridad
 
@@ -10,8 +15,6 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Cambios
 
-- **Página de bienvenida de la extensión.** Al instalar «ymd Cookies» se abre una página que guía para fijarla en la barra (y confirma cuando queda fijada) y para elegir sitios. Extensión 1.4.0.
-- **Sitios sugeridos.** La ventana de la extensión ofrece YouTube, Vimeo, SoundCloud y Twitch para agregarlos con un clic, y **Permitir** en un sitio que perdió su permiso.
 - **YouTube sigue listo sin pasos en la extensión que trae ymd.** La versión para la Chrome Web Store no trae ningún sitio de serie: su bienvenida ofrece **Usar YouTube**, y el navegador pide permiso para cada sitio que agregas. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión no envía YouTube.
 
 ### Proyecto
@@ -132,6 +135,7 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
+[0.5.0]: https://github.com/galexbh/ymd/releases/tag/v0.5.0
 [0.4.0]: https://github.com/galexbh/ymd/releases/tag/v0.4.0
 [0.3.1]: https://github.com/galexbh/ymd/releases/tag/v0.3.1
 [0.3.0]: https://github.com/galexbh/ymd/releases/tag/v0.3.0
