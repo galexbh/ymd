@@ -40,15 +40,34 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
   - `Cookie` refleja `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Los campos extra se ignoran.
   - Un `browser` desconocido se registra como `other`.
-  - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, o con un tabulador o salto de línea en el dominio, la ruta, el nombre o el valor (el formato Netscape no puede representarlas). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
+  - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, con caracteres de control en la ruta, el nombre o el valor, con un dominio que no sea un nombre de host válido, con una ruta que no empiece por `/`, o de más de 4096 bytes (nombre más valor). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
+  - Más de 10.000 cookies en un mensaje es un error.
 - `version` es opcional; un valor mayor que `1` se rechaza.
 - Cualquier fallo → `{"ok":false,"code":"<ErrorCode en snake_case>","detail":"…"}`. El detalle nunca contiene valores de cookies.
 
 ## Efectos
 
-- El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica y con permisos solo para el usuario.
+- El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
 - Escribe `cookies.meta.json` con `origin: "extension:<browser>"`.
 - La app lee ambos con `cookies_info` y `extension_status`.
+
+## Seguridad
+
+Lo que protege el puente, y lo que ningún diseño local puede proteger.
+
+- **Sin red.** Las cookies viajan por Native Messaging, de proceso a proceso. No hay puertos abiertos, servidor ni telemetría.
+- **Solo esta extensión habla con el host.** El navegador solo lanza el host para el origen del ID fijo, y el host lo vuelve a comprobar. La extensión no acepta mensajes de otras extensiones ni de páginas web (`externally_connectable` vacío), y solo atiende a su propio popup.
+- **El host solo escribe.** Ninguna respuesta devuelve cookies: solo el conteo y los dominios. Quien lograra hablar con el host no podría leer nada.
+- **Lo mínimo.** Solo se envían los sitios de la lista (`youtube.com` por defecto). Cada sitio nuevo pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
+- **Validación estricta.** Mensajes de 16 MiB como máximo, 10.000 cookies como máximo, y cada cookie con un dominio y una ruta válidos, sin caracteres de control y de 4096 bytes como máximo. Lo que no cumple se descarta.
+- **Cifrado en disco.** `cookies.txt` se guarda cifrado con ChaCha20-Poly1305, con una clave aleatoria en el llavero del sistema (Administrador de credenciales, Llavero de macOS o Secret Service). El texto plano solo existe en memoria y en la copia que yt-dlp recibe durante una descarga; esa copia se borra al terminar, y al arrancar ymd si quedó alguna por un cierre forzado. Sin llavero disponible (algunos Linux sin Secret Service), el archivo se guarda sin cifrar, solo para tu usuario, y el log lo indica.
+- **La extensión no guarda valores.** En el navegador solo guarda la lista de sitios, el estado y una huella SHA-256 del conjunto.
+- **Páginas cerradas.** La política de contenido de la extensión solo permite sus propios archivos y ninguna conexión de red.
+
+### Límites
+
+- **Un programa malicioso que ya corre con tu usuario** puede pedirle al llavero lo mismo que ymd (en Windows) o registrar otro host en lugar de ymd. Ningún diseño local lo impide del todo; el cifrado sí evita que un ladrón de archivos genérico encuentre las cookies en texto plano.
+- **Mientras la extensión se carga descomprimida,** su clave pública es conocida y otra extensión descomprimida podría usar el mismo ID. Como el host solo escribe, esa extensión no podría leer tus cookies, aunque sí reemplazar la copia de ymd. Al publicarla en la Chrome Web Store, la tienda garantiza el ID.
 
 ## Registro del host
 

@@ -42,7 +42,7 @@ When a video needs your session (private, age-restricted or members-only), ymd n
 cookies. This extension hands them over directly, on your computer, so ymd never has to read the
 browser's cookie database.
 
-- It only sends cookies of the sites on your list (YouTube and Google by default).
+- It only sends cookies of the sites on your list (YouTube by default).
 - They travel only to ymd over Native Messaging: a local process, no network, no servers.
 - They update on their own when they change, and every 30 minutes.
 - You can add or remove sites; each one asks for its own permission.
@@ -76,8 +76,8 @@ same computer, so ymd can download media with the user's own session.
 ymd Cookies handles authentication data (cookies) only to pass it to the ymd desktop
 application on the same computer.
 
-- **What is collected:** the cookies of the sites on the list that you control (YouTube and
-  Google by default): name, value, domain, path, expiry and security flags, plus the name of the
+- **What is collected:** the cookies of the sites on the list that you control (YouTube by
+  default): name, value, domain, path, expiry and security flags, plus the name of the
   browser.
 - **Where it goes:** only to the ymd application installed on your computer, through the
   browser's Native Messaging channel. It is never sent over the network, never sent to the
@@ -85,8 +85,8 @@ application on the same computer.
 - **What is stored by the extension:** your list of sites, the time and size of the last
   transfer, the last error message, and a one-way hash of the cookie set. Cookie values are not
   stored by the extension.
-- **What ymd stores:** ymd writes the cookies to a file in its own data folder, readable only by
-  your user account, and uses it solely to run yt-dlp on your behalf. Removing a site from the
+- **What ymd stores:** ymd writes the cookies to a file in its own data folder, encrypted with a
+  key from the system keychain and readable only by your user account, and uses it solely to run yt-dlp on your behalf. Removing a site from the
   list, uninstalling the extension or deleting ymd's data folder stops or removes this.
 - **Analytics and tracking:** none.
 - **Contact:** open an issue in the ymd repository.

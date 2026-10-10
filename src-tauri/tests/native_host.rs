@@ -19,10 +19,16 @@ fn frame(v: &Value) -> Vec<u8> {
 
 /// Run the host with `origin`, feed `input`, return (exit code, raw stdout).
 fn run(origin: &str, data_dir: &Path, input: &[u8]) -> (i32, Vec<u8>) {
+    run_env(origin, data_dir, input, &[])
+}
+
+fn run_env(origin: &str, data_dir: &Path, input: &[u8], env: &[(&str, &str)]) -> (i32, Vec<u8>) {
     let mut child = Command::new(YMD)
         .arg(origin)
         .arg("--parent-window=0")
         .env("YMD_DATA_DIR", data_dir)
+        .env_remove("YMD_JAR_KEY")
+        .envs(env.iter().copied())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
@@ -121,6 +127,36 @@ fn cookies_are_stored() {
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
     assert_eq!(names.len(), 2, "{names:?}");
+}
+
+#[test]
+fn cookies_are_sealed_at_rest_when_a_key_is_available() {
+    let dir = tempfile::tempdir().unwrap();
+    let key = [9u8; 32];
+    let msg = json!({
+        "type": "cookies", "version": 1, "browser": "chrome",
+        "cookies": [{"domain": ".youtube.com", "hostOnly": false, "path": "/", "secure": true,
+            "httpOnly": true, "session": false, "expirationDate": 1999999999,
+            "name": "SID", "value": "synthetic-sealed-value"}]
+    });
+    let (code, out) = run_env(
+        &origin(),
+        dir.path(),
+        &frame(&msg),
+        &[("YMD_JAR_KEY", &hex::encode(key))],
+    );
+    assert_eq!(code, 0);
+    assert_eq!(reply(&out)["count"], 1);
+    let bytes = std::fs::read(dir.path().join("auth").join("cookies.txt")).unwrap();
+    assert!(ymd_lib::auth::jar::is_sealed(&bytes));
+    let has = |needle: &[u8]| bytes.windows(needle.len()).any(|w| w == needle);
+    assert!(!has(b"synthetic-sealed-value") && !has(b"SID") && !has(b"youtube"));
+    let plain = ymd_lib::auth::jar::open(&key, &bytes).unwrap();
+    assert_eq!(
+        String::from_utf8(plain).unwrap(),
+        "# Netscape HTTP Cookie File\n\
+         #HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t1999999999\tSID\tsynthetic-sealed-value\n"
+    );
 }
 
 #[test]

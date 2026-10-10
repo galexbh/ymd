@@ -47,8 +47,10 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
   (se compara un hash SHA-256).
 - **Qué guarda la extensión:** la lista de sitios, el estado (última sincronización, número de
   cookies, dominios y el último error) y el hash. Nunca guarda el valor de una cookie.
-- **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, con
-  permisos solo para tu usuario, y lo usa con yt-dlp.
+- **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, cifrado
+  con una clave del llavero del sistema y con permisos solo para tu usuario, y lo usa con yt-dlp.
+- **Quién puede hablar con la extensión:** solo su propio popup. No acepta mensajes de otras
+  extensiones ni de páginas web, y el host de ymd nunca devuelve cookies.
 
 Agregar un sitio pide el permiso del navegador para ese dominio. Quitarlo devuelve ese permiso
 (salvo en los dos sitios predeterminados, cuyo permiso es parte del manifiesto).

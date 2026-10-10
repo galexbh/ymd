@@ -1,7 +1,7 @@
 // Adding and removing allowed sites, with the optional host permission each one needs.
 
 import { type ChromeApi } from "./chrome-api";
-import { isDefaultDomain, normalizeDomain, originPattern } from "./domains";
+import { isDefaultDomain, isPublicSuffix, normalizeDomain, originPattern } from "./domains";
 import { writeAllowlist } from "./storage";
 
 type Api = Pick<ChromeApi, "permissions" | "storage">;
@@ -9,7 +9,7 @@ type Api = Pick<ChromeApi, "permissions" | "storage">;
 export type AddResult =
   | { ok: true; domain: string; list: string[] }
   | { ok: false; reason: "invalid"; input: string }
-  | { ok: false; reason: "duplicate" | "denied"; domain: string };
+  | { ok: false; reason: "duplicate" | "denied" | "shared"; domain: string };
 
 /**
  * `current` is the list the popup is showing. It is passed in, not read from storage, because
@@ -23,6 +23,8 @@ export async function addSite(
 ): Promise<AddResult> {
   const domain = normalizeDomain(input);
   if (!domain) return { ok: false, reason: "invalid", input };
+  // Refused before any permission prompt: the grant would cover unrelated sites.
+  if (isPublicSuffix(domain)) return { ok: false, reason: "shared", domain };
   if (current.includes(domain)) return { ok: false, reason: "duplicate", domain };
   // Defaults are covered by the manifest's required host permissions.
   if (!isDefaultDomain(domain)) {

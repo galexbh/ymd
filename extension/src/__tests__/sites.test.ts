@@ -6,6 +6,16 @@ import { createChromeFake } from "../test/chrome-fake";
 const DEFAULTS = ["youtube.com"];
 
 describe("adding a site (optional host permission)", () => {
+  it("refuses a public suffix before asking for any permission", async () => {
+    const fake = createChromeFake({ grant: true });
+    for (const input of ["co.uk", "https://github.io/", "blogspot.com"]) {
+      const res = await addSite(fake.api, DEFAULTS, input);
+      expect(res).toMatchObject({ ok: false, reason: "shared" });
+    }
+    expect(fake.record.permissionRequests).toEqual([]);
+    expect(fake.granted.has("*://*.co.uk/*")).toBe(false);
+  });
+
   it("requests *://*.<domain>/* and stores the normalized domain when granted", async () => {
     const fake = createChromeFake({ grant: true });
     const res = await addSite(fake.api, DEFAULTS, "https://www.Vimeo.com/123");

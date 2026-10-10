@@ -40,15 +40,34 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
   - `Cookie` mirrors `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Extra fields are ignored.
   - An unknown `browser` is recorded as `other`.
-  - `count` / `domains` describe what was written: cookies with an empty name, or a tab or line break in the domain, path, name or value, are skipped (Netscape cannot represent them). If none remain, the reply is an error and the previous `cookies.txt` is kept.
+  - `count` / `domains` describe what was written: cookies with an empty name, control characters in the path, name or value, a domain that isn't a valid hostname, a path not starting with `/`, or more than 4096 bytes (name plus value) are skipped. If none remain, the reply is an error and the previous `cookies.txt` is kept.
+  - More than 10,000 cookies in one message is an error.
 - `version` is optional; a value above `1` is rejected.
 - Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}`. The detail never contains cookie values.
 
 ## Effects
 
-- The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically with owner-only permissions.
+- The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
 - It writes `cookies.meta.json` with `origin: "extension:<browser>"`.
 - The app reads both through `cookies_info` / `extension_status`.
+
+## Security
+
+What the bridge protects, and what no local design can.
+
+- **No network.** Cookies travel over Native Messaging, process to process. No open ports, no server, no telemetry.
+- **Only this extension talks to the host.** The browser launches the host only for the fixed ID's origin, and the host checks it again. The extension accepts no messages from other extensions or web pages (empty `externally_connectable`), and only answers its own popup.
+- **The host only writes.** No reply carries cookies: only the count and the domains. Anything that managed to talk to the host couldn't read a thing.
+- **The minimum.** Only the sites on the list are sent (`youtube.com` by default). Each new site asks the browser for permission, and domains shared by many sites (`co.uk`, `github.io`, `blogspot.com`…) are refused, since they'd grant access to unrelated sites.
+- **Strict validation.** Messages of at most 16 MiB, at most 10,000 cookies, and each cookie with a valid domain and path, no control characters and at most 4096 bytes. Anything else is dropped.
+- **Encrypted at rest.** `cookies.txt` is sealed with ChaCha20-Poly1305 under a random key kept in the system keychain (Credential Manager, macOS Keychain or Secret Service). Plain text only exists in memory and in the copy yt-dlp gets during a download; that copy is deleted when it ends, and at ymd's start-up if one was left by a forced quit. With no keychain available (some Linux setups without a Secret Service) the file is stored unencrypted, owner-only, and the log says so.
+- **The extension stores no values.** In the browser it only keeps the site list, the status and a SHA-256 fingerprint of the set.
+- **Locked-down pages.** The extension's content security policy allows only its own files and no network connections.
+
+### Limits
+
+- **Malware already running as your user** can ask the keychain for what ymd asks (on Windows) or register another host in ymd's place. No local design fully prevents that; encryption does keep a generic file grabber from finding the cookies in plain text.
+- **While the extension is loaded unpacked,** its public key is known and another unpacked extension could take the same ID. Since the host only writes, that extension couldn't read your cookies, though it could replace ymd's copy. Once published on the Chrome Web Store, the store guarantees the ID.
 
 ## Host registration
 

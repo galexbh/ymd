@@ -100,6 +100,11 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     ] {
         std::fs::create_dir_all(dir)?;
     }
+    // Plain cookie copies outlive their job only after a crash; none may stay on disk.
+    let swept = auth::cookies::sweep_stale_copies(&paths.tmp_dir());
+    if swept > 0 {
+        log::info!("removed {swept} left-over cookie copies");
+    }
 
     let history = Arc::new(History::open(&paths.history_db())?);
     let keychain = Arc::new(OsKeychain {

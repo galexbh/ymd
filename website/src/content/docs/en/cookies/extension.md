@@ -58,7 +58,7 @@ Pin "ymd Cookies" to the browser toolbar and open it:
 - **To whom:** only to the native program `com.ymd.cookies` (ymd), over Native Messaging. The browser starts it as a local process and passes the message on standard input. There's no network, server or telemetry.
 - **What:** the cookies of the domains on the list, with the `chrome.cookies.Cookie` fields (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), plus the browser name.
 - **When:** 3 s after a cookie on the list changes, every 30 min as a full sync, and when you click **Send now**. It only sends when the content changed (a SHA-256 hash is compared).
-- **What ymd does:** writes `cookies.txt` (Netscape format) in its data folder, readable only by your user, and uses it with yt-dlp.
+- **What ymd does:** writes `cookies.txt` (Netscape format) in its data folder, encrypted with a key from the system keychain and readable only by your user, and uses it with yt-dlp.
 
 The full protocol is in [Cookie bridge protocol](/ymd/en/desarrollo/puente-de-cookies/).
 
@@ -66,6 +66,7 @@ The full protocol is in [Cookie bridge protocol](/ymd/en/desarrollo/puente-de-co
 
 - The extension stores the site list, the status (last sync, cookie count, domains and the last error) and the hash. It never stores a cookie value.
 - Cookies travel only to ymd on this computer. They're never sent over the network or to the developer.
+- No other extension or web page can talk to “ymd Cookies”, and ymd never hands cookies back to anyone. Details in [Security](/ymd/en/desarrollo/puente-de-cookies/#security).
 - To stop sharing: remove the site from the list or uninstall the extension. **Delete copy**, in **Settings → Accounts**, deletes ymd's `cookies.txt`.
 
 ## Troubleshooting

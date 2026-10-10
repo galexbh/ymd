@@ -203,7 +203,13 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
       } else if (res.reason === "invalid") {
         showAddError(t("addInvalid"));
       } else {
-        showAddError(t(res.reason === "duplicate" ? "addDuplicate" : "addDenied", res.domain));
+        const key =
+          res.reason === "duplicate"
+            ? "addDuplicate"
+            : res.reason === "shared"
+              ? "addShared"
+              : "addDenied";
+        showAddError(t(key, res.domain));
       }
     });
   });

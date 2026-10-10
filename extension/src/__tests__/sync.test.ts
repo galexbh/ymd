@@ -17,6 +17,8 @@ import {
   HOST_NOT_FOUND,
   type ChromeFake,
   type FakeOptions,
+  FAKE_ID,
+  POPUP_SENDER,
 } from "../test/chrome-fake";
 
 /** A hand-cranked timer so the debounce is tested without real waiting. */
@@ -334,5 +336,26 @@ describe("lifecycle", () => {
     const [listener] = fake.events.message.listeners;
     expect(listener({ type: "steal" }, {}, () => undefined)).toBe(false);
     expect(listener("send-now", {}, () => undefined)).toBe(false);
+  });
+
+  it("answers only its own popup, never another extension or page", () => {
+    const { fake, engine } = setup();
+    installBackground(engine, fake.api);
+    const [listener] = fake.events.message.listeners;
+    const msg = { type: "hello" };
+    const no = () => undefined;
+    for (const sender of [
+      {},
+      { id: "anotherextensionidanotherextensi", url: POPUP_SENDER.url },
+      { id: FAKE_ID },
+      { id: FAKE_ID, url: `chrome-extension://${FAKE_ID}/options.html` },
+      { id: FAKE_ID, url: "https://example.com/popup.html" },
+      { id: FAKE_ID, url: `chrome-extension://${FAKE_ID}/popup.html.evil` },
+    ]) {
+      expect(listener(msg, sender, no), JSON.stringify(sender)).toBe(false);
+    }
+    expect(fake.record.native).toHaveLength(0);
+    expect(listener(msg, POPUP_SENDER, no)).toBe(true);
+    expect(listener(msg, { ...POPUP_SENDER, url: `${POPUP_SENDER.url}?x=1` }, no)).toBe(true);
   });
 });
