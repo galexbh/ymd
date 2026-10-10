@@ -1,18 +1,29 @@
 [package]
 name = "ymd"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.2.0"
+description = "A calm desktop front end for yt-dlp"
+authors = ["galexbh"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+rust-version = "1.80"
 
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+# The `_lib` suffix keeps the lib name distinct from the bin on Windows (cargo#8519).
 name = "ymd_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "ymd"
+path = "src/main.rs"
+
+# Test-only stand-in for yt-dlp used by integration tests. Never bundled.
+[[bin]]
+name = "fake-ytdlp"
+path = "tests/support/fake_ytdlp.rs"
+required-features = ["test-support"]
+
+[features]
+default = []
+test-support = []
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -20,6 +31,42 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-os = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-clipboard-manager = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-anyhow = "1.0.98"
+anyhow = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "stream", "json"] }
+futures-util = "0.3"
+sha2 = "0.11"
+hex = "0.4"
+zip = { version = "9", default-features = false, features = ["deflate"] }
+tar = "0.4"
+xz2 = { version = "0.1", features = ["static"] }
+flate2 = "1"
+keyring = "4"
+rusqlite = { version = "0.40", features = ["bundled"] }
+which = "8"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1"
+log = "0.4"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.56"
+
+[dev-dependencies]
+base64 = "0.22"
+insta = { version = "1", features = ["yaml", "json"] }
+httpmock = "0.8"
+tempfile = "3"
+pretty_assertions = "1"

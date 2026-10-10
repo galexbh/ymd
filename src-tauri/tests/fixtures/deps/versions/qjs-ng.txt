@@ -1,0 +1,3 @@
+QuickJS-ng version 0.10.1
+usage: qjs [options] [file [args]]
+-h  --help         list options

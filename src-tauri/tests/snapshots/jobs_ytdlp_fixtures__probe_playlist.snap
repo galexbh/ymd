@@ -1,0 +1,154 @@
+---
+source: tests/jobs_ytdlp_fixtures.rs
+expression: r
+---
+{
+  "kind": "playlist",
+  "url": "https://www.youtube.com/playlist?list=PL6B3937A5D230E335",
+  "id": "PL6B3937A5D230E335",
+  "title": "Official Blender Open Movies",
+  "uploader": "Blender",
+  "duration": 6800.0,
+  "thumbnail": "https://i.ytimg.com/vi/WhWc3b3KhnY/hqdefault.jpg?sqp=-oaymwEXCNACELwBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAHCoJeZSO5ZfhlDQqJpz2xgZDAew",
+  "extractor": "youtube:tab",
+  "formats": [],
+  "maxHeight": null,
+  "entries": [
+    {
+      "index": 1,
+      "id": "l5OZu-IrXpw",
+      "title": "SINGULARITY - Painterly Space Adventure",
+      "duration": 391.0,
+      "thumbnail": "https://i.ytimg.com/vi/l5OZu-IrXpw/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBmuYyT41Irbhyhvy0YTx_4NYmZ-w",
+      "url": "https://www.youtube.com/watch?v=l5OZu-IrXpw"
+    },
+    {
+      "index": 2,
+      "id": "u9lj-c29dxI",
+      "title": "WING IT! - Blender Open Movie",
+      "duration": 238.0,
+      "thumbnail": "https://i.ytimg.com/vi/u9lj-c29dxI/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBLlx29mSp4M7Np3brCqHVy9cGlMg",
+      "url": "https://www.youtube.com/watch?v=u9lj-c29dxI"
+    },
+    {
+      "index": 3,
+      "id": "UXqq0ZvbOnk",
+      "title": "CHARGE - Blender Open Movie",
+      "duration": 263.0,
+      "thumbnail": "https://i.ytimg.com/vi/UXqq0ZvbOnk/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCQzYhr0LWGE9SjUAuXqaKib9VfsA",
+      "url": "https://www.youtube.com/watch?v=UXqq0ZvbOnk"
+    },
+    {
+      "index": 4,
+      "id": "_cMxraX_5RE",
+      "title": "Sprite Fright - Blender Open Movie",
+      "duration": 630.0,
+      "thumbnail": "https://i.ytimg.com/vi/_cMxraX_5RE/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCXFJ-H4S6TXHdUeA4VSNqOaygylA",
+      "url": "https://www.youtube.com/watch?v=_cMxraX_5RE"
+    },
+    {
+      "index": 5,
+      "id": "PVGeM40dABA",
+      "title": "Coffee Run - Blender Open Movie",
+      "duration": 185.0,
+      "thumbnail": "https://i.ytimg.com/vi/PVGeM40dABA/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBtpaNIQTjswcv63aRSS4wivGNWdg",
+      "url": "https://www.youtube.com/watch?v=PVGeM40dABA"
+    },
+    {
+      "index": 6,
+      "id": "WhWc3b3KhnY",
+      "title": "Spring - Blender Open Movie",
+      "duration": 465.0,
+      "thumbnail": "https://i.ytimg.com/vi/WhWc3b3KhnY/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDcJzC61Jo7WuOHvHNU7_wuatiC_w",
+      "url": "https://www.youtube.com/watch?v=WhWc3b3KhnY"
+    },
+    {
+      "index": 7,
+      "id": "pKmSdY56VtY",
+      "title": "HERO – Blender Grease Pencil Showcase",
+      "duration": 237.0,
+      "thumbnail": "https://i.ytimg.com/vi/pKmSdY56VtY/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCtY3kLxJDYprTcLSsheK0sTFrZzw",
+      "url": "https://www.youtube.com/watch?v=pKmSdY56VtY"
+    },
+    {
+      "index": 8,
+      "id": "apiu3pTIwuY",
+      "title": "The Daily Dweebs - 8K UHD Stereoscopic 3D",
+      "duration": 61.0,
+      "thumbnail": "https://i.ytimg.com/vi/apiu3pTIwuY/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLA5USqT6xmRysfgN3wnj357E3NpjQ",
+      "url": "https://www.youtube.com/watch?v=apiu3pTIwuY"
+    },
+    {
+      "index": 9,
+      "id": "mN0zPOpADL4",
+      "title": "Agent 327: Operation Barbershop",
+      "duration": 232.0,
+      "thumbnail": "https://i.ytimg.com/vi/mN0zPOpADL4/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBAhU3bKZPXBe6z2fOPC3Kq5vDWKQ",
+      "url": "https://www.youtube.com/watch?v=mN0zPOpADL4"
+    },
+    {
+      "index": 10,
+      "id": "SkVqJ1SGeL0",
+      "title": "Caminandes 3: Llamigos",
+      "duration": 151.0,
+      "thumbnail": "https://i.ytimg.com/vi/SkVqJ1SGeL0/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBZjnLzLRlfdFVI7KK57OR_rExYng",
+      "url": "https://www.youtube.com/watch?v=SkVqJ1SGeL0"
+    },
+    {
+      "index": 11,
+      "id": "lqiN98z6Dak",
+      "title": "Glass Half - Blender animated cartoon",
+      "duration": 194.0,
+      "thumbnail": "https://i.ytimg.com/vi/lqiN98z6Dak/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDiUy3NiFC4rfaDtJUMTQ0aNJNfJg",
+      "url": "https://www.youtube.com/watch?v=lqiN98z6Dak"
+    },
+    {
+      "index": 12,
+      "id": "Y-rmzh0PI3c",
+      "title": "Cosmos Laundromat - First Cycle. Official Blender Foundation release.",
+      "duration": 731.0,
+      "thumbnail": "https://i.ytimg.com/vi/Y-rmzh0PI3c/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAAoA3I39Ee215ODcTJQZV8ODLk4w",
+      "url": "https://www.youtube.com/watch?v=Y-rmzh0PI3c"
+    },
+    {
+      "index": 13,
+      "id": "Z4C82eyhwgU",
+      "title": "\"Caminandes 2: Gran Dillama\" - Blender Animated Short",
+      "duration": 147.0,
+      "thumbnail": "https://i.ytimg.com/vi/Z4C82eyhwgU/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLClg3FPXt6lBGYVECSLOYXCDp7xuw",
+      "url": "https://www.youtube.com/watch?v=Z4C82eyhwgU"
+    },
+    {
+      "index": 14,
+      "id": "R6MlUcmOul8",
+      "title": "Tears of Steel - Blender VFX Open Movie",
+      "duration": 735.0,
+      "thumbnail": "https://i.ytimg.com/vi/R6MlUcmOul8/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDRNruDgfpHiizmhR1iXJvX3CkcBw",
+      "url": "https://www.youtube.com/watch?v=R6MlUcmOul8"
+    },
+    {
+      "index": 15,
+      "id": "eRsGyueVLvQ",
+      "title": "Sintel - Open Movie by Blender Foundation",
+      "duration": 888.0,
+      "thumbnail": "https://i.ytimg.com/vi/eRsGyueVLvQ/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLB2qqvrDCJDt3VrOWbESqL3fuyjww",
+      "url": "https://www.youtube.com/watch?v=eRsGyueVLvQ"
+    },
+    {
+      "index": 16,
+      "id": "YE7VzlLtp-4",
+      "title": "Big Buck Bunny",
+      "duration": 597.0,
+      "thumbnail": "https://i.ytimg.com/vi/YE7VzlLtp-4/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIFsoUjAP&rs=AOn4CLCqasxQdgKhaYcQTM-zXUKdahe4mA",
+      "url": "https://www.youtube.com/watch?v=YE7VzlLtp-4"
+    },
+    {
+      "index": 17,
+      "id": "TLkA0RELQ1g",
+      "title": "Elephants Dream",
+      "duration": 655.0,
+      "thumbnail": "https://i.ytimg.com/vi/TLkA0RELQ1g/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhyIFkoOTAP&rs=AOn4CLBFs4mWpDeI8wALF2MlYfVHLIUrSg",
+      "url": "https://www.youtube.com/watch?v=TLkA0RELQ1g"
+    }
+  ]
+}

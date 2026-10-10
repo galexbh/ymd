@@ -1,0 +1,146 @@
+/* Figure */
+.figure {
+  white-space: nowrap;
+  color: inherit;
+}
+.figureMuted {
+  color: var(--text-muted);
+}
+.unit {
+  color: var(--text-muted);
+  font-size: 0.92em;
+}
+.accession {
+  white-space: nowrap;
+  color: var(--text);
+}
+.accessionPrefix {
+  color: var(--text-muted);
+}
+
+/* Kbd */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  min-width: 1.6em;
+  height: 1.6em;
+  padding: 0 0.4em;
+  justify-content: center;
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+/* Tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: calc(1.375rem * var(--font-scale));
+  padding: 0 var(--space-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+.tagMono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.tagAccent {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.tagDanger {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--text);
+}
+.tagWarning {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--text);
+}
+
+/* Tooltip */
+.tipWrap {
+  position: relative;
+  display: inline-flex;
+}
+.tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: var(--z-tooltip);
+  max-width: 18rem;
+  width: max-content;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-overlay);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-tight);
+  text-align: start;
+  white-space: normal;
+  pointer-events: none;
+  /* Hidden tooltips are out of layout entirely: an invisible box near a table edge would
+     still count as scrollable overflow and put a horizontal scrollbar on the ledger. */
+  display: none;
+  opacity: 0;
+  transform: translate(-50%, 2px);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    display var(--dur-fast) allow-discrete;
+}
+/* For triggers at the end of a row: grow leftwards so the tip stays inside the table. */
+.tipEnd {
+  left: auto;
+  right: 0;
+  transform: translate(0, 2px);
+}
+.tipBottom {
+  bottom: auto;
+  top: calc(100% + 6px);
+  transform: translate(-50%, -2px);
+}
+.tipBottom.tipEnd {
+  transform: translate(0, -2px);
+}
+.tipWrap:hover .tip,
+.tipWrap:focus-within .tip,
+.tip[data-demo-state="open"] {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 300ms, 300ms, 0s;
+}
+.tipWrap:hover .tipEnd,
+.tipWrap:focus-within .tipEnd,
+.tipEnd[data-demo-state="open"] {
+  transform: translate(0, 0);
+}
+@starting-style {
+  .tipWrap:hover .tip,
+  .tipWrap:focus-within .tip {
+    opacity: 0;
+  }
+}
+.tipWrap:focus-within .tip {
+  transition-delay: 0s;
+}
+.tipWrap[data-dismissed="true"] .tip {
+  display: none;
+}

@@ -1,0 +1,125 @@
+{
+  "extDescription": {
+    "message": "Hands ymd, on this computer, the cookies of the sites you choose so it downloads with your session."
+  },
+  "appName": {
+    "message": "ymd Cookies"
+  },
+  "statusHeading": {
+    "message": "Bridge to ymd"
+  },
+  "statusPrefix": {
+    "message": "Status:"
+  },
+  "stampConnected": {
+    "message": "Connected"
+  },
+  "stampOffline": {
+    "message": "Offline"
+  },
+  "stampError": {
+    "message": "Error"
+  },
+  "lastSyncLabel": {
+    "message": "Last sent"
+  },
+  "lastSyncNever": {
+    "message": "Never"
+  },
+  "countLabel": {
+    "message": "Cookies"
+  },
+  "errorHostNotFound": {
+    "message": "ymd is not installed or has not registered the bridge."
+  },
+  "errorHostNotFoundHint": {
+    "message": "Install ymd and open it once: it registers the bridge by itself. Then press “Send now”."
+  },
+  "errorForbidden": {
+    "message": "ymd does not recognize this extension."
+  },
+  "errorForbiddenHint": {
+    "message": "Load the extension from the folder ymd shows in Settings → Accounts."
+  },
+  "errorHostFailed": {
+    "message": "ymd closed before answering."
+  },
+  "errorHostFailedHint": {
+    "message": "Try again. If it keeps happening, update ymd."
+  },
+  "errorRejected": {
+    "message": "ymd could not save the cookies ($CODE$).",
+    "placeholders": {
+      "code": {
+        "content": "$1",
+        "example": "io_error"
+      }
+    }
+  },
+  "errorRejectedHint": {
+    "message": "Try again. If it keeps happening, check ymd."
+  },
+  "errorUnknown": {
+    "message": "Could not reach ymd."
+  },
+  "errorUnknownHint": {
+    "message": "Try again with “Send now”."
+  },
+  "sendNow": {
+    "message": "Send now"
+  },
+  "sending": {
+    "message": "Sending…"
+  },
+  "sitesHeading": {
+    "message": "Allowed sites"
+  },
+  "sitesEmpty": {
+    "message": "The list is empty: no cookies are sent."
+  },
+  "siteDefault": {
+    "message": "Default"
+  },
+  "siteRemove": {
+    "message": "Remove $DOMAIN$",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "vimeo.com"
+      }
+    }
+  },
+  "addLabel": {
+    "message": "Add a site"
+  },
+  "addPlaceholder": {
+    "message": "vimeo.com"
+  },
+  "addButton": {
+    "message": "Add"
+  },
+  "addInvalid": {
+    "message": "Enter just the domain, for example vimeo.com."
+  },
+  "addDuplicate": {
+    "message": "$DOMAIN$ is already on the list.",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "vimeo.com"
+      }
+    }
+  },
+  "addDenied": {
+    "message": "Without the browser's permission the cookies of $DOMAIN$ can't be read.",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "vimeo.com"
+      }
+    }
+  },
+  "privacyNote": {
+    "message": "Cookies only travel to ymd on this computer, never over the network. Only from the sites on the list."
+  }
+}

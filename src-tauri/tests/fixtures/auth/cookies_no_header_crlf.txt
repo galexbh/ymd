@@ -1,0 +1,2 @@
+.youtube.com	TRUE	/	TRUE	1893456000	PREF	synthetic-pref
+.example.org	TRUE	/	FALSE	1893456000	A	synthetic-a

@@ -1,0 +1,4 @@
+ffmpeg version 7.1.1 Copyright (c) 2000-2025 the FFmpeg developers
+built with Apple clang version 16.0.0 (clang-1600.0.26.6)
+configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/7.1.1_3 --enable-shared
+libavutil      59. 39.100 / 59. 39.100

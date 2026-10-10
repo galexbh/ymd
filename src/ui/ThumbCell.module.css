@@ -1,0 +1,102 @@
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-width: 0;
+  isolation: isolate;
+}
+.cell:hover,
+.cell[data-demo-state="hover"] {
+  background: var(--surface-hover);
+}
+.cell:has(input:focus-visible),
+.cell[data-demo-state="focus"] {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.cell[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-faint);
+}
+.duration {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: var(--text-2xs);
+}
+
+.code {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  color: var(--text);
+}
+
+/* selected: circled by hand in violet ink */
+.loop {
+  position: absolute;
+  top: -5px;
+  left: -6px;
+  z-index: -1;
+  width: calc(100% + 10px);
+  height: calc(100% + 9px);
+  overflow: visible;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.cell[data-selected="true"] .loop {
+  opacity: 1;
+}
+.cell[data-selected="true"] .code,
+.cell[data-selected="true"] .code * {
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
+}
+.cell[data-selected="true"] .frame {
+  border-color: var(--accent);
+}

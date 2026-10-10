@@ -1,0 +1,27 @@
+{
+  "language": "en",
+  "theme": {
+    "mode": "light",
+    "accent": "#3366FF",
+    "density": "compact",
+    "radius": "round",
+    "fontScale": 1.125,
+    "glass": true
+  },
+  "videoDir": "/home/u/Videos",
+  "audioDir": "/home/u/Music",
+  "askEachTime": true,
+  "filenameTemplate": "%(uploader)s/%(title)s.%(ext)s",
+  "concurrency": 2,
+  "binDir": null,
+  "ytdlpChannel": "stable",
+  "autoUpdate": false,
+  "useDownloadArchive": true,
+  "useAria2c": true,
+  "cookies": { "kind": "browser", "browser": "brave", "profile": "Profile 1" },
+  "presets": [],
+  "defaultPresetId": "mp3-320",
+  "onboarded": true,
+  "telemetry": "off",
+  "newFeature": { "enabled": true }
+}

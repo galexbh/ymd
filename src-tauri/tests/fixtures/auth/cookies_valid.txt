@@ -1,0 +1,9 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+.youtube.com	TRUE	/	TRUE	1893456000	PREF	synthetic-pref
+#HttpOnly_.youtube.com	TRUE	/	TRUE	1893456000	SYNTH_SID	synthetic-sid
+.Google.com	TRUE	/	FALSE	0	SYNTH_NID	synthetic-nid
+www.example.org	FALSE	/account	FALSE	1893456000	session	
+#HttpOnly_vimeo.com	FALSE	/	TRUE	1893456000	vuid	synthetic-vuid

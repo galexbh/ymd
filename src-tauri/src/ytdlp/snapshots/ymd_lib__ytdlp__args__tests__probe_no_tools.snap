@@ -1,0 +1,15 @@
+---
+source: src/ytdlp/args.rs
+expression: "probe_args(URL, &Tools::default(), &[])"
+---
+- "--ignore-config"
+- "--color"
+- never
+- "--encoding"
+- utf-8
+- "-J"
+- "--flat-playlist"
+- "--no-playlist"
+- "--no-warnings"
+- "--"
+- "https://www.youtube.com/watch?v=YE7VzlLtp-4"

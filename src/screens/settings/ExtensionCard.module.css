@@ -1,0 +1,139 @@
+/* Cookie bridge card. Prominent: raised board like the cookies.txt guide it leads.
+   Secondary: the same content on the board, inside a quiet rule. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  scroll-margin-top: var(--space-4);
+}
+.card[data-prominent="true"] {
+  border-color: var(--rule-strong);
+  background: var(--surface-raised);
+}
+/* focused by «Usar la extensión de ymd», never by a click inside it */
+.card:focus {
+  outline: none;
+}
+.card[data-ring="true"]:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  min-width: 0;
+}
+.lead {
+  max-width: 68ch;
+}
+.muted,
+.hint {
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.warn {
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  color: var(--warning);
+}
+
+.stepsTitle {
+  margin: var(--space-2) 0 0;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding-inline-start: var(--space-6);
+  max-width: 68ch;
+}
+.steps li::marker {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+.steps li {
+  display: list-item;
+}
+.stepAction {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.idRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule-ledger);
+}
+.idLabel {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.idRow .hint {
+  flex-basis: 100%;
+}
+
+/* Setup steps folded away once a browser is connected. */
+.stepsFold {
+  border-top: 1px solid var(--rule-ledger);
+}
+.stepsFold > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.stepsFold > summary::-webkit-details-marker {
+  display: none;
+}
+.stepsFold > summary::before {
+  content: "›";
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.stepsFold[open] > summary::before {
+  transform: rotate(90deg);
+}
+.stepsFold > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

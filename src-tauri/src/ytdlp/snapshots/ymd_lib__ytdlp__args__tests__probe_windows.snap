@@ -1,0 +1,22 @@
+---
+source: src/ytdlp/args.rs
+expression: "probe_args(URL, &w.tools, &auth)"
+---
+- "--ignore-config"
+- "--color"
+- never
+- "--encoding"
+- utf-8
+- "-J"
+- "--flat-playlist"
+- "--no-playlist"
+- "--no-warnings"
+- "--ffmpeg-location"
+- "C:\\Users\\user\\AppData\\Local\\ymd\\bin"
+- "--no-js-runtimes"
+- "--js-runtimes"
+- "deno:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\deno.exe"
+- "--cookies"
+- "C:\\Users\\user\\cookies.txt"
+- "--"
+- "https://www.youtube.com/watch?v=YE7VzlLtp-4"

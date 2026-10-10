@@ -1,0 +1,173 @@
+# Real-network smoke test against the latest yt-dlp NIGHTLY. Never runs on PRs.
+# Catches site / yt-dlp changes that would break ymd before users hit them. On failure an
+# issue labelled `smoke-failure` is opened (or the open one gets a new comment).
+#
+# The clip defaults to "Big Buck Bunny" (Blender Foundation, CC BY 3.0). Override with the
+# workflow_dispatch input or the repository variable SMOKE_URL.
+name: Nightly smoke
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # daily, 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "CC-licensed video URL to download"
+        required: false
+        default: ""
+
+concurrency:
+  group: nightly-smoke
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  CARGO_TERM_COLOR: always
+  SMOKE_URL: ${{ inputs.url || vars.SMOKE_URL || 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download yt-dlp nightly (verified)
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin" && cd "$RUNNER_TEMP/bin"
+          base=https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download
+          curl -fsSL --retry 3 -o yt-dlp_linux "$base/yt-dlp_linux"
+          curl -fsSL --retry 3 -o SHA2-256SUMS "$base/SHA2-256SUMS"
+          grep ' yt-dlp_linux$' SHA2-256SUMS | sha256sum -c -
+          chmod +x yt-dlp_linux
+          ln -sf "$PWD/yt-dlp_linux" yt-dlp
+          echo "$PWD" >> "$GITHUB_PATH"
+          ./yt-dlp_linux --version
+
+      - name: Download static ffmpeg (yt-dlp/FFmpeg-Builds)
+        run: |
+          mkdir -p "$RUNNER_TEMP/ffmpeg" && cd "$RUNNER_TEMP/ffmpeg"
+          name=ffmpeg-master-latest-linux64-gpl
+          curl -fsSL --retry 3 -o ffmpeg.tar.xz \
+            "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/$name.tar.xz"
+          tar -xJf ffmpeg.tar.xz
+          echo "$PWD/$name/bin" >> "$GITHUB_PATH"
+          echo "SMOKE_FFMPEG_DIR=$PWD/$name/bin" >> "$GITHUB_ENV"
+
+      # YouTube needs a JS runtime for its challenges (yt-dlp-ejs); ymd installs Deno by default.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Tool versions
+        run: |
+          yt-dlp --version
+          ffmpeg -hide_banner -version | head -1
+          deno --version | head -1
+
+      - name: Download as video (ymd core flags)
+        id: video
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          set -o pipefail
+          yt-dlp --newline --progress --no-playlist \
+            --ffmpeg-location "$SMOKE_FFMPEG_DIR" \
+            -f "bv*[height<=360]+ba/b[height<=360]" --merge-output-format mp4 \
+            -P "$RUNNER_TEMP/out" -o "video.%(ext)s" \
+            "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/video.log" | tail -n 40
+          test -s "$RUNNER_TEMP/out/video.mp4"
+          ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$RUNNER_TEMP/out/video.mp4" | sort -u | tee streams.txt
+          grep -qx video streams.txt
+          grep -qx audio streams.txt
+
+      - name: Download as MP3 (ymd core flags)
+        id: audio
+        run: |
+          set -o pipefail
+          yt-dlp --newline --progress --no-playlist \
+            --ffmpeg-location "$SMOKE_FFMPEG_DIR" \
+            -x --audio-format mp3 --audio-quality 5 \
+            -P "$RUNNER_TEMP/out" -o "audio.%(ext)s" \
+            "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/audio.log" | tail -n 40
+          test -s "$RUNNER_TEMP/out/audio.mp3"
+          codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$RUNNER_TEMP/out/audio.mp3")
+          test "$codec" = "mp3"
+
+      # Ignored real-network tests in the Rust crate (named `smoke_*`), run against the same
+      # binaries. Passes trivially if the backend has none yet.
+      - uses: dtolnay/rust-toolchain@stable
+        if: always() && steps.video.outcome != 'skipped'
+      - uses: Swatinem/rust-cache@v2
+        if: always() && steps.video.outcome != 'skipped'
+        with:
+          workspaces: src-tauri
+          key: nightly-smoke
+      - name: Linux system dependencies
+        if: always() && steps.video.outcome != 'skipped'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+      - name: Rust smoke tests (ignored, real network)
+        if: always() && steps.video.outcome != 'skipped'
+        working-directory: src-tauri
+        env:
+          YMD_SMOKE_YTDLP: ${{ runner.temp }}/bin/yt-dlp_linux
+          YMD_SMOKE_FFMPEG_DIR: ${{ env.SMOKE_FFMPEG_DIR }}
+          YMD_SMOKE_URL: ${{ env.SMOKE_URL }}
+        run: |
+          mkdir -p ../dist
+          [ -f ../dist/index.html ] || echo '<!doctype html><title>ymd</title>' > ../dist/index.html
+          cargo test --features test-support -- --ignored smoke_
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs
+          path: ${{ runner.temp }}/*.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Open or update the smoke-failure issue
+        if: failure()
+        uses: actions/github-script@v7
+        env:
+          RUNNER_TEMP_DIR: ${{ runner.temp }}
+        with:
+          script: |
+            const fs = require("fs");
+            const tail = (f) => {
+              try {
+                return fs.readFileSync(`${process.env.RUNNER_TEMP_DIR}/${f}`, "utf8")
+                  .split("\n").slice(-25).join("\n");
+              } catch { return "(no log)"; }
+            };
+            const label = "smoke-failure";
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              `Nightly smoke failed: ${run}`,
+              `URL: ${process.env.SMOKE_URL}`,
+              "", "<details><summary>video log (tail)</summary>", "", "```", tail("video.log"), "```", "</details>",
+              "", "<details><summary>audio log (tail)</summary>", "", "```", tail("audio.log"), "```", "</details>",
+              "", "A `Sign in to confirm you’re not a bot` error usually means the runner IP was flagged, not that ymd broke; re-run before investigating.",
+            ].join("\n");
+            try {
+              await github.rest.issues.createLabel({ ...context.repo, name: label, color: "d73a4a",
+                description: "Nightly real-network smoke test failed" });
+            } catch (e) { /* already exists */ }
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: label, per_page: 1 });
+            if (open.length) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: open[0].number, body });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title: "Nightly smoke test failing", labels: [label], body });
+            }

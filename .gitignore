@@ -22,3 +22,30 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Coverage / test output
+coverage
+playwright-report
+test-results
+
+# Never commit downloaded tool binaries or auth material
+# (anchored to the repo root so test fixtures named after the tools stay tracked)
+/bin/
+/*.exe
+/yt-dlp*
+/ffmpeg*
+/ffprobe*
+/deno
+/deno.exe
+/cookies*.txt
+src-tauri/bin/
+*.netrc
+
+# Impeccable machine-local state
+.impeccable/config.local.json
+.impeccable/questions/
+.impeccable/build/
+.claude/worktrees/
+
+# ymd Cookies extension package (built by `pnpm ext:zip`)
+extension/ymd-cookies-extension.zip

@@ -1,0 +1,633 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T19:49:14.245Z",
+  "title": "Design System: ymd",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Date-Stamp Violet",
+        "canonical": "#5b3fc4",
+        "oklch": "oklch(48.0% 0.196 286.1)",
+        "tonalRamp": [
+          "#0c002d",
+          "#250067",
+          "#40159f",
+          "#5b3fc4",
+          "#7b66ed",
+          "#9e94ff",
+          "#c5c3ff",
+          "#edecff"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Date-Stamp Violet (dark)",
+        "canonical": "#a996ff",
+        "oklch": "oklch(73.3% 0.149 290.5)",
+        "tonalRamp": [
+          "#0e002b",
+          "#290063",
+          "#432887",
+          "#6049aa",
+          "#816dd2",
+          "#a592fb",
+          "#cac1ff",
+          "#eeecff"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Violet Wash",
+        "canonical": "#e0dfff",
+        "oklch": "oklch(91.4% 0.043 286.9)",
+        "tonalRamp": [
+          "#0a071c",
+          "#232138",
+          "#3e3c56",
+          "#5c5a75",
+          "#7e7d99",
+          "#a2a1bf",
+          "#c8c7e6",
+          "#edecff"
+        ]
+      },
+      "brand-violet": {
+        "role": "primary",
+        "displayName": "Brand Violet",
+        "canonical": "#6b3fa0",
+        "oklch": "oklch(46.9% 0.152 301.7)",
+        "tonalRamp": [
+          "#120026",
+          "#320059",
+          "#502181",
+          "#6e42a4",
+          "#9166cb",
+          "#b68bf3",
+          "#d6bcff",
+          "#f2eaff"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Archival Board",
+        "canonical": "#eef1f2",
+        "oklch": "oklch(95.6% 0.003 219.5)",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#222425",
+          "#3e4041",
+          "#5b5e5f",
+          "#7e8182",
+          "#a2a5a6",
+          "#c8cbcc",
+          "#eceff0"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Shelf Grey",
+        "canonical": "#e1e6e8",
+        "oklch": "oklch(92.2% 0.006 223.5)",
+        "tonalRamp": [
+          "#090c0d",
+          "#212526",
+          "#3c4042",
+          "#5a5e60",
+          "#7c8183",
+          "#a1a5a7",
+          "#c6cbcd",
+          "#eaeff1"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Raised Board",
+        "canonical": "#f8fafa",
+        "oklch": "oklch(98.4% 0.002 197.1)",
+        "tonalRamp": [
+          "#0a0b0b",
+          "#232424",
+          "#3e4040",
+          "#5c5e5e",
+          "#7f8080",
+          "#a3a5a5",
+          "#c9cbcb",
+          "#edefef"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Archival-Box Slate",
+        "canonical": "#1b2427",
+        "oklch": "oklch(25.3% 0.014 220.1)",
+        "tonalRamp": [
+          "#050d0f",
+          "#1d2629",
+          "#384245",
+          "#556063",
+          "#788286",
+          "#9ca7ab",
+          "#c1cdd1",
+          "#e5f1f5"
+        ]
+      },
+      "dark-surface-2": {
+        "role": "neutral",
+        "displayName": "Shelf Slate",
+        "canonical": "#151d20",
+        "oklch": "oklch(22.4% 0.013 222.7)",
+        "tonalRamp": [
+          "#060c0f",
+          "#1d2629",
+          "#394145",
+          "#565f63",
+          "#788286",
+          "#9ca7ab",
+          "#c2cdd1",
+          "#e6f1f5"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Ledger Ink",
+        "canonical": "#172024",
+        "oklch": "oklch(23.7% 0.015 226.8)",
+        "tonalRamp": [
+          "#050c10",
+          "#1c262a",
+          "#384246",
+          "#556064",
+          "#778287",
+          "#9ba7ac",
+          "#c1cdd2",
+          "#e5f1f6"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "#4b5a61",
+        "oklch": "oklch(45.7% 0.022 227.7)",
+        "tonalRamp": [
+          "#030d12",
+          "#19262c",
+          "#344249",
+          "#516067",
+          "#73838b",
+          "#97a8af",
+          "#bdced6",
+          "#e0f2fa"
+        ]
+      },
+      "pencil": {
+        "role": "neutral",
+        "displayName": "Pencil",
+        "canonical": "#6b7a81",
+        "oklch": "oklch(57.0% 0.021 227.5)",
+        "tonalRamp": [
+          "#030d12",
+          "#19262c",
+          "#344248",
+          "#526067",
+          "#74838a",
+          "#98a8af",
+          "#bdced5",
+          "#e1f2fa"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#c3ccd0",
+        "oklch": "oklch(83.9% 0.011 226.0)",
+        "tonalRamp": [
+          "#060c0f",
+          "#1e2528",
+          "#3a4144",
+          "#575f63",
+          "#798285",
+          "#9ea6aa",
+          "#c3ccd0",
+          "#e7f0f4"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Rule",
+        "canonical": "#8e9ca3",
+        "oklch": "oklch(68.4% 0.019 229.1)",
+        "tonalRamp": [
+          "#040d12",
+          "#1a262b",
+          "#364248",
+          "#536066",
+          "#758389",
+          "#99a7ae",
+          "#bfcdd5",
+          "#e2f1f9"
+        ]
+      },
+      "rule-ledger": {
+        "role": "neutral",
+        "displayName": "Ledger Rule",
+        "canonical": "#cdd6db",
+        "oklch": "oklch(87.1% 0.012 231.7)",
+        "tonalRamp": [
+          "#060c0f",
+          "#1e2529",
+          "#3a4145",
+          "#575f63",
+          "#798286",
+          "#9da6ab",
+          "#c3ccd1",
+          "#e7f0f5"
+        ]
+      },
+      "danger": {
+        "role": "error",
+        "displayName": "Library-Tape Red",
+        "canonical": "#a8281f",
+        "oklch": "oklch(48.3% 0.166 28.9)",
+        "tonalRamp": [
+          "#1f0000",
+          "#4b0000",
+          "#7d0001",
+          "#a7271e",
+          "#d15042",
+          "#fb7666",
+          "#ffb5aa",
+          "#ffe9e5"
+        ]
+      },
+      "dark-danger": {
+        "role": "error",
+        "displayName": "Library-Tape Red (dark)",
+        "canonical": "#f2877a",
+        "oklch": "oklch(73.7% 0.133 28.0)",
+        "tonalRamp": [
+          "#1f0000",
+          "#4b0002",
+          "#771411",
+          "#9b3930",
+          "#c35d52",
+          "#ec8275",
+          "#ffb5ab",
+          "#ffe9e5"
+        ]
+      },
+      "warning": {
+        "role": "warning",
+        "displayName": "Ochre",
+        "canonical": "#7a5300",
+        "oklch": "oklch(47.3% 0.099 77.4)",
+        "tonalRamp": [
+          "#120900",
+          "#322000",
+          "#563900",
+          "#7c5504",
+          "#a17834",
+          "#c79d5a",
+          "#efc37f",
+          "#ffeccf"
+        ]
+      },
+      "dark-warning": {
+        "role": "warning",
+        "displayName": "Ochre (dark)",
+        "canonical": "#d9b25e",
+        "oklch": "oklch(78.1% 0.112 84.8)",
+        "tonalRamp": [
+          "#110a00",
+          "#302100",
+          "#523c00",
+          "#775800",
+          "#9f7a1f",
+          "#c59f4a",
+          "#ecc571",
+          "#ffecc7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Screen title above a 2px strong rule; one per screen."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Item title on the accession card."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "Dialog and empty-state titles; next accession number."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text and ledger cells; prose capped at 68ch."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Field labels, hints, tooltips."
+      },
+      "label-section": {
+        "displayName": "Section Label",
+        "purpose": "Uppercase tracked section heads above a 1px rule."
+      },
+      "label": {
+        "displayName": "Register Label",
+        "purpose": "Ledger column heads and fact labels; names a column or value, never introduces a heading."
+      },
+      "stamp": {
+        "displayName": "Stamp",
+        "purpose": "Stamp words only."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Every number: accession, size, speed, ETA, duration, percent, date, version, path."
+      }
+    },
+    "themes": {
+      "note": "Unprefixed color keys are the light theme; dark- keys are the dark theme. Components read the same CSS variable names in both, switched by [data-theme] on <html>."
+    },
+    "shadows": [
+      {
+        "name": "raise",
+        "value": "0 1px 2px rgb(23 32 36 / 0.1)",
+        "dark": "0 1px 2px rgb(0 0 0 / 0.3)",
+        "purpose": "Accession card only."
+      },
+      {
+        "name": "overlay",
+        "value": "0 12px 32px -8px rgb(23 32 36 / 0.28), 0 2px 6px rgb(23 32 36 / 0.12)",
+        "dark": "0 16px 40px -8px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3)",
+        "purpose": "Dialogs, tooltips, toasts."
+      },
+      {
+        "name": "scrim",
+        "value": "rgb(23 32 36 / 0.42)",
+        "dark": "rgb(8 12 14 / 0.6)",
+        "purpose": "Dialog backdrop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "dur-fast",
+        "value": "150ms",
+        "purpose": "Hover and color state changes."
+      },
+      {
+        "name": "dur-base",
+        "value": "200ms",
+        "purpose": "Dialog rise."
+      },
+      {
+        "name": "dur-slow",
+        "value": "250ms",
+        "purpose": "Slowest state transition."
+      },
+      {
+        "name": "dur-strike",
+        "value": "180ms",
+        "purpose": "ARCHIVADO stamp strike on completion."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entrances: strike, rise, tooltip."
+      },
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "State transitions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition-duration 0s; animations off",
+        "purpose": "Progress ink never freezes partway."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "rail-collapse",
+        "value": "max-width: 1000px",
+        "purpose": "Shelf rail to 3.75rem icon rail; screen padding tightens."
+      },
+      {
+        "name": "short-window",
+        "value": "max-height: 700px",
+        "purpose": "Compact accession card so the ledger stays in the first viewport."
+      },
+      {
+        "name": "strip-container",
+        "value": "@container 820px / 1000px",
+        "purpose": "Counter strip reflow."
+      },
+      {
+        "name": "card-container",
+        "value": "@container 560px",
+        "purpose": "Accession card stacks."
+      },
+      {
+        "name": "jobs-ledger-container",
+        "value": "@container 1200px / 980px / 800px",
+        "purpose": "Ledger drops columns."
+      }
+    ],
+    "userSettings": {
+      "density": {
+        "comfortable": 1,
+        "compact": 0.78,
+        "appliesTo": "spacing, control and row heights"
+      },
+      "radius": {
+        "sharp": "0px",
+        "soft": "4px (default)",
+        "round": "8px",
+        "derived": "sm 0.5x, md 1x, lg 1.5x, full 250x, stamp min(base, 2px)"
+      },
+      "fontScale": {
+        "min": 0.875,
+        "max": 1.25,
+        "appliesTo": "type scale, control and row heights"
+      },
+      "accent": {
+        "curated": [
+          "violet #5b3fc4 / #a996ff",
+          "indigo #3a4fb8 / #93a6ff",
+          "teal #0f6b6b / #5ec8c4",
+          "green #2f6b2f / #8ccf86",
+          "ochre #8a5a00 / #e0b05a",
+          "rust #a3401c / #f29a76",
+          "magenta #9c2a74 / #f08cc8",
+          "graphite #3d4a52 / #b4c2c9"
+        ],
+        "derivation": "OKLCH lightness walk to 4.5:1 against surface, surface-2, sunken, raised, accent-soft and on-accent; see DESIGN.md Colors."
+      }
+    },
+    "accession": {
+      "format": "N.º 000123 (es) / No. 000123 (en)",
+      "digits": 6,
+      "separator": "NBSP",
+      "stampDate": "DD MON YYYY, uppercase month, no period"
+    },
+    "icons": {
+      "set": "lucide",
+      "strokeWidth": 1.75,
+      "defaultSize": 16,
+      "noticeSize": 18
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Violet stamp-ink action; at most one per view.",
+      "html": "<button class=\"ds-btn-primary\">Ingresar</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2,8px);height:var(--control-h,36px);padding:0 var(--space-4,16px);border:1px solid transparent;border-radius:var(--radius-md,4px);font-family:var(--font-sans);font-size:var(--text-md,0.875rem);font-weight:600;line-height:1;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1),border-color 150ms cubic-bezier(0.2,0,0,1);background:var(--accent,#5b3fc4);color:var(--on-accent,#fff);}.ds-btn-primary:hover{background:var(--accent-hover,#4f2eb3);}.ds-btn-primary:active{background:var(--accent-active,#431aa2);}.ds-btn-primary:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:2px;}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Raised board with a strong rule; the main action inside error notices.",
+      "html": "<button class=\"ds-btn-secondary\">Abrir Ajustes</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2,8px);height:var(--control-h,36px);padding:0 var(--space-4,16px);border:1px solid transparent;border-radius:var(--radius-md,4px);font-family:var(--font-sans);font-size:var(--text-md,0.875rem);font-weight:600;line-height:1;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1),border-color 150ms cubic-bezier(0.2,0,0,1);background:var(--surface-raised,#f8fafa);border-color:var(--rule-strong,#8e9ca3);color:var(--text,#172024);}.ds-btn-secondary:hover{background:var(--surface-hover,#e4e9eb);border-color:var(--text-faint,#6b7a81);}.ds-btn-secondary:active{background:var(--surface-sunken,#e5e9eb);}.ds-btn-secondary:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:2px;}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Toolbar and row actions; transparent until hover.",
+      "html": "<button class=\"ds-btn-ghost\">Limpiar terminados</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2,8px);height:var(--control-h,36px);padding:0 var(--space-4,16px);border:1px solid transparent;border-radius:var(--radius-md,4px);font-family:var(--font-sans);font-size:var(--text-md,0.875rem);font-weight:600;line-height:1;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1),border-color 150ms cubic-bezier(0.2,0,0,1);background:transparent;color:var(--text,#172024);}.ds-btn-ghost:hover{background:var(--surface-hover,#e4e9eb);}.ds-btn-ghost:active{background:var(--surface-sunken,#e5e9eb);}.ds-btn-ghost:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:2px;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Raised board field; focus inks border and a 2px outline.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Enlace</span><input class=\"ds-input\" placeholder=\"https://\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:4px;font-family:var(--font-sans);}.ds-field-label{font-size:var(--text-sm,0.8125rem);font-weight:500;color:var(--text,#172024);}.ds-input{height:var(--control-h,36px);padding:0 12px;background:var(--surface-raised,#f8fafa);border:1px solid var(--rule-strong,#8e9ca3);border-radius:var(--radius-md,4px);color:var(--text,#172024);font:inherit;font-size:var(--text-md,0.875rem);transition:border-color 150ms cubic-bezier(0.2,0,0,1);}.ds-input::placeholder{color:var(--text-faint,#6b7a81);}.ds-input:hover{border-color:var(--text-faint,#6b7a81);}.ds-input:focus{border-color:var(--focus,#5b3fc4);outline:2px solid var(--focus,#5b3fc4);outline-offset:-1px;}"
+    },
+    {
+      "name": "Stamps",
+      "kind": "custom",
+      "refersTo": "stamp-in-process",
+      "description": "Status as rubber stamps: pencilled, in process, archived (struck, dated), failed, canceled.",
+      "html": "<div class=\"ds-stamps\"><span class=\"ds-stamp ds-stamp-queued\">En cola</span><span class=\"ds-stamp\">Descargando</span><span class=\"ds-stamp ds-stamp-done\">Archivado<time class=\"ds-stamp-date\">08 OCT 2026</time></span><span class=\"ds-stamp ds-stamp-error\">Fallido</span><span class=\"ds-stamp ds-stamp-canceled\"><s>Cancelado</s></span></div>",
+      "css": ".ds-stamps{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}.ds-stamp{--ink:var(--accent,#5b3fc4);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0.22em;min-width:6.75em;padding:0.32em 0.6em 0.26em;border:3px double var(--ink);border-radius:min(var(--radius-base,4px),2px);color:var(--ink);font-family:var(--font-sans);font-size:var(--text-2xs,0.6875rem);font-weight:700;line-height:1;letter-spacing:0.14em;text-transform:uppercase;white-space:nowrap;}.ds-stamp-queued{--ink:var(--pencil,#6b7a81);border:1px dashed var(--ink);margin:2px;font-weight:600;}.ds-stamp-done{transform:rotate(-1.2deg);background:var(--ink);background-clip:padding-box;color:var(--on-accent,#fff);animation:ds-strike 180ms cubic-bezier(0.16,1,0.3,1) both;}.ds-stamp-date{font-family:var(--font-mono);font-variant-numeric:tabular-nums slashed-zero;font-size:0.86em;font-weight:600;letter-spacing:0.06em;}.ds-stamp-error{--ink:var(--danger,#a8281f);}.ds-stamp-canceled{--ink:var(--text-faint,#6b7a81);}.ds-stamp-canceled s{text-decoration-thickness:1.5px;}@keyframes ds-strike{from{opacity:0;transform:scale(1.12) rotate(-3.7deg);}to{opacity:1;transform:scale(1) rotate(-1.2deg);}}@media (prefers-reduced-motion:reduce){.ds-stamp-done{animation:none;}}"
+    },
+    {
+      "name": "Ledger Span",
+      "kind": "custom",
+      "refersTo": "ledger-row",
+      "description": "Exact progress: ruled baseline with quarter ticks; ink width equals the real share, no easing.",
+      "html": "<div class=\"ds-span\" role=\"progressbar\" aria-valuenow=\"47\" aria-valuemin=\"0\" aria-valuemax=\"100\"><span class=\"ds-span-ink\" style=\"width:47%\"></span></div><div class=\"ds-span ds-span-unknown\" role=\"progressbar\" aria-valuetext=\"Total desconocido\"></div>",
+      "css": ".ds-span{position:relative;width:12rem;height:12px;margin:8px 0;background:linear-gradient(to right,var(--rule-strong,#8e9ca3) 1px,transparent 1px) 0 100%/25% 4px repeat-x,linear-gradient(var(--rule-strong,#8e9ca3),var(--rule-strong,#8e9ca3)) 0 100%/100% 1px no-repeat;}.ds-span::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--rule-strong,#8e9ca3);}.ds-span-ink{position:absolute;left:0;bottom:0;height:3px;background:var(--accent,#5b3fc4);}.ds-span-ink::after{content:\"\";position:absolute;right:0;bottom:0;width:1.5px;height:9px;background:var(--accent,#5b3fc4);}.ds-span-unknown{background:radial-gradient(circle,var(--pencil,#6b7a81) 0.9px,transparent 1.3px) 0 calc(100% + 1px)/5px 4px repeat-x;}.ds-span-unknown::after{display:none;}"
+    },
+    {
+      "name": "Ledger Row",
+      "kind": "custom",
+      "refersTo": "ledger-row",
+      "description": "Ruled register row with mono accession number and end-aligned figures.",
+      "html": "<table class=\"ds-ledger\"><thead><tr><th>N.º</th><th>Título</th><th class=\"ds-num\">Tamaño</th></tr></thead><tbody><tr tabindex=\"0\"><td class=\"ds-fig\">000028</td><td>Building a Tiny Cabin in the Woods</td><td class=\"ds-num ds-fig\">90,3 <span class=\"ds-unit\">MiB</span></td></tr><tr class=\"ds-err\" tabindex=\"0\"><td class=\"ds-fig\">000027</td><td>Tutorial de Rust</td><td class=\"ds-num ds-fig\">86,3 <span class=\"ds-unit\">MiB</span></td></tr></tbody></table>",
+      "css": ".ds-ledger{width:28rem;border-collapse:collapse;font-family:var(--font-sans);font-size:var(--text-md,0.875rem);color:var(--text,#172024);}.ds-ledger th{height:32px;padding:0 12px 4px;text-align:start;vertical-align:bottom;border-bottom:1px solid var(--rule-strong,#8e9ca3);color:var(--text-muted,#4b5a61);font-size:var(--text-2xs,0.6875rem);font-weight:600;letter-spacing:0.09em;text-transform:uppercase;}.ds-ledger td{height:40px;padding:4px 12px;border-bottom:1px solid var(--rule-ledger,#cdd6db);}.ds-ledger tbody tr{transition:background-color 150ms cubic-bezier(0.2,0,0,1);}.ds-ledger tbody tr:hover{background:var(--surface-hover,#e4e9eb);}.ds-ledger tbody tr:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:-2px;}.ds-fig{font-family:var(--font-mono);font-variant-numeric:tabular-nums slashed-zero;white-space:nowrap;}.ds-num{text-align:end;}.ds-unit{color:var(--text-muted,#4b5a61);font-size:0.92em;}.ds-err>td:first-child{box-shadow:inset 1px 0 0 var(--danger,#a8281f);}"
+    },
+    {
+      "name": "Shelf Rail Navigation",
+      "kind": "nav",
+      "refersTo": "shelf-item-current",
+      "description": "Second neutral layer; current item in violet wash with a violet icon.",
+      "html": "<nav class=\"ds-rail\"><a class=\"ds-rail-item\" aria-current=\"page\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/></svg><span>Recibir</span></a><a class=\"ds-rail-item\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/></svg><span>Registro</span><span class=\"ds-count\">2</span></a></nav>",
+      "css": ".ds-rail{display:flex;flex-direction:column;width:200px;padding:0 8px;background:var(--surface-2,#e1e6e8);border-top:1px solid var(--rule,#c3ccd0);font-family:var(--font-sans);}.ds-rail-item{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-bottom:1px solid var(--rule-ledger,#cdd6db);border-radius:var(--radius-sm,2px);color:var(--text-muted,#4b5a61);font-weight:500;text-decoration:none;transition:background-color 150ms cubic-bezier(0.2,0,0,1),color 150ms cubic-bezier(0.2,0,0,1);}.ds-rail-item span:first-of-type{flex:1;}.ds-rail-item:hover{background:var(--surface-hover,#e4e9eb);color:var(--text,#172024);}.ds-rail-item[aria-current=page]{background:var(--accent-soft,#e0dfff);color:var(--text,#172024);font-weight:600;}.ds-rail-item[aria-current=page] svg{color:var(--accent,#5b3fc4);}.ds-rail-item:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:-2px;}.ds-count{min-width:1.5rem;padding:0 4px;border:1px solid var(--accent,#5b3fc4);border-radius:var(--radius-sm,2px);color:var(--text,#172024);font-size:var(--text-xs,0.75rem);text-align:center;}"
+    },
+    {
+      "name": "Tags",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Ruled labels; mono for formats; tonal washes for accent, warning, danger.",
+      "html": "<span class=\"ds-tag ds-tag-mono\">MP3 · 320K</span> <span class=\"ds-tag ds-tag-warning\">Actualización disponible</span> <span class=\"ds-tag ds-tag-danger\">Falta</span>",
+      "css": ".ds-tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid var(--rule-strong,#8e9ca3);border-radius:var(--radius-sm,2px);color:var(--text-muted,#4b5a61);font-family:var(--font-sans);font-size:var(--text-xs,0.75rem);font-weight:500;white-space:nowrap;}.ds-tag-mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}.ds-tag-warning{border-color:var(--warning,#7a5300);background:var(--warning-soft,#f2e4c7);color:var(--text,#172024);}.ds-tag-danger{border-color:var(--danger,#a8281f);background:var(--danger-soft,#f5dcd8);color:var(--text,#172024);}"
+    },
+    {
+      "name": "Error Notice",
+      "kind": "card",
+      "refersTo": "button-secondary",
+      "description": "A failure always states the next step; secondary action, never violet.",
+      "html": "<div class=\"ds-notice\" role=\"alert\"><p class=\"ds-notice-title\">YouTube pide confirmar que no eres un bot</p><p>Activa las cookies de tu navegador en Ajustes → Cuentas y vuelve a intentarlo.</p><button class=\"ds-notice-x\" aria-label=\"Cerrar\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></button></div>",
+      "css": ".ds-notice{position:relative;display:flex;flex-direction:column;gap:4px;max-width:36rem;padding:12px 40px 12px 16px;border:1px solid var(--danger,#a8281f);border-radius:var(--radius-md,4px);background:var(--danger-soft,#f5dcd8);color:var(--text,#172024);font-family:var(--font-sans);font-size:var(--text-md,0.875rem);}.ds-notice p{margin:0;}.ds-notice-title{font-weight:600;}.ds-notice-x{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:var(--radius-md,4px);background:transparent;color:var(--text,#172024);cursor:pointer;}.ds-notice-x:hover{background:var(--surface-hover,#e4e9eb);}.ds-notice-x:focus-visible{outline:2px solid var(--focus,#5b3fc4);outline-offset:2px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Accession Register",
+    "overview": "ymd treats every download as an item entering the user's own archive. The link is handed over at a counter, gets an accession card with a number, and is filed into a ruled ledger. Its status is a rubber stamp, its progress is an inked span drawn to scale, and the catalog is where it gets retrieved later. The grounds are archival materials: grey-white archival board in light mode and Hollinger archival-box slate in dark mode. One ink, violet date-stamp ink, does all the speaking. Library-tape red appears only when something failed.\n\nThe density is that of a working register. Rows are 40px, labels are small tracked capitals like the column heads of a printed ledger, and every figure (accession numbers, sizes, speeds, ETAs, durations, percents, dates) is set in tabular system mono. Structure comes from hairline rules. Shadow is almost absent, and depth comes from two neutral layers (the board and the shelf rail) plus a slightly raised card. Motion only marks state changes. The one flourish is the ARCHIVADO stamp striking onto a row at the moment a download completes.\n\nThe system rejects the category default: a dark card grid with a red accent. Red is never decoration, never brand, and never a progress color.",
+    "keyCharacteristics": [
+      "A ruled ledger, not a card grid: rows separated by blue-grey hairlines, with figures in tabular mono and aligned to the end of the cell.",
+      "One violet ink for primary actions, stamps, progress ink, focus and the current place. Red only for failure.",
+      "Status is a stamp vocabulary (pencilled, outlined, struck solid, failed, canceled), not coloured dots or pills.",
+      "Progress is an exact span: the inked length is the real share, with no easing and no rounding.",
+      "Every item carries a six-digit accession number.",
+      "The user controls theme, accent, density, corner radius and text size. The system stays legible under every combination."
+    ],
+    "rules": [
+      {
+        "name": "The One Ink Rule",
+        "body": "Violet is the only accent. It marks action, stamp, progress, focus and current place. A second hue never takes on any of those jobs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Library-Tape Rule",
+        "body": "Red means something failed or is about to be destroyed irreversibly. It is never used for brand, emphasis, progress or decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Clamped Ink Rule",
+        "body": "A user-chosen accent is never shown raw. It is derived per theme and moved in OKLCH lightness until it reaches 4.5:1 against every surface (board, shelf, sunken, raised and its own wash) and against its on-accent ink. When it had to move, the Appearance screen says so.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numbering Machine Rule",
+        "body": "Every figure is set in tabular system mono with a slashed zero. In a ledger column, figures are aligned to the end of the cell. A figure set in the sans is a bug.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Display Tier Rule",
+        "body": "The largest type is the 1.512rem screen headline. The system sans is a text face here and is never enlarged into a display or hero size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled-Not-Lifted Rule",
+        "body": "Separation comes from hairlines (`rule`, `rule-strong`, `rule-ledger`) and the two neutral layers. A third shadow, or a shadow on a ledger row, panel or button, breaks the register.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Exact Span Rule",
+        "body": "The inked length always equals the real share. Spans are never animated, smoothed or estimated. An unknown total gets the dotted pencil line.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do give every downloaded item an accession number (`N.º 000123`, six digits) and show it wherever the item appears.",
+      "Do set every figure in tabular system mono with a slashed zero, aligned to the end of the cell in ledger columns.",
+      "Do report status with the stamp vocabulary: pencilled for queued, violet outline in process, solid tilted violet for archived, red outline for failed, faint struck-through for canceled.",
+      "Do draw progress as an exact ledger span. Use the dotted pencil line when the total is unknown.",
+      "Do read only semantic tokens, and define every token in both themes.",
+      "Do derive user accents through the AA clamp, and tell the user when their colour was moved.",
+      "Do separate content with hairline rules (`rule-ledger` between rows, `rule-strong` under heads).",
+      "Do let density, text scale and radius mode flow through the token multipliers instead of fixed pixel values.",
+      "Do pair every error with the next step the user can take."
+    ],
+    "donts": [
+      "Don't use a second accent hue, a green \"success\", or red for anything other than failure or irreversible destruction.",
+      "Don't build card grids for items. Items live in the ledger, and the only card is the accession card on the counter.",
+      "Don't animate, ease or estimate a progress span, and don't use an indeterminate shimmer.",
+      "Don't tilt any stamp except the archived impression, and don't round a stamp past 2px.",
+      "Don't add shadows beyond raise (the accession card) and overlay (floating layers).",
+      "Don't introduce webfonts or a display size above the 1.512rem headline.",
+      "Don't use icons from any set other than Lucide at stroke 1.75, and don't use emoji or text glyphs as icons.",
+      "Don't use YouTube's logo or any third-party mark, and don't hand-edit the generated brand files."
+    ]
+  }
+}

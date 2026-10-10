@@ -1,0 +1,1 @@
+ERROR: [generic] video: Unable to download webpage: HTTPSConnection(host='nonexistent-host-ymd.invalid', port=443): Failed to resolve 'nonexistent-host-ymd.invalid' ([Errno 11001] getaddrinfo failed) (caused by TransportError("HTTPSConnection(host='nonexistent-host-ymd.invalid', port=443): Failed to resolve 'nonexistent-host-ymd.invalid' ([Errno 11001] getaddrinfo failed)"))

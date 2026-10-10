@@ -1,0 +1,2 @@
+[vimeo] Extracting URL: https://vimeo.com/123456789
+ERROR: [vimeo] 123456789: This video is only available for registered users. Use --cookies, --cookies-from-browser, --username and --password, --netrc-cmd, or --netrc (vimeo) to provide account credentials. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies

@@ -1,0 +1,3 @@
+# Netscape HTTP Cookie File
+.youtube.com	TRUE	/	TRUE	1893456000	PREF	synthetic-pref
+.youtube.com TRUE / TRUE 1893456000 SPACES synthetic

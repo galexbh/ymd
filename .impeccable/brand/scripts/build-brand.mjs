@@ -1,0 +1,158 @@
+// Builds the shipped ymd brand assets (proposal A, "Sello de entrada") from hand-authored geometry.
+// Usage: node .impeccable/brand/scripts/build-brand.mjs <repoRoot>
+import fs from "node:fs";
+import path from "node:path";
+
+const ROOT = process.argv[2] ?? process.cwd();
+const ACCENT = "#6B3FA0";      // violet date-stamp ink (fallback for var(--accent))
+const ACCENT_DK = "#B9A3E3";   // same ink lifted for dark tabs
+const PAPER = "#F2F3EF", EDGE = "#C3CAC6";
+
+const R = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+const svg = (vb, body, attrs = "") => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${attrs}>${body}</svg>\n`;
+
+/* ---- isotype, 64 grid. Double-ruled stamp frame; a V-armed lowercase y whose tail
+        breaks through both rules. Frame on a 2-unit grid (crisp at 32/64/128). ---- */
+export const ISO64 = {
+  frame: [
+    [4, 4, 56, 4], [4, 8, 4, 52], [56, 8, 4, 52], [4, 56, 16, 4], [36, 56, 24, 4],    // outer rule, gap 20..36
+    [10, 10, 44, 2], [10, 12, 2, 42], [52, 12, 2, 42], [10, 52, 10, 2], [36, 52, 18, 2], // inner rule
+  ],
+  // y: left arm meets the tail's inner edge; tail continues at the arm's slope (10/28) to the edge.
+  y: "M17.75 16H26.25L32 32.1L37.75 16H46.25L29.11 64H20.61L27.75 44Z",
+};
+/* ---- 24px hint: whole pixels, 2px outer rule, 1px inner rule, 3px y ---- */
+export const ISO24 = [
+  [1, 1, 22, 2], [1, 3, 2, 20], [21, 3, 2, 20], [3, 21, 5, 2], [15, 21, 6, 2],
+  [4, 4, 16, 1], [4, 5, 1, 14], [19, 5, 1, 14], [4, 19, 4, 1], [15, 19, 5, 1],
+  [7, 7, 3, 3], [8, 10, 3, 3], [9, 13, 3, 3],                                        // left arm
+  [14, 7, 3, 3], [13, 10, 3, 3], [12, 13, 3, 3], [11, 16, 3, 3], [10, 19, 3, 3], [9, 22, 3, 2], // arm + tail
+];
+/* ---- 16px hint: single 1px rule, 2px y ---- */
+export const ISO16 = [
+  [1, 1, 14, 1], [1, 2, 1, 13], [14, 2, 1, 13], [2, 14, 3, 1], [11, 14, 3, 1],
+  [3, 3, 2, 3], [4, 6, 2, 3], [5, 9, 2, 2], [6, 11, 2, 1],                           // left arm
+  [11, 3, 2, 3], [10, 6, 2, 3], [9, 9, 2, 2], [8, 11, 2, 2], [7, 13, 2, 3],           // arm + tail
+];
+const iso64Body = ISO64.frame.map((r) => R(...r)).join("") + `<path d="${ISO64.y}"/>`;
+const rects = (list) => list.map((r) => R(...r)).join("");
+
+/* ---- wordmark "ymd", filled outlines. x-height 20..44, ascender 8, descender 58, stem 6.
+        y: V-armed with a straight stamp-cut tail (matches the isotype); m arches and d bowl
+        overshoot x-height/baseline by 1. ---- */
+export const WORD =
+  // y
+  "M0.85 20H7.15L11 33.2L14.85 20H21.15L10.07 58H3.76L7.85 44Z" +
+  // m (three subpaths, same winding; union under nonzero)
+  "M26 20H32V44H26Z" +
+  "M26 29A10 10 0 0 1 46 29V44H40V29A4 4 0 0 0 32 29V44H26Z" +
+  "M40 29A10 10 0 0 1 60 29V44H54V29A4 4 0 0 0 46 29V44H40Z" +
+  // d: bowl ring (outer cw, inner ccw) + stem
+  "M65 32A13 13 0 1 1 91 32A13 13 0 1 1 65 32Z" +
+  "M71 32A7 7 0 1 0 85 32A7 7 0 1 0 71 32Z" +
+  "M85 8H91V44H85Z";
+
+const logotype = (isoFill) =>
+  svg("0 0 176 64",
+    `<g style="fill:${isoFill}">${iso64Body}</g><path transform="translate(84 0)" fill="currentColor" d="${WORD}"/>`,
+    ' width="176" height="64" role="img" aria-label="ymd"');
+
+const appicon = () => svg("0 0 1024 1024",
+  `<defs><filter id="sh" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".28"/></filter></defs>` +
+  `<rect x="100" y="100" width="824" height="824" rx="185" fill="${PAPER}" filter="url(#sh)"/>` +
+  `<rect x="103" y="103" width="818" height="818" rx="182" fill="none" stroke="${EDGE}" stroke-width="6"/>` +
+  `<g transform="translate(256 256) scale(8)" fill="${ACCENT}">${iso64Body}</g>`,
+  ' width="1024" height="1024"');
+
+const favicon = () => svg("0 0 16 16",
+  `<style>g{fill:${ACCENT}}@media (prefers-color-scheme:dark){g{fill:${ACCENT_DK}}}</style><g>${rects(ISO16)}</g>`,
+  ' width="16" height="16" shape-rendering="crispEdges"');
+
+const write = (rel, content) => {
+  const p = path.join(ROOT, rel);
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, content);
+  console.log("wrote", rel);
+};
+
+const A = "src/assets/brand";
+write(`${A}/isotype.svg`, svg("0 0 64 64", `<g fill="currentColor">${iso64Body}</g>`, ' width="64" height="64" role="img" aria-label="ymd"'));
+write(`${A}/isotype-24.svg`, svg("0 0 24 24", `<g fill="currentColor">${rects(ISO24)}</g>`, ' width="24" height="24" shape-rendering="crispEdges" role="img" aria-label="ymd"'));
+write(`${A}/isotype-16.svg`, svg("0 0 16 16", `<g fill="currentColor">${rects(ISO16)}</g>`, ' width="16" height="16" shape-rendering="crispEdges" role="img" aria-label="ymd"'));
+write(`${A}/logotype.svg`, logotype(`var(--accent, ${ACCENT})`));
+write("public/favicon.svg", favicon());
+write(".impeccable/brand/appicon.svg", appicon());
+
+/* ---- React component: inline SVG so currentColor and var(--accent) resolve from the page ---- */
+const tsRects = (list) => JSON.stringify(list);
+write(`${A}/Logo.tsx`, `// Generated by .impeccable/brand/scripts/build-brand.mjs. Edit the script, not this file.
+import type { SVGProps } from "react";
+
+const FRAME_64: ReadonlyArray<readonly [number, number, number, number]> = ${tsRects(ISO64.frame)};
+const Y_64 = "${ISO64.y}";
+const HINT_24: ReadonlyArray<readonly [number, number, number, number]> = ${tsRects(ISO24)};
+const HINT_16: ReadonlyArray<readonly [number, number, number, number]> = ${tsRects(ISO16)};
+const WORD = "${WORD}";
+
+const rects = (list: ReadonlyArray<readonly [number, number, number, number]>) =>
+  list.map(([x, y, width, height]) => <rect key={\`\${x}-\${y}-\${width}-\${height}\`} x={x} y={y} width={width} height={height} />);
+
+type IsotypeProps = Omit<SVGProps<SVGSVGElement>, "viewBox"> & {
+  /** Rendered size in CSS px. 16 and 24 use pixel-hinted drawings; larger sizes use the 64 master. */
+  size?: number;
+  title?: string;
+};
+
+/** The ymd stamp mark. Inherits currentColor. */
+export function Isotype({ size = 24, title = "ymd", ...rest }: IsotypeProps) {
+  const grid = size <= 16 ? 16 : size <= 24 ? 24 : 64;
+  const body = grid === 16 ? rects(HINT_16) : grid === 24 ? rects(HINT_24) : (
+    <>
+      {rects(FRAME_64)}
+      <path d={Y_64} />
+    </>
+  );
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={\`0 0 \${grid} \${grid}\`}
+      width={size}
+      height={size}
+      role="img"
+      aria-label={title}
+      shapeRendering={grid === 64 ? undefined : "crispEdges"}
+      fill="currentColor"
+      {...rest}
+    >
+      {body}
+    </svg>
+  );
+}
+
+type LogotypeProps = Omit<SVGProps<SVGSVGElement>, "viewBox"> & {
+  /** Rendered height in CSS px; width follows the 176:64 ratio. */
+  height?: number;
+  title?: string;
+};
+
+/** Stamp mark in var(--accent) + "ymd" wordmark in currentColor. */
+export function Logotype({ height = 32, title = "ymd", ...rest }: LogotypeProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 176 64"
+      height={height}
+      width={(height * 176) / 64}
+      role="img"
+      aria-label={title}
+      {...rest}
+    >
+      <g style={{ fill: "var(--accent, ${ACCENT})" }}>
+        {rects(FRAME_64)}
+        <path d={Y_64} />
+      </g>
+      <path transform="translate(84 0)" fill="currentColor" d={WORD} />
+    </svg>
+  );
+}
+`);
