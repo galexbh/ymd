@@ -115,6 +115,8 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@26.6.5)(@vitest/coverage-v8@5.0.3)(jsdom@30.1.2)(vite@8.3.4(@types/node@26.6.5))
 
+  extension: {}
+
 packages:
 
   '@adobe/css-tools@4.5.0':

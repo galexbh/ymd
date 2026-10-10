@@ -1,0 +1,57 @@
+{
+  "extDescription": {
+    "message": "Entrega a ymd, en este equipo, las cookies de los sitios que elijas para descargar con tu sesión."
+  },
+  "appName": { "message": "ymd Cookies" },
+  "statusHeading": { "message": "Puente con ymd" },
+  "statusPrefix": { "message": "Estado:" },
+  "stampConnected": { "message": "Conectada" },
+  "stampOffline": { "message": "Sin conexión" },
+  "stampError": { "message": "Error" },
+  "lastSyncLabel": { "message": "Último envío" },
+  "lastSyncNever": { "message": "Nunca" },
+  "countLabel": { "message": "Cookies" },
+  "errorHostNotFound": { "message": "ymd no está instalado o no registró el puente." },
+  "errorHostNotFoundHint": {
+    "message": "Abre ymd y activa el puente en Ajustes → Cuentas. Luego pulsa «Enviar ahora»."
+  },
+  "errorForbidden": { "message": "ymd no reconoce esta extensión." },
+  "errorForbiddenHint": {
+    "message": "Carga la extensión desde la carpeta que indica ymd en Ajustes → Cuentas."
+  },
+  "errorHostFailed": { "message": "ymd se cerró antes de responder." },
+  "errorHostFailedHint": {
+    "message": "Vuelve a intentarlo. Si se repite, actualiza ymd."
+  },
+  "errorRejected": {
+    "message": "ymd no pudo guardar las cookies ($CODE$).",
+    "placeholders": { "code": { "content": "$1", "example": "io_error" } }
+  },
+  "errorRejectedHint": { "message": "Vuelve a intentarlo. Si se repite, revisa ymd." },
+  "errorUnknown": { "message": "No se pudo hablar con ymd." },
+  "errorUnknownHint": { "message": "Vuelve a intentarlo con «Enviar ahora»." },
+  "sendNow": { "message": "Enviar ahora" },
+  "sending": { "message": "Enviando…" },
+  "sitesHeading": { "message": "Sitios permitidos" },
+  "sitesEmpty": { "message": "La lista está vacía: no se envía ninguna cookie." },
+  "siteDefault": { "message": "Predeterminado" },
+  "siteRemove": {
+    "message": "Quitar $DOMAIN$",
+    "placeholders": { "domain": { "content": "$1", "example": "vimeo.com" } }
+  },
+  "addLabel": { "message": "Agregar un sitio" },
+  "addPlaceholder": { "message": "vimeo.com" },
+  "addButton": { "message": "Agregar" },
+  "addInvalid": { "message": "Escribe solo el dominio, por ejemplo vimeo.com." },
+  "addDuplicate": {
+    "message": "$DOMAIN$ ya está en la lista.",
+    "placeholders": { "domain": { "content": "$1", "example": "vimeo.com" } }
+  },
+  "addDenied": {
+    "message": "Sin el permiso del navegador no se pueden leer las cookies de $DOMAIN$.",
+    "placeholders": { "domain": { "content": "$1", "example": "vimeo.com" } }
+  },
+  "privacyNote": {
+    "message": "Las cookies solo viajan a ymd en este equipo, sin red. Solo de los sitios de la lista."
+  }
+}

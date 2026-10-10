@@ -1,0 +1,15 @@
+{
+  "name": "ymd-cookies-extension",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ymd Cookies: hands the cookies of allowed sites to ymd over Native Messaging.",
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "test": "vitest run --config vite.config.ts",
+    "lint": "eslint . --max-warnings 0 && tsc -p tsconfig.json --noEmit",
+    "zip": "node scripts/zip.mjs",
+    "e2e": "playwright test --config playwright.config.ts",
+    "icons": "node scripts/render-icons.mjs"
+  }
+}

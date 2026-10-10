@@ -18,6 +18,7 @@ export default tseslint.config(
       "src-tauri/gen",
       "node_modules",
       ".impeccable",
+      "extension/dist",
     ],
   },
   {
@@ -50,6 +51,11 @@ export default tseslint.config(
       "src/test/**/*.ts",
       "src/**/__tests__/**/*.{ts,tsx}",
       "src/**/*.test.{ts,tsx}",
+      // ymd Cookies extension (extension/): its tooling, fake chrome and tests.
+      "extension/*.config.ts",
+      "extension/e2e/**/*.ts",
+      "extension/src/test/**/*.ts",
+      "extension/src/**/__tests__/**/*.ts",
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: {
@@ -59,7 +65,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.js", "scripts/**/*.mjs"],
+    files: ["**/*.js", "scripts/**/*.mjs", "extension/scripts/**/*.mjs", "extension/e2e/**/*.mjs"],
     ignores: ["public/**"],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node, sourceType: "module" },

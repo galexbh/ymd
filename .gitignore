@@ -46,3 +46,6 @@ src-tauri/bin/
 .impeccable/questions/
 .impeccable/build/
 .claude/worktrees/
+
+# ymd Cookies extension package (built by `pnpm ext:zip`)
+extension/ymd-cookies-extension.zip
