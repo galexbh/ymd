@@ -194,7 +194,7 @@ function JobRow({ job }: { job: Job }) {
         <LedgerCell>
           <div className={screen.actionsCell}>
             {failed && (
-              <Tooltip content={open ? t("ledger.hideDetail") : t("ledger.showDetail")}>
+              <Tooltip align="end" content={open ? t("ledger.hideDetail") : t("ledger.showDetail")}>
                 <IconButton
                   icon={open ? ChevronUp : ChevronDown}
                   size="sm"
@@ -206,7 +206,7 @@ function JobRow({ job }: { job: Job }) {
               </Tooltip>
             )}
             {!isTerminal(job.stage) && (
-              <Tooltip content={t("ledger.action.cancel")}>
+              <Tooltip align="end" content={t("ledger.action.cancel")}>
                 <IconButton
                   icon={X}
                   size="sm"
@@ -216,7 +216,7 @@ function JobRow({ job }: { job: Job }) {
               </Tooltip>
             )}
             {(job.stage === "error" || job.stage === "canceled") && (
-              <Tooltip content={t("common.retry")}>
+              <Tooltip align="end" content={t("common.retry")}>
                 <IconButton
                   icon={RotateCcw}
                   size="sm"
@@ -227,7 +227,7 @@ function JobRow({ job }: { job: Job }) {
             )}
             {job.stage === "done" && job.filepath && (
               <>
-                <Tooltip content={t("ledger.action.open")}>
+                <Tooltip align="end" content={t("ledger.action.open")}>
                   <IconButton
                     icon={ExternalLink}
                     size="sm"
@@ -235,7 +235,7 @@ function JobRow({ job }: { job: Job }) {
                     onClick={() => void openFile(job.filepath!).catch(() => {})}
                   />
                 </Tooltip>
-                <Tooltip content={t("ledger.action.reveal")}>
+                <Tooltip align="end" content={t("ledger.action.reveal")}>
                   <IconButton
                     icon={FolderOpen}
                     size="sm"
@@ -246,7 +246,7 @@ function JobRow({ job }: { job: Job }) {
               </>
             )}
             {isTerminal(job.stage) && (
-              <Tooltip content={t("ledger.action.remove")}>
+              <Tooltip align="end" content={t("ledger.action.remove")}>
                 <IconButton
                   icon={Trash2}
                   size="sm"

@@ -169,7 +169,7 @@ export function PresetsSettings() {
                 </LedgerCell>
                 <LedgerCell>
                   <div className={screen.actionsCell}>
-                    <Tooltip content={t("settings.presets.edit")}>
+                    <Tooltip align="end" content={t("settings.presets.edit")}>
                       <IconButton
                         icon={Pencil}
                         size="sm"
@@ -177,7 +177,7 @@ export function PresetsSettings() {
                         onClick={() => edit(p)}
                       />
                     </Tooltip>
-                    <Tooltip content={t("settings.presets.duplicate")}>
+                    <Tooltip align="end" content={t("settings.presets.duplicate")}>
                       <IconButton
                         icon={Copy}
                         size="sm"
@@ -188,7 +188,7 @@ export function PresetsSettings() {
                       />
                     </Tooltip>
                     {!p.builtin && (
-                      <Tooltip content={t("settings.presets.delete")}>
+                      <Tooltip align="end" content={t("settings.presets.delete")}>
                         <IconButton
                           icon={Trash2}
                           size="sm"

@@ -271,7 +271,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
         <div className={screen.actionsCell}>
           {item.exists && (
             <>
-              <Tooltip content={t("ledger.action.open")}>
+              <Tooltip align="end" content={t("ledger.action.open")}>
                 <IconButton
                   icon={ExternalLink}
                   size="sm"
@@ -279,7 +279,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
                   onClick={() => void openFile(item.filepath).catch(() => {})}
                 />
               </Tooltip>
-              <Tooltip content={t("ledger.action.reveal")}>
+              <Tooltip align="end" content={t("ledger.action.reveal")}>
                 <IconButton
                   icon={FolderOpen}
                   size="sm"
@@ -289,7 +289,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
               </Tooltip>
             </>
           )}
-          <Tooltip content={t("catalog.redownload")}>
+          <Tooltip align="end" content={t("catalog.redownload")}>
             <IconButton
               icon={Download}
               size="sm"
@@ -297,7 +297,7 @@ function CatalogRow({ item }: { item: HistoryItem }) {
               onClick={redownload}
             />
           </Tooltip>
-          <Tooltip content={t("catalog.delete")}>
+          <Tooltip align="end" content={t("catalog.delete")}>
             <IconButton
               icon={Trash2}
               size="sm"

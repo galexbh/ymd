@@ -3,7 +3,7 @@ import { Check, CircleAlert, LoaderCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Skeleton } from "../../ui";
 import { SETTINGS_SECTIONS, useNav, type SettingsSection } from "../../store/nav";
-import { useSettings } from "../../store/settings";
+import { useSettings, type SaveStatus } from "../../store/settings";
 import { ScreenHeader } from "../shared/ScreenHeader";
 import screen from "../shared/screen.module.css";
 import { AccountsSettings } from "./AccountsSettings";
@@ -28,14 +28,24 @@ export function SaveIndicator() {
   const status = useSettings((st) => st.status);
   const flush = useSettings((st) => st.flush);
   const update = useSettings((st) => st.update);
-  if (status === "idle") return <span className={screen.saveState} />;
+  // The store only goes back to idle from «Guardado» (errors stay), so while idle the
+  // confirmation stays in the DOM, hidden, and fades out instead of vanishing.
+  const visible = status !== "idle";
+  const label: Exclude<SaveStatus, "idle"> = visible ? status : "saved";
   return (
-    <span className={screen.saveState} data-state={status} role="status" data-testid="save-state">
-      {status === "saving" && <Icon icon={LoaderCircle} size={14} />}
-      {status === "saved" && <Icon icon={Check} size={14} />}
-      {status === "error" && <Icon icon={CircleAlert} size={14} />}
-      {t(`settings.save.${status}`)}
-      {status === "error" && (
+    <span
+      className={screen.saveState}
+      data-state={label}
+      data-hidden={!visible || undefined}
+      role="status"
+      aria-hidden={!visible || undefined}
+      data-testid="save-state"
+    >
+      {label === "saving" && <Icon icon={LoaderCircle} size={14} />}
+      {label === "saved" && <Icon icon={Check} size={14} />}
+      {label === "error" && <Icon icon={CircleAlert} size={14} />}
+      {t(`settings.save.${label}`)}
+      {visible && status === "error" && (
         <Button
           size="sm"
           variant="ghost"

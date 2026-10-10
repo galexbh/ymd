@@ -5,7 +5,6 @@
   gap: var(--space-8);
   padding: var(--space-6) var(--space-8) var(--space-12);
   min-width: 0;
-  max-width: 88rem;
 }
 @media (max-width: 1000px) {
   .screen {
@@ -101,4 +100,11 @@
 }
 .saveState[data-state="error"] {
   color: var(--danger);
+}
+.saveState {
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.saveState[data-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
 }
