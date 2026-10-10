@@ -38,16 +38,35 @@ const BROWSERS: [&str; 7] = [
     "brave", "chrome", "edge", "chromium", "vivaldi", "opera", "other",
 ];
 
-/// `chrome-extension://<EXTENSION_ID>/`, the only origin allowed to talk to the host.
+/// ID the Chrome Web Store assigns to the published extension; `None` until it is published.
+/// The unpacked build ([`EXTENSION_ID`]) and the store build can then both talk to ymd.
+pub const STORE_EXTENSION_ID: Option<&str> = None;
+
+/// Every extension ID allowed to talk to the host: the unpacked one, then the store one.
+pub fn allowed_extension_ids() -> Vec<&'static str> {
+    std::iter::once(EXTENSION_ID)
+        .chain(STORE_EXTENSION_ID)
+        .collect()
+}
+
+/// `chrome-extension://<EXTENSION_ID>/`, the unpacked extension's origin.
 pub fn allowed_origin() -> String {
     format!("chrome-extension://{EXTENSION_ID}/")
 }
 
-/// True when `arg` is the extension's origin (with or without the trailing slash).
+/// The origins listed in the host manifest (`allowed_origins`).
+pub fn allowed_origins() -> Vec<String> {
+    allowed_extension_ids()
+        .into_iter()
+        .map(|id| format!("chrome-extension://{id}/"))
+        .collect()
+}
+
+/// True when `arg` is an allowed extension's origin (with or without the trailing slash).
 pub fn is_allowed_origin(arg: &str) -> bool {
     arg.strip_prefix("chrome-extension://")
         .map(|rest| rest.strip_suffix('/').unwrap_or(rest))
-        == Some(EXTENSION_ID)
+        .is_some_and(|id| allowed_extension_ids().contains(&id))
 }
 
 // ───────────────────────────── framing ─────────────────────────────
@@ -524,6 +543,19 @@ mod tests {
         let e = handle(req, dir.path()).unwrap_err();
         assert!(e.detail.contains("too many cookies"), "{}", e.detail);
         assert!(!dir.path().join("auth").exists());
+    }
+
+    #[test]
+    fn the_unpacked_id_is_always_allowed() {
+        let ids = allowed_extension_ids();
+        assert_eq!(ids[0], EXTENSION_ID);
+        assert_eq!(ids.len(), 1 + usize::from(STORE_EXTENSION_ID.is_some()));
+        assert_eq!(allowed_origins()[0], allowed_origin());
+        for id in ids {
+            assert_eq!(id.len(), 32);
+            assert!(id.bytes().all(|b| (b'a'..=b'p').contains(&b)), "{id}");
+            assert!(is_allowed_origin(&format!("chrome-extension://{id}/")));
+        }
     }
 
     #[test]

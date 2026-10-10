@@ -131,11 +131,14 @@ jobs:
           pnpm ext:test
           pnpm ext:build
           pnpm ext:zip
+          pnpm ext:zip:store
 
       - uses: actions/upload-artifact@v7
         with:
           name: ymd-cookies-extension
-          path: extension/ymd-cookies-extension.zip
+          path: |
+            extension/ymd-cookies-extension.zip
+            extension/ymd-cookies-store.zip
           if-no-files-found: error
 
       # gh resolves the draft release tauri-action created for this tag (no second draft).
@@ -143,4 +146,6 @@ jobs:
         if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" extension/ymd-cookies-extension.zip --clobber
+        run: >-
+          gh release upload "${{ github.ref_name }}"
+          extension/ymd-cookies-extension.zip extension/ymd-cookies-store.zip --clobber

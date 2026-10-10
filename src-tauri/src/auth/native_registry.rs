@@ -12,7 +12,7 @@
 //! ([`STORE_EXTENSION_ENABLED`]).
 
 use super::browsers::{chromium_dir, Env, Os};
-use super::native_host::{allowed_origin, EXTENSION_ID, HOST_NAME};
+use super::native_host::{allowed_origins, EXTENSION_ID, HOST_NAME};
 use crate::model::{BridgeTarget, Browser};
 use std::path::{Path, PathBuf};
 
@@ -54,7 +54,7 @@ fn host_manifest_json_named(name: &str, exe_path: &Path) -> String {
         "description": "ymd cookie bridge",
         "path": exe_path.to_string_lossy(),
         "type": "stdio",
-        "allowed_origins": [allowed_origin()],
+        "allowed_origins": allowed_origins(),
     });
     serde_json::to_string_pretty(&v).expect("static JSON") + "\n"
 }

@@ -26,6 +26,8 @@
     "ext:test": "vitest run --config extension/vite.config.ts",
     "ext:lint": "eslint extension --max-warnings 0 && tsc -p extension/tsconfig.json --noEmit",
     "ext:zip": "node extension/scripts/zip.mjs",
+    "ext:zip:store": "node extension/scripts/zip.mjs --store",
+    "ext:shots": "node extension/scripts/store-shots.mjs",
     "ext:e2e": "playwright test --config extension/playwright.config.ts",
     "docs:dev": "node website/node_modules/astro/bin/astro.mjs dev --root website",
     "docs:build": "node website/node_modules/astro/bin/astro.mjs build --root website",

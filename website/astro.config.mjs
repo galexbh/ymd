@@ -61,6 +61,7 @@ export default defineConfig({
             "cookies/navegador",
             "cookies/cookies-txt",
             "cookies/cuentas",
+            "cookies/privacidad-extension",
           ],
         },
         "dependencias",

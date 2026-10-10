@@ -1,10 +1,25 @@
 # ymd Cookies: Chrome Web Store listing (draft)
 
-Prepared for a future submission. Nothing has been submitted. To publish with the same ID as the
-unpacked build, the package must be signed with the private key kept at
-`~/.ymd/extension-key.pem` on the maintainer's machine (see the
-[cookie bridge protocol](https://galexbh.github.io/ymd/en/desarrollo/puente-de-cookies/), source
-`website/src/content/docs/en/desarrollo/puente-de-cookies.md`).
+Prepared for a future submission. Nothing has been submitted yet.
+
+The store assigns its own extension ID. ymd accepts both IDs: the unpacked one (fixed by the
+manifest `key`) and the store one (`STORE_EXTENSION_ID` in
+`src-tauri/src/auth/native_host.rs`), so no private key has to be uploaded.
+
+## Publishing checklist
+
+1. Developer account at <https://chrome.google.com/webstore/devconsole> (one-time USD 5 fee).
+2. `pnpm ext:build && pnpm ext:zip:store` → `extension/ymd-cookies-store.zip` (no `key`; also
+   attached to every GitHub release).
+3. **New item** → upload the zip. Fill in the listing below (es default, en), category
+   Productivity.
+4. **Privacy:** single purpose, permission justifications and data usage from this file. Privacy
+   policy URL: <https://galexbh.github.io/ymd/en/cookies/privacidad-extension/>.
+5. **Graphics:** `pnpm ext:shots` writes the 1280×800 screenshots to `extension/store/`; the
+   128×128 icon is `extension/icons/icon-128.png`.
+6. Visibility: **Unlisted** is enough (installable by link and from ymd).
+7. Submit for review. Once published, note the item ID and set `STORE_EXTENSION_ID` to it
+   (phase 2: preinstall from the ymd installer and point the card at the store).
 
 ## Listing
 
@@ -53,8 +68,9 @@ Requires ymd installed on the same computer.
 
 ## Single purpose
 
-Pass the cookies of user-selected sites from this browser to the ymd desktop application on the
-same computer, so ymd can download media with the user's own session.
+Connect this browser to the ymd desktop application on the same computer so it can download
+media: pass the cookies of user-selected sites (so ymd downloads with the user's own session) and,
+on request, the link the user wants to download.
 
 ## Permission justifications
 
@@ -64,10 +80,12 @@ same computer, so ymd can download media with the user's own session.
 | `nativeMessaging`                     | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                                        |
 | `storage`                             | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                                                 |
 | `alarms`                              | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                                            |
+| `contextMenus`                        | Adds one entry, «Download with ymd», on links, media and pages, which sends that link to ymd on the user's click.                                                                                                        |
+| `activeTab`                           | Reads the address of the open tab only while the user has the popup open, for «Download with ymd» and «Use my … session» on that page. No other tab is read.                                                             |
 | Host permission `*://*.youtube.com/*` | The default site. A YouTube session lives in .youtube.com cookies, so no Google account cookies are read. Needed by `chrome.cookies.getAll` for that domain. The extension injects no scripts and reads no page content. |
 | Optional host permission `*://*/*`    | Lets the user add another site (for example vimeo.com). It is requested per domain (`*://*.<domain>/*`) only when the user adds that site, and revoked when they remove it.                                              |
 
-**Remote code:** none. All code ships in the package; the CSP is `script-src 'self'`.
+**Remote code:** none. All code ships in the package; the CSP allows only the extension's own files (`default-src 'none'; script-src 'self'`) and no network connections.
 
 ## Privacy policy
 
@@ -78,7 +96,7 @@ application on the same computer.
 
 - **What is collected:** the cookies of the sites on the list that you control (YouTube by
   default): name, value, domain, path, expiry and security flags, plus the name of the
-  browser.
+  browser; with «Download with ymd», the link you picked.
 - **Where it goes:** only to the ymd application installed on your computer, through the
   browser's Native Messaging channel. It is never sent over the network, never sent to the
   developer, and never shared with or sold to third parties.
