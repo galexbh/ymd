@@ -272,6 +272,8 @@ export interface BrowserProfile {
 export interface BrowserInfo {
   browser: Browser;
   profiles: BrowserProfile[];
+  /** false only for Firefox when absent: listed because it is the Windows-friendly option */
+  installed: boolean;
   running: boolean;
 }
 

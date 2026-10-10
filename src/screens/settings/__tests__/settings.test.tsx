@@ -22,8 +22,18 @@ describe("Ajustes → Cuentas: cookies", () => {
     expect(await screen.findByText("Brave tiene bloqueadas sus cookies")).toBeInTheDocument();
     expect(screen.getByText(/Cierra Brave por completo/)).toBeInTheDocument();
 
+    // Closed on Windows → app-bound decryption failure, with the cookies.txt guide and Firefox.
     be.setBrowserRunning("brave", false);
     await user.click(screen.getByRole("button", { name: "Ya cerré Brave, probar otra vez" }));
+    await tick(0);
+    expect(await screen.findByText(/Failed to decrypt with DPAPI/)).toBeInTheDocument();
+    expect(screen.getByText(/También puedes usar Firefox/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Usar Firefox" }));
+    await tick(0);
+    await waitFor(() =>
+      expect(be.snapshot().settings.cookies).toMatchObject({ kind: "browser", browser: "firefox" }),
+    );
+    await user.click(screen.getByTestId("cookies-test"));
     await tick(0);
     expect(await screen.findByText("Las cookies funcionan")).toBeInTheDocument();
   });
@@ -56,11 +66,12 @@ describe("Ajustes → Cuentas: cookies", () => {
     expect(be.snapshot().cookies).toBeNull();
   });
 
-  it("snapshot from a closed browser saves a copy", async () => {
+  it("snapshot from a closed browser saves a copy (Linux, where Chromium cookies are readable)", async () => {
     const { user, tick } = await renderApp({
       route: "settings",
       section: "accounts",
       braveRunning: false,
+      platform: "linux",
     });
     await user.click(screen.getByRole("radio", { name: "Navegador" }));
     await tick(0);
@@ -73,6 +84,45 @@ describe("Ajustes → Cuentas: cookies", () => {
 
 // Synthetic value built at runtime: it only proves the field is never echoed to the DOM.
 const TYPED_VALUE = ["typed", "in", "test", String(Date.now() % 1000)].join("-");
+
+describe("Ajustes → Cuentas: Firefox on Windows", () => {
+  it("lists Firefox as recommended but not selectable when it is not installed", async () => {
+    const { be, user, tick } = await renderApp({
+      route: "settings",
+      section: "accounts",
+      firefoxInstalled: false,
+    });
+    await user.click(screen.getByRole("radio", { name: "Navegador" }));
+    await tick(0);
+    const row = await screen.findByTestId("browser-firefox");
+    expect(within(row).getByRole("radio")).toBeDisabled();
+    expect(within(row).getByText("no instalado")).toBeInTheDocument();
+    expect(within(row).getByText("recomendado en Windows")).toBeInTheDocument();
+    // installed browsers come first; Brave is still the default pick
+    expect(screen.getByRole("radio", { name: /Brave/ })).toBeChecked();
+    expect(screen.getByTestId("firefox-why")).toHaveTextContent(/único navegador/);
+
+    await user.click(within(row).getByRole("button", { name: "Descargar Firefox" }));
+    await tick(0);
+    const opened = calls(be, "plugin:opener|open_url");
+    expect(opened).toHaveLength(1);
+    expect(JSON.stringify(opened[0])).toContain("mozilla.org/firefox");
+    expect(be.snapshot().settings.cookies).toMatchObject({ browser: "brave" });
+  });
+
+  it("an installed Firefox can be chosen", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "accounts" });
+    await user.click(screen.getByRole("radio", { name: "Navegador" }));
+    await tick(0);
+    const row = await screen.findByTestId("browser-firefox");
+    expect(within(row).queryByText("no instalado")).toBeNull();
+    await user.click(within(row).getByRole("radio"));
+    await tick(0);
+    await waitFor(() =>
+      expect(be.snapshot().settings.cookies).toMatchObject({ kind: "browser", browser: "firefox" }),
+    );
+  });
+});
 
 describe("Ajustes → Cuentas: site accounts", () => {
   it("adds and deletes a keychain account without ever rendering the password", async () => {

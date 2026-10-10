@@ -313,6 +313,21 @@ describe("mock backend — auth", () => {
       code: "cookies_locked",
     });
 
+    // Closed on Windows: app-bound encryption, yt-dlp cannot decrypt (real behaviour).
+    be.setBrowserRunning("brave", false);
+    const closed = await api.cookiesTest({ kind: "browser", browser: "brave", profile: null });
+    expect(closed.error?.code).toBe("cookies_decrypt");
+    await expect(api.cookiesSnapshot("brave", "Profile 1")).rejects.toMatchObject({
+      code: "cookies_decrypt",
+    });
+    // Firefox works on Windows.
+    expect((await api.cookiesTest({ kind: "browser", browser: "firefox", profile: null })).ok).toBe(
+      true,
+    );
+  });
+
+  it("closed Brave works off Windows", async () => {
+    const be = installMockBackend({ clock: "manual", platform: "linux" });
     be.setBrowserRunning("brave", false);
     expect((await api.cookiesTest({ kind: "browser", browser: "brave", profile: null })).ok).toBe(
       true,

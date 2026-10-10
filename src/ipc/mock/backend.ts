@@ -89,6 +89,8 @@ export interface MockBackendOptions {
   seedHistory?: boolean;
   /** Brave is open (cookie DB locked). Default true. */
   braveRunning?: boolean;
+  /** false = Firefox listed as not installed (the owner's real Windows setup) */
+  firefoxInstalled?: boolean;
   /** Dependencies whose install fails at the verification step (checksum mismatch). */
   failDeps?: DepId[];
   /** Simulated latencies. Default all 0 (tests); the dev boot uses realistic values. */
@@ -240,6 +242,7 @@ export class MockBackend {
   private cookies: CookieFileInfo | null = null;
   private credentials = new Map<string, { username: string; password: string }>();
   private braveRunning: boolean;
+  private firefoxInstalled: boolean;
   private probeCache = new Map<string, ProbeResult>();
   private seed: number;
   private disposed = false;
@@ -257,6 +260,7 @@ export class MockBackend {
     this.delays = { command: 0, probe: 0, auth: 0, ...options.delays };
     this.failDeps = new Set(options.failDeps ?? []);
     this.braveRunning = options.braveRunning ?? true;
+    this.firefoxInstalled = options.firefoxInstalled ?? true;
     this.seed = options.seed ?? 7;
     this.settingsFallback = defaultSettings(this.platform);
     this.settings = sanitizeSettings(
@@ -379,7 +383,7 @@ export class MockBackend {
         return this.setSettings(a.settings as Settings);
       // auth
       case "browsers_detect":
-        return clone(browsersFixture(this.braveRunning)) as BrowserInfo[];
+        return clone(browsersFixture(this.braveRunning, this.firefoxInstalled)) as BrowserInfo[];
       case "cookies_snapshot":
         return this.cookiesSnapshot(a.browser as Browser, (a.profile as string | null) ?? null);
       case "cookies_import":
@@ -963,7 +967,9 @@ export class MockBackend {
   // ───────────── Auth ─────────────
 
   private profileName(browser: Browser, profile: string | null): string | null {
-    const info = browsersFixture(this.braveRunning).find((b) => b.browser === browser);
+    const info = browsersFixture(this.braveRunning, this.firefoxInstalled).find(
+      (b) => b.browser === browser,
+    );
     if (!info) return null;
     if (profile === null) return info.profiles[0]?.name ?? "Default";
     const p = info.profiles.find((x) => x.id === profile || x.name === profile);
@@ -977,6 +983,15 @@ export class MockBackend {
     );
   }
 
+  /** Real behaviour on Windows: Chromium browsers use app-bound encryption yt-dlp cannot undo. */
+  private decryptError(browser: Browser): CommandError | null {
+    if (this.platform !== "windows" || browser === "firefox") return null;
+    return commandError(
+      "cookies_decrypt",
+      "ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info",
+    );
+  }
+
   private async cookiesSnapshot(browser: Browser, profile: string | null): Promise<CookieFileInfo> {
     if (this.delays.auth > 0) await this.wait(this.delays.auth);
     const name = this.profileName(browser, profile);
@@ -987,6 +1002,8 @@ export class MockBackend {
       );
     }
     if (browser === "brave" && this.braveRunning) throw this.lockedError();
+    const decrypt = this.decryptError(browser);
+    if (decrypt) throw decrypt;
     this.cookies = {
       createdAt: new Date(this.clock.now()).toISOString(),
       origin: `${browser}:${name}`,
@@ -1026,6 +1043,8 @@ export class MockBackend {
     if (source.browser === "brave" && this.braveRunning) {
       return { ok: false, error: this.lockedError() };
     }
+    const decrypt = this.decryptError(source.browser);
+    if (decrypt) return { ok: false, error: decrypt };
     return { ok: true, error: null };
   }
 

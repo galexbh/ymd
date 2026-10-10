@@ -618,7 +618,11 @@
       "profiles": "Profiles: {{n}}",
       "profile": "Profile",
       "defaultProfile": "Default ({{name}})",
-      "runningNote": "{{browser}} is open and keeps its cookies locked. Close it completely before testing, or use a cookies.txt file."
+      "runningNote": "{{browser}} is open and keeps its cookies locked. Close it completely before testing, or use a cookies.txt file.",
+      "recommended": "recommended on Windows",
+      "notInstalled": "not installed",
+      "getFirefox": "Get Firefox",
+      "firefoxWhy": "On Windows, Firefox is the only browser whose cookies yt-dlp can read directly: Brave, Chrome and Edge encrypt them so no other program can open them. Sign in to YouTube in Firefox and pick it here."
     },
     "test": "Test cookies",
     "testOk": "The cookies work",
@@ -633,7 +637,9 @@
       "useFile": "Use cookies.txt"
     },
     "decrypt": {
-      "body": "On Windows, {{browser}} encrypts its cookies so other programs can't read them. Export a cookies.txt file with the steps below."
+      "body": "On Windows, {{browser}} encrypts its cookies so other programs can't read them. Export a cookies.txt file with the steps below.",
+      "orFirefox": "You can also use Firefox, whose cookies can be read.",
+      "switchFirefox": "Use Firefox"
     },
     "guide": {
       "title": "Export cookies.txt",

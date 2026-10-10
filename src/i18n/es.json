@@ -618,7 +618,11 @@
       "profiles": "Perfiles: {{n}}",
       "profile": "Perfil",
       "defaultProfile": "Predeterminado ({{name}})",
-      "runningNote": "{{browser}} está abierto y mantiene bloqueadas sus cookies. Ciérralo por completo antes de probar o usa un archivo cookies.txt."
+      "runningNote": "{{browser}} está abierto y mantiene bloqueadas sus cookies. Ciérralo por completo antes de probar o usa un archivo cookies.txt.",
+      "recommended": "recomendado en Windows",
+      "notInstalled": "no instalado",
+      "getFirefox": "Descargar Firefox",
+      "firefoxWhy": "En Windows, Firefox es el único navegador cuyas cookies yt-dlp puede leer directamente: Brave, Chrome y Edge las cifran para que ningún otro programa las abra. Inicia sesión en YouTube en Firefox y elígelo aquí."
     },
     "test": "Probar cookies",
     "testOk": "Las cookies funcionan",
@@ -633,7 +637,9 @@
       "useFile": "Usar cookies.txt"
     },
     "decrypt": {
-      "body": "En Windows, {{browser}} cifra sus cookies de forma que otros programas no pueden leerlas. Exporta un archivo cookies.txt con los pasos de abajo."
+      "body": "En Windows, {{browser}} cifra sus cookies de forma que otros programas no pueden leerlas. Exporta un archivo cookies.txt con los pasos de abajo.",
+      "orFirefox": "También puedes usar Firefox, cuyas cookies sí se pueden leer.",
+      "switchFirefox": "Usar Firefox"
     },
     "guide": {
       "title": "Exportar cookies.txt",

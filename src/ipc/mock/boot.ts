@@ -33,6 +33,7 @@ export function bootMock(): MockBackend {
     scenario,
     speed: Number.isFinite(speed) && speed > 0 ? speed : 1,
     braveRunning: readParam("brave") !== "closed",
+    firefoxInstalled: readParam("firefox") !== "missing",
     delays: { command: 40, probe: 900, auth: 700 },
   });
   window.__YMD_MOCK__ = backend;

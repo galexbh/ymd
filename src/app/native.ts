@@ -1,7 +1,7 @@
 // Thin wrappers over the Tauri plugins the screens use (dialog, opener, os, drag-drop).
 // Every call is guarded so a missing plugin (tests, mock mode) degrades quietly.
 import { open } from "@tauri-apps/plugin-dialog";
-import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
+import { openPath, openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 
 export type OsPlatform = "windows" | "macos" | "linux" | "other";
 
@@ -27,6 +27,11 @@ export async function pickCookieFile(filterName: string): Promise<string | null>
 
 export async function openFile(path: string): Promise<void> {
   await openPath(path);
+}
+
+/** Open a web page in the default browser. */
+export async function openExternal(url: string): Promise<void> {
+  await openUrl(url);
 }
 
 export async function showInFolder(path: string): Promise<void> {

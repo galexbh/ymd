@@ -496,6 +496,9 @@ pub struct BrowserProfile {
 pub struct BrowserInfo {
     pub browser: Browser,
     pub profiles: Vec<BrowserProfile>,
+    /// False only for Firefox when it is not installed: it is still listed because on Windows it
+    /// is the one browser whose cookies yt-dlp can read (Chromium uses app-bound encryption).
+    pub installed: bool,
     /// Best-effort: the browser process is currently running (cookie DB likely locked on Windows).
     pub running: bool,
 }

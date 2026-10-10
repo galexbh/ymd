@@ -215,6 +215,16 @@
 .browserRow[data-checked="true"] {
   background: var(--surface-selected);
 }
+/* Listed as a suggestion only: not selectable until installed. */
+.browserRow[data-absent="true"] {
+  cursor: default;
+}
+.browserRow[data-absent="true"]:hover {
+  background: none;
+}
+.browserRow[data-absent="true"] .browserName {
+  color: var(--text-muted);
+}
 .browserRow:has(input:focus-visible) {
   outline: 2px solid var(--focus);
   outline-offset: -2px;

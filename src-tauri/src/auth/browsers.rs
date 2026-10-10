@@ -349,6 +349,7 @@ fn process_names(os: Os, b: Browser) -> &'static [&'static str] {
 pub(crate) fn detect_in(os: Os, env: &Env, running: &HashSet<String>) -> Vec<BrowserInfo> {
     let mut out = Vec::new();
     for b in ORDER {
+        let mut installed = true;
         let profiles = match b {
             Browser::Firefox => {
                 let mut all: Vec<BrowserProfile> = Vec::new();
@@ -368,9 +369,8 @@ pub(crate) fn detect_in(os: Os, env: &Env, running: &HashSet<String>) -> Vec<Bro
                         }
                     }
                 }
-                if !found {
-                    continue;
-                }
+                // Listed even when absent: it is the recommended way out on Windows.
+                installed = found;
                 all
             }
             Browser::Safari => {
@@ -396,6 +396,9 @@ pub(crate) fn detect_in(os: Os, env: &Env, running: &HashSet<String>) -> Vec<Bro
                             name: "Default".into(),
                         });
                     }
+                    if profiles.is_empty() {
+                        continue; // leftover data folder of an uninstalled browser
+                    }
                     profiles
                 }
             }
@@ -404,6 +407,7 @@ pub(crate) fn detect_in(os: Os, env: &Env, running: &HashSet<String>) -> Vec<Bro
         out.push(BrowserInfo {
             browser: b,
             profiles,
+            installed,
             running: names.iter().any(|n| running.contains(*n)),
         });
     }
@@ -642,8 +646,29 @@ Locked=1\r\n";
             xdg_config: Some(t.path().into()),
         };
         for os in [Os::Windows, Os::Mac, Os::Linux] {
-            assert!(detect_in(os, &env, &HashSet::new()).is_empty());
+            // Only Firefox is listed, as not installed, so the UI can recommend it.
+            let found = detect_in(os, &env, &HashSet::new());
+            assert_eq!(found.len(), 1, "{os:?}");
+            assert_eq!(found[0].browser, Browser::Firefox);
+            assert!(!found[0].installed);
+            assert!(found[0].profiles.is_empty());
         }
+    }
+
+    #[test]
+    fn chromium_data_dir_without_profiles_is_not_listed() {
+        // e.g. an uninstalled Chrome that left `User Data` behind without `Local State`.
+        let t = tempfile::tempdir().unwrap();
+        let env = Env {
+            home: Some(t.path().into()),
+            local_appdata: Some(t.path().into()),
+            appdata: Some(t.path().into()),
+            xdg_config: Some(t.path().into()),
+        };
+        let dir = chromium_dir(Os::Windows, &env, Browser::Chrome).unwrap();
+        std::fs::create_dir_all(&dir).unwrap();
+        let found = detect_in(Os::Windows, &env, &HashSet::new());
+        assert!(found.iter().all(|b| b.browser != Browser::Chrome));
     }
 
     #[test]

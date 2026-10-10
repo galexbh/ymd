@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { FileUp, FlaskConical, KeyRound, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  ExternalLink,
+  FileUp,
+  FlaskConical,
+  KeyRound,
+  RefreshCw,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api, toCommandError } from "../../ipc/commands";
 import type {
@@ -32,11 +40,11 @@ import {
   formatDate,
 } from "../../ui";
 import { currentLocale } from "../../i18n";
-import { onFileDrop, osPlatform, pickCookieFile } from "../../app/native";
+import { onFileDrop, openExternal, osPlatform, pickCookieFile } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
-import { CHROMIUM, orderBrowsers } from "./constants";
+import { CHROMIUM, FIREFOX_DOWNLOAD_URL, orderBrowsers } from "./constants";
 import s from "./settings.module.css";
 
 type Run = { status: "idle" | "running" | "ok" | "fail"; error: CommandError | null };
@@ -63,6 +71,18 @@ export function AccountsSettings() {
     (chosen !== null && CHROMIUM.includes(chosen)) ||
     ordered.some((b) => CHROMIUM.includes(b.browser));
   const guideFirst = windows && chromiumInPlay;
+  const firefox = ordered.find((b) => b.browser === "firefox") ?? null;
+
+  const chooseBrowser = (browser: Browser) => {
+    setTest(IDLE);
+    setSnap(IDLE);
+    update({ cookies: { kind: "browser", browser, profile: null } });
+  };
+  /** Switch to Firefox when it is installed, otherwise open its download page. */
+  const useFirefox = () => {
+    if (firefox?.installed) chooseBrowser("firefox");
+    else void openExternal(FIREFOX_DOWNLOAD_URL).catch(() => {});
+  };
 
   const detect = () =>
     api
@@ -122,7 +142,7 @@ export function AccountsSettings() {
   const setSource = (kind: CookieSource["kind"]) => {
     setTest(IDLE);
     if (kind === "browser") {
-      const first = ordered[0];
+      const first = ordered.find((b) => b.installed) ?? ordered[0];
       update({
         cookies: { kind: "browser", browser: first?.browser ?? "brave", profile: null },
       });
@@ -201,9 +221,20 @@ export function AccountsSettings() {
               onClick: () =>
                 guideRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
             },
+            ...(chosen !== "firefox"
+              ? [
+                  {
+                    label: firefox?.installed
+                      ? t("accounts.decrypt.switchFirefox")
+                      : t("accounts.browser.getFirefox"),
+                    onClick: useFirefox,
+                  },
+                ]
+              : []),
           ]}
         >
-          {t("accounts.decrypt.body", { browser: browserName })}
+          {t("accounts.decrypt.body", { browser: browserName })}{" "}
+          {chosen !== "firefox" && t("accounts.decrypt.orFirefox")}
         </Notice>
       );
     }
@@ -308,28 +339,47 @@ export function AccountsSettings() {
                 aria-label={t("accounts.browser.label")}
                 className={s.browserList}
               >
-                {ordered.map((b) => (
-                  <label
-                    key={b.browser}
-                    className={s.browserRow}
-                    data-checked={chosen === b.browser || undefined}
-                  >
-                    <input
-                      type="radio"
-                      name="cookie-browser"
-                      checked={chosen === b.browser}
-                      onChange={() => {
-                        setTest(IDLE);
-                        update({ cookies: { kind: "browser", browser: b.browser, profile: null } });
-                      }}
-                    />
-                    <span className={s.browserName}>{BROWSER_NAMES[b.browser]}</span>
-                    {b.running && <Tag tone="warning">{t("accounts.browser.running")}</Tag>}
-                    <span className={s.fieldHint}>
-                      {t("accounts.browser.profiles", { n: b.profiles.length })}
-                    </span>
-                  </label>
-                ))}
+                {ordered.map((b) => {
+                  const recommended = windows && b.browser === "firefox";
+                  return (
+                    <label
+                      key={b.browser}
+                      className={s.browserRow}
+                      data-checked={chosen === b.browser || undefined}
+                      data-absent={!b.installed || undefined}
+                      data-testid={`browser-${b.browser}`}
+                    >
+                      <input
+                        type="radio"
+                        name="cookie-browser"
+                        checked={chosen === b.browser}
+                        disabled={!b.installed}
+                        onChange={() => chooseBrowser(b.browser)}
+                      />
+                      <span className={s.browserName}>{BROWSER_NAMES[b.browser]}</span>
+                      {recommended && <Tag tone="accent">{t("accounts.browser.recommended")}</Tag>}
+                      {!b.installed && <Tag>{t("accounts.browser.notInstalled")}</Tag>}
+                      {b.running && <Tag tone="warning">{t("accounts.browser.running")}</Tag>}
+                      {b.installed ? (
+                        <span className={s.fieldHint}>
+                          {t("accounts.browser.profiles", { n: b.profiles.length })}
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          leadingIcon={ExternalLink}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void openExternal(FIREFOX_DOWNLOAD_URL).catch(() => {});
+                          }}
+                        >
+                          {t("accounts.browser.getFirefox")}
+                        </Button>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
             )}
             {chosenInfo && chosenInfo.profiles.length > 0 && source.kind === "browser" && (
@@ -351,6 +401,11 @@ export function AccountsSettings() {
                   ...chosenInfo.profiles.map((p) => ({ value: p.id, label: p.name })),
                 ]}
               />
+            )}
+            {windows && firefox && (
+              <p className={s.fieldHint} data-testid="firefox-why">
+                {t("accounts.browser.firefoxWhy")}
+              </p>
             )}
             {chosenInfo?.running && (
               <p className={s.warnNote}>

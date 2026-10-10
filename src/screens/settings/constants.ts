@@ -25,9 +25,13 @@ export const CHROMIUM: Browser[] = [
   "whale",
 ];
 
-/** Brave first, then whatever else was found. */
+/** Installed browsers first (Brave leads), then the ones only listed as a suggestion. */
 export function orderBrowsers(list: BrowserInfo[]): BrowserInfo[] {
-  return [...list].sort((a, b) =>
-    a.browser === "brave" ? -1 : b.browser === "brave" ? 1 : a.browser.localeCompare(b.browser),
+  return [...list].sort(
+    (a, b) =>
+      Number(b.installed) - Number(a.installed) ||
+      (a.browser === "brave" ? -1 : b.browser === "brave" ? 1 : a.browser.localeCompare(b.browser)),
   );
 }
+
+export const FIREFOX_DOWNLOAD_URL = "https://www.mozilla.org/firefox/new/";

@@ -270,7 +270,7 @@ export const DEP_ORDER: DepId[] = ["ytdlp", "ffmpeg", "deno", "aria2c", "atomicp
 
 // ───────────── Browsers ─────────────
 
-export function browsersFixture(braveRunning: boolean): BrowserInfo[] {
+export function browsersFixture(braveRunning: boolean, firefoxInstalled = true): BrowserInfo[] {
   return [
     {
       browser: "brave",
@@ -278,11 +278,15 @@ export function browsersFixture(braveRunning: boolean): BrowserInfo[] {
         { id: "Default", name: "Personal" },
         { id: "Profile 1", name: "Trabajo" },
       ],
+      installed: true,
       running: braveRunning,
     },
     {
       browser: "firefox",
-      profiles: [{ id: "Profiles/x8k2m1qa.default-release", name: "default-release" }],
+      profiles: firefoxInstalled
+        ? [{ id: "Profiles/x8k2m1qa.default-release", name: "default-release" }]
+        : [],
+      installed: firefoxInstalled,
       running: false,
     },
   ];
