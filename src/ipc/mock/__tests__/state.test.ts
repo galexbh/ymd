@@ -306,22 +306,16 @@ describe("mock backend — auth", () => {
     expect(b[0].running).toBe(true);
   });
 
-  it("cookies test/snapshot fail with cookies_locked while Brave runs", async () => {
+  it("cookies test fails with cookies_locked while Brave runs", async () => {
     const be = installMockBackend({ clock: "manual" });
     const res = await api.cookiesTest({ kind: "browser", browser: "brave", profile: "Default" });
     expect(res.ok).toBe(false);
     expect(res.error?.code).toBe("cookies_locked");
-    await expect(api.cookiesSnapshot("brave", "Profile 1")).rejects.toMatchObject({
-      code: "cookies_locked",
-    });
 
     // Closed on Windows: app-bound encryption, yt-dlp cannot decrypt (real behaviour).
     be.setBrowserRunning("brave", false);
     const closed = await api.cookiesTest({ kind: "browser", browser: "brave", profile: null });
     expect(closed.error?.code).toBe("cookies_decrypt");
-    await expect(api.cookiesSnapshot("brave", "Profile 1")).rejects.toMatchObject({
-      code: "cookies_decrypt",
-    });
     // Firefox works on Windows.
     expect((await api.cookiesTest({ kind: "browser", browser: "firefox", profile: null })).ok).toBe(
       true,
@@ -334,31 +328,29 @@ describe("mock backend — auth", () => {
     expect((await api.cookiesTest({ kind: "browser", browser: "brave", profile: null })).ok).toBe(
       true,
     );
-    const info = await api.cookiesSnapshot("brave", "Profile 1");
-    expect(info.origin).toBe("brave:Trabajo");
-    expect(info.cookieCount).toBeGreaterThan(0);
-    expect(await api.cookiesInfo()).toEqual(info);
+  });
+
+  it("the extension writes the copy; clearing it removes it", async () => {
+    const be = installMockBackend({ clock: "manual" });
+    expect((await api.cookiesTest({ kind: "extension" })).ok).toBe(false);
+    be.simulateExtensionSync("brave", 42, [".youtube.com"]);
+    const info = await api.cookiesInfo();
+    expect(info?.origin).toBe("extension:brave");
+    expect(info?.cookieCount).toBe(42);
+    expect((await api.cookiesTest({ kind: "extension" })).ok).toBe(true);
     await api.cookiesClear();
     expect(await api.cookiesInfo()).toBeNull();
   });
 
-  it("cookies import / file test / unknown profiles", async () => {
+  it("cookie test per source", async () => {
     installMockBackend({ clock: "manual" });
     expect((await api.cookiesTest({ kind: "none" })).ok).toBe(true);
-    expect((await api.cookiesTest({ kind: "file" })).ok).toBe(false);
-    await expect(api.cookiesImport("C:\\x\\cookies.json")).rejects.toMatchObject({
-      code: "unknown",
-    });
-    const info = await api.cookiesImport("C:\\Users\\ana\\Downloads\\cookies.txt");
-    expect(info.origin).toBe("file");
-    expect((await api.cookiesTest({ kind: "file" })).ok).toBe(true);
     expect((await api.cookiesTest({ kind: "browser", browser: "firefox", profile: null })).ok).toBe(
       true,
     );
     expect((await api.cookiesTest({ kind: "browser", browser: "chrome", profile: null })).ok).toBe(
       false,
     );
-    await expect(api.cookiesSnapshot("brave", "Nope")).rejects.toMatchObject({ code: "unknown" });
   });
 
   it("credentials CRUD never returns passwords", async () => {

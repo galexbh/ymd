@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { ExternalLink, FileUp, FlaskConical, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ExternalLink, FlaskConical, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api, toCommandError } from "../../ipc/commands";
 import type {
@@ -23,7 +23,7 @@ import {
   formatDate,
 } from "../../ui";
 import { currentLocale } from "../../i18n";
-import { onFileDrop, openExternal, osPlatform, pickCookieFile } from "../../app/native";
+import { openExternal, osPlatform } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
@@ -51,7 +51,8 @@ const IDLE: Run = { status: "idle", error: null };
  * Where cookies come from. Chromium browsers (Brave, Chrome, Edge…) only through the ymd
  * extension: Windows encrypts their cookies so no other program can read them, and they stay
  * locked while the browser (or its background processes) runs. Firefox, and Safari on macOS,
- * are read directly. A hand-exported cookies.txt is the fallback for anything else.
+ * are read directly. There is no manual cookies.txt import: a hand-exported file carries every
+ * session in plain text, outside the browser's protection.
  */
 export function AccountsSettings() {
   const { t } = useTranslation();
@@ -60,9 +61,6 @@ export function AccountsSettings() {
   const [browsers, setBrowsers] = useState<BrowserInfo[] | null>(null);
   const [cookieInfo, setCookieInfo] = useState<CookieFileInfo | null | undefined>(undefined);
   const [test, setTest] = useState<Run>(IDLE);
-  const [snap, setSnap] = useState<Run>(IDLE);
-  const [imp, setImp] = useState<Run>(IDLE);
-  const [over, setOver] = useState(false);
 
   const source = settings.cookies;
   const mac = osPlatform() === "macos";
@@ -74,7 +72,6 @@ export function AccountsSettings() {
 
   const chooseBrowser = (browser: Browser) => {
     setTest(IDLE);
-    setSnap(IDLE);
     update({ cookies: { kind: "browser", browser, profile: null } });
   };
 
@@ -95,47 +92,8 @@ export function AccountsSettings() {
     void refreshInfo();
   }, []);
 
-  const importPath = async (path: string) => {
-    setImp({ status: "running", error: null });
-    try {
-      const info = await api.cookiesImport(path);
-      setCookieInfo(info);
-      setImp({ status: "ok", error: null });
-      update({ cookies: { kind: "file" } });
-    } catch (e) {
-      setImp({ status: "fail", error: toCommandError(e) });
-    }
-  };
-
-  // native file drop anywhere on the window while this section is open
-  const importRef = useRef(importPath);
-  useEffect(() => {
-    importRef.current = importPath;
-  });
-  useEffect(() => {
-    let off: (() => void) | null = null;
-    let alive = true;
-    void onFileDrop((e) => {
-      if (e.type === "enter" || e.type === "over") setOver(true);
-      else if (e.type === "leave") setOver(false);
-      else {
-        setOver(false);
-        const file = e.paths.find((p) => /\.txt$/i.test(p)) ?? e.paths[0];
-        if (file) void importRef.current(file);
-      }
-    }).then((un) => {
-      if (alive) off = un;
-      else un();
-    });
-    return () => {
-      alive = false;
-      off?.();
-    };
-  }, []);
-
   const setSource = (kind: CookieSource["kind"]) => {
     setTest(IDLE);
-    setSnap(IDLE);
     if (kind === "browser") {
       const first = direct.find((b) => b.installed) ?? direct[0];
       update({
@@ -151,27 +109,6 @@ export function AccountsSettings() {
       setTest(r.ok ? { status: "ok", error: null } : { status: "fail", error: r.error });
     } catch (e) {
       setTest({ status: "fail", error: toCommandError(e) });
-    }
-  };
-
-  const runSnapshot = async () => {
-    if (source.kind !== "browser") return;
-    setSnap({ status: "running", error: null });
-    try {
-      const info = await api.cookiesSnapshot(source.browser, source.profile);
-      setCookieInfo(info);
-      setSnap({ status: "ok", error: null });
-    } catch (e) {
-      setSnap({ status: "fail", error: toCommandError(e) });
-    }
-  };
-
-  const pickFile = async () => {
-    try {
-      const path = await pickCookieFile(t("accounts.file.filter"));
-      if (path) await importPath(path);
-    } catch (e) {
-      setImp({ status: "fail", error: toCommandError(e) });
     }
   };
 
@@ -255,47 +192,6 @@ export function AccountsSettings() {
     </div>
   );
 
-  const guide = (
-    <section className={s.guide} aria-labelledby="cookie-guide-title" data-testid="cookie-guide">
-      <h3 id="cookie-guide-title" className={s.guideTitle}>
-        {t("accounts.guide.title")}
-      </h3>
-      <p className={screen.prose}>{t("accounts.guide.why")}</p>
-      <ol className={s.steps}>
-        <li>{t("accounts.guide.step1")}</li>
-        <li>{t("accounts.guide.step2")}</li>
-        <li>{t("accounts.guide.step3")}</li>
-        <li>{t("accounts.guide.step4")}</li>
-        <li>{t("accounts.guide.step5")}</li>
-      </ol>
-      <div className={s.drop} data-over={over || undefined} data-testid="cookie-drop">
-        <Icon icon={FileUp} size={20} />
-        <div className={s.dropText}>
-          <p>{over ? t("accounts.file.release") : t("accounts.file.drop")}</p>
-          <p className={s.fieldHint}>{t("accounts.file.dropHint")}</p>
-        </div>
-        <Button
-          variant="secondary"
-          loading={imp.status === "running"}
-          onClick={() => void pickFile()}
-          data-testid="cookie-pick"
-        >
-          {t("accounts.file.pick")}
-        </Button>
-      </div>
-      {imp.status === "ok" && (
-        <Notice tone="success" title={t("accounts.file.imported")}>
-          {t("accounts.file.importedBody")}
-        </Notice>
-      )}
-      {imp.status === "fail" && imp.error && (
-        <Notice tone="error" title={t("accounts.file.importFailed")} detail={imp.error.detail}>
-          {t("accounts.file.importFailedHint")}
-        </Notice>
-      )}
-    </section>
-  );
-
   return (
     <>
       <Section
@@ -318,7 +214,6 @@ export function AccountsSettings() {
                 value: "browser",
                 label: mac ? t("accounts.source.browserMac") : t("accounts.source.browser"),
               },
-              { value: "file", label: t("accounts.source.file") },
             ]}
           />
           <p className={s.fieldHint}>
@@ -341,16 +236,6 @@ export function AccountsSettings() {
             >
               {t("accounts.test")}
             </Button>
-            {source.kind === "browser" && (
-              <Button
-                variant="ghost"
-                loading={snap.status === "running"}
-                onClick={() => void runSnapshot()}
-                data-testid="cookies-snapshot"
-              >
-                {t("accounts.snapshot")}
-              </Button>
-            )}
           </div>
         )}
         {test.status === "ok" && (
@@ -359,18 +244,11 @@ export function AccountsSettings() {
           </Notice>
         )}
         {problem(test, () => void runTest())}
-        {snap.status === "ok" && (
-          <Notice tone="success" title={t("accounts.snapshotOk")}>
-            {t("accounts.snapshotOkBody")}
-          </Notice>
-        )}
-        {problem(snap, () => void runSnapshot())}
       </Section>
 
       {source.kind === "extension" && (
         <ExtensionCard prominent onSynced={() => void refreshInfo()} />
       )}
-      {source.kind === "file" && guide}
 
       <Section title={t("accounts.file.title")}>
         {cookieInfo === undefined ? (
@@ -380,9 +258,7 @@ export function AccountsSettings() {
             <dl className={s.facts}>
               <div>
                 <dt>{t("accounts.file.origin")}</dt>
-                <dd>
-                  {cookieInfo.origin === "file" ? t("accounts.file.originFile") : cookieInfo.origin}
-                </dd>
+                <dd>{cookieInfo.origin}</dd>
               </div>
               <div>
                 <dt>{t("accounts.file.date")}</dt>
@@ -421,7 +297,6 @@ export function AccountsSettings() {
               onClick={async () => {
                 await api.cookiesClear().catch(() => {});
                 setCookieInfo(null);
-                if (source.kind === "file") update({ cookies: { kind: "none" } });
               }}
             >
               {t("accounts.file.clear")}

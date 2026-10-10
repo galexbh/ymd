@@ -287,6 +287,21 @@ fn load_ignores_unknown_fields_and_keeps_known_ones() {
     assert_eq!(s.default_preset_id, "mp3-320");
 }
 
+/// The manual cookies.txt source is gone: a saved `{"kind":"file"}` loads as no cookies.
+#[test]
+fn the_retired_file_source_loads_as_none() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("settings.json");
+    std::fs::write(
+        &file,
+        r#"{ "language": "en", "cookies": { "kind": "file" } }"#,
+    )
+    .unwrap();
+    let s = load(&file, defs());
+    assert_eq!(s.cookies, CookieSource::None);
+    assert_eq!(s.language, Language::En, "the rest of the file still loads");
+}
+
 #[test]
 fn load_invalid_values_fall_back_per_field() {
     let dir = tempfile::tempdir().unwrap();
@@ -602,7 +617,7 @@ fn save_then_load_round_trips() {
     s.language = Language::En;
     s.theme.accent = Some("#112233".into());
     s.concurrency = 6;
-    s.cookies = CookieSource::File;
+    s.cookies = CookieSource::Extension;
     s.presets.push(custom_preset("my-flac"));
     s.default_preset_id = "my-flac".into();
     s.presets[0].output_dir = Some("/elsewhere".into());

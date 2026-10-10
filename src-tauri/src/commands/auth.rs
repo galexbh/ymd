@@ -14,21 +14,6 @@ pub async fn browsers_detect() -> CmdResult<Vec<BrowserInfo>> {
 }
 
 #[tauri::command]
-pub async fn cookies_snapshot(
-    state: State<'_>,
-    browser: Browser,
-    profile: Option<String>,
-) -> CmdResult<CookieFileInfo> {
-    let tools = state.tools().await;
-    crate::auth::cookies::snapshot(&tools, &state.paths(), browser, profile.as_deref()).await
-}
-
-#[tauri::command]
-pub async fn cookies_import(state: State<'_>, path: String) -> CmdResult<CookieFileInfo> {
-    crate::auth::cookies::import(&state.paths(), std::path::Path::new(&path))
-}
-
-#[tauri::command]
 pub async fn cookies_info(state: State<'_>) -> CmdResult<Option<CookieFileInfo>> {
     Ok(crate::auth::cookies::info(&state.paths()))
 }

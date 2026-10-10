@@ -523,10 +523,6 @@ export class MockBackend {
       // auth
       case "browsers_detect":
         return clone(browsersFixture(this.braveRunning, this.firefoxInstalled)) as BrowserInfo[];
-      case "cookies_snapshot":
-        return this.cookiesSnapshot(a.browser as Browser, (a.profile as string | null) ?? null);
-      case "cookies_import":
-        return this.cookiesImport(String(a.path ?? ""));
       case "cookies_info":
         return clone(this.cookies);
       case "cookies_clear":
@@ -1136,49 +1132,13 @@ export class MockBackend {
     );
   }
 
-  private async cookiesSnapshot(browser: Browser, profile: string | null): Promise<CookieFileInfo> {
-    if (this.delays.auth > 0) await this.wait(this.delays.auth);
-    const name = this.profileName(browser, profile);
-    if (name === null) {
-      throw commandError(
-        "unknown",
-        `browser profile not found: ${browser}${profile ? `:${profile}` : ""}`,
-      );
-    }
-    if (browser === "brave" && this.braveRunning) throw this.lockedError();
-    const decrypt = this.decryptError(browser);
-    if (decrypt) throw decrypt;
-    this.cookies = {
-      createdAt: new Date(this.clock.now()).toISOString(),
-      origin: `${browser}:${name}`,
-      cookieCount: 120 + (hash(`${browser}:${name}`) % 400),
-      domains: [".youtube.com", ".google.com", ".vimeo.com", ".soundcloud.com"],
-      signedIn: ["youtube.com"],
-    };
-    return clone(this.cookies);
-  }
-
-  private cookiesImport(path: string): CookieFileInfo {
-    if (!/\.txt$/i.test(path.trim())) {
-      throw commandError("unknown", "Not a Netscape cookies.txt file");
-    }
-    this.cookies = {
-      createdAt: new Date(this.clock.now()).toISOString(),
-      origin: "file",
-      cookieCount: 37,
-      domains: [".youtube.com", ".google.com"],
-      signedIn: ["youtube.com"],
-    };
-    return clone(this.cookies);
-  }
-
   private async cookiesTest(source: CookieSource): Promise<CookieTestResult> {
     if (this.delays.auth > 0) await this.wait(this.delays.auth);
     if (!source || source.kind === "none") return { ok: true, error: null };
-    if (source.kind === "file" || source.kind === "extension") {
+    if (source.kind === "extension") {
       return this.cookies
         ? { ok: true, error: null }
-        : { ok: false, error: { code: "unknown", detail: "No cookies.txt has been imported yet" } };
+        : { ok: false, error: { code: "unknown", detail: "The extension has not synced yet" } };
     }
     if (this.profileName(source.browser, source.profile) === null) {
       return {

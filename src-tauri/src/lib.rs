@@ -106,6 +106,10 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     if swept > 0 {
         log::info!("removed {swept} left-over cookie copies");
     }
+    // Manual cookies.txt imports are gone; a copy one left behind is deleted, not kept.
+    if auth::cookies::remove_manual_import(&paths) {
+        log::info!("removed a manually imported cookies.txt");
+    }
 
     let history = Arc::new(History::open(&paths.history_db())?);
     let keychain = Arc::new(OsKeychain {
@@ -200,8 +204,6 @@ pub fn run() {
             commands::settings::settings_set,
             commands::settings::take_pending_url,
             commands::auth::browsers_detect,
-            commands::auth::cookies_snapshot,
-            commands::auth::cookies_import,
             commands::auth::cookies_info,
             commands::auth::cookies_clear,
             commands::auth::cookies_test,

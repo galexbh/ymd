@@ -18,7 +18,7 @@ Pasos, una sola vez:
 3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
 4. Inicia sesión en YouTube en ese navegador. ymd recibirá las cookies solo.
 
-Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Archivo cookies.txt**.
+Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Extensión**.
 
 El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones: ymd solo acepta mensajes de ese ID.
 
@@ -35,15 +35,15 @@ Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta.
 | Vivaldi                        | `vivaldi://extensions` |
 | Yandex                         | `browser://extensions` |
 
-En Windows, ymd registra el puente en las claves de Brave, Edge y Vivaldi, y siempre en las de Chrome y Chromium, que el resto de navegadores Chromium usa como respaldo. Si un navegador poco común no encuentra el puente, usa el [archivo cookies.txt](/ymd/cookies/cookies-txt/).
+En Windows, ymd registra el puente en las claves de Brave, Edge y Vivaldi, y siempre en las de Chrome y Chromium, que el resto de navegadores Chromium usa como respaldo. Si un navegador poco común no encuentra el puente, usa [Firefox](/ymd/cookies/navegador/).
 
 ### Estados de la tarjeta
 
-| Estado     | Significado                                                                                          |
-| ---------- | ---------------------------------------------------------------------------------------------------- |
-| Conectada  | ymd recibe las cookies sin que hagas nada más.                                                       |
-| Pendiente  | El puente está listo. Instala la extensión; la primera sincronización llegará sola.                  |
-| Sin puente | ymd aún no se registró en tus navegadores. Reinicia ymd; si sigue igual, usa el archivo cookies.txt. |
+| Estado     | Significado                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------------- |
+| Conectada  | ymd recibe las cookies sin que hagas nada más.                                                  |
+| Pendiente  | El puente está listo. Instala la extensión; la primera sincronización llegará sola.             |
+| Sin puente | ymd aún no se registró en tus navegadores. Reinicia ymd; si sigue igual, vuelve a instalar ymd. |
 
 ## Descargar con ymd
 

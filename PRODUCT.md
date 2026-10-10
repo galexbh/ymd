@@ -34,7 +34,7 @@ ymd owns the whole yt-dlp toolchain:
 
 - A desktop window that sits open while downloads run, often alongside a browser.
 - Links arrive by paste. Downloads go to user-chosen Videos/Music folders, or a separate folder per preset.
-- Authentication comes from browser cookies (`--cookies-from-browser`, first-class support for Brave profiles, cookie snapshot) or an imported cookies.txt. Site accounts live in the OS keychain and reach yt-dlp through `--netrc-cmd`. Video passwords and 2FA codes are asked for each time and never stored.
+- Authentication comes from browser cookies: the ymd Cookies extension for Chromium browsers, and `--cookies-from-browser` for Firefox (and Safari on macOS). There is no manual cookies.txt import, since a hand-exported file holds every session in plain text. Site accounts live in the OS keychain and reach yt-dlp through `--netrc-cmd`. Video passwords and 2FA codes are asked for each time and never stored.
 
 ## Capabilities and Constraints
 
@@ -52,7 +52,7 @@ ymd owns the whole yt-dlp toolchain:
 - **Constraints:**
   - Arguments are always passed to yt-dlp as an argv list, never through a shell.
   - Saved site passwords live only in the OS keychain and never go to disk or into process arguments.
-  - A cookie snapshot or imported cookies.txt is stored only in ymd's user-only data folder, and can be deleted in one click.
+  - The cookie copy the extension keeps is stored encrypted in ymd's user-only data folder, and can be deleted in one click.
   - The one-shot video password and 2FA code typed for a single download are passed as arguments to that one yt-dlp run only, and are never stored.
   - GPL binaries are downloaded at runtime and not bundled in the installer.
 

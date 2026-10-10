@@ -110,11 +110,11 @@
     },
     "cookies_locked": {
       "title": "El navegador tiene bloqueadas sus cookies",
-      "action": "Cierra el navegador por completo y reintenta, o usa una copia de las cookies en Ajustes → Cuentas."
+      "action": "Cierra el navegador por completo y reintenta. Con Brave, Chrome o Edge, usa la extensión de ymd en Ajustes → Cuentas."
     },
     "cookies_decrypt": {
       "title": "No se pudieron leer las cookies del navegador",
-      "action": "Cierra el navegador y reintenta. Si sigue fallando, importa un archivo cookies.txt en Ajustes → Cuentas."
+      "action": "Cierra el navegador y reintenta. Con Brave, Chrome o Edge, usa la extensión de ymd en Ajustes → Cuentas."
     },
     "disk_full": {
       "title": "No queda espacio en el disco",
@@ -235,7 +235,7 @@
     "installMissing": "Instalar lo que falta",
     "closedRetry": "Ya cerré el navegador, reintentar",
     "closedRetryNamed": "Ya cerré {{browser}}, reintentar",
-    "useCookieFile": "Usar un archivo cookies.txt",
+    "cookieSource": "Elegir el origen de las cookies",
     "folders": "Cambiar carpeta en Ajustes",
     "updateYtdlp": "Revisar yt-dlp en Dependencias"
   },
@@ -640,7 +640,7 @@
     "status": {
       "connected": "ymd recibe las cookies de {{browser}} sin que hagas nada más.",
       "pending": "El puente está listo. Instala la extensión con los pasos de abajo; la primera sincronización llegará sola.",
-      "noBridge": "ymd aún no se registró en tus navegadores. Reinicia ymd para registrarlo; si sigue igual, usa el archivo cookies.txt.",
+      "noBridge": "ymd aún no se registró en tus navegadores. Reinicia ymd para registrarlo; si sigue igual, vuelve a instalar ymd.",
       "unavailable": "No se pudo consultar el estado de la extensión. ymd lo vuelve a intentar cada pocos segundos."
     },
     "fact": {
@@ -683,13 +683,11 @@
       "extension": "Extensión",
       "browser": "Firefox",
       "browserMac": "Firefox o Safari",
-      "file": "Archivo cookies.txt",
       "hint": {
         "none": "Descarga sin sesión iniciada.",
         "extension": "Para Brave, Chrome, Edge y otros navegadores Chromium: la extensión de ymd envía tus cookies cada vez que cambian.",
         "browser": "ymd lee las cookies de Firefox en cada descarga, aunque esté abierto.",
-        "browserMac": "ymd lee las cookies de Firefox o Safari en cada descarga.",
-        "file": "ymd usa un archivo cookies.txt que exportas tú. Sirve con cualquier navegador."
+        "browserMac": "ymd lee las cookies de Firefox o Safari en cada descarga."
       }
     },
     "browser": {
@@ -705,32 +703,10 @@
     "test": "Probar cookies",
     "testOk": "Las cookies funcionan",
     "testOkBody": "ymd pudo leerlas. Se usarán en las próximas descargas.",
-    "snapshot": "Importar desde el navegador ahora",
-    "snapshotOk": "Copia de cookies guardada",
-    "snapshotOkBody": "Elige «Archivo cookies.txt» como origen para usar esta copia en lugar de leer Firefox en cada descarga.",
-    "guide": {
-      "title": "Exportar cookies.txt",
-      "why": "Un archivo cookies.txt funciona con cualquier navegador y aunque esté abierto. Para Brave, Chrome o Edge es más fácil la extensión de ymd.",
-      "step1": "En tu navegador, instala una extensión de código abierto para exportar cookies, como «Get cookies.txt LOCALLY».",
-      "step2": "Abre una ventana privada y permite la extensión en ella.",
-      "step3": "Inicia sesión en YouTube (o en el sitio que necesites) dentro de esa ventana.",
-      "step4": "Usa la extensión para exportar las cookies en formato Netscape (cookies.txt) y cierra la ventana privada.",
-      "step5": "Arrastra el archivo aquí o elígelo con el botón."
-    },
     "file": {
       "title": "Copia de cookies de ymd",
-      "drop": "Suelta aquí tu cookies.txt",
-      "release": "Suelta para importar",
-      "dropHint": "Formato Netscape, el que exportan las extensiones.",
-      "pick": "Elegir archivo…",
-      "filter": "Archivo de cookies",
-      "imported": "Cookies importadas",
-      "importedBody": "El origen cambió a «Archivo cookies.txt».",
-      "importFailed": "No se pudo importar el archivo",
-      "importFailedHint": "Comprueba que sea un cookies.txt en formato Netscape.",
-      "noneYet": "Aún no hay una copia. La crean la extensión, Firefox o un archivo importado.",
+      "noneYet": "Aún no hay una copia. La crea la extensión de ymd al sincronizar.",
       "origin": "Origen",
-      "originFile": "Archivo importado",
       "date": "Fecha",
       "count": "Cookies",
       "domains": "Dominios",

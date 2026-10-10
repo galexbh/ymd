@@ -6,7 +6,6 @@ use std::path::{Path, PathBuf};
 use ymd_lib::auth::keychain::{OsKeychain, SecretStore};
 use ymd_lib::auth::{cookies, netrc};
 use ymd_lib::deps::Tools;
-use ymd_lib::model::{Browser, ErrorCode};
 use ymd_lib::paths::AppPaths;
 
 fn ytdlp() -> Option<PathBuf> {
@@ -80,59 +79,18 @@ fn ytdlp_reads_netrc_helper_output() {
     );
 }
 
-#[test]
-#[ignore = "needs YMD_TEST_YTDLP and YMD_TEST_BROWSER"]
-fn snapshot_from_real_browser() {
-    let Some(ytdlp) = ytdlp() else { return };
-    let Some(spec) = std::env::var("YMD_TEST_BROWSER").ok() else {
-        return;
-    };
-    let (name, profile) = match spec.split_once(':') {
-        Some((n, p)) => (n.to_string(), Some(p.to_string())),
-        None => (spec.clone(), None),
-    };
-    let browser: Browser = serde_json::from_value(serde_json::Value::String(name)).unwrap();
-    let dir = tempfile::tempdir().unwrap();
-    let p = paths(dir.path());
-    let tools = Tools {
-        ytdlp: Some(ytdlp),
-        ..Default::default()
-    };
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    match rt.block_on(cookies::snapshot(&tools, &p, browser, profile.as_deref())) {
-        Ok(info) => eprintln!(
-            "snapshot ok: {} cookies across {} domains",
-            info.cookie_count,
-            info.domains.len()
-        ),
-        Err(e) => {
-            eprintln!("snapshot failed: {:?}: {}", e.code, e.detail);
-            assert!(matches!(
-                e.code,
-                ErrorCode::CookiesLocked | ErrorCode::CookiesDecrypt | ErrorCode::Unknown
-            ));
-        }
-    }
-    // Whatever happened, no temp jar is left behind.
-    if let Ok(rd) = std::fs::read_dir(p.auth_dir()) {
-        for e in rd {
-            let n = e.unwrap().file_name().to_string_lossy().into_owned();
-            assert!(!n.ends_with(".tmp") && !n.ends_with(".info.json"), "{n}");
-        }
-    }
-}
-
-/// "Test cookies" against the real yt-dlp with an imported synthetic jar; yt-dlp writes the
-/// jar back on exit and it must stay valid.
+/// "Test cookies" against the real yt-dlp with a synthetic jar stored like an extension sync;
+/// yt-dlp writes the jar back on exit and it must stay valid.
 #[test]
 #[ignore = "needs YMD_TEST_YTDLP"]
-fn cookie_test_with_imported_file() {
+fn cookie_test_with_stored_jar() {
     let Some(ytdlp) = ytdlp() else { return };
     let dir = tempfile::tempdir().unwrap();
     let p = paths(dir.path());
     let fixture =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/auth/cookies_valid.txt");
-    cookies::import(&p, &fixture).unwrap();
+    let text = std::fs::read_to_string(&fixture).unwrap();
+    cookies::store(&p, &text, "extension:brave").unwrap();
     let tools = Tools {
         ytdlp: Some(ytdlp),
         ..Default::default()

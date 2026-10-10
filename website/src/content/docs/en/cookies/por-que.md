@@ -15,19 +15,16 @@ yt-dlp doesn't have your session on its own. ymd can give it one in several ways
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | [ymd Cookies extension](/ymd/en/cookies/extension/) | Brave, Chrome, Edge and other Chromium browsers. Sends the cookies to ymd whenever they change. |
 | [Firefox cookies](/ymd/en/cookies/navegador/)       | ymd reads Firefox's cookies directly (and Safari's on macOS).                                   |
-| [cookies.txt file](/ymd/en/cookies/cookies-txt/)    | A copy exported by hand. Works with any browser.                                                |
 | [Site accounts](/ymd/en/cookies/cuentas/)           | Username and password for sites that accept them in yt-dlp, stored in the system keychain.      |
 
 ## Cookie source
 
-In **Settings → Accounts → Browser cookies**, **Cookie source** has four values:
+In **Settings → Accounts → Browser cookies**, **Cookie source** has three values:
 
 - **None**: downloads without being signed in.
 - **Extension**: for Brave, Chrome, Edge and other Chromium browsers. The ymd extension sends your cookies whenever they change.
 - **Firefox**: ymd reads Firefox's cookies on every download, even while it's open. On macOS it's called **Firefox or Safari**.
-- **cookies.txt file**: ymd uses a cookies.txt file you export yourself. Works with any browser.
-
-The extension and the imported file write to the same ymd cookie copy.
+  ymd doesn't import hand-exported `cookies.txt` files: such a file holds all your sessions in plain text, outside the browser's protection. The extension hands the cookies over directly, and ymd stores them encrypted.
 
 ## Privacy
 

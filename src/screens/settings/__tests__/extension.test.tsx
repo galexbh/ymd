@@ -99,10 +99,10 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
       "gicaphbpepkphmeciigjhdpnbcaflfgd",
     );
     expect(within(c).getAllByRole("listitem")).toHaveLength(4);
-    await user.click(screen.getByRole("radio", { name: "Archivo cookies.txt" }));
+    await user.click(screen.getByRole("radio", { name: "Firefox" }));
     await tick(0);
     expect(screen.queryByTestId("extension-card")).toBeNull();
-    expect(screen.getByTestId("cookie-guide")).toBeInTheDocument();
+    expect(await screen.findByTestId("browser-firefox")).toBeInTheDocument();
   });
 });
 

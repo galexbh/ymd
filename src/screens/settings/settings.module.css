@@ -252,52 +252,6 @@
   min-width: 6rem;
 }
 
-.guide {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius-md);
-  background: var(--surface-raised);
-}
-.guideTitle {
-  font-size: var(--text-lg);
-}
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin: 0;
-  padding-inline-start: var(--space-6);
-  max-width: 68ch;
-}
-.steps li::marker {
-  font-family: var(--font-mono);
-  color: var(--accent);
-}
-.drop {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  border: 2px dashed var(--rule-strong);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  transition:
-    border-color var(--dur-fast) var(--ease-standard),
-    background-color var(--dur-fast) var(--ease-standard);
-}
-.drop[data-over="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--text);
-}
-.dropText {
-  flex: 1;
-  color: var(--text);
-}
-
 .cookieFile {
   display: flex;
   align-items: flex-start;

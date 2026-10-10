@@ -36,7 +36,7 @@
 - **Post-proceso:** miniatura, metadatos y subtítulos incrustados; SponsorBlock.
 - **Preajustes** editables, con carpeta de destino propia.
 - **Dependencias gestionadas:** instala y actualiza yt-dlp, ffmpeg y Deno en una carpeta del usuario, con verificación SHA-256.
-- **Cookies y cuentas:** extensión propia para Brave, Chrome y Edge; cookies de Firefox; importación de `cookies.txt`; credenciales en el llavero del sistema.
+- **Cookies y cuentas:** extensión propia para Brave, Chrome y Edge; cookies de Firefox; credenciales en el llavero del sistema.
 - **Detección de enlaces** copiados al portapapeles, configurable.
 - **Diagnóstico de errores** de yt-dlp con la acción para resolverlos.
 - **Temas** claro y oscuro con color de acento, densidad y tamaño de texto configurables.
@@ -85,7 +85,7 @@ ymd instala yt-dlp, FFmpeg y Deno en una carpeta de tu usuario, verificados con 
 
 ## Cookies y cuentas
 
-Para videos que exigen sesión: extensión ymd Cookies para Brave, Chrome y Edge, cookies de Firefox, `cookies.txt` o cuentas en el llavero del sistema. Opciones y privacidad en [Cookies y cuentas](https://galexbh.github.io/ymd/cookies/por-que/).
+Para videos que exigen sesión: extensión ymd Cookies para Brave, Chrome y Edge, cookies de Firefox o cuentas en el llavero del sistema. Opciones y privacidad en [Cookies y cuentas](https://galexbh.github.io/ymd/cookies/por-que/).
 
 ## Desarrollo
 

@@ -1,4 +1,6 @@
-//! cookies.txt snapshot / import / test / clear. Owner: C.
+//! ymd's cookies.txt (written by the ymd Cookies extension through the native host) / test /
+//! clear. Owner: C. There is no manual import: a hand-exported cookies.txt carries every session
+//! in plain text, so ymd neither accepts one nor keeps one an older version imported.
 //! The file lives at `AppPaths::cookies_file()` with owner-only permissions (0600 / user ACL),
 //! sealed with a key from the OS keychain (see `super::jar`); every read and write of it goes
 //! through `read_jar` / `write_jar`.
@@ -6,16 +8,10 @@
 //! Permissions: on Unix every file is created 0600 (and the auth dir 0700) before any byte is
 //! written. On Windows the file lives under `%APPDATA%\<id>\auth`, whose inherited ACL already
 //! grants access only to the user, SYSTEM and Administrators, so no extra ACL work is done.
-//!
-//! Snapshot invocation (verified with yt-dlp 2026.08.19): yt-dlp loads the browser jar when
-//! `--cookies-from-browser` is given and writes the merged jar to `--cookies FILE` on exit.
-//! The cheapest run that exits 0 without touching the network is `--load-info-json` with a
-//! tiny synthetic info dict plus `--simulate --skip-download`. (Running with no URL also writes
-//! the jar, but always exits 2 with a usage error, which hides real failures.)
 
 use crate::deps::Tools;
 use crate::model::{
-    Browser, CmdResult, CommandError, CookieFileInfo, CookieTestResult, ErrorCode, JobError,
+    CmdResult, CommandError, CookieFileInfo, CookieTestResult, ErrorCode, JobError,
 };
 use crate::paths::AppPaths;
 use serde::{Deserialize, Serialize};
@@ -24,8 +20,6 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 const HEADER: &str = "# Netscape HTTP Cookie File";
-const MAX_IMPORT_BYTES: u64 = 16 * 1024 * 1024;
-const SNAPSHOT_TIMEOUT: Duration = Duration::from_secs(120);
 const TEST_TIMEOUT: Duration = Duration::from_secs(90);
 /// Public, long-lived video used by "Test cookies".
 pub const TEST_URL: &str = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
@@ -41,122 +35,10 @@ fn meta_file(paths: &AppPaths) -> PathBuf {
     paths.auth_dir().join("cookies.meta.json")
 }
 
-/// Dump the browser's cookies once into ymd's own cookies.txt via
-/// `yt-dlp --cookies-from-browser B[:P] --cookies <file> --skip-download <probe-url>`.
-pub async fn snapshot(
-    tools: &Tools,
-    paths: &AppPaths,
-    browser: Browser,
-    profile: Option<&str>,
-) -> CmdResult<CookieFileInfo> {
-    let ytdlp = tools
-        .ytdlp
-        .clone()
-        .ok_or_else(|| CommandError::new(ErrorCode::BinaryMissing, "yt-dlp is not installed"))?;
-    let dir = paths.auth_dir();
-    ensure_private_dir(&dir)?;
-    let id = uuid::Uuid::new_v4().simple().to_string();
-    let jar = TempFile(dir.join(format!(".cookies-{id}.tmp")));
-    let info_json = TempFile(dir.join(format!(".snapshot-{id}.info.json")));
-    // yt-dlp refuses to load a jar without the magic header, so seed it.
-    write_private_new(&jar.0, format!("{HEADER}\n").as_bytes())?;
-    std::fs::write(
-        &info_json.0,
-        r#"{"id":"ymd-cookie-snapshot","title":"ymd","url":"http://127.0.0.1:9/","ext":"mp4","extractor":"generic","extractor_key":"Generic","webpage_url":"http://127.0.0.1:9/"}"#,
-    )
-    .map_err(|e| CommandError::new(ErrorCode::PermissionDenied, e.to_string()))?;
-
-    let spec = super::browser_spec(browser, profile);
-    let args: Vec<String> = vec![
-        "--ignore-config".into(),
-        "--quiet".into(),
-        "--no-progress".into(),
-        "--simulate".into(),
-        "--skip-download".into(),
-        "--load-info-json".into(),
-        info_json.0.to_string_lossy().into_owned(),
-        "--cookies-from-browser".into(),
-        spec.clone(),
-        "--cookies".into(),
-        jar.0.to_string_lossy().into_owned(),
-    ];
-    let run = run_ytdlp(&ytdlp, &args, SNAPSHOT_TIMEOUT).await;
-    drop(info_json);
-    let stderr = match run {
-        Ok(r) if r.success => r.stderr,
-        Ok(r) => return Err(classify_failure(&r.stderr)),
-        Err(e) => return Err(e),
-    };
-    let text = std::fs::read_to_string(&jar.0).map_err(CommandError::unknown)?;
-    match parse_netscape(&text) {
-        Ok((n, _)) if n > 0 => {}
-        _ => {
-            // yt-dlp may only warn (e.g. "cannot decrypt v10 cookies: no key found").
-            let e = classify(&stderr);
-            return Err(if e.code == ErrorCode::CookiesDecrypt {
-                CommandError::new(e.code, e.detail)
-            } else {
-                CommandError::new(
-                    ErrorCode::Unknown,
-                    format!("no cookies found in {spec} (is this profile signed in?)"),
-                )
-            });
-        }
-    }
-    write_jar(paths, &normalize_for_ytdlp(&text))?;
-    drop(jar);
-    let meta = Meta {
-        created_at: chrono::Utc::now().to_rfc3339(),
-        origin: spec,
-    };
-    write_private(
-        &meta_file(paths),
-        &serde_json::to_vec(&meta).unwrap_or_default(),
-    )?;
-    info(paths).ok_or_else(|| CommandError::unknown("snapshot written but unreadable"))
-}
-
-/// Copy a user-provided Netscape cookies.txt into place after validating its format.
-pub fn import(paths: &AppPaths, source: &std::path::Path) -> CmdResult<CookieFileInfo> {
-    let meta = std::fs::metadata(source).map_err(|e| {
-        CommandError::new(
-            ErrorCode::PermissionDenied,
-            format!("{}: {e}", source.display()),
-        )
-    })?;
-    if meta.len() > MAX_IMPORT_BYTES {
-        return Err(CommandError::unknown(
-            "file is too large to be a cookies.txt",
-        ));
-    }
-    let bytes = std::fs::read(source).map_err(|e| {
-        CommandError::new(
-            ErrorCode::PermissionDenied,
-            format!("{}: {e}", source.display()),
-        )
-    })?;
-    let text = String::from_utf8_lossy(&bytes);
-    let text = text.strip_prefix('\u{feff}').unwrap_or(&text);
-    parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
-    let normalized = normalize_for_ytdlp(text);
-    ensure_private_dir(&paths.auth_dir())?;
-    // Content is copied; no reference to `source` is kept.
-    write_jar(paths, &normalized)?;
-    let meta = Meta {
-        created_at: chrono::Utc::now().to_rfc3339(),
-        origin: "import".into(),
-    };
-    write_private(
-        &meta_file(paths),
-        &serde_json::to_vec(&meta).unwrap_or_default(),
-    )?;
-    info(paths).ok_or_else(|| CommandError::unknown("import written but unreadable"))
-}
-
 /// Write `text` (a Netscape jar) as ymd's cookies.txt plus its meta, both owner-only and
 /// atomic, after validating it. Used by the native-messaging host
 /// (`origin = "extension:<browser>"`).
-pub(crate) fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
+pub fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
     parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     ensure_private_dir(&paths.auth_dir())?;
     write_jar(paths, &normalize_for_ytdlp(text))?;
@@ -179,7 +61,7 @@ pub(crate) fn write_meta(paths: &AppPaths, origin: &str) -> CmdResult<()> {
 /// Copy `src` to a fresh owner-only file inside `dir` and return its path.
 ///
 /// yt-dlp rewrites the `--cookies` jar on exit; handing it a per-run copy keeps a stale jar
-/// from clobbering cookies the extension (or an import) wrote while it ran.
+/// from clobbering cookies the extension wrote while it ran.
 pub fn ephemeral_copy(src: &Path, dir: &Path) -> CmdResult<PathBuf> {
     let bytes = std::fs::read(src).map_err(|e| io_err(src, e))?;
     // yt-dlp needs plain Netscape text: this copy is the only place it exists on disk.
@@ -333,7 +215,7 @@ pub fn info(paths: &AppPaths) -> Option<CookieFileInfo> {
                 .and_then(|m| m.modified())
                 .map(chrono::DateTime::<chrono::Utc>::from)
                 .unwrap_or_else(|_| chrono::Utc::now());
-            (mtime.to_rfc3339(), "import".into())
+            (mtime.to_rfc3339(), "unknown".into())
         }
     };
     Some(CookieFileInfo {
@@ -359,6 +241,19 @@ pub fn clear(paths: &AppPaths) -> CmdResult<()> {
         }
     }
     Ok(())
+}
+
+/// Origin label older versions wrote for a hand-imported cookies.txt.
+pub const MANUAL_IMPORT_ORIGIN: &str = "import";
+
+/// Deletes a cookie copy that came from a manual cookies.txt import (no longer supported).
+/// Copies written by the extension are left alone. True when one was removed.
+pub fn remove_manual_import(paths: &AppPaths) -> bool {
+    let manual = std::fs::read(meta_file(paths))
+        .ok()
+        .and_then(|b| serde_json::from_slice::<Meta>(&b).ok())
+        .is_some_and(|m| m.origin == MANUAL_IMPORT_ORIGIN);
+    manual && clear(paths).is_ok()
 }
 
 /// Run `--simulate` against a test URL with the given cookie args; classify failures
@@ -539,11 +434,6 @@ pub fn classify(stderr: &str) -> JobError {
         code,
         detail: detail_line(stderr),
     }
-}
-
-fn classify_failure(stderr: &str) -> CommandError {
-    let e = classify(stderr);
-    CommandError::new(e.code, e.detail)
 }
 
 /// Last `ERROR:` line, else the last non-empty line.

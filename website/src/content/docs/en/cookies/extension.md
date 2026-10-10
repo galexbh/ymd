@@ -18,7 +18,7 @@ Steps, once:
 3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or press **Load unpacked** and choose it: it's the one containing `manifest.json`.
 4. Sign in to YouTube in that browser. ymd will receive the cookies on its own.
 
-When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **cookies.txt file**.
+When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **Extension**.
 
 The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page: ymd only accepts messages from that ID.
 
@@ -35,15 +35,15 @@ When ymd updates, the extension is updated in the same folder.
 | Vivaldi                        | `vivaldi://extensions` |
 | Yandex                         | `browser://extensions` |
 
-On Windows, ymd registers the bridge under Brave's, Edge's and Vivaldi's keys, and always under Chrome's and Chromium's, which other Chromium browsers fall back to. If an uncommon browser can't find the bridge, use a [cookies.txt file](/ymd/en/cookies/cookies-txt/).
+On Windows, ymd registers the bridge under Brave's, Edge's and Vivaldi's keys, and always under Chrome's and Chromium's, which other Chromium browsers fall back to. If an uncommon browser can't find the bridge, use [Firefox](/ymd/en/cookies/navegador/).
 
 ### Card states
 
-| State     | Meaning                                                                                                  |
-| --------- | -------------------------------------------------------------------------------------------------------- |
-| Connected | ymd receives the cookies with nothing else to do.                                                        |
-| Pending   | The bridge is ready. Install the extension; the first sync will arrive on its own.                       |
-| No bridge | ymd hasn't registered with your browsers yet. Restart ymd; if nothing changes, use the cookies.txt file. |
+| State     | Meaning                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------- |
+| Connected | ymd receives the cookies with nothing else to do.                                             |
+| Pending   | The bridge is ready. Install the extension; the first sync will arrive on its own.            |
+| No bridge | ymd hasn't registered with your browsers yet. Restart ymd; if nothing changes, reinstall ymd. |
 
 ## Download with ymd
 

@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Seguridad
+
+- **Se quitó la importación manual de `cookies.txt`.** Un archivo exportado a mano guarda todas tus sesiones en texto plano, fuera de la protección del navegador. **Origen de las cookies** queda con **Ninguno**, **Extensión** y **Firefox**, y también desaparece **Importar desde el navegador ahora**. Si usabas un archivo importado, el origen pasa a **Ninguno** y ymd borra esa copia al arrancar. Usa la extensión o Firefox.
+
 ## [0.4.0] - 2026-10-10
 
 ### Novedades
