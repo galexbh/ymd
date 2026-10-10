@@ -28,6 +28,7 @@ import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
 import { CHROMIUM, FIREFOX_DOWNLOAD_URL, orderBrowsers } from "./constants";
+import { ExtensionCard } from "./ExtensionCard";
 import s from "./settings.module.css";
 import { SiteAccounts } from "./SiteAccounts";
 import { HowToAddMore, SupportedSites } from "./SupportedSites";
@@ -57,6 +58,7 @@ export function AccountsSettings() {
   const [imp, setImp] = useState<Run>(IDLE);
   const [over, setOver] = useState(false);
   const guideRef = useRef<HTMLElement>(null);
+  const extRef = useRef<HTMLElement>(null);
 
   const source = settings.cookies;
   const ordered = browsers ? orderBrowsers(browsers) : [];
@@ -212,8 +214,15 @@ export function AccountsSettings() {
           detail={run.error.detail}
           actions={[
             {
-              label: t("accounts.locked.useFile"),
+              label: t("accounts.decrypt.useExtension"),
               primary: true,
+              onClick: () => {
+                extRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                extRef.current?.focus({ preventScroll: true });
+              },
+            },
+            {
+              label: t("accounts.locked.useFile"),
               onClick: () =>
                 guideRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
             },
@@ -243,6 +252,19 @@ export function AccountsSettings() {
     );
   };
 
+  const extension = (
+    <ExtensionCard
+      ref={extRef}
+      prominent={guideFirst}
+      onSynced={() =>
+        void api
+          .cookiesInfo()
+          .then(setCookieInfo)
+          .catch(() => {})
+      }
+    />
+  );
+
   const guide = (
     <section
       ref={guideRef}
@@ -252,7 +274,7 @@ export function AccountsSettings() {
       data-prominent={guideFirst || undefined}
     >
       <h3 id="cookie-guide-title" className={s.guideTitle}>
-        {t("accounts.guide.title")}
+        {guideFirst ? t("accounts.guide.titleAlt") : t("accounts.guide.title")}
       </h3>
       <p className={screen.prose}>
         {guideFirst
@@ -454,6 +476,7 @@ export function AccountsSettings() {
         {cookieProblem(snap, () => void runSnapshot())}
       </Section>
 
+      {guideFirst && extension}
       {guideFirst && guide}
 
       <Section title={t("accounts.file.title")}>
@@ -513,6 +536,7 @@ export function AccountsSettings() {
       </Section>
 
       {!guideFirst && guide}
+      {!guideFirst && extension}
 
       <SiteAccounts onGoToCookies={goToCookies} />
       <SupportedSites />

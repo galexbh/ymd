@@ -1,6 +1,8 @@
 // Static fixture data for the mock backend. Everything is local (no network): thumbnails are
 // generated SVG data URIs so they work offline and under the app's CSP (`img-src data:`).
 import type {
+  BridgeTarget,
+  Browser,
   BrowserInfo,
   DepId,
   DepLevel,
@@ -292,6 +294,53 @@ export function browsersFixture(braveRunning: boolean, firefoxInstalled = true):
     },
   ];
 }
+
+// ───────────── Cookie bridge (extension) ─────────────
+
+/** Fixed ID derived from the manifest `key` (docs/cookie-bridge.md). */
+export const EXTENSION_ID = "gicaphbpepkphmeciigjhdpnbcaflfgd";
+
+/** Chromium browsers the native-messaging host is registered for, in display order. */
+export const BRIDGE_BROWSERS: Browser[] = ["brave", "chrome", "edge"];
+
+/** Bundled "Load unpacked" folder of an installed build. */
+export function extensionDirFor(platform: MockPlatform): string {
+  switch (platform) {
+    case "windows":
+      return "C:\\Program Files\\ymd\\resources\\extension";
+    case "macos":
+      return "/Applications/ymd.app/Contents/Resources/extension";
+    case "linux":
+      return "/usr/lib/ymd/resources/extension";
+  }
+}
+
+/** Host manifest ymd maintains for the browsers. */
+export function hostManifestFor(platform: MockPlatform): string {
+  const p = platformPaths(platform);
+  return platform === "windows"
+    ? joinPath(
+        p.sep,
+        p.home,
+        "AppData",
+        "Roaming",
+        "com.ymd.app",
+        "native-host",
+        "com.ymd.cookies.json",
+      )
+    : joinPath(p.sep, p.home, ".config", "ymd", "native-host", "com.ymd.cookies.json");
+}
+
+/** Brave and Edge are installed (Edge ships with Windows); Chrome is not. */
+export function bridgeTargetsFixture(registered: boolean): BridgeTarget[] {
+  return BRIDGE_BROWSERS.map((browser) => ({
+    browser,
+    installed: browser !== "chrome",
+    registered,
+  }));
+}
+
+export const EXTENSION_SYNC_DOMAINS = [".youtube.com", ".google.com", "accounts.google.com"];
 
 // ───────────── Probe ─────────────
 
