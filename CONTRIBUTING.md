@@ -10,7 +10,7 @@ algo que no tocaste, se arregla o se reporta; no se desactiva.
 
 ## Puesta en marcha
 
-Requisitos: Node 22+, Rust estable (`rustup`), y en Linux las
+Requisitos: Node 24+, Rust estable (`rustup`), y en Linux las
 [dependencias de Tauri v2](https://v2.tauri.app/start/prerequisites/) (`libwebkit2gtk-4.1-dev`,
 `librsvg2-dev`, `libayatana-appindicator3-dev`, `libxdo-dev`, `libssl-dev`, `libdbus-1-dev`, …).
 

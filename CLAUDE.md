@@ -7,7 +7,7 @@ Guidance for AI coding sessions in this repo. Product context: `PRODUCT.md`. Hum
 
 ymd = desktop GUI for yt-dlp. Tauri v2 (Rust, `src-tauri/`) + React 18 + TypeScript + Vite,
 zustand, i18next. pnpm via corepack (`corepack pnpm …`; set `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`
-in non-interactive shells). Node 22+.
+in non-interactive shells). Node 24+.
 
 ## Commands
 

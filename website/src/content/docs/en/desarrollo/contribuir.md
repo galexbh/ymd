@@ -11,7 +11,7 @@ A summary of the contributing guide. The full version is in [CONTRIBUTING.md](ht
 
 ## Setup
 
-Requirements: Node 22+, stable Rust (`rustup`) and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/).
+Requirements: Node 24+, stable Rust (`rustup`) and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 pnpm is used through corepack; the exact version is in `package.json` → `packageManager`.
 
