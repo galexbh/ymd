@@ -1,3 +1,4 @@
+import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { describe, expect, it } from "vitest";
 import { api, isCommandError, toCommandError } from "../../commands";
 import { events } from "../../events";
@@ -442,6 +443,48 @@ describe("mock backend — transport & helpers", () => {
     window.history.replaceState(null, "", "/?scenario=bogus");
     bootMock();
     expect(getMockBackend()!.snapshot().deps.deps[0].state).toBe("installed");
+    window.history.replaceState(null, "", "/");
+  });
+});
+
+describe("mock backend — clipboard plugin", () => {
+  it("read_text returns the simulated clipboard and follows setClipboard", async () => {
+    const be = installMockBackend({ clock: "manual", clipboard: "https://youtu.be/abc" });
+    expect(await readText()).toBe("https://youtu.be/abc");
+    be.setClipboard("hola");
+    expect(await readText()).toBe("hola");
+    expect(be.calls.filter((c) => c.cmd === "plugin:clipboard-manager|read_text")).toHaveLength(2);
+  });
+
+  it("an empty clipboard rejects like the OS", async () => {
+    const be = installMockBackend({ clock: "manual" });
+    await expect(readText()).rejects.toBeDefined();
+    be.setClipboard("x");
+    await expect(readText()).resolves.toBe("x");
+    be.setClipboard(null);
+    await expect(readText()).rejects.toBeDefined();
+  });
+
+  it("settings carry clipboardWatch (default known, invalid values fall back)", async () => {
+    installMockBackend({ clock: "manual" });
+    const s = await api.settingsGet();
+    expect(s.clipboardWatch).toBe("known");
+    expect((await api.settingsSet({ ...s, clipboardWatch: "any" })).clipboardWatch).toBe("any");
+    const bad = { ...s, clipboardWatch: "always" } as unknown as Settings;
+    expect((await api.settingsSet(bad)).clipboardWatch).toBe("known");
+    const old: Partial<Settings> = { ...s };
+    delete old.clipboardWatch;
+    expect(sanitizeSettings(old as Settings, s).clipboardWatch).toBe("known");
+  });
+
+  it("bootMock seeds the clipboard from ?clipboard= without remembering it", async () => {
+    window.localStorage.clear();
+    const link = "https://vimeo.com/123456";
+    window.history.replaceState(null, "", `/?clipboard=${encodeURIComponent(link)}`);
+    bootMock();
+    expect(await readText()).toBe(link);
+    const stored = Object.keys(window.localStorage).map((k) => window.localStorage.getItem(k));
+    expect(stored.join("\n")).not.toContain("vimeo");
     window.history.replaceState(null, "", "/");
   });
 });

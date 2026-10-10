@@ -7,6 +7,7 @@ import { connectDeps } from "../store/deps";
 import { useHistory } from "../store/history";
 import { connectJobs, onJobChange } from "../store/jobs";
 import { useAppUpdate } from "../store/appUpdate";
+import { connectClipboard } from "../store/clipboard";
 import { useSettings } from "../store/settings";
 import { showInFolder } from "./native";
 
@@ -54,6 +55,7 @@ export function useBootstrap() {
     let alive = true;
     const offs: (() => void)[] = [];
     offs.push(onJobChange(announce));
+    offs.push(connectClipboard());
     void useSettings.getState().load();
     void offerAppUpdate();
     void Promise.all([connectJobs(), connectDeps()]).then((fns) => {

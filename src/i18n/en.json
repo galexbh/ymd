@@ -270,6 +270,13 @@
       "applyRange": "Select range",
       "shiftHint": "Shift + click marks every entry between two clicks.",
       "noneWarn": "Pick at least one entry to file the playlist."
+    },
+    "clipboard": {
+      "filled": "{{provider}} link found on the clipboard",
+      "undo": "Undo",
+      "suggest": "Use the copied {{provider}} link?",
+      "use": "Use",
+      "dismiss": "Dismiss"
     }
   },
   "ledger": {
@@ -490,7 +497,20 @@
       "archiveHint": "yt-dlp notes every video in an archive file and never repeats it.",
       "aria2c": "Use aria2c",
       "aria2cHint": "Downloads each file over several connections.",
-      "aria2cMissing": "Install aria2c in Dependencies to turn this on."
+      "aria2cMissing": "Install aria2c in Dependencies to turn this on.",
+      "clipboard": "Clipboard",
+      "clipboardWatch": "Detect copied links",
+      "clipboardModes": {
+        "off": "Off",
+        "known": "Known sites only",
+        "any": "Any link"
+      },
+      "clipboardHint": {
+        "off": "ymd doesn't look at the clipboard.",
+        "known": "A link from YouTube, Vimeo, SoundCloud or another known video or audio site is pasted for you when the counter is empty.",
+        "any": "Known sites are pasted for you; any other link is suggested and waits for you to accept it."
+      },
+      "clipboardPrivacy": "ymd reads the clipboard only when you return to the window, ignores anything that isn't a link and never saves it."
     },
     "presets": {
       "description": "A preset sets the format, quality and what gets embedded. Built-in ones keep their format; duplicate them to make your own.",

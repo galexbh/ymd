@@ -9,6 +9,7 @@ import {
   TERMINAL_STAGES,
   type Browser,
   type BrowserInfo,
+  type ClipboardWatch,
   type CommandError,
   type CookieFileInfo,
   type CookieSource,
@@ -99,6 +100,8 @@ export interface MockBackendOptions {
   settings?: Partial<Settings>;
   /** Seed for speed jitter. */
   seed?: number;
+  /** Text on the simulated system clipboard (`plugin:clipboard-manager|read_text`). */
+  clipboard?: string | null;
 }
 
 export type MockEmitter = (event: string, payload: unknown) => void;
@@ -188,6 +191,7 @@ function isTerminal(stage: Job["stage"]): boolean {
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
+const CLIPBOARD_WATCH: readonly ClipboardWatch[] = ["off", "known", "any"];
 
 /** Mirrors `settings::sanitize` (concurrency 1..=8, fontScale clamp, accent hex, presets). */
 export function sanitizeSettings(input: Settings, fallback: Settings): Settings {
@@ -214,6 +218,7 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
   });
   if (s.presets.length === 0) s.presets = builtinPresets();
   if (!s.presets.some((p) => p.id === s.defaultPresetId)) s.defaultPresetId = s.presets[0].id;
+  if (!CLIPBOARD_WATCH.includes(s.clipboardWatch)) s.clipboardWatch = fallback.clipboardWatch;
   return s;
 }
 
@@ -245,6 +250,7 @@ export class MockBackend {
   private firefoxInstalled: boolean;
   private probeCache = new Map<string, ProbeResult>();
   private seed: number;
+  private clipboard: string | null;
   private disposed = false;
 
   constructor(options: MockBackendOptions = {}, emitter: MockEmitter = () => {}) {
@@ -262,6 +268,7 @@ export class MockBackend {
     this.braveRunning = options.braveRunning ?? true;
     this.firefoxInstalled = options.firefoxInstalled ?? true;
     this.seed = options.seed ?? 7;
+    this.clipboard = options.clipboard ?? null;
     this.settingsFallback = defaultSettings(this.platform);
     this.settings = sanitizeSettings(
       { ...this.settingsFallback, ...options.settings } as Settings,
@@ -301,6 +308,11 @@ export class MockBackend {
 
   setBrowserRunning(browser: Browser, running: boolean): void {
     if (browser === "brave") this.braveRunning = running;
+  }
+
+  /** Put text on the simulated system clipboard (null = empty, reading fails like the OS). */
+  setClipboard(text: string | null): void {
+    this.clipboard = text;
   }
 
   setDepFails(id: DepId, fails: boolean): void {
@@ -1095,6 +1107,10 @@ export class MockBackend {
         return "ymd";
       case "plugin:app|tauri_version":
         return "2.11.0";
+      case "plugin:clipboard-manager|read_text":
+        // the real plugin rejects when the clipboard holds no text
+        if (this.clipboard === null) throw "The clipboard contents were not available";
+        return this.clipboard;
       default:
         // opener, notification|notify, window/webview calls, ...: succeed silently.
         return null;

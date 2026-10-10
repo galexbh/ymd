@@ -1,5 +1,6 @@
 // Thin wrappers over the Tauri plugins the screens use (dialog, opener, os, drag-drop).
 // Every call is guarded so a missing plugin (tests, mock mode) degrades quietly.
+import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openPath, openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 
@@ -55,6 +56,29 @@ export async function copyText(text: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** True inside the Tauri webview or under the mock backend (both install the IPC bridge). */
+export function hasTauriBridge(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof (window as { __TAURI_INTERNALS__?: { invoke?: unknown } }).__TAURI_INTERNALS__
+      ?.invoke === "function"
+  );
+}
+
+/**
+ * Text on the system clipboard through the clipboard-manager plugin; null when there is no
+ * bridge, no text, or the read fails. The text is returned to the caller and never kept here.
+ */
+export async function readClipboardText(): Promise<string | null> {
+  if (!hasTauriBridge()) return null;
+  try {
+    const text = await readText();
+    return typeof text === "string" ? text : null;
+  } catch {
+    return null;
   }
 }
 

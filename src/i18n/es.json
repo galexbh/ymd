@@ -270,6 +270,13 @@
       "applyRange": "Seleccionar rango",
       "shiftHint": "Mayús + clic marca todas las entradas entre dos clics.",
       "noneWarn": "Elige al menos una entrada para ingresar la lista."
+    },
+    "clipboard": {
+      "filled": "Enlace de {{provider}} detectado en el portapapeles",
+      "undo": "Deshacer",
+      "suggest": "¿Usar el enlace de {{provider}} copiado?",
+      "use": "Usar",
+      "dismiss": "Descartar"
     }
   },
   "ledger": {
@@ -490,7 +497,20 @@
       "archiveHint": "yt-dlp anota cada video en un archivo de registro y no lo repite.",
       "aria2c": "Usar aria2c",
       "aria2cHint": "Descarga cada archivo por varias conexiones.",
-      "aria2cMissing": "Instala aria2c en Dependencias para activarlo."
+      "aria2cMissing": "Instala aria2c en Dependencias para activarlo.",
+      "clipboard": "Portapapeles",
+      "clipboardWatch": "Detectar enlaces copiados",
+      "clipboardModes": {
+        "off": "Apagado",
+        "known": "Solo sitios conocidos",
+        "any": "Cualquier enlace"
+      },
+      "clipboardHint": {
+        "off": "ymd no mira el portapapeles.",
+        "known": "Un enlace de YouTube, Vimeo, SoundCloud u otro sitio de video o audio conocido se pega solo si el mostrador está vacío.",
+        "any": "Los sitios conocidos se pegan solos; cualquier otro enlace se sugiere y espera a que lo aceptes."
+      },
+      "clipboardPrivacy": "ymd lee el portapapeles solo cuando vuelves a la ventana, ignora lo que no sea un enlace y nunca lo guarda."
     },
     "presets": {
       "description": "Un preajuste fija el formato, la calidad y lo que se incrusta. Los incluidos mantienen su formato; duplícalos para crear el tuyo.",

@@ -5,6 +5,7 @@ import { Button, SegmentedControl, Select, UrlField } from "../../ui";
 import { looksLikeUrl, useReceive } from "../../store/receive";
 import { presetsOfKind, useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
+import { ClipboardOffer } from "./ClipboardOffer";
 import { activePreset, ingest, URL_INPUT_ID } from "./ingest";
 import s from "./receive.module.css";
 
@@ -78,6 +79,7 @@ export function CounterStrip() {
           {t("receive.ingest")}
         </Button>
       </form>
+      <ClipboardOffer />
     </div>
   );
 }

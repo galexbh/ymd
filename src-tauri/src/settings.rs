@@ -16,8 +16,9 @@
 //! back. Custom presets are kept as-is (after validation), after the builtins.
 
 use crate::model::{
-    AudioFormat, AudioOptions, CookieSource, Density, Language, MediaKind, PostProcess, Preset,
-    Radius, Settings, ThemeMode, ThemeSettings, UpdateChannel, VideoContainer, VideoOptions,
+    AudioFormat, AudioOptions, ClipboardWatch, CookieSource, Density, Language, MediaKind,
+    PostProcess, Preset, Radius, Settings, ThemeMode, ThemeSettings, UpdateChannel, VideoContainer,
+    VideoOptions,
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -60,6 +61,7 @@ pub fn defaults(video_dir: &Path, audio_dir: &Path) -> Settings {
         presets: builtin_presets(),
         default_preset_id: DEFAULT_PRESET_ID.to_string(),
         onboarded: false,
+        clipboard_watch: ClipboardWatch::Known,
     }
 }
 

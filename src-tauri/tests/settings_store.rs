@@ -89,7 +89,83 @@ fn default_template_limits_title_bytes() {
     assert!(defs().filename_template.contains("%(title).180B"));
 }
 
+#[test]
+fn clipboard_watch_defaults_to_known_and_serializes_lowercase() {
+    assert_eq!(defs().clipboard_watch, ClipboardWatch::Known);
+    assert_eq!(ClipboardWatch::default(), ClipboardWatch::Known);
+    let v = serde_json::to_value(defs()).unwrap();
+    assert_eq!(v["clipboardWatch"], "known");
+    for (w, tag) in [
+        (ClipboardWatch::Off, "off"),
+        (ClipboardWatch::Known, "known"),
+        (ClipboardWatch::Any, "any"),
+    ] {
+        assert_eq!(serde_json::to_value(w).unwrap(), tag);
+        assert_eq!(
+            serde_json::from_value::<ClipboardWatch>(tag.into()).unwrap(),
+            w
+        );
+    }
+}
+
 // ───────────── load ─────────────
+
+#[test]
+fn load_old_file_without_clipboard_watch_uses_default() {
+    // v0_partial predates the field.
+    let (_dir, file) = staged("v0_partial.json");
+    let raw = std::fs::read_to_string(&file).unwrap();
+    assert!(!raw.contains("clipboardWatch"));
+    let s = load(&file, defs());
+    assert_eq!(s.clipboard_watch, ClipboardWatch::Known);
+    // siblings from the old file are kept
+    assert_eq!(s.language, Language::Es);
+    assert_eq!(s.concurrency, 5);
+
+    // A complete pre-clipboard settings document also deserializes directly (IPC path).
+    let mut old = serde_json::to_value(defs()).unwrap();
+    old.as_object_mut().unwrap().remove("clipboardWatch");
+    let direct: Settings = serde_json::from_value(old).unwrap();
+    assert_eq!(direct.clipboard_watch, ClipboardWatch::Known);
+}
+
+#[test]
+fn load_clipboard_watch_saved_value_and_invalid_fallback() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("settings.json");
+    std::fs::write(&file, r#"{ "clipboardWatch": "any", "concurrency": 2 }"#).unwrap();
+    let s = load(&file, defs());
+    assert_eq!(s.clipboard_watch, ClipboardWatch::Any);
+    assert_eq!(s.concurrency, 2);
+
+    std::fs::write(&file, r#"{ "clipboardWatch": "off" }"#).unwrap();
+    assert_eq!(load(&file, defs()).clipboard_watch, ClipboardWatch::Off);
+
+    std::fs::write(&file, r#"{ "clipboardWatch": "always", "language": "en" }"#).unwrap();
+    let s = load(&file, defs());
+    assert_eq!(
+        s.clipboard_watch,
+        ClipboardWatch::Known,
+        "unknown tag -> default"
+    );
+    assert_eq!(s.language, Language::En, "siblings survive");
+
+    std::fs::write(&file, r#"{ "clipboardWatch": 3 }"#).unwrap();
+    assert_eq!(load(&file, defs()).clipboard_watch, ClipboardWatch::Known);
+}
+
+#[test]
+fn sanitize_keeps_clipboard_watch() {
+    for w in [
+        ClipboardWatch::Off,
+        ClipboardWatch::Known,
+        ClipboardWatch::Any,
+    ] {
+        let mut s = defs();
+        s.clipboard_watch = w;
+        assert_eq!(sanitize(s).clipboard_watch, w);
+    }
+}
 
 #[test]
 fn load_missing_file_returns_defaults() {

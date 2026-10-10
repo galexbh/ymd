@@ -199,6 +199,7 @@ export function defaultSettings(platform: MockPlatform): Settings {
     presets: builtinPresets(),
     defaultPresetId: "best",
     onboarded: true,
+    clipboardWatch: "known",
   };
 }
 

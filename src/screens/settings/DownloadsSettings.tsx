@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Figure, Section, Switch, TextField } from "../../ui";
+import type { ClipboardWatch } from "../../ipc/types";
+import { Button, Figure, SegmentedControl, Section, Switch, TextField } from "../../ui";
 import { pickFolder } from "../../app/native";
 import { depById, isPresent, useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
@@ -147,6 +148,26 @@ export function DownloadsSettings() {
             aria2Ready ? t("settings.downloads.aria2cHint") : t("settings.downloads.aria2cMissing")
           }
         />
+      </Section>
+
+      <Section title={t("settings.downloads.clipboard")}>
+        <div className={s.fieldStack}>
+          <span className={s.fieldLabel}>{t("settings.downloads.clipboardWatch")}</span>
+          <SegmentedControl<ClipboardWatch>
+            label={t("settings.downloads.clipboardWatch")}
+            value={settings.clipboardWatch}
+            onChange={(clipboardWatch) => update({ clipboardWatch })}
+            options={[
+              { value: "off", label: t("settings.downloads.clipboardModes.off") },
+              { value: "known", label: t("settings.downloads.clipboardModes.known") },
+              { value: "any", label: t("settings.downloads.clipboardModes.any") },
+            ]}
+          />
+          <p className={s.fieldHint}>
+            {t(`settings.downloads.clipboardHint.${settings.clipboardWatch}`)}
+          </p>
+          <p className={s.fieldHint}>{t("settings.downloads.clipboardPrivacy")}</p>
+        </div>
       </Section>
     </>
   );

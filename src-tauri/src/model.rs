@@ -292,6 +292,17 @@ pub enum UpdateChannel {
     Master,
 }
 
+/// When ymd looks at the clipboard (only on window focus): never, for links to known
+/// video/audio sites, or for any http(s) link (suggested, never auto-filled).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ClipboardWatch {
+    Off,
+    #[default]
+    Known,
+    Any,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Browser {
@@ -341,6 +352,9 @@ pub struct Settings {
     pub presets: Vec<Preset>,
     pub default_preset_id: String,
     pub onboarded: bool,
+    /// Clipboard link detection on window focus. Absent in files written before it existed.
+    #[serde(default)]
+    pub clipboard_watch: ClipboardWatch,
 }
 
 // ───────────────────────────── Jobs ─────────────────────────────

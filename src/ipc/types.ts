@@ -143,6 +143,9 @@ export type CookieSource =
   | { kind: "browser"; browser: Browser; profile: string | null }
   | { kind: "file" };
 
+/** When ymd looks at the clipboard (on window focus only). */
+export type ClipboardWatch = "off" | "known" | "any";
+
 export interface Settings {
   language: Language;
   theme: ThemeSettings;
@@ -160,6 +163,7 @@ export interface Settings {
   presets: Preset[];
   defaultPresetId: string;
   onboarded: boolean;
+  clipboardWatch: ClipboardWatch;
 }
 
 // ───────────── Jobs ─────────────

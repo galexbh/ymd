@@ -137,5 +137,6 @@ expression: defs()
     }
   ],
   "defaultPresetId": "best",
-  "onboarded": false
+  "onboarded": false,
+  "clipboardWatch": "known"
 }

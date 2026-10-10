@@ -35,6 +35,42 @@
   }
 }
 
+/* ───────── clipboard line (under the counter) ───────── */
+.clipLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-height: var(--control-h-sm);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.clipLine:empty {
+  display: none;
+}
+.clipIcon {
+  flex: none;
+  color: var(--text-faint);
+}
+.clipText {
+  min-width: 0;
+}
+.clipUrl {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 40ch;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clipActions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
 /* ───────── accession card ───────── */
 .cardSlot {
   display: flex;

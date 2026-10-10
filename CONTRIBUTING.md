@@ -39,6 +39,9 @@ memoria y sin red. Parámetros en la URL (se recuerdan en `localStorage`):
 | `speed`    | número, p. ej. `4`                                     | Acelera las descargas simuladas       |
 | `brave`    | `closed`                                               | Brave cerrado (las cookies funcionan) |
 
+`?clipboard=<texto>` simula el portapapeles (no se recuerda); en la consola,
+`__YMD_MOCK__.setClipboard("https://youtu.be/…")` y luego enfocar la ventana.
+
 En la consola del navegador, `window.__YMD_MOCK__` da acceso al backend (por ejemplo
 `__YMD_MOCK__.setScenario("first-run")`). URLs que contienen `bot`, `private`, `age` o `geo`
 fallan con el error correspondiente; `notfound` y `offline` fallan en el análisis (probe).

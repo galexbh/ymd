@@ -4,6 +4,8 @@
 //
 // Pick a scenario with `?scenario=first-run|ready|outdated|complete` (remembered in
 // localStorage), speed with `?speed=4`, and Brave state with `?brave=closed`.
+// `?clipboard=<text>` seeds the simulated clipboard; it is read from the URL only and never
+// remembered, like real clipboard contents.
 // The live backend is available in devtools as `window.__YMD_MOCK__`.
 import { installMockBackend, type DepsScenario, type MockBackend } from "./index";
 
@@ -35,6 +37,7 @@ export function bootMock(): MockBackend {
     braveRunning: readParam("brave") !== "closed",
     firefoxInstalled: readParam("firefox") !== "missing",
     delays: { command: 40, probe: 900, auth: 700 },
+    clipboard: new URLSearchParams(window.location.search).get("clipboard"),
   });
   window.__YMD_MOCK__ = backend;
   console.info(
