@@ -650,7 +650,8 @@
     "id": "ID de la extensión",
     "idHint": "Para comprobar en la página de extensiones que es la de ymd.",
     "synced": "{{browser}} conectado: {{count}} cookies sincronizadas",
-    "syncedBody": "El origen de las cookies cambió a «Archivo cookies.txt» y se mantiene al día solo."
+    "syncedBody": "El origen de las cookies cambió a «Archivo cookies.txt» y se mantiene al día solo.",
+    "stepsOther": "Instalar en otro navegador"
   },
   "accounts": {
     "theBrowser": "el navegador",

@@ -80,7 +80,7 @@ describe("popup in Spanish", () => {
     expect(text("last-sync")).toBe("Nunca");
     expect($("notice").hidden).toBe(false);
     expect(text("notice-text")).toBe("ymd no está instalado o no registró el puente.");
-    expect(text("notice-hint")).toContain("Ajustes → Cuentas");
+    expect(text("notice-hint")).toContain("registra el puente solo");
   });
 
   it("shows SIN CONEXIÓN before the first sync, without a notice", async () => {

@@ -109,3 +109,31 @@
 .idRow .hint {
   flex-basis: 100%;
 }
+
+/* Setup steps folded away once a browser is connected. */
+.stepsFold {
+  border-top: 1px solid var(--rule-ledger);
+}
+.stepsFold > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.stepsFold > summary::-webkit-details-marker {
+  display: none;
+}
+.stepsFold > summary::before {
+  content: "›";
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.stepsFold[open] > summary::before {
+  transform: rotate(90deg);
+}
+.stepsFold > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

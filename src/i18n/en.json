@@ -650,7 +650,8 @@
     "id": "Extension ID",
     "idHint": "To check on the extensions page that it's ymd's.",
     "synced": "{{browser}} connected: {{count}} cookies synced",
-    "syncedBody": "The cookie source switched to «cookies.txt file» and keeps itself up to date."
+    "syncedBody": "The cookie source switched to «cookies.txt file» and keeps itself up to date.",
+    "stepsOther": "Install in another browser"
   },
   "accounts": {
     "theBrowser": "the browser",

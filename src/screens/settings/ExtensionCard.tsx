@@ -1,7 +1,7 @@
 // «Extensión de ymd para Brave, Chrome y Edge»: the cookie bridge card in Ajustes → Cuentas.
 // It polls `extension_status` while mounted, walks the user through the one-time install and
 // switches the cookie source to the synced file when the first sync arrives.
-import { useEffect, useId, useRef, useState, type Ref } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode, type Ref } from "react";
 import { Copy, ExternalLink, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../ipc/commands";
@@ -33,6 +33,31 @@ export interface ExtensionCardProps {
   /** called whenever a new sync lands (the cookie copy changed) */
   onSynced?: () => void;
   ref?: Ref<HTMLElement>;
+}
+
+function StepsFrame({
+  folded,
+  title,
+  children,
+}: {
+  folded: boolean;
+  title: string;
+  children: ReactNode;
+}) {
+  if (!folded) {
+    return (
+      <>
+        <h4 className={s.stepsTitle}>{title}</h4>
+        {children}
+      </>
+    );
+  }
+  return (
+    <details className={s.stepsFold} data-testid="extension-steps-fold">
+      <summary className={s.stepsTitle}>{title}</summary>
+      {children}
+    </details>
+  );
 }
 
 export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) {
@@ -202,48 +227,50 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
 
       {status && (
         <>
-          <h4 className={s.stepsTitle}>{t("extension.steps")}</h4>
-          <ol className={s.steps}>
-            <li>
-              <span>{t("extension.step1")}</span>
-              <div className={s.stepAction}>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  leadingIcon={FolderOpen}
-                  disabled={!status.extensionDir}
-                  aria-describedby={status.extensionDir ? undefined : folderHintId}
-                  onClick={() => {
-                    if (status.extensionDir) void openFile(status.extensionDir).catch(() => {});
-                  }}
-                  data-testid="extension-open-folder"
-                >
-                  {t("extension.openFolder")}
-                </Button>
-                {!status.extensionDir && (
-                  <span id={folderHintId} className={s.hint}>
-                    {t("extension.noFolder")}
-                  </span>
-                )}
-              </div>
-            </li>
-            <li>
-              <span>{t("extension.step2", { browser: targetName })}</span>
-              <div className={s.stepAction}>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  leadingIcon={ExternalLink}
-                  onClick={() => void openPage()}
-                  data-testid="extension-open-page"
-                >
-                  {t("extension.openPage", { browser: targetName })}
-                </Button>
-              </div>
-            </li>
-            <li>{t("extension.step3")}</li>
-            <li>{t("extension.step4")}</li>
-          </ol>
+          {/* Once connected the setup is history: fold it away for a second browser. */}
+          <StepsFrame folded={!!sync} title={t(sync ? "extension.stepsOther" : "extension.steps")}>
+            <ol className={s.steps}>
+              <li>
+                <span>{t("extension.step1")}</span>
+                <div className={s.stepAction}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leadingIcon={FolderOpen}
+                    disabled={!status.extensionDir}
+                    aria-describedby={status.extensionDir ? undefined : folderHintId}
+                    onClick={() => {
+                      if (status.extensionDir) void openFile(status.extensionDir).catch(() => {});
+                    }}
+                    data-testid="extension-open-folder"
+                  >
+                    {t("extension.openFolder")}
+                  </Button>
+                  {!status.extensionDir && (
+                    <span id={folderHintId} className={s.hint}>
+                      {t("extension.noFolder")}
+                    </span>
+                  )}
+                </div>
+              </li>
+              <li>
+                <span>{t("extension.step2", { browser: targetName })}</span>
+                <div className={s.stepAction}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leadingIcon={ExternalLink}
+                    onClick={() => void openPage()}
+                    data-testid="extension-open-page"
+                  >
+                    {t("extension.openPage", { browser: targetName })}
+                  </Button>
+                </div>
+              </li>
+              <li>{t("extension.step3")}</li>
+              <li>{t("extension.step4")}</li>
+            </ol>
+          </StepsFrame>
           {openError && (
             <Notice
               tone="warning"
