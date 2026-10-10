@@ -150,7 +150,7 @@ describe("Recibir", () => {
     const labels = within(select)
       .getAllByRole("option")
       .map((o) => o.textContent);
-    expect(labels).toEqual(["MP3 320 kbps", "Audio original"]);
+    expect(labels).toEqual(["MP3 320 kbps", "M4A (AAC)", "Audio original"]);
   });
 
   it("shows a translated probe error with retry", async () => {

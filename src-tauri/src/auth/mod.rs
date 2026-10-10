@@ -7,6 +7,7 @@
 pub mod browser_exe;
 pub mod browsers;
 pub mod cookies;
+pub mod default_browser;
 pub mod keychain;
 pub mod native_host;
 pub mod native_registry;

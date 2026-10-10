@@ -69,7 +69,14 @@ fn builtin_preset_ids_are_stable() {
     let p = builtin_presets();
     assert_eq!(
         p.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(),
-        ["best", "mp4-1080", "mp4-720", "mp3-320", "audio-original"]
+        [
+            "best",
+            "mp4-1080",
+            "mp4-720",
+            "mp3-320",
+            "m4a",
+            "audio-original"
+        ]
     );
     assert!(p.iter().all(|p| p.builtin && !p.name.is_empty()));
     assert!(p
@@ -229,6 +236,7 @@ fn load_partial_old_version_merges_over_defaults() {
             "mp4-1080",
             "mp4-720",
             "mp3-320",
+            "m4a",
             "audio-original",
             "my-podcast"
         ]
@@ -243,7 +251,7 @@ fn load_partial_old_version_merges_over_defaults() {
     assert_eq!(best.postprocess.sponsorblock_remove, ["sponsor"]);
     assert_eq!(best.output_dir.as_deref(), Some("D:\\Media\\Best"));
 
-    let pod = &s.presets[5];
+    let pod = s.presets.iter().find(|p| p.id == "my-podcast").unwrap();
     assert_eq!(pod.name, "Podcast");
     assert_eq!(pod.kind, MediaKind::Audio);
     assert_eq!(pod.audio.format, AudioFormat::Opus);
@@ -330,7 +338,7 @@ fn builtins_rematerialized_with_user_overrides_and_customs_kept() {
     best.output_dir = Some(" /custom/best ".into());
     // User deletes a builtin and adds customs.
     s.presets.retain(|p| p.id != "mp4-720");
-    s.presets.insert(0, custom_preset("flac"));
+    s.presets.insert(0, custom_preset("my-flac"));
     s.presets.push(Preset {
         builtin: true, // lies about being builtin
         ..custom_preset("fake-builtin")
@@ -344,8 +352,9 @@ fn builtins_rematerialized_with_user_overrides_and_customs_kept() {
             "mp4-1080",
             "mp4-720",
             "mp3-320",
+            "m4a",
             "audio-original",
-            "flac",
+            "my-flac",
             "fake-builtin"
         ]
     );
@@ -358,8 +367,8 @@ fn builtins_rematerialized_with_user_overrides_and_customs_kept() {
     assert_eq!(best.postprocess.sub_langs, "en.*");
     assert_eq!(best.output_dir.as_deref(), Some("/custom/best"));
     assert_eq!(out.presets[2], builtin_presets()[2]);
-    assert_eq!(out.presets[5], custom_preset("flac"));
-    assert!(!out.presets[6].builtin);
+    assert_eq!(out.presets[6], custom_preset("my-flac"));
+    assert!(!out.presets[7].builtin);
 }
 
 // ───────────── sanitize ─────────────
@@ -553,8 +562,8 @@ fn save_then_load_round_trips() {
     s.theme.accent = Some("#112233".into());
     s.concurrency = 6;
     s.cookies = CookieSource::File;
-    s.presets.push(custom_preset("flac"));
-    s.default_preset_id = "flac".into();
+    s.presets.push(custom_preset("my-flac"));
+    s.default_preset_id = "my-flac".into();
     s.presets[0].output_dir = Some("/elsewhere".into());
     let s = sanitize(s);
 

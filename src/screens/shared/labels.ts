@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import type { DepId, Preset } from "../../ipc/types";
 import { isBuiltinId } from "../../store/settings";
 
-type BuiltinId = "best" | "mp4-1080" | "mp4-720" | "mp3-320" | "audio-original";
+type BuiltinId = "best" | "mp4-1080" | "mp4-720" | "mp3-320" | "m4a" | "audio-original";
 
 /** Builtin presets carry translated names; custom ones keep the user's name. */
 export function presetName(t: TFunction, p: Pick<Preset, "id" | "name">): string {

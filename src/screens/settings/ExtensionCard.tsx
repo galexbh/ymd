@@ -1,17 +1,24 @@
-// «Extensión de ymd para Brave, Chrome y Edge»: the cookie bridge card in Ajustes → Cuentas.
+// «Extensión de ymd para navegadores Chromium»: the cookie bridge card in Ajustes → Cuentas.
 // It polls `extension_status` while mounted, walks the user through the one-time install and
 // switches the cookie source to the synced file when the first sync arrives.
 import { useEffect, useId, useRef, useState, type ReactNode, type Ref } from "react";
 import { Copy, ExternalLink, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../ipc/commands";
-import type { Browser, ExtensionStatus, ExtensionSync } from "../../ipc/types";
+import type { ExtensionStatus, ExtensionSync } from "../../ipc/types";
 import { Button, Figure, Notice, Stamp, formatStampDate } from "../../ui";
 import { currentLocale } from "../../i18n";
 import { copyText, openFile } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
-import { EXTENSION_POLL_MS, STAMP, bridgeState, pageBrowser, syncBrowserName } from "./extension";
+import {
+  EXTENSION_POLL_MS,
+  STAMP,
+  bridgeState,
+  cardTarget,
+  type CardTarget,
+  syncBrowserName,
+} from "./extension";
 import s from "./ExtensionCard.module.css";
 import settings from "./settings.module.css";
 
@@ -69,7 +76,9 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
   const [status, setStatus] = useState<ExtensionStatus | null>(null);
   const [failed, setFailed] = useState(false);
   const [first, setFirst] = useState<{ sync: ExtensionSync; switched: boolean } | null>(null);
-  const [openError, setOpenError] = useState<Browser | null>(null);
+  const [openError, setOpenError] = useState<CardTarget | null>(null);
+  const [opened, setOpened] = useState<{ target: CardTarget; copied: boolean } | null>(null);
+  const [folderError, setFolderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointer = useRef(false);
@@ -129,19 +138,37 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
 
   const state = status ? bridgeState(status) : null;
   const chosen = source?.kind === "browser" ? source.browser : null;
-  const target = status ? pageBrowser(status, chosen) : "brave";
-  const targetName = BROWSER_NAMES[target];
+  const target: CardTarget = status
+    ? cardTarget(status, chosen)
+    : { browser: "brave", name: BROWSER_NAMES.brave, url: "brave://extensions" };
+  const targetName = target.name;
   const sync = status?.lastSync ?? null;
   const locale = currentLocale();
 
+  // Chromium won't open brave://extensions for another program: copy it, then bring the
+  // browser up so the user pastes it.
   const openPage = async () => {
     setOpenError(null);
+    setOpened(null);
+    const copied = await copyText(target.url);
     try {
-      await api.extensionOpenPage(target);
+      await api.extensionOpenPage(target.browser);
+      setOpened({ target, copied });
     } catch {
       setOpenError(target);
     }
   };
+
+  const openFolder = async (dir: string) => {
+    setFolderError(null);
+    try {
+      await openFile(dir);
+    } catch {
+      setFolderError(dir);
+    }
+  };
+
+  const defaultIsFirefox = status?.defaultBrowser === "firefox";
 
   return (
     <section
@@ -189,6 +216,29 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
             browser: sync ? syncBrowserName(sync.browser) : targetName,
           })}
         </p>
+      )}
+
+      {defaultIsFirefox && (
+        <div data-testid="extension-firefox-default">
+          <Notice
+            tone="info"
+            title={t("extension.firefoxDefault")}
+            actions={
+              source?.kind === "browser" && source.browser === "firefox"
+                ? undefined
+                : [
+                    {
+                      label: t("extension.useFirefox"),
+                      primary: true,
+                      onClick: () =>
+                        update({ cookies: { kind: "browser", browser: "firefox", profile: null } }),
+                    },
+                  ]
+            }
+          >
+            {t("extension.firefoxDefaultBody")}
+          </Notice>
+        </div>
       )}
 
       {sync && (
@@ -240,7 +290,7 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
                     disabled={!status.extensionDir}
                     aria-describedby={status.extensionDir ? undefined : folderHintId}
                     onClick={() => {
-                      if (status.extensionDir) void openFile(status.extensionDir).catch(() => {});
+                      if (status.extensionDir) void openFolder(status.extensionDir);
                     }}
                     data-testid="extension-open-folder"
                   >
@@ -254,7 +304,10 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
                 </div>
               </li>
               <li>
-                <span>{t("extension.step2", { browser: targetName })}</span>
+                <span>
+                  {t("extension.step2", { browser: targetName })}{" "}
+                  <code className={s.url}>{target.url}</code>
+                </span>
                 <div className={s.stepAction}>
                   <Button
                     size="sm"
@@ -271,15 +324,38 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
               <li>{t("extension.step4")}</li>
             </ol>
           </StepsFrame>
+          {folderError && (
+            <Notice
+              tone="warning"
+              title={t("extension.folderFailed")}
+              detail={folderError}
+              onDismiss={() => setFolderError(null)}
+            >
+              {t("extension.folderFailedHint")}
+            </Notice>
+          )}
+          {opened && (
+            <div data-testid="extension-opened">
+              <Notice
+                tone="info"
+                title={t("extension.openedTitle", { browser: opened.target.name })}
+                onDismiss={() => setOpened(null)}
+              >
+                {t(opened.copied ? "extension.openedCopied" : "extension.openedType", {
+                  url: opened.target.url,
+                })}
+              </Notice>
+            </div>
+          )}
           {openError && (
             <Notice
               tone="warning"
-              title={t("extension.openFailed", { browser: BROWSER_NAMES[openError] })}
+              title={t("extension.openFailed", { browser: openError.name })}
               onDismiss={() => setOpenError(null)}
             >
               {t("extension.openFailedHint", {
-                browser: BROWSER_NAMES[openError],
-                url: `${openError}://extensions`,
+                browser: openError.name,
+                url: openError.url,
               })}
             </Notice>
           )}

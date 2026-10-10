@@ -143,8 +143,12 @@ describe("settings store", () => {
   it("helpers", async () => {
     installMockBackend();
     const s = (await useSettings.getState().load())!;
-    expect(presetsOfKind(s, "audio").map((p) => p.id)).toEqual(["mp3-320", "audio-original"]);
-    expect(newPresetId(s.presets)).toBe("custom-6");
+    expect(presetsOfKind(s, "audio").map((p) => p.id)).toEqual([
+      "mp3-320",
+      "m4a",
+      "audio-original",
+    ]);
+    expect(newPresetId(s.presets)).toBe("custom-7");
     expect(sanitizeLocal({ ...s, concurrency: Number.NaN }).concurrency).toBe(3);
   });
 });

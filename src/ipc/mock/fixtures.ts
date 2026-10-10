@@ -149,7 +149,7 @@ function preset(p: Pick<Preset, "id" | "name" | "kind"> & Partial<Preset>): Pres
   };
 }
 
-/** Mirrors `settings::builtin_presets()`: best, mp4-1080, mp4-720, mp3-320, audio-original. */
+/** Mirrors `settings::builtin_presets()`: best, mp4-1080, mp4-720, mp3-320, m4a, audio-original. */
 export function builtinPresets(): Preset[] {
   return [
     preset({ id: "best", name: "Best quality", kind: "video" }),
@@ -170,6 +170,12 @@ export function builtinPresets(): Preset[] {
       name: "MP3 320 kbps",
       kind: "audio",
       audio: { format: "mp3", quality: "320K" },
+    }),
+    preset({
+      id: "m4a",
+      name: "M4A (AAC)",
+      kind: "audio",
+      audio: { format: "m4a", quality: "0" },
     }),
     preset({
       id: "audio-original",
