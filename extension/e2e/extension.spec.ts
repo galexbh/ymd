@@ -11,6 +11,7 @@
 import { execFileSync } from "node:child_process";
 import {
   chmodSync,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -125,6 +126,16 @@ test.describe.serial("ymd Cookies extension", () => {
     }
     work = mkdtempSync(join(tmpdir(), "ymd-cookies-e2e-"));
     recordFile = join(work, "record.jsonl");
+    // No site is preset, and a test cannot click the browser's permission prompt. A copy of
+    // dist with youtube.com's host permission stands in for "the person added YouTube".
+    const extDir = join(work, "extension");
+    cpSync(DIST, extDir, { recursive: true });
+    const manifest = JSON.parse(readFileSync(join(extDir, "manifest.json"), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    manifest.host_permissions = ["*://*.youtube.com/*"];
+    writeFileSync(join(extDir, "manifest.json"), JSON.stringify(manifest, null, 2));
     const userDataDir = join(work, "profile");
     mkdirSync(userDataDir, { recursive: true });
     try {
@@ -138,12 +149,21 @@ test.describe.serial("ymd Cookies extension", () => {
       channel: "chromium",
       headless: true,
       locale: "es-ES",
-      args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`, "--lang=es"],
+      args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, "--lang=es"],
       // On Linux Chromium takes its UI language (and so chrome.i18n) from the environment,
       // not from --lang.
       env: { ...process.env, LANGUAGE: "es", LANG: "es_ES.UTF-8", LC_ALL: "es_ES.UTF-8" },
     });
     worker = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+    // Once the install handler has started the (empty) list, add YouTube to it.
+    await expect
+      .poll(() =>
+        worker.evaluate(
+          async () => "allowlistVersion" in (await chrome.storage.local.get("allowlistVersion")),
+        ),
+      )
+      .toBe(true);
+    await worker.evaluate(() => chrome.storage.local.set({ allowlist: ["youtube.com"] }));
   });
 
   test.afterAll(async () => {
@@ -165,6 +185,13 @@ test.describe.serial("ymd Cookies extension", () => {
     await expect(page.locator("h1")).toHaveText("ymd Cookies");
     await expect(page.locator("#send-now")).toHaveText(/Enviar ahora/);
     await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com"]);
+    await expect(page.locator("#site-list .grant")).toHaveCount(0);
+    // YouTube is on the list, so the other known sites are the suggestions.
+    await expect(page.locator("#suggest-list button")).toHaveText([
+      "Vimeo",
+      "SoundCloud",
+      "Twitch",
+    ]);
     await expect(page.locator(".privacy")).toContainText("sin red");
     // Opened as a tab, the active page is the popup itself: nothing to download or add.
     // (The session row may show: the install-time sync already reached the fake host.)

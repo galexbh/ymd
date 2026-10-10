@@ -16,9 +16,9 @@ Steps, once:
 1. **Show extension folder**: opens your file manager with ymd's `extension` folder selected. That folder is the one you drag in step 3.
 2. **Open [browser] and copy the address**: copies its extensions-page address (for example `brave://extensions`) and opens the browser. Paste it into the address bar (Ctrl+V) and press Enter: browsers don't let other programs open that page directly.
 3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or press **Load unpacked** and choose it: it's the one containing `manifest.json`.
-4. Sign in to YouTube in that browser. ymd will receive the cookies on its own.
+4. Open the extension and add YouTube, or another site, from **Suggested sites**. The browser asks for permission for that site: the extension comes with none preset. Once you're signed in in that browser, ymd will receive the cookies on its own.
 
-When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **cookies.txt file**.
+When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **Extension**. If **YouTube session** reads **Not added**, the extension isn't sending YouTube yet: add it from the extension.
 
 The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page: ymd only accepts messages from that ID.
 
@@ -62,7 +62,7 @@ Pin "ymd Cookies" to the browser toolbar and open it:
 - **YouTube session** tells whether the copy ymd got holds your session: **Active** or **Signed out**. It goes by the cookies' names, without looking at their contents.
 - **Send now** forces a send.
 - **This page**: **Download with ymd** for the open tab and, on a site ymd knows (Vimeo, SoundCloud, Twitch…) that isn't on the list yet, **Use my … session in ymd** adds it in one click.
-- **Allowed sites**: only `youtube.com` by default, with its subdomains. Your YouTube session lives in its own cookies, so the extension doesn't read your Google account's. **Add a site** (for example `vimeo.com`) asks the browser for permission for that domain; removing it gives the permission back.
+- **Allowed sites**: starts empty; the extension reads no site's cookies until you add it. **Suggested sites** adds YouTube, Vimeo, SoundCloud or Twitch in one click, and **Add a site** takes any other domain. Each site, with its subdomains, asks the browser for permission at that moment, and removing it gives the permission back. A site on the list that lost its permission (for example, because you withdrew it in the browser) shows **Allow**. Your YouTube session lives in `youtube.com` cookies, so adding YouTube gives no access to your Google account.
 
 The extension icon shows an amber **!** when you're signed out of YouTube, and a red one when it can't reach ymd; hovering explains which. In ymd, **Settings → Accounts** shows the same **YouTube session** and tells you how to get it back.
 

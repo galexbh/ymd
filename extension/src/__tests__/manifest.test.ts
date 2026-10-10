@@ -43,14 +43,18 @@ describe("manifest", () => {
     expect(manifest).toMatchObject({
       manifest_version: 3,
       name: "ymd Cookies",
-      version: "1.3.0",
+      version: "1.4.0",
       default_locale: "es",
       permissions: ["cookies", "nativeMessaging", "storage", "alarms", "contextMenus", "activeTab"],
-      host_permissions: ["*://*.youtube.com/*"],
       optional_host_permissions: ["*://*/*"],
       background: { service_worker: "background.js", type: "module" },
       action: { default_popup: "popup.html" },
     });
+  });
+
+  it("asks for no site up front: every site is optional, granted when the person adds it", () => {
+    expect(manifest).not.toHaveProperty("host_permissions");
+    expect(manifest.optional_host_permissions).toEqual(["*://*/*"]);
   });
 
   it("lets no other extension or web page connect to it", () => {

@@ -75,10 +75,7 @@
     "message": "Allowed sites"
   },
   "sitesEmpty": {
-    "message": "The list is empty: no cookies are sent."
-  },
-  "siteDefault": {
-    "message": "Default"
+    "message": "No sites yet. Add the sites you sign in to."
   },
   "siteRemove": {
     "message": "Remove $DOMAIN$",
@@ -176,6 +173,30 @@
       "site": {
         "content": "$1",
         "example": "Vimeo"
+      }
+    }
+  },
+  "suggestLabel": {
+    "message": "Suggested sites"
+  },
+  "suggestAdd": {
+    "message": "Add $SITE$",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "YouTube"
+      }
+    }
+  },
+  "siteGrant": {
+    "message": "Allow"
+  },
+  "siteGrantLabel": {
+    "message": "Allow $DOMAIN$ again",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "youtube.com"
       }
     }
   }

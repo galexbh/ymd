@@ -38,7 +38,7 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd) por Native Messaging. El
   navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No
   hay red, servidor ni telemetría.
-- **Qué:** las cookies de los dominios de la lista (por defecto solo `youtube.com`, con sus
+- **Qué:** las cookies de los dominios de la lista (empieza vacía; cada dominio, con sus
   subdominios), con los campos de `chrome.cookies.Cookie`: `domain`, `hostOnly`,
   `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name` y `value`. También el
   nombre del navegador (`brave`, `chrome`, `edge`…).
@@ -52,8 +52,9 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
 - **Quién puede hablar con la extensión:** solo su propio popup. No acepta mensajes de otras
   extensiones ni de páginas web, y el host de ymd nunca devuelve cookies.
 
-Agregar un sitio pide el permiso del navegador para ese dominio. Quitarlo devuelve ese permiso
-(salvo en los dos sitios predeterminados, cuyo permiso es parte del manifiesto).
+Ningún sitio viene de serie: el manifiesto no pide permisos de host obligatorios, solo el opcional
+`*://*/*`. Agregar un sitio (escribiéndolo o desde «Sitios sugeridos») pide el permiso del navegador
+para ese dominio, y quitarlo lo devuelve. Un sitio que perdió el permiso muestra «Permitir».
 
 ## Desarrollo
 

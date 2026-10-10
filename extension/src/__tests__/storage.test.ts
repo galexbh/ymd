@@ -3,10 +3,10 @@ import { ALLOWLIST_VERSION, ensureAllowlist, KEYS, readAllowlist } from "../lib/
 import { createChromeFake } from "../test/chrome-fake";
 
 describe("ensureAllowlist", () => {
-  it("seeds only youtube.com on a fresh install", async () => {
+  it("starts with an empty list on a fresh install", async () => {
     const fake = createChromeFake();
     await ensureAllowlist(fake.api);
-    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
+    expect(fake.store.get(KEYS.allowlist)).toEqual([]);
     expect(fake.store.get(KEYS.allowlistVersion)).toBe(ALLOWLIST_VERSION);
   });
 

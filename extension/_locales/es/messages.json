@@ -75,10 +75,7 @@
     "message": "Sitios permitidos"
   },
   "sitesEmpty": {
-    "message": "La lista está vacía: no se envía ninguna cookie."
-  },
-  "siteDefault": {
-    "message": "Predeterminado"
+    "message": "Aún no hay sitios. Agrega los sitios donde inicias sesión."
   },
   "siteRemove": {
     "message": "Quitar $DOMAIN$",
@@ -176,6 +173,30 @@
       "site": {
         "content": "$1",
         "example": "Vimeo"
+      }
+    }
+  },
+  "suggestLabel": {
+    "message": "Sitios sugeridos"
+  },
+  "suggestAdd": {
+    "message": "Agregar $SITE$",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "YouTube"
+      }
+    }
+  },
+  "siteGrant": {
+    "message": "Permitir"
+  },
+  "siteGrantLabel": {
+    "message": "Volver a permitir $DOMAIN$",
+    "placeholders": {
+      "domain": {
+        "content": "$1",
+        "example": "youtube.com"
       }
     }
   }

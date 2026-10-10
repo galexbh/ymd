@@ -12,7 +12,8 @@ describe("collectCookies", () => {
         cookie({ name: "other", domain: ".vimeo.com" }),
       ],
     });
-    fake.granted.add("*://*.google.com/*"); // a site the person added
+    fake.granted.add("*://*.google.com/*"); // sites the person added
+    fake.granted.add("*://*.youtube.com/*");
     // "accounts.google.com" overlaps "google.com": both getAll calls return LSID.
     const got = await collectCookies(fake.api, [
       "google.com",
@@ -38,6 +39,7 @@ describe("collectCookies", () => {
         cookie({ name: "a", path: "/tv" }),
         cookie({ name: "a", domain: "www.youtube.com", hostOnly: true }),
       ],
+      sites: ["youtube.com"],
     });
     expect(await collectCookies(fake.api, ["youtube.com"])).toHaveLength(3);
   });

@@ -16,9 +16,9 @@ Pasos, una sola vez:
 1. **Mostrar la carpeta de la extensión**: abre el Explorador con la carpeta `extension` de ymd seleccionada. Esa carpeta es la que arrastras en el paso 3.
 2. **Abrir [navegador] y copiar la dirección**: copia la dirección de su página de extensiones (por ejemplo `brave://extensions`) y abre el navegador. Pégala en la barra de direcciones (Ctrl+V) y pulsa Enter: los navegadores no dejan que otro programa abra esa página directamente.
 3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
-4. Inicia sesión en YouTube en ese navegador. ymd recibirá las cookies solo.
+4. Abre la extensión y agrega YouTube, u otro sitio, desde **Sitios sugeridos**. El navegador te pide permiso para ese sitio: la extensión no trae ninguno de serie. Con la sesión iniciada en ese navegador, ymd recibirá las cookies solo.
 
-Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Archivo cookies.txt**.
+Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Extensión**. Si **Sesión de YouTube** dice **Sin agregar**, la extensión todavía no envía YouTube: agrégalo desde la extensión.
 
 El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones: ymd solo acepta mensajes de ese ID.
 
@@ -62,7 +62,7 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
 - **Sesión de YouTube** dice si la copia que recibió ymd tiene tu sesión: **Activa** o **Cerrada**. Se sabe por el nombre de las cookies, sin mirar su contenido.
 - **Enviar ahora** fuerza un envío.
 - **Esta página**: **Descargar con ymd** para la pestaña abierta y, si estás en un sitio que ymd conoce (Vimeo, SoundCloud, Twitch…) y aún no está en la lista, **Usar mi sesión de …** lo agrega con un clic.
-- **Sitios permitidos**: por defecto solo `youtube.com`, con sus subdominios. La sesión de YouTube vive en sus propias cookies, así que la extensión no lee las de tu cuenta de Google. **Agregar un sitio** (por ejemplo `vimeo.com`) pide el permiso del navegador para ese dominio; quitarlo devuelve el permiso.
+- **Sitios permitidos**: empieza vacía; la extensión no lee las cookies de ningún sitio hasta que lo agregas. **Sitios sugeridos** agrega YouTube, Vimeo, SoundCloud o Twitch con un clic, y **Agregar un sitio** acepta cualquier otro dominio. Cada sitio, con sus subdominios, pide el permiso del navegador en ese momento, y quitarlo devuelve el permiso. Si un sitio de la lista perdió su permiso (por ejemplo, porque lo retiraste en el navegador), muestra **Permitir**. La sesión de YouTube vive en las cookies de `youtube.com`, así que agregar YouTube no da acceso a tu cuenta de Google.
 
 El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube está cerrada, y en rojo cuando no puede hablar con ymd; al pasar el ratón explica cuál. En ymd, **Ajustes → Cuentas** muestra la misma **Sesión de YouTube** y te indica cómo recuperarla.
 

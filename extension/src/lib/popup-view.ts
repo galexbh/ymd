@@ -1,7 +1,8 @@
 // The popup, in plain DOM over the static markup of popup.html.
 
 import { type ChromeApi } from "./chrome-api";
-import { isDefaultDomain } from "./domains";
+import { PROVIDERS } from "../../../src/shared/providers";
+import { cookieDomainAllowed, originPattern } from "./domains";
 import { addSite, removeSite } from "./sites";
 import { stampState, type Status, type StatusError } from "./status";
 import { KEYS, readAllowlist, readStatus } from "./storage";
@@ -67,6 +68,9 @@ export function applySystemTheme(
   set();
   mq?.addEventListener?.("change", set);
 }
+
+/** Sites suggested in the popup, by provider name (the list shared with the app). */
+const SUGGESTED = ["YouTube", "Vimeo", "SoundCloud", "Twitch"] as const;
 
 export async function mountPopup(doc: Document, deps: PopupDeps) {
   const { api } = deps;
@@ -140,12 +144,27 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
         name.className = "domain";
         name.textContent = domain;
         li.appendChild(name);
-        if (isDefaultDomain(domain)) {
-          const tag = doc.createElement("span");
-          tag.className = "tag";
-          tag.textContent = t("siteDefault");
-          li.appendChild(tag);
-        }
+        // A site whose permission is gone (e.g. revoked in the browser) offers to grant it again.
+        void api.permissions
+          .contains({ origins: [originPattern(domain)] })
+          .then((ok) => {
+            if (ok) return;
+            const grant = doc.createElement("button");
+            grant.type = "button";
+            grant.className = "button secondary grant";
+            grant.textContent = t("siteGrant");
+            grant.setAttribute("aria-label", t("siteGrantLabel", domain));
+            grant.addEventListener("click", () => {
+              void api.permissions
+                .request({ origins: [originPattern(domain)] })
+                .catch(() => false)
+                .then((granted) => {
+                  if (granted) renderSites();
+                });
+            });
+            li.insertBefore(grant, remove);
+          })
+          .catch(() => undefined);
         const remove = doc.createElement("button");
         remove.type = "button";
         remove.className = "button ghost icon-only";
@@ -164,6 +183,37 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
       }),
     );
     $("sites-empty").hidden = sites.length > 0;
+    renderSuggestions();
+  }
+
+  /** «Sitios sugeridos»: known sites not on the list yet, one click each (permission included). */
+  function renderSuggestions(): void {
+    const options = SUGGESTED.map((name) => PROVIDERS.find((p) => p.name === name))
+      .filter((p): p is (typeof PROVIDERS)[number] => !!p)
+      .filter((p) => !sites.some((s) => cookieDomainAllowed(p.domains[0], [s])));
+    $("suggest").hidden = options.length === 0;
+    $("suggest-list").replaceChildren(
+      ...options.map((p) => {
+        const chip = doc.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = p.name;
+        chip.setAttribute("aria-label", t("suggestAdd", p.name));
+        chip.addEventListener("click", () => {
+          // addSite asks for the permission first, inside this click's user gesture.
+          void addSite(api, sites, p.domains[0]).then((res) => {
+            if (res.ok) {
+              sites = res.list;
+              showAddError(null);
+              renderSites();
+            } else if (res.reason === "denied") {
+              showAddError(t("addDenied", res.domain));
+            }
+          });
+        });
+        return chip;
+      }),
+    );
   }
 
   function showAddError(message: string | null): void {

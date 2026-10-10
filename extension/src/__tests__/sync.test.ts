@@ -294,12 +294,12 @@ describe("hello", () => {
 });
 
 describe("lifecycle", () => {
-  it("on install seeds the defaults, creates the 30 min alarm and syncs", async () => {
+  it("on install starts an empty list, creates the 30 min alarm and syncs", async () => {
     const { fake, engine } = setup({ storage: {} });
     installBackground(engine, fake.api);
     fake.events.installed.emit({ reason: "install" });
     await flush();
-    expect(fake.store.get(KEYS.allowlist)).toEqual(["youtube.com"]);
+    expect(fake.store.get(KEYS.allowlist)).toEqual([]);
     expect(fake.alarms.get(ALARM_NAME)?.periodInMinutes).toBe(ALARM_PERIOD_MINUTES);
     expect(cookiesSent(fake)).toHaveLength(1);
   });

@@ -3,7 +3,7 @@ import { addSite, removeSite } from "../lib/sites";
 import { KEYS } from "../lib/storage";
 import { createChromeFake } from "../test/chrome-fake";
 
-const DEFAULTS = ["youtube.com"];
+const DEFAULTS = ["youtube.com"]; // a site the person already added
 
 describe("adding a site (optional host permission)", () => {
   it("refuses a public suffix before asking for any permission", async () => {
@@ -46,11 +46,11 @@ describe("adding a site (optional host permission)", () => {
     expect(fake.record.permissionRequests).toEqual([]);
   });
 
-  it("re-adding a default needs no prompt", async () => {
-    const fake = createChromeFake({ grant: false });
+  it("asks for YouTube like any other site: no site is preset", async () => {
+    const fake = createChromeFake({ grant: true });
     const res = await addSite(fake.api, [], "youtube.com");
     expect(res).toMatchObject({ ok: true, list: ["youtube.com"] });
-    expect(fake.record.permissionRequests).toEqual([]);
+    expect(fake.record.permissionRequests).toEqual([["*://*.youtube.com/*"]]);
   });
 
   it("treats a throwing prompt as denied", async () => {
@@ -63,7 +63,7 @@ describe("adding a site (optional host permission)", () => {
 });
 
 describe("removing a site", () => {
-  it("revokes the optional permission of a non-default site", async () => {
+  it("revokes the optional permission of the site", async () => {
     const fake = createChromeFake();
     await addSite(fake.api, DEFAULTS, "vimeo.com");
     const list = await removeSite(fake.api, [...DEFAULTS, "vimeo.com"], "vimeo.com");
@@ -73,12 +73,12 @@ describe("removing a site", () => {
     expect(fake.store.get(KEYS.allowlist)).toEqual(DEFAULTS);
   });
 
-  it("keeps the permission of a default site", async () => {
-    const fake = createChromeFake();
+  it("gives YouTube's permission back too", async () => {
+    const fake = createChromeFake({ sites: ["youtube.com"] });
     const list = await removeSite(fake.api, DEFAULTS, "youtube.com");
     expect(list).toEqual([]);
-    expect(fake.record.permissionRemovals).toEqual([]);
-    expect(fake.granted.has("*://*.youtube.com/*")).toBe(true);
+    expect(fake.record.permissionRemovals).toEqual([["*://*.youtube.com/*"]]);
+    expect(fake.granted.has("*://*.youtube.com/*")).toBe(false);
   });
 
   it("still removes the site when revoking fails", async () => {

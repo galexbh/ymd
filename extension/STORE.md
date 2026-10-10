@@ -42,7 +42,7 @@ yt-dlp. Cuando un video necesita tu sesión (privado, con restricción de edad o
 miembros), ymd necesita tus cookies. Esta extensión se las entrega directamente, en tu equipo,
 sin que ymd tenga que leer la base de datos del navegador.
 
-- Solo envía las cookies de los sitios de tu lista (por defecto YouTube y Google).
+- Solo envía las cookies de los sitios que tú agregues; no trae ninguno de serie.
 - Viajan únicamente a ymd por Native Messaging: un proceso local, sin red ni servidores.
 - Se actualizan solas cuando cambian, y cada 30 minutos.
 - Puedes agregar o quitar sitios; cada uno pide su propio permiso.
@@ -58,7 +58,7 @@ When a video needs your session (private, age-restricted or members-only), ymd n
 cookies. This extension hands them over directly, on your computer, so ymd never has to read the
 browser's cookie database.
 
-- It only sends cookies of the sites on your list (YouTube by default).
+- It only sends cookies of the sites you add; none come preset.
 - They travel only to ymd over Native Messaging: a local process, no network, no servers.
 - They update on their own when they change, and every 30 minutes.
 - You can add or remove sites; each one asks for its own permission.
@@ -75,16 +75,15 @@ on request, the link the user wants to download.
 
 ## Permission justifications
 
-| Permission                            | Why it is needed                                                                                                                                                                                                         |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `cookies`                             | Reads the cookies of the sites on the user's list, which is the extension's only purpose.                                                                                                                                |
-| `nativeMessaging`                     | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                                        |
-| `storage`                             | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                                                 |
-| `alarms`                              | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                                            |
-| `contextMenus`                        | Adds one entry, «Download with ymd», on links, media and pages, which sends that link to ymd on the user's click.                                                                                                        |
-| `activeTab`                           | Reads the address of the open tab only while the user has the popup open, for «Download with ymd» and «Use my … session» on that page. No other tab is read.                                                             |
-| Host permission `*://*.youtube.com/*` | The default site. A YouTube session lives in .youtube.com cookies, so no Google account cookies are read. Needed by `chrome.cookies.getAll` for that domain. The extension injects no scripts and reads no page content. |
-| Optional host permission `*://*/*`    | Lets the user add another site (for example vimeo.com). It is requested per domain (`*://*.<domain>/*`) only when the user adds that site, and revoked when they remove it.                                              |
+| Permission                         | Why it is needed                                                                                                                                                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cookies`                          | Reads the cookies of the sites on the user's list, which is the extension's only purpose.                                                                                                                                                                    |
+| `nativeMessaging`                  | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                                                                            |
+| `storage`                          | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                                                                                     |
+| `alarms`                           | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                                                                                |
+| `contextMenus`                     | Adds one entry, «Download with ymd», on links, media and pages, which sends that link to ymd on the user's click.                                                                                                                                            |
+| `activeTab`                        | Reads the address of the open tab only while the user has the popup open, for «Download with ymd» and «Use my … session» on that page. No other tab is read.                                                                                                 |
+| Optional host permission `*://*/*` | No site is granted at install. When the user adds a site, the extension requests only that domain (`*://*.<domain>/*`), as `chrome.cookies.getAll` needs, and gives it back when they remove it. The extension injects no scripts and reads no page content. |
 
 **Remote code:** none. All code ships in the package; the CSP allows only the extension's own files (`default-src 'none'; script-src 'self'`) and no network connections.
 
@@ -95,7 +94,7 @@ on request, the link the user wants to download.
 ymd Cookies handles authentication data (cookies) only to pass it to the ymd desktop
 application on the same computer.
 
-- **What is collected:** the cookies of the sites on the list that you control (YouTube by
+- **What is collected:** the cookies of the sites you add to the list (none by
   default): name, value, domain, path, expiry and security flags, plus the name of the
   browser; with «Download with ymd», the link you picked.
 - **Where it goes:** only to the ymd application installed on your computer, through the

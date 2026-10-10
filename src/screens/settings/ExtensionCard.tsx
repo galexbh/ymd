@@ -67,6 +67,11 @@ function StepsFrame({
   );
 }
 
+/** The extension sends YouTube: no site is preset, so the person may not have added it yet. */
+function sendsYouTube(sync: ExtensionSync): boolean {
+  return sync.domains.some((d) => /(^|\.)youtube\.com$/.test(d));
+}
+
 export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -266,14 +271,20 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
               data-testid="extension-session"
               data-signed-in={sync.signedIn.includes("youtube.com")}
             >
-              {sync.signedIn.includes("youtube.com") ? t("session.active") : t("session.closed")}
+              {sync.signedIn.includes("youtube.com")
+                ? t("session.active")
+                : sendsYouTube(sync)
+                  ? t("session.closed")
+                  : t("session.notAdded")}
             </dd>
           </div>
         </dl>
       )}
       {sync && !sync.signedIn.includes("youtube.com") && (
         <p className={settings.fieldHint} data-testid="extension-session-hint">
-          {t("session.closedHint", { browser: syncBrowserName(sync.browser) })}
+          {t(sendsYouTube(sync) ? "session.closedHint" : "session.notAddedHint", {
+            browser: syncBrowserName(sync.browser),
+          })}
         </p>
       )}
 

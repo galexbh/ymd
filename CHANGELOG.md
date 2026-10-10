@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Cambios
+
+- **La extensión «ymd Cookies» ya no trae ningún sitio de serie.** Al instalarla no pide acceso a ningún sitio: tú agregas los que usas, con un clic desde **Sitios sugeridos** (YouTube, Vimeo, SoundCloud, Twitch) o escribiendo el dominio, y el navegador pide permiso para cada uno. Si un sitio de la lista perdió su permiso, aparece **Permitir**. En **Ajustes → Cuentas**, **Sesión de YouTube** dice **Sin agregar** cuando la extensión aún no envía YouTube. Extensión 1.4.0.
+
 ## [0.4.0] - 2026-10-10
 
 ### Novedades

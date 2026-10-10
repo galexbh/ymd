@@ -81,11 +81,16 @@ export interface FakeOptions {
   /** Answer of permissions.request (the user's click in the prompt). */
   grant?: boolean;
   storage?: Record<string, unknown>;
+  /** Sites already on the list, with their permission granted (as after adding them). */
+  sites?: string[];
+  /** Sites on the list whose permission is gone (revoked in the browser, or lost on an update). */
+  revoked?: string[];
   /** The active tab the popup sees (via activeTab). */
   activeTab?: { url?: string };
 }
 
-const REQUIRED_ORIGINS = ["*://*.youtube.com/*"];
+/** The manifest asks for no host permission up front. */
+const REQUIRED_ORIGINS: string[] = [];
 
 function patternCovers(pattern: string, host: string): boolean {
   if (pattern === "*://*/*" || pattern === "<all_urls>") return true;
@@ -115,6 +120,12 @@ export function createChromeFake(options: FakeOptions = {}) {
   const store = new Map<string, unknown>(Object.entries(options.storage ?? {}));
   const alarms = new Map<string, Alarm>();
   const granted = new Set<string>(REQUIRED_ORIGINS);
+  for (const site of options.sites ?? []) granted.add(`*://*.${site}/*`);
+  if (options.sites && !store.has("allowlist")) store.set("allowlist", [...options.sites]);
+  // A stored list means the person added those sites, so their permissions were granted.
+  const stored = store.get("allowlist");
+  if (Array.isArray(stored)) for (const site of stored) granted.add(`*://*.${String(site)}/*`);
+  for (const site of options.revoked ?? []) granted.delete(`*://*.${site}/*`);
   const locale = options.locale ?? "es";
   const messages = loadMessages(locale);
 

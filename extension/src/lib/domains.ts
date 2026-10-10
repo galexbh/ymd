@@ -1,18 +1,10 @@
 // The allowlist: which sites' cookies may travel to ymd. Pure functions only.
 
-/**
- * Always present on a fresh install; covered by the manifest's required host permissions.
- * YouTube's session cookies (SID, SAPISID, LOGIN_INFO…) live on .youtube.com, which is all
- * yt-dlp reads for it; google.com is not needed and would only look like account access.
- */
-export const DEFAULT_DOMAINS: readonly string[] = ["youtube.com"];
+// No site comes preset: the person adds the sites they sign in to (the popup suggests a few),
+// and each one asks the browser for its own permission at that moment.
 
 /** Defaults earlier versions seeded and later dropped: removed once from stored lists. */
 export const RETIRED_DEFAULTS: readonly string[] = ["google.com"];
-
-export function isDefaultDomain(domain: string): boolean {
-  return DEFAULT_DOMAINS.includes(domain);
-}
 
 const LABEL = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
 const TLD = /^(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
@@ -108,7 +100,7 @@ export function originPattern(domain: string): string {
 
 /** Cleans a stored allowlist: valid, normalized, unique, in order. */
 export function sanitizeAllowlist(value: unknown): string[] {
-  if (!Array.isArray(value)) return [...DEFAULT_DOMAINS];
+  if (!Array.isArray(value)) return [];
   const out: string[] = [];
   for (const item of value) {
     if (typeof item !== "string") continue;

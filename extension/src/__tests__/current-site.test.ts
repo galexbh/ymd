@@ -65,6 +65,7 @@ describe("popup «Usar mi sesión de…»", () => {
     const { fake, view } = await mount({
       activeTab: { url: "https://vimeo.com/76979871" },
       grant: true,
+      sites: ["youtube.com"],
     });
     expect($("add-current").hidden).toBe(false);
     expect($("add-current-label").textContent).toBe("Usar mi sesión de Vimeo en ymd");
@@ -88,7 +89,10 @@ describe("popup «Usar mi sesión de…»", () => {
   });
 
   it("stays hidden on YouTube (already on the list) and on unknown sites", async () => {
-    await mount({ activeTab: { url: "https://www.youtube.com/watch?v=1" } });
+    await mount({
+      activeTab: { url: "https://www.youtube.com/watch?v=1" },
+      sites: ["youtube.com"],
+    });
     expect($("add-current").hidden).toBe(true);
     document.body.innerHTML = BODY;
     await mount({ activeTab: { url: "https://www.example.org/" } });
