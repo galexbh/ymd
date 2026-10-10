@@ -53,3 +53,6 @@ extension/ymd-cookies-extension.zip
 # Docs site (website/): Astro's generated types and local review screenshots
 website/.astro/
 website/.screens/
+
+# Archify diagram sources and build evidence (published copies live in website/public/diagramas)
+.archify/

@@ -1,9 +1,15 @@
 ---
 title: Cookie bridge protocol
 description: The Native Messaging contract between the ymd Cookies extension and ymd.
+tableOfContents: false
 ---
 
 Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change both in the same PR, together with this page and its Spanish version.
+
+<figure class="archify-figure">
+  <iframe data-archify="/ymd/diagramas/en/cookie-bridge.html" title="Cookie bridge sequence diagram" loading="lazy"></iframe>
+  <figcaption>One full send, from a cookie change to yt-dlp using it. <a href="/ymd/diagramas/en/cookie-bridge.html" target="_blank" rel="noopener">Open the interactive diagram, with the sources of each step</a></figcaption>
+</figure>
 
 ## Identity
 
@@ -20,7 +26,7 @@ The matching private key is **not** in the repo. It lives at `~/.ymd/extension-k
 
 ## Transport
 
-Chrome, Brave and Edge launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON, 16 MiB max inbound.
+Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent-window=N]`, one process per `chrome.runtime.sendNativeMessage` call. Each message is a little-endian u32 byte length followed by UTF-8 JSON, 16 MiB max inbound.
 
 - The host reads exactly one message, writes exactly one reply and exits 0.
 - If the origin is not the allowed one, it exits 1 without reading.
@@ -46,7 +52,7 @@ Chrome, Brave and Edge launch the host as `ymd.exe chrome-extension://<id>/ [--p
 
 ## Host registration
 
-ymd registers itself as the `com.ymd.cookies` host on every launch (idempotently, so the manifest always points at the current executable) for Brave, Chrome, Edge, Chromium and Vivaldi, only when their user-data folder exists:
+ymd registers itself as the `com.ymd.cookies` host on every launch (idempotently, so the manifest always points at the current executable) for Brave, Edge and Vivaldi when their user-data folder exists, and always for Chrome and Chromium:
 
-- **Windows:** `HKCU\Software\<vendor>\NativeMessagingHosts\com.ymd.cookies`, whose default value is the path of the host manifest JSON. HKCU needs no elevation. The uninstaller removes the keys.
+- **Windows:** `HKCU\Software\<vendor>\NativeMessagingHosts\com.ymd.cookies`, whose default value is the path of the host manifest JSON. HKCU needs no elevation. Chrome's and Chromium's keys are written even when those browsers aren't installed: Opera, Arc, Yandex, Whale, Thorium and other forks fall back to them. The uninstaller removes the keys.
 - **macOS and Linux:** the manifest JSON is copied into each browser's `NativeMessagingHosts` folder.

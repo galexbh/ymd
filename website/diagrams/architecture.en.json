@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ymd architecture",
+    "output": ".archify/architecture-ymd-en-20261010-122000/architecture.html",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:galexbh/ymd.git",
+      "link_mode": "local-only",
+      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Person",
+      "sublabel": "pastes a link",
+      "icon": "person",
+      "pos": [20, 190],
+      "size": [110, 60]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Interface",
+      "sublabel": "React 19 · src/",
+      "pos": [190, 190],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "src/ipc/commands.ts",
+          "line": 33,
+          "label": "api: único invoke"
+        },
+        {
+          "path": "src/ipc/events.ts",
+          "line": 1,
+          "end_line": 2,
+          "label": "listen tipado"
+        }
+      ]
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "Rust core",
+      "sublabel": "commands/ · Tauri 2",
+      "pos": [460, 190],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "src-tauri/src/lib.rs",
+          "line": 160,
+          "label": "generate_handler"
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "type": "database",
+      "label": "Settings",
+      "sublabel": "settings.json",
+      "pos": [460, 40],
+      "size": [140, 56],
+      "sources": [
+        {
+          "path": "src-tauri/src/settings.rs",
+          "line": 139,
+          "end_line": 185,
+          "label": "load / save"
+        }
+      ]
+    },
+    {
+      "id": "deps",
+      "type": "backend",
+      "label": "Dependencies",
+      "sublabel": "deps/manager.rs",
+      "pos": [720, 190],
+      "size": [130, 60],
+      "sources": [
+        {
+          "path": "src-tauri/src/deps/manager.rs",
+          "line": 349,
+          "label": "install"
+        },
+        {
+          "path": "src-tauri/src/deps/manager.rs",
+          "line": 459,
+          "label": "download_verify_swap"
+        }
+      ]
+    },
+    {
+      "id": "github",
+      "type": "cloud",
+      "label": "GitHub Releases",
+      "sublabel": "yt-dlp, FFmpeg, Deno",
+      "pos": [720, 40],
+      "size": [130, 56],
+      "sources": [
+        {
+          "path": "src-tauri/src/deps/github.rs",
+          "line": 83,
+          "end_line": 84,
+          "label": "releases API"
+        },
+        {
+          "path": "src-tauri/src/deps/catalog.rs",
+          "line": 266,
+          "label": "denoland/deno"
+        }
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "backend",
+      "label": "Queue",
+      "sublabel": "jobs.rs · 1–8 at a time",
+      "pos": [460, 340],
+      "size": [140, 60],
+      "sources": [
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 1,
+          "end_line": 6,
+          "label": "FIFO + límite"
+        },
+        {
+          "path": "src-tauri/src/jobs.rs",
+          "line": 318,
+          "end_line": 324,
+          "label": "spawn yt-dlp"
+        }
+      ]
+    },
+    {
+      "id": "ytdlp",
+      "type": "external",
+      "label": "yt-dlp",
+      "sublabel": "+ ffmpeg, Deno",
+      "pos": [720, 340],
+      "size": [130, 60],
+      "sources": [
+        {
+          "path": "src-tauri/src/process.rs",
+          "line": 13,
+          "label": "argv, sin shell"
+        }
+      ]
+    },
+    {
+      "id": "keychain",
+      "type": "security",
+      "label": "Keychain",
+      "sublabel": "system",
+      "pos": [950, 340],
+      "size": [110, 60],
+      "sources": [
+        {
+          "path": "src-tauri/src/auth/keychain.rs",
+          "line": 49,
+          "end_line": 74,
+          "label": "keyring"
+        },
+        {
+          "path": "src-tauri/src/auth/netrc.rs",
+          "line": 85,
+          "label": "helper_main"
+        },
+        {
+          "path": "src-tauri/src/auth/mod.rs",
+          "line": 68,
+          "end_line": 71,
+          "label": "--netrc-cmd"
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "type": "database",
+      "label": "Catalog",
+      "sublabel": "SQLite · history.rs",
+      "pos": [460, 490],
+      "size": [140, 56],
+      "sources": [
+        {
+          "path": "src-tauri/src/history.rs",
+          "line": 108,
+          "label": "record"
+        },
+        {
+          "path": "src-tauri/src/state.rs",
+          "line": 89,
+          "end_line": 92,
+          "label": "al completar"
+        }
+      ]
+    },
+    {
+      "id": "cookies",
+      "type": "database",
+      "label": "cookies.txt",
+      "sublabel": "auth/ · owner-only",
+      "pos": [720, 490],
+      "size": [130, 56],
+      "sources": [
+        {
+          "path": "src-tauri/src/auth/cookies.rs",
+          "line": 157,
+          "end_line": 163,
+          "label": "store"
+        },
+        {
+          "path": "src-tauri/src/auth/cookies.rs",
+          "line": 207,
+          "end_line": 220,
+          "label": "copia por ejecución"
+        }
+      ]
+    },
+    {
+      "id": "ext",
+      "type": "frontend",
+      "label": "ymd Cookies",
+      "sublabel": "Chromium extension",
+      "pos": [720, 640],
+      "size": [130, 60],
+      "sources": [
+        {
+          "path": "extension/src/lib/sync.ts",
+          "line": 111,
+          "end_line": 145,
+          "label": "runSync"
+        },
+        {
+          "path": "src-tauri/src/auth/native_host.rs",
+          "line": 250,
+          "end_line": 279,
+          "label": "host nativo"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "use",
+      "from": "user",
+      "to": "ui",
+      "label": "uses"
+    },
+    {
+      "id": "ipc",
+      "from": "ui",
+      "to": "core",
+      "label": "invoke · events",
+      "variant": "emphasis"
+    },
+    {
+      "id": "prefs",
+      "from": "core",
+      "to": "settings",
+      "label": "JSON",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "update-deps",
+      "from": "core",
+      "to": "deps",
+      "label": "updates"
+    },
+    {
+      "id": "fetch",
+      "from": "deps",
+      "to": "github",
+      "label": "download · SHA-256",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "enqueue",
+      "from": "core",
+      "to": "queue",
+      "label": "enqueues",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "run",
+      "from": "queue",
+      "to": "ytdlp",
+      "label": "argv, no shell",
+      "variant": "emphasis"
+    },
+    {
+      "id": "install",
+      "from": "deps",
+      "to": "ytdlp",
+      "label": "installs into bin/",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "netrc",
+      "from": "ytdlp",
+      "to": "keychain",
+      "label": "--netrc-cmd",
+      "variant": "security"
+    },
+    {
+      "id": "archive",
+      "from": "queue",
+      "to": "history",
+      "label": "archives",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "jar",
+      "from": "cookies",
+      "to": "ytdlp",
+      "label": "--cookies (copy)",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "bridge",
+      "from": "ext",
+      "to": "cookies",
+      "label": "Native Messaging",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "IPC contract",
+      "items": [
+        "model.rs is the source of truth for the types",
+        "src/ipc/commands.ts is the only place that calls invoke",
+        "Events carry each download's progress to the interface"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Secrets",
+      "items": [
+        "Passwords live only in the keychain; yt-dlp asks via --netrc-cmd",
+        "cookies.txt is owner-only",
+        "yt-dlp downloads from the sites over HTTPS"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Updates",
+      "items": [
+        "Tools are verified with SHA-256 and swapped atomically",
+        "ymd updates from a signed latest.json (minisign)",
+        "The queue never swaps yt-dlp while downloads run"
+      ]
+    }
+  ]
+}

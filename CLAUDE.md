@@ -51,7 +51,8 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
   under `en/` with the same file names. The cookie bridge contract lives in
   `src/content/docs/{,en/}desarrollo/puente-de-cookies.md` (its key block is read by
   `extension/src/__tests__/manifest.test.ts`). The changelog page renders the root `CHANGELOG.md`.
-  `docs/assets/` only holds README images.
+  `docs/assets/` only holds README images. Diagrams: Archify sources in `website/diagrams/` (see its README),
+  published HTML in `website/public/diagramas/`; regenerate both when the code they cite changes.
 - `.github/workflows/` — `ci.yml` (gate), `release.yml` (tags `v*`), `docs.yml` (Pages deploy),
   `nightly-smoke.yml`.
 
