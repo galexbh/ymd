@@ -15,14 +15,15 @@ Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change 
 
 - Native host name: `com.ymd.cookies`
 - Extension ID (fixed by the manifest `key`): `gicaphbpepkphmeciigjhdpnbcaflfgd`
-- Allowed origin: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/`
+- Chrome Web Store build ID (the store assigns its own): `hhojlkpllmndkaolmebblijfcjkjpdpi`
+- Allowed origins: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/` and `chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/`. ymd refuses any other.
 - Manifest `key` (public, SPKI DER base64). `extension/src/__tests__/manifest.test.ts` reads this block and checks it matches `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
 ```
 
-The matching private key is **not** in the repo. It lives at `~/.ymd/extension-key.pem` on the maintainer's machine and is needed only to upload a packed CRX to the Chrome Web Store with the same ID.
+The matching private key is **not** in the repo. It lives at `~/.ymd/extension-key.pem` on the maintainer's machine and is not uploaded to the store: the Chrome Web Store build has its own ID, and ymd accepts both.
 
 ## Transport
 

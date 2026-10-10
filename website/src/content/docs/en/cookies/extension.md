@@ -20,7 +20,7 @@ Steps, once:
 
 When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **cookies.txt file**.
 
-The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page: ymd only accepts messages from that ID.
+The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page. The Chrome Web Store build, once published, has its own ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`; ymd only accepts messages from those two.
 
 When ymd updates, the extension is updated in the same folder.
 
