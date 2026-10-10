@@ -133,11 +133,15 @@ pub struct DefaultBrowser {
 /// Pure: name / Chromium-ness of a browser executable. Many Chromium forks have no yt-dlp
 /// browser key (Arc, Yandex, Thorium…), so they are recognised by their executable.
 pub fn classify_exe(path: &std::path::Path) -> (String, bool, Option<Browser>) {
-    let file = path
-        .file_name()
-        .map(|f| f.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_default();
+    // Registry paths use `\`, which other OSes don't split on (tests), so split by hand.
     let full = path.to_string_lossy().to_ascii_lowercase();
+    let file_orig = path
+        .to_string_lossy()
+        .rsplit(['\\', '/'])
+        .next()
+        .unwrap_or_default()
+        .to_string();
+    let file = file_orig.to_ascii_lowercase();
     let named = |n: &str, chromium: bool, b: Option<Browser>| (n.to_string(), chromium, b);
     match file.as_str() {
         "brave.exe" => named("Brave", true, Some(Browser::Brave)),
@@ -159,10 +163,9 @@ pub fn classify_exe(path: &std::path::Path) -> (String, bool, Option<Browser>) {
         "thorium.exe" => named("Thorium", true, None),
         "firefox.exe" => named("Firefox", false, Some(Browser::Firefox)),
         _ => {
-            let stem = path
-                .file_stem()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or_default();
+            let stem = file_orig
+                .rsplit_once('.')
+                .map_or(file_orig.as_str(), |(stem, _)| stem);
             let mut c = stem.chars();
             let name = c
                 .next()
