@@ -58,14 +58,14 @@ same computer, so ymd can download media with the user's own session.
 
 ## Permission justifications
 
-| Permission                                                   | Why it is needed                                                                                                                                                                                       |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `cookies`                                                    | Reads the cookies of the sites on the user's list, which is the extension's only purpose.                                                                                                              |
-| `nativeMessaging`                                            | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                      |
-| `storage`                                                    | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                               |
-| `alarms`                                                     | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                          |
-| Host permissions `*://*.youtube.com/*`, `*://*.google.com/*` | The default sites: YouTube and the Google account cookies YouTube sessions depend on. Needed by `chrome.cookies.getAll` for those domains. The extension injects no scripts and reads no page content. |
-| Optional host permission `*://*/*`                           | Lets the user add another site (for example vimeo.com). It is requested per domain (`*://*.<domain>/*`) only when the user adds that site, and revoked when they remove it.                            |
+| Permission                            | Why it is needed                                                                                                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cookies`                             | Reads the cookies of the sites on the user's list, which is the extension's only purpose.                                                                                                                                |
+| `nativeMessaging`                     | Sends those cookies to the ymd desktop app (`com.ymd.cookies`) on the same computer. This is the only destination; there is no network transport.                                                                        |
+| `storage`                             | Keeps the user's list of sites, the last-sync status shown in the popup and a SHA-256 hash used to skip unchanged sends. Cookie values are never stored.                                                                 |
+| `alarms`                              | Runs a full sync every 30 minutes so ymd stays current even if a change event was missed while the service worker was asleep.                                                                                            |
+| Host permission `*://*.youtube.com/*` | The default site. A YouTube session lives in .youtube.com cookies, so no Google account cookies are read. Needed by `chrome.cookies.getAll` for that domain. The extension injects no scripts and reads no page content. |
+| Optional host permission `*://*/*`    | Lets the user add another site (for example vimeo.com). It is requested per domain (`*://*.<domain>/*`) only when the user adds that site, and revoked when they remove it.                                              |
 
 **Remote code:** none. All code ships in the package; the CSP is `script-src 'self'`.
 

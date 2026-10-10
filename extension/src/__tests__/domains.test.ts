@@ -6,6 +6,7 @@ import {
   normalizeDomain,
   originPattern,
   sanitizeAllowlist,
+  RETIRED_DEFAULTS,
 } from "../lib/domains";
 
 describe("normalizeDomain", () => {
@@ -55,9 +56,11 @@ describe("cookieDomainAllowed (the domain filter)", () => {
 });
 
 describe("allowlist helpers", () => {
-  it("defaults are youtube.com and google.com", () => {
-    expect(DEFAULT_DOMAINS).toEqual(["youtube.com", "google.com"]);
-    expect(isDefaultDomain("google.com")).toBe(true);
+  it("the only default is youtube.com (google.com is retired)", () => {
+    expect(DEFAULT_DOMAINS).toEqual(["youtube.com"]);
+    expect(isDefaultDomain("youtube.com")).toBe(true);
+    expect(isDefaultDomain("google.com")).toBe(false);
+    expect(RETIRED_DEFAULTS).toEqual(["google.com"]);
     expect(isDefaultDomain("vimeo.com")).toBe(false);
   });
 
@@ -70,7 +73,7 @@ describe("allowlist helpers", () => {
       "youtube.com",
       "vimeo.com",
     ]);
-    expect(sanitizeAllowlist(undefined)).toEqual(["youtube.com", "google.com"]);
+    expect(sanitizeAllowlist(undefined)).toEqual(["youtube.com"]);
     expect(sanitizeAllowlist([])).toEqual([]);
   });
 });

@@ -164,7 +164,7 @@ test.describe.serial("ymd Cookies extension", () => {
     await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
     await expect(page.locator("h1")).toHaveText("ymd Cookies");
     await expect(page.locator("#send-now")).toHaveText(/Enviar ahora/);
-    await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com", "google.com"]);
+    await expect(page.locator("#site-list li .domain")).toHaveText(["youtube.com"]);
     await expect(page.locator(".privacy")).toContainText("sin red");
     // Tokens applied: the stamp is drawn, the page has a themed ground.
     const theme = await page.evaluate(() => document.documentElement.dataset.theme);

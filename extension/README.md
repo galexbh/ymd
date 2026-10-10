@@ -38,8 +38,8 @@ activa el puente en Ajustes → Cuentas. Después pulsa «Enviar ahora».
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd) por Native Messaging. El
   navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No
   hay red, servidor ni telemetría.
-- **Qué:** las cookies de los dominios de la lista (por defecto `youtube.com` y `google.com`,
-  con sus subdominios), con los campos de `chrome.cookies.Cookie`: `domain`, `hostOnly`,
+- **Qué:** las cookies de los dominios de la lista (por defecto solo `youtube.com`, con sus
+  subdominios), con los campos de `chrome.cookies.Cookie`: `domain`, `hostOnly`,
   `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name` y `value`. También el
   nombre del navegador (`brave`, `chrome`, `edge`…).
 - **Cuándo:** 3 s después de que cambie una cookie de la lista, cada 30 min como

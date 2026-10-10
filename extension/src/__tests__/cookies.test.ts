@@ -12,6 +12,7 @@ describe("collectCookies", () => {
         cookie({ name: "other", domain: ".vimeo.com" }),
       ],
     });
+    fake.granted.add("*://*.google.com/*"); // a site the person added
     // "accounts.google.com" overlaps "google.com": both getAll calls return LSID.
     const got = await collectCookies(fake.api, [
       "google.com",
