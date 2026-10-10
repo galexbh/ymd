@@ -1,0 +1,11 @@
+---
+source: src/auth/native_host.rs
+expression: text
+---
+# Netscape HTTP Cookie File
+.youtube.com	TRUE	/	TRUE	1999999999	SID	v1
+www.youtube.com	FALSE	/	TRUE	1999999999	HOSTONLY	v2
+music.youtube.com	FALSE	/	TRUE	1999999999	DOTTED_HOSTONLY	v3
+#HttpOnly_.youtube.com	TRUE	/	TRUE	1999999999	HSID	h1
+accounts.google.com	FALSE	/signin	FALSE	0	SESS	s1
+.example.org	TRUE	/	TRUE	0	NOEXP	e1

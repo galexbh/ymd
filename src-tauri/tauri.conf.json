@@ -31,6 +31,9 @@
     "targets": ["nsis", "dmg", "app", "appimage", "deb"],
     "category": "Utility",
     "shortDescription": "A calm desktop front end for yt-dlp",
+    "resources": {
+      "../extension/dist": "extension"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -47,7 +50,8 @@
         "languages": ["Spanish", "English"],
         "displayLanguageSelector": true,
         "headerImage": "icons/nsis-header.bmp",
-        "sidebarImage": "icons/nsis-sidebar.bmp"
+        "sidebarImage": "icons/nsis-sidebar.bmp",
+        "installerHooks": "windows/hooks.nsh"
       }
     },
     "createUpdaterArtifacts": true

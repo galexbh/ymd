@@ -53,6 +53,23 @@ fn main() {
         writeln!(f, "{line}").expect("write argv");
     }
 
+    // Like yt-dlp, rewrite the `--cookies` jar (here: append a line), so tests can tell which
+    // file was handed over. A missing jar is an error, as in yt-dlp.
+    if let Some(jar) = argv
+        .iter()
+        .position(|a| a == "--cookies")
+        .and_then(|i| argv.get(i + 1))
+    {
+        let mut f = match std::fs::OpenOptions::new().append(true).open(jar) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("ERROR: cannot open cookies file {jar}: {e}");
+                std::process::exit(1);
+            }
+        };
+        writeln!(f, "# rewritten by fake-ytdlp").expect("write jar");
+    }
+
     if argv.iter().any(|a| a == "--version") {
         let v = std::env::var("FAKE_YTDLP_VERSION").unwrap_or_else(|_| "2026.10.07".into());
         println!("{v}");

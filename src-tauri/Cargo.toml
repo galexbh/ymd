@@ -61,7 +61,11 @@ log = "0.4"
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
+[target.'cfg(windows)'.dependencies]
+winreg = "0.56"
+
 [dev-dependencies]
+base64 = "0.22"
 insta = { version = "1", features = ["yaml", "json"] }
 httpmock = "0.8"
 tempfile = "3"

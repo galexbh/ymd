@@ -6,6 +6,8 @@ use tauri::{AppHandle, Emitter};
 pub async fn probe(state: State<'_>, url: String) -> CmdResult<ProbeResult> {
     let tools = state.tools().await;
     let auth = state.auth_args(None);
+    // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
+    let (auth, _jar) = crate::auth::cookies::ephemeral_args(&auth, &state.paths().tmp_dir())?;
     crate::ytdlp::probe::probe(url.trim(), &tools, &auth).await
 }
 
