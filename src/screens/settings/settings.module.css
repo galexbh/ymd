@@ -336,9 +336,128 @@
 
 .credForm {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   align-items: start;
   gap: var(--space-3);
+}
+.credSite {
+  min-width: 0;
+}
+.credSiteWide {
+  grid-column: 1 / 3;
+  min-width: 0;
+}
+/* username always opens the second row, under the site */
+.credRowStart {
+  grid-column-start: 1;
+}
+.credNote {
+  margin-top: var(--space-2);
+}
+.siteCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.siteName {
+  font-weight: var(--weight-medium);
+}
+
+/* a section reached from a link: focusable, but without a ring around the whole block */
+.anchor {
+  scroll-margin-top: var(--space-4);
+}
+.anchor:focus {
+  outline: none;
+}
+
+/* supported sites register */
+.sitesMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+.sitesBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.sitesBody[hidden] {
+  display: none;
+}
+.sitesTools {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+}
+.sitesSearch {
+  flex: 1 1 16rem;
+  max-width: 24rem;
+}
+.sitesCount {
+  font-size: var(--text-sm);
+}
+.sitesEmpty {
+  padding: var(--space-4);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* how to add more: a short ruled list of cases */
+.cases {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: case;
+  border-top: 1px solid var(--rule);
+}
+.cases > li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-items: start;
+  justify-items: start;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--rule-ledger);
+  counter-increment: case;
+}
+.cases > li::before {
+  content: counter(case) ".";
+  grid-row: 1 / span 3;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  color: var(--accent);
+}
+.cases > li > * {
+  grid-column: 2;
+}
+.caseTitle {
+  font-weight: var(--weight-semibold);
+}
+.caseBody {
+  max-width: 68ch;
+  color: var(--text-muted);
 }
 .credSubmit {
   margin-top: calc(var(--text-sm) * var(--leading-normal) + var(--space-1));
@@ -346,6 +465,9 @@
 @media (max-width: 1100px) {
   .credForm {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .credSiteWide {
+    grid-column: 1 / -1;
   }
   .credSubmit {
     margin-top: 0;

@@ -9,6 +9,7 @@ export {
 export { TextField, FieldFrame, type TextFieldProps } from "./TextField";
 export { UrlField, type UrlFieldProps } from "./UrlField";
 export { Select, type SelectProps, type SelectOption } from "./Select";
+export { Combobox, matchOptions, type ComboboxProps, type ComboboxOption } from "./Combobox";
 export {
   SegmentedControl,
   type SegmentedControlProps,

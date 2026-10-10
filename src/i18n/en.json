@@ -51,6 +51,11 @@
     },
     "field": {
       "invalid": "Check this field"
+    },
+    "combobox": {
+      "toggle": "Show options",
+      "empty": "No site matches.",
+      "more": "{{n}} more: keep typing to narrow it down."
     }
   },
   "stage": {
@@ -695,7 +700,7 @@
       "title": "Site accounts",
       "description": "For sites that ask for a username and password, such as Vimeo.",
       "site": "Site",
-      "siteHint": "yt-dlp extractor name, for example vimeo.",
+      "siteHint": "Search the site by name. Only sites that take an account in yt-dlp are listed.",
       "username": "Username",
       "password": "Password",
       "save": "Save account",
@@ -703,7 +708,52 @@
       "empty": "No saved accounts.",
       "deleteNamed": "Delete the {{site}} account",
       "failed": "The account couldn't be saved",
-      "keychain": "Passwords go to the system keychain and reach yt-dlp without touching the disk or the command line. ymd never shows them again."
+      "keychain": "Passwords go to the system keychain and reach yt-dlp without touching the disk or the command line. ymd never shows them again.",
+      "sitePlaceholder": "Vimeo, Udemy, Twitch…",
+      "other": "Other (advanced)",
+      "otherDesc": "Type the site key yourself if it isn't on the list.",
+      "key": "Site key",
+      "keyHint": "yt-dlp's netrc key, for example vimeo.",
+      "keyInvalid": "Use only lowercase letters, digits, dot, hyphen and underscore, not starting with a hyphen or underscore.",
+      "youtubeTitle": "YouTube doesn't accept a password in yt-dlp",
+      "youtubeBody": "For YouTube, use the cookies section above.",
+      "goToCookies": "Go to cookies"
+    },
+    "supported": {
+      "title": "Sites supported by yt-dlp",
+      "description": "yt-dlp's official extractor list, bundled with ymd and updated with each release.",
+      "show": "Show the list",
+      "hide": "Hide the list",
+      "sites": "sites",
+      "updated": "List from {{date}}",
+      "search": "Search sites",
+      "searchPlaceholder": "Name or description",
+      "filter": "Filter sites",
+      "filterAll": "All",
+      "filterAccount": "Takes an account",
+      "filterBroken": "Broken",
+      "colName": "Site",
+      "colDescription": "Description",
+      "colMarks": "Marks",
+      "badgeAccount": "takes an account",
+      "badgeBroken": "broken per yt-dlp",
+      "empty": "No site matches. If yours isn't here, see “How do I add more?”.",
+      "range": "{{from}}–{{to}} of {{total}}",
+      "pages": "List pages",
+      "prev": "Previous",
+      "next": "Next",
+      "official": "See the official list"
+    },
+    "howto": {
+      "title": "How do I add more?",
+      "accountTitle": "The site asks for an account",
+      "accountBody": "Pick it in “Site accounts” and save your username and password. ymd hands them to yt-dlp when it downloads from that site.",
+      "cookiesTitle": "The site has no account in yt-dlp or needs a browser login",
+      "cookiesBody": "Use cookies: sign in with your browser and ymd passes that session to yt-dlp.",
+      "cookiesAction": "Go to cookies",
+      "genericTitle": "The site isn't on the list",
+      "genericBody": "Paste the link anyway: yt-dlp's generic extractor works with many pages. If it fails, you can ask yt-dlp for support.",
+      "genericAction": "Open yt-dlp's issues"
     }
   }
 }

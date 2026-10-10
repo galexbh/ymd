@@ -131,7 +131,10 @@ describe("Ajustes → Cuentas: site accounts", () => {
     const password = within(form).getByLabelText("Contraseña");
     expect(password).toHaveAttribute("type", "password");
     expect(password).toHaveValue("");
-    await user.type(within(form).getByLabelText("Sitio"), "vimeo");
+    const site = within(form).getByRole("combobox", { name: "Sitio" });
+    await user.type(site, "vime");
+    await user.click(within(form).getByRole("option", { name: /^vimeo/ }));
+    expect(site).toHaveValue("vimeo");
     await user.type(within(form).getByLabelText("Usuario"), "ana@example.com");
     await user.type(password, TYPED_VALUE);
     await user.click(within(form).getByRole("button", { name: "Guardar cuenta" }));
@@ -144,11 +147,105 @@ describe("Ajustes → Cuentas: site accounts", () => {
     expect(be.snapshot().credentials).toEqual([
       { extractor: "vimeo", username: "ana@example.com" },
     ]);
+    expect(calls(be, "credentials_set").map((c) => c.args?.extractor)).toEqual(["vimeo"]);
+    // the picker is cleared for the next account
+    expect(site).toHaveValue("");
 
     await user.click(screen.getByRole("button", { name: "Borrar la cuenta de vimeo" }));
     await tick(0);
     await waitFor(() => expect(screen.queryByTestId("credential-vimeo")).toBeNull());
     expect(be.snapshot().credentials).toEqual([]);
+  });
+
+  it("«Otro (avanzado)» validates the key with the keychain alphabet", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "accounts" });
+    const form = screen.getByRole("form", { name: "Agregar cuenta" });
+    const site = within(form).getByRole("combobox", { name: "Sitio" });
+    await user.type(site, "zzz-no-such-site");
+    await user.click(within(form).getByRole("option", { name: /Otro \(avanzado\)/ }));
+    const key = within(form).getByLabelText("Clave del sitio");
+    const submit = within(form).getByRole("button", { name: "Guardar cuenta" });
+    await user.type(within(form).getByLabelText("Usuario"), "ana");
+    await user.type(within(form).getByLabelText("Contraseña"), TYPED_VALUE);
+
+    await user.type(key, "-bad key");
+    expect(within(form).getByText(/Usa solo minúsculas/)).toBeInTheDocument();
+    expect(key).toHaveAttribute("aria-invalid", "true");
+    expect(submit).toBeDisabled();
+
+    await user.clear(key);
+    await user.type(key, "  MySite.TV ");
+    expect(key).not.toHaveAttribute("aria-invalid");
+    await user.click(submit);
+    await tick(0);
+    expect(calls(be, "credentials_set").map((c) => c.args?.extractor)).toEqual(["mysite.tv"]);
+    expect(await screen.findByTestId("credential-mysite.tv")).toBeInTheDocument();
+    expect(document.body.innerHTML).not.toContain(TYPED_VALUE);
+  });
+
+  it("searching YouTube explains it takes cookies, not a password", async () => {
+    const { user } = await renderApp({ route: "settings", section: "accounts" });
+    const form = screen.getByRole("form", { name: "Agregar cuenta" });
+    await user.type(within(form).getByRole("combobox", { name: "Sitio" }), "youtube");
+    expect(within(form).getByText("YouTube no acepta contraseña en yt-dlp")).toBeInTheDocument();
+    expect(within(form).queryByRole("option", { name: /^youtube/i })).toBeNull();
+    const cookies = document.getElementById("accounts-cookies")!;
+    await user.click(within(form).getByRole("button", { name: "Ir a las cookies" }));
+    expect(cookies).toHaveFocus();
+  });
+});
+
+describe("Ajustes → Cuentas: sitios compatibles", () => {
+  it("is collapsed, then searches, filters, paginates and marks", async () => {
+    const { user } = await renderApp({ route: "settings", section: "accounts" });
+    const section = screen.getByTestId("supported-sites");
+    expect(within(section).getByText(/^1\.\d{3}$/)).toBeInTheDocument();
+    expect(within(section).queryByRole("table")).toBeNull();
+
+    await user.click(within(section).getByRole("button", { name: "Mostrar la lista" }));
+    expect(within(section).getAllByTestId("supported-row")).toHaveLength(25);
+    expect(within(section).getByTestId("supported-range")).toHaveTextContent(/^1–25 de 1\.\d{3}$/);
+
+    await user.click(within(section).getByRole("button", { name: "Siguiente" }));
+    expect(within(section).getByTestId("supported-range")).toHaveTextContent(/^26–50 de/);
+
+    await user.type(within(section).getByRole("searchbox", { name: "Buscar sitio" }), "vimeo");
+    const rows = within(section).getAllByTestId("supported-row");
+    expect(rows[0]).toHaveTextContent("vimeo");
+    expect(within(rows[0]).getByText("admite cuenta")).toBeInTheDocument();
+    // search resets to the first page
+    expect(within(section).queryByTestId("supported-range")).toBeNull();
+
+    await user.clear(within(section).getByRole("searchbox", { name: "Buscar sitio" }));
+    await user.click(within(section).getByRole("radio", { name: "Roto" }));
+    const broken = within(section).getAllByTestId("supported-row");
+    for (const row of broken)
+      expect(within(row).getByText("roto según yt-dlp")).toBeInTheDocument();
+
+    await user.click(within(section).getByRole("radio", { name: "Admite cuenta" }));
+    for (const row of within(section).getAllByTestId("supported-row"))
+      expect(within(row).getByText("admite cuenta")).toBeInTheDocument();
+
+    await user.type(
+      within(section).getByRole("searchbox", { name: "Buscar sitio" }),
+      "no-such-site-anywhere",
+    );
+    expect(within(section).getByText(/Ningún sitio coincide/)).toBeInTheDocument();
+    expect(within(section).getByTestId("supported-count")).toHaveTextContent(/^0/);
+  });
+
+  it("links to the official list and to yt-dlp's issues", async () => {
+    const { be, user } = await renderApp({ route: "settings", section: "accounts" });
+    await user.click(screen.getByRole("button", { name: "Ver la lista oficial" }));
+    await user.click(screen.getByRole("button", { name: "Abrir los issues de yt-dlp" }));
+    const urls = calls(be, "plugin:opener|open_url").map((c) => c.args?.url);
+    expect(urls).toEqual([
+      "https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md",
+      "https://github.com/yt-dlp/yt-dlp/issues",
+    ]);
+    const howto = screen.getByTestId("howto-more");
+    await user.click(within(howto).getByRole("button", { name: "Ir a las cookies" }));
+    expect(document.getElementById("accounts-cookies")).toHaveFocus();
   });
 });
 

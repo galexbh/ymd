@@ -104,6 +104,15 @@ export function accessionDigits(seq: number): string {
   return String(n).padStart(ACCESSION_DIGITS, "0");
 }
 
+/** Whole count with thousands always grouped, as a register prints it: "1.731" / "1,731". */
+export function formatCount(n: number, locale: FormatLocale): string {
+  if (!Number.isFinite(n)) return PLACEHOLDER;
+  // Spanish CLDR skips grouping below 10 000; "always" keeps every count aligned.
+  // ("always" is ES2023; the app's lib target still types useGrouping as a boolean)
+  const opts = { maximumFractionDigits: 0, useGrouping: "always" } as unknown;
+  return new Intl.NumberFormat(locale, opts as Intl.NumberFormatOptions).format(n);
+}
+
 /** Whole-number percentage of a fraction 0..1 ("42 %" in es, "42%" in en). */
 export function formatPercent(fraction: number | null | undefined, locale: FormatLocale): string {
   if (!valid(fraction)) return PLACEHOLDER;

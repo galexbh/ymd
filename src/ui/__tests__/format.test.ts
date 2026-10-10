@@ -3,6 +3,7 @@ import {
   bytesParts,
   formatAccession,
   formatBytes,
+  formatCount,
   formatDuration,
   formatEta,
   formatPercent,
@@ -12,6 +13,15 @@ import {
 } from "../format";
 
 const NB = " ";
+
+describe("formatCount", () => {
+  it("always groups thousands, also in Spanish", () => {
+    expect(formatCount(1731, "es")).toBe("1.731");
+    expect(formatCount(1731, "en")).toBe("1,731");
+    expect(formatCount(96, "es")).toBe("96");
+    expect(formatCount(Number.NaN, "es")).toBe("—");
+  });
+});
 
 describe("bytes", () => {
   it("uses binary units with locale decimals", () => {

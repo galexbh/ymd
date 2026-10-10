@@ -37,7 +37,7 @@ export default defineConfig(() => ({
     environment: "jsdom",
     globals: false,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "scripts/**/*.test.mjs"],
     exclude: ["node_modules", "dist", "e2e/**", "src-tauri/**"],
     restoreMocks: true,
     coverage: {

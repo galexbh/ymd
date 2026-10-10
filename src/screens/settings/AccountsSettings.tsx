@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  ExternalLink,
-  FileUp,
-  FlaskConical,
-  KeyRound,
-  RefreshCw,
-  ShieldCheck,
-  Trash2,
-} from "lucide-react";
+import { ExternalLink, FileUp, FlaskConical, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api, toCommandError } from "../../ipc/commands";
 import type {
@@ -16,27 +8,18 @@ import type {
   CommandError,
   CookieFileInfo,
   CookieSource,
-  SiteCredential,
 } from "../../ipc/types";
 import {
   Button,
   ErrorNotice,
   Figure,
   Icon,
-  IconButton,
-  Ledger,
-  LedgerBody,
-  LedgerCell,
-  LedgerHead,
-  LedgerHeaderCell,
-  LedgerRow,
   Notice,
   Section,
   SegmentedControl,
   Select,
   Skeleton,
   Tag,
-  TextField,
   formatDate,
 } from "../../ui";
 import { currentLocale } from "../../i18n";
@@ -46,6 +29,19 @@ import { BROWSER_NAMES } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
 import { CHROMIUM, FIREFOX_DOWNLOAD_URL, orderBrowsers } from "./constants";
 import s from "./settings.module.css";
+import { SiteAccounts } from "./SiteAccounts";
+import { HowToAddMore, SupportedSites } from "./SupportedSites";
+
+/** Anchor of the cookies section, for "use cookies" links further down. */
+const COOKIES_SECTION_ID = "accounts-cookies";
+
+function goToCookies() {
+  const el = document.getElementById(COOKIES_SECTION_ID);
+  if (!el) return;
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+}
 
 type Run = { status: "idle" | "running" | "ok" | "fail"; error: CommandError | null };
 const IDLE: Run = { status: "idle", error: null };
@@ -300,7 +296,13 @@ export function AccountsSettings() {
 
   return (
     <>
-      <Section title={t("accounts.cookies.title")} description={t("accounts.cookies.description")}>
+      <Section
+        id={COOKIES_SECTION_ID}
+        tabIndex={-1}
+        className={s.anchor}
+        title={t("accounts.cookies.title")}
+        description={t("accounts.cookies.description")}
+      >
         <div className={s.fieldStack}>
           <span className={s.fieldLabel}>{t("accounts.source.label")}</span>
           <SegmentedControl<CookieSource["kind"]>
@@ -512,136 +514,9 @@ export function AccountsSettings() {
 
       {!guideFirst && guide}
 
-      <Credentials />
+      <SiteAccounts onGoToCookies={goToCookies} />
+      <SupportedSites />
+      <HowToAddMore onGoToCookies={goToCookies} />
     </>
-  );
-}
-
-function Credentials() {
-  const { t } = useTranslation();
-  const [list, setList] = useState<SiteCredential[] | null>(null);
-  const [extractor, setExtractor] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<CommandError | null>(null);
-
-  useEffect(() => {
-    api
-      .credentialsList()
-      .then(setList)
-      .catch(() => setList([]));
-  }, []);
-
-  const save = async () => {
-    setSaving(true);
-    setError(null);
-    try {
-      setList(await api.credentialsSet(extractor.trim(), username.trim(), password));
-      setExtractor("");
-      setUsername("");
-    } catch (e) {
-      setError(toCommandError(e));
-    } finally {
-      // the secret never outlives the request
-      setPassword("");
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Section title={t("accounts.sites.title")} description={t("accounts.sites.description")}>
-      {list === null ? (
-        <Skeleton count={2} columns={[20, 40, 10]} />
-      ) : list.length === 0 ? (
-        <p className={screen.muted}>{t("accounts.sites.empty")}</p>
-      ) : (
-        <Ledger caption={t("accounts.sites.title")} data-testid="credentials-ledger">
-          <LedgerHead>
-            <tr>
-              <LedgerHeaderCell>{t("accounts.sites.site")}</LedgerHeaderCell>
-              <LedgerHeaderCell>{t("accounts.sites.username")}</LedgerHeaderCell>
-              <LedgerHeaderCell className={s.cPresetActions}>
-                <span className="visually-hidden">{t("ledger.col.actions")}</span>
-              </LedgerHeaderCell>
-            </tr>
-          </LedgerHead>
-          <LedgerBody>
-            {list.map((c) => (
-              <LedgerRow key={c.extractor} data-testid={`credential-${c.extractor}`}>
-                <LedgerCell>
-                  <Tag mono>{c.extractor}</Tag>
-                </LedgerCell>
-                <LedgerCell truncate>{c.username}</LedgerCell>
-                <LedgerCell>
-                  <div className={screen.actionsCell}>
-                    <IconButton
-                      icon={Trash2}
-                      size="sm"
-                      aria-label={t("accounts.sites.deleteNamed", { site: c.extractor })}
-                      onClick={async () => {
-                        try {
-                          setList(await api.credentialsDelete(c.extractor));
-                        } catch (e) {
-                          setError(toCommandError(e));
-                        }
-                      }}
-                    />
-                  </div>
-                </LedgerCell>
-              </LedgerRow>
-            ))}
-          </LedgerBody>
-        </Ledger>
-      )}
-
-      <form
-        className={s.credForm}
-        aria-label={t("accounts.sites.add")}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void save();
-        }}
-      >
-        <TextField
-          label={t("accounts.sites.site")}
-          hint={t("accounts.sites.siteHint")}
-          mono
-          value={extractor}
-          placeholder="vimeo"
-          autoComplete="off"
-          onChange={(e) => setExtractor(e.target.value)}
-        />
-        <TextField
-          label={t("accounts.sites.username")}
-          value={username}
-          autoComplete="off"
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <TextField
-          label={t("accounts.sites.password")}
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          data-testid="credential-password"
-        />
-        <Button
-          type="submit"
-          variant="secondary"
-          leadingIcon={KeyRound}
-          loading={saving}
-          disabled={!extractor.trim() || !username.trim() || !password}
-          className={s.credSubmit}
-        >
-          {t("accounts.sites.save")}
-        </Button>
-      </form>
-      {error && <Notice tone="error" title={t("accounts.sites.failed")} detail={error.detail} />}
-      <p className={s.privacy}>
-        <Icon icon={ShieldCheck} size={16} />
-        <span>{t("accounts.sites.keychain")}</span>
-      </p>
-    </Section>
   );
 }

@@ -59,7 +59,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.js", "scripts/**/*.mjs"],
     ignores: ["public/**"],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node, sourceType: "module" },

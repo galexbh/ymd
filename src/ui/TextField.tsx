@@ -16,6 +16,7 @@ export interface FieldFrameProps {
   children: ReactNode;
 }
 
+export const labelId = (id: string) => `${id}-label`;
 export const hintId = (id: string) => `${id}-hint`;
 export const errorId = (id: string) => `${id}-error`;
 
@@ -33,7 +34,7 @@ export function FieldFrame({
   const { t } = useTranslation();
   return (
     <div className={cx(s.field, className)}>
-      <label htmlFor={id} className={hideLabel ? "visually-hidden" : s.label}>
+      <label id={labelId(id)} htmlFor={id} className={hideLabel ? "visually-hidden" : s.label}>
         {label}
         {optional && <span className={s.optional}>({t("common.optional")})</span>}
       </label>

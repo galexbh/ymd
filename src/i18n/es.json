@@ -51,6 +51,11 @@
     },
     "field": {
       "invalid": "Revisa este campo"
+    },
+    "combobox": {
+      "toggle": "Mostrar opciones",
+      "empty": "Ningún sitio coincide.",
+      "more": "{{n}} más: sigue escribiendo para acotar."
     }
   },
   "stage": {
@@ -695,7 +700,7 @@
       "title": "Cuentas de sitios",
       "description": "Para sitios que piden usuario y contraseña, como Vimeo.",
       "site": "Sitio",
-      "siteHint": "Nombre del extractor de yt-dlp, por ejemplo vimeo.",
+      "siteHint": "Busca el sitio por su nombre. Solo aparecen los que admiten cuenta en yt-dlp.",
       "username": "Usuario",
       "password": "Contraseña",
       "save": "Guardar cuenta",
@@ -703,7 +708,52 @@
       "empty": "No hay cuentas guardadas.",
       "deleteNamed": "Borrar la cuenta de {{site}}",
       "failed": "No se pudo guardar la cuenta",
-      "keychain": "Las contraseñas se guardan en el llavero del sistema y llegan a yt-dlp sin pasar por el disco ni por la línea de comandos. ymd nunca las vuelve a mostrar."
+      "keychain": "Las contraseñas se guardan en el llavero del sistema y llegan a yt-dlp sin pasar por el disco ni por la línea de comandos. ymd nunca las vuelve a mostrar.",
+      "sitePlaceholder": "Vimeo, Udemy, Twitch…",
+      "other": "Otro (avanzado)",
+      "otherDesc": "Escribe a mano la clave del sitio si no aparece en la lista.",
+      "key": "Clave del sitio",
+      "keyHint": "La clave netrc de yt-dlp, por ejemplo vimeo.",
+      "keyInvalid": "Usa solo minúsculas, números, punto, guion y guion bajo, sin empezar por guion ni guion bajo.",
+      "youtubeTitle": "YouTube no acepta contraseña en yt-dlp",
+      "youtubeBody": "Para YouTube usa las cookies de la sección de arriba.",
+      "goToCookies": "Ir a las cookies"
+    },
+    "supported": {
+      "title": "Sitios compatibles con yt-dlp",
+      "description": "La lista oficial de extractores de yt-dlp, incluida en ymd y actualizada con cada versión.",
+      "show": "Mostrar la lista",
+      "hide": "Ocultar la lista",
+      "sites": "sitios",
+      "updated": "Lista del {{date}}",
+      "search": "Buscar sitio",
+      "searchPlaceholder": "Nombre o descripción",
+      "filter": "Filtrar sitios",
+      "filterAll": "Todos",
+      "filterAccount": "Admite cuenta",
+      "filterBroken": "Roto",
+      "colName": "Sitio",
+      "colDescription": "Descripción",
+      "colMarks": "Marcas",
+      "badgeAccount": "admite cuenta",
+      "badgeBroken": "roto según yt-dlp",
+      "empty": "Ningún sitio coincide. Si el tuyo no está, mira «¿Cómo agrego más?».",
+      "range": "{{from}}–{{to}} de {{total}}",
+      "pages": "Páginas de la lista",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "official": "Ver la lista oficial"
+    },
+    "howto": {
+      "title": "¿Cómo agrego más?",
+      "accountTitle": "El sitio pide cuenta",
+      "accountBody": "Elígelo en «Cuentas de sitios» y guarda tu usuario y contraseña. ymd se los pasa a yt-dlp cuando descarga de ese sitio.",
+      "cookiesTitle": "El sitio no tiene cuenta en yt-dlp o exige iniciar sesión en el navegador",
+      "cookiesBody": "Usa las cookies: inicia sesión en tu navegador y ymd le pasa esa sesión a yt-dlp.",
+      "cookiesAction": "Ir a las cookies",
+      "genericTitle": "El sitio no está en la lista",
+      "genericBody": "Prueba igual pegando el enlace: el extractor genérico de yt-dlp funciona con muchas páginas. Si falla, puedes pedir soporte a yt-dlp.",
+      "genericAction": "Abrir los issues de yt-dlp"
     }
   }
 }
