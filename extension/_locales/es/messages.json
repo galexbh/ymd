@@ -160,5 +160,23 @@
   },
   "badgeError": {
     "message": "ymd Cookies: no se pudo hablar con ymd"
+  },
+  "currentUseSession": {
+    "message": "Usar mi sesión de $SITE$ en ymd",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "Vimeo"
+      }
+    }
+  },
+  "currentAdded": {
+    "message": "Listo: ymd recibirá tu sesión de $SITE$.",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "Vimeo"
+      }
+    }
   }
 }

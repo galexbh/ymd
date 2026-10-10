@@ -61,6 +61,7 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
 - El sello **Puente con ymd** dice **Conectada**, **Sin conexión** o **Error**, con el último envío y el número de cookies.
 - **Sesión de YouTube** dice si la copia que recibió ymd tiene tu sesión: **Activa** o **Cerrada**. Se sabe por el nombre de las cookies, sin mirar su contenido.
 - **Enviar ahora** fuerza un envío.
+- **Esta página**: **Descargar con ymd** para la pestaña abierta y, si estás en un sitio que ymd conoce (Vimeo, SoundCloud, Twitch…) y aún no está en la lista, **Usar mi sesión de …** lo agrega con un clic.
 - **Sitios permitidos**: por defecto solo `youtube.com`, con sus subdominios. La sesión de YouTube vive en sus propias cookies, así que la extensión no lee las de tu cuenta de Google. **Agregar un sitio** (por ejemplo `vimeo.com`) pide el permiso del navegador para ese dominio; quitarlo devuelve el permiso.
 
 El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube está cerrada, y en rojo cuando no puede hablar con ymd; al pasar el ratón explica cuál. En ymd, **Ajustes → Cuentas** muestra la misma **Sesión de YouTube** y te indica cómo recuperarla.

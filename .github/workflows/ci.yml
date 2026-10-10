@@ -85,6 +85,8 @@ jobs:
             extension:
               - *ci
               - extension/**
+              # The provider list the popup shares with the app.
+              - src/shared/**
               - src/styles/**
               - src/assets/brand/**
               - package.json
