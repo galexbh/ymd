@@ -59,8 +59,11 @@ ymd opens, or comes to the front if it was already open, with the link in **Rece
 Pin "ymd Cookies" to the browser toolbar and open it:
 
 - The **Bridge to ymd** stamp reads **Connected**, **Offline** or **Error**, with the last send and the number of cookies.
+- **YouTube session** tells whether the copy ymd got holds your session: **Active** or **Signed out**. It goes by the cookies' names, without looking at their contents.
 - **Send now** forces a send.
 - **Allowed sites**: only `youtube.com` by default, with its subdomains. Your YouTube session lives in its own cookies, so the extension doesn't read your Google account's. **Add a site** (for example `vimeo.com`) asks the browser for permission for that domain; removing it gives the permission back.
+
+The extension icon shows an amber **!** when you're signed out of YouTube, and a red one when it can't reach ymd; hovering explains which. In ymd, **Settings → Accounts** shows the same **YouTube session** and tells you how to get it back.
 
 ## What it sends and where
 

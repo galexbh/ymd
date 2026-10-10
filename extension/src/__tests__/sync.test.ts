@@ -254,6 +254,8 @@ describe("stored status", () => {
       count: 2,
       domains: ["google.com", "youtube.com"],
       error: null,
+      // only a preferences cookie on YouTube: signed out (names only, values never read)
+      sessions: { "youtube.com": false },
     });
     const everything = JSON.stringify([...fake.store.entries()]);
     for (const c of SEED) expect(everything).not.toContain(c.value);

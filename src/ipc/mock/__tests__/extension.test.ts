@@ -33,7 +33,13 @@ describe("mock backend — cookie bridge", () => {
       extension: {
         registered: false,
         extensionDir: false,
-        lastSync: { at: "2026-10-08T14:00:00Z", browser: "edge", cookieCount: 9, domains: [] },
+        lastSync: {
+          at: "2026-10-08T14:00:00Z",
+          browser: "edge",
+          cookieCount: 9,
+          domains: [],
+          signedIn: [],
+        },
       },
     });
     const st = await api.extensionStatus();
@@ -52,13 +58,21 @@ describe("mock backend — cookie bridge", () => {
       browser: "brave",
       cookieCount: 42,
       domains: [".youtube.com", ".google.com"],
+      signedIn: ["youtube.com"],
     });
     // a delivered message proves the host is registered for that browser
     expect(st.targets.find((t) => t.browser === "brave")?.registered).toBe(true);
     expect(st.targets.find((t) => t.browser === "edge")?.registered).toBe(false);
     const info = await api.cookiesInfo();
-    expect(info).toMatchObject({ origin: "extension:brave", cookieCount: 42 });
+    expect(info).toMatchObject({
+      origin: "extension:brave",
+      cookieCount: 42,
+      signedIn: ["youtube.com"],
+    });
     expect(be.snapshot().extension.lastSync?.cookieCount).toBe(42);
+    // no YouTube cookies: signed out
+    be.simulateExtensionSync("edge", 3, [".vimeo.com"]);
+    expect((await api.cookiesInfo())?.signedIn).toEqual([]);
   });
 
   it("setExtensionState flips registration, folder and sync", async () => {

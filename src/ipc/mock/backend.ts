@@ -389,9 +389,20 @@ export class MockBackend {
   }
 
   /** The extension delivered `count` cookies from `browser` (writes cookies.txt + meta). */
-  simulateExtensionSync(browser: string, count: number, domains: string[]): ExtensionSync {
+  simulateExtensionSync(
+    browser: string,
+    count: number,
+    domains: string[],
+    signedIn: string[] = domains.some((d) => /youtube\.com$/.test(d)) ? ["youtube.com"] : [],
+  ): ExtensionSync {
     const at = new Date(this.clock.now()).toISOString();
-    const sync: ExtensionSync = { at, browser, cookieCount: count, domains: [...domains] };
+    const sync: ExtensionSync = {
+      at,
+      browser,
+      cookieCount: count,
+      domains: [...domains],
+      signedIn: [...signedIn],
+    };
     this.extension.lastSync = sync;
     // a message got through, so the host is registered for that browser
     for (const t of this.extension.targets) {
@@ -402,6 +413,7 @@ export class MockBackend {
       origin: `extension:${browser}`,
       cookieCount: count,
       domains: [...domains],
+      signedIn: [...signedIn],
     };
     return clone(sync);
   }
@@ -1141,6 +1153,7 @@ export class MockBackend {
       origin: `${browser}:${name}`,
       cookieCount: 120 + (hash(`${browser}:${name}`) % 400),
       domains: [".youtube.com", ".google.com", ".vimeo.com", ".soundcloud.com"],
+      signedIn: ["youtube.com"],
     };
     return clone(this.cookies);
   }
@@ -1154,6 +1167,7 @@ export class MockBackend {
       origin: "file",
       cookieCount: 37,
       domains: [".youtube.com", ".google.com"],
+      signedIn: ["youtube.com"],
     };
     return clone(this.cookies);
   }

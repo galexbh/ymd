@@ -145,5 +145,20 @@
   },
   "downloadFailed": {
     "message": "No se pudo abrir ymd. Comprueba que esté instalado y actualizado."
+  },
+  "sessionYoutube": {
+    "message": "Sesión de YouTube"
+  },
+  "sessionActive": {
+    "message": "Activa"
+  },
+  "sessionClosed": {
+    "message": "Cerrada: inicia sesión en YouTube"
+  },
+  "badgeSessionClosed": {
+    "message": "ymd Cookies: tu sesión de YouTube está cerrada"
+  },
+  "badgeError": {
+    "message": "ymd Cookies: no se pudo hablar con ymd"
   }
 }

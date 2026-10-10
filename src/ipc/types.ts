@@ -288,6 +288,8 @@ export interface CookieFileInfo {
   origin: string;
   cookieCount: number;
   domains: string[];
+  /** sites with a signed-in session in this jar ("youtube.com"), from cookie names only */
+  signedIn: string[];
 }
 
 export interface CookieTestResult {
@@ -312,6 +314,8 @@ export interface ExtensionSync {
   browser: string;
   cookieCount: number;
   domains: string[];
+  /** sites with a signed-in session in the synced jar */
+  signedIn: string[];
 }
 
 export interface ExtensionStatus {

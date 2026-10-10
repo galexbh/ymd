@@ -139,6 +139,8 @@ export function createChromeFake(options: FakeOptions = {}) {
     native: [] as Array<{ host: string; message: Record<string, unknown> }>,
     getAll: [] as Array<{ domain?: string }>,
     permissionRequests: [] as string[][],
+    /** The toolbar badge as last set. */
+    badge: { text: "", color: null as string | null, title: "ymd Cookies" },
     /** Context menu items currently created. */
     menus: [] as MenuProperties[],
     permissionRemovals: [] as string[][],
@@ -240,6 +242,17 @@ export function createChromeFake(options: FakeOptions = {}) {
         record.menus.length = 0;
       },
       onClicked: events.menuClicked,
+    },
+    action: {
+      async setBadgeText({ text }: { text: string }) {
+        record.badge.text = text;
+      },
+      async setBadgeBackgroundColor({ color }: { color: string }) {
+        record.badge.color = color;
+      },
+      async setTitle({ title }: { title: string }) {
+        record.badge.title = title;
+      },
     },
     tabs: {
       async query() {

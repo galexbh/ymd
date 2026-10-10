@@ -260,7 +260,21 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
               <Figure value={sync.cookieCount} />
             </dd>
           </div>
+          <div>
+            <dt>{t("session.youtube")}</dt>
+            <dd
+              data-testid="extension-session"
+              data-signed-in={sync.signedIn.includes("youtube.com")}
+            >
+              {sync.signedIn.includes("youtube.com") ? t("session.active") : t("session.closed")}
+            </dd>
+          </div>
         </dl>
+      )}
+      {sync && !sync.signedIn.includes("youtube.com") && (
+        <p className={settings.fieldHint} data-testid="extension-session-hint">
+          {t("session.closedHint", { browser: syncBrowserName(sync.browser) })}
+        </p>
       )}
 
       {first && (

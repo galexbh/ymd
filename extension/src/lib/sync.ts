@@ -5,7 +5,9 @@ import { type BrowserName } from "./browser";
 import { type ChromeApi, type MessageSender, type CookieChangeInfo } from "./chrome-api";
 import { collectCookies, domainsOf, hashCookies, type WireCookie } from "./cookies";
 import { cookieDomainAllowed } from "./domains";
+import { applyBadge } from "./badge";
 import { clickedLink, webLink } from "./links";
+import { sessionsOf } from "./session";
 import { mapLastError, type Status, type StatusError } from "./status";
 import {
   ensureAllowlist,
@@ -154,6 +156,7 @@ export function createSyncEngine(deps: EngineDeps) {
             ? (replyDomains as string[])
             : domainsOf(cookies, allowlist),
         error: null,
+        sessions: sessionsOf(cookies, allowlist),
       };
       await writeHash(api, hash);
     } else {
@@ -174,6 +177,7 @@ export function createSyncEngine(deps: EngineDeps) {
         count: previous?.count ?? 0,
         domains: previous?.domains ?? [],
         error: { code: "unknown", detail: e instanceof Error ? e.message.slice(0, 300) : "" },
+        sessions: previous?.sessions ?? {},
       };
       await writeStatus(api, status).catch(() => undefined);
       return { sent: false, skipped: false, status };
@@ -304,8 +308,14 @@ export function installBackground(engine: SyncEngine, api: ChromeApi): void {
   });
 
   api.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && KEYS.allowlist in changes) engine.schedule();
+    if (area !== "local") return;
+    if (KEYS.allowlist in changes) engine.schedule();
+    // The badge mirrors whatever status was last stored, whoever stored it.
+    if (KEYS.status in changes) void readStatus(api).then((s) => applyBadge(api, s));
   });
+  void readStatus(api)
+    .then((s) => applyBadge(api, s))
+    .catch(() => undefined);
 
   api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!fromOwnPopup(api, sender) || !isPopupRequest(message)) return false;
