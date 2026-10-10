@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Download yt-dlp nightly (verified)
         run: |
@@ -130,7 +130,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-logs
           path: ${{ runner.temp }}/*.log
@@ -139,7 +139,7 @@ jobs:
 
       - name: Open or update the smoke-failure issue
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           RUNNER_TEMP_DIR: ${{ runner.temp }}
         with:

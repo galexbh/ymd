@@ -48,11 +48,11 @@ jobs:
             args: --bundles appimage,deb
             rust-targets: ""
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -86,7 +86,7 @@ jobs:
             echo "YMD_NOTES_EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Updater signing key (minisign). Kept outside the repo as CI secrets.
@@ -112,11 +112,11 @@ jobs:
     timeout-minutes: 15
     needs: release
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -129,7 +129,7 @@ jobs:
           pnpm ext:build
           pnpm ext:zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ymd-cookies-extension
           path: extension/ymd-cookies-extension.zip
