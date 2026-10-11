@@ -43,8 +43,7 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
   - `Cookie` refleja `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Los campos extra se ignoran.
   - Un `browser` desconocido se registra como `other`.
   - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, con caracteres de control en la ruta, el nombre o el valor, con un dominio que no sea un nombre de host válido, con una ruta que no empiece por `/`, o de más de 4096 bytes (nombre más valor). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
-  - Más de 10.000 cookies en un mensaje es un error.
-- `{"type":"open","version":1,"url":"https://…"}` → `{"ok":true}` («Descargar con ymd»)
+  - Más de 10.000 cookies en un mensaje es un error. La extensión no envía un mensaje así: muestra el error `too_many_cookies` en su ventana.- `{"type":"open","version":1,"url":"https://…"}` → `{"ok":true}` («Descargar con ymd»)
   - Solo enlaces web: `http` o `https`, de 2048 caracteres como máximo, sin espacios ni caracteres de control, sin usuario ni contraseña y con un host con punto que no sea una IP. Otro enlace → `{"ok":false,"code":"unsupported_url"}`.
 - `version` es obligatorio en todos los mensajes; un valor mayor que `1` se rechaza.
 - Cualquier fallo → `{"ok":false,"code":"<ErrorCode en snake_case>","detail":"…"}`. El detalle nunca contiene valores de cookies.

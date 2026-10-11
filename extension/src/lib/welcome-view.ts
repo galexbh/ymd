@@ -31,9 +31,10 @@ export async function mountWelcome(doc: Document, deps: WelcomeDeps) {
 
   /**
    * Step 1. Browsers have no API to pin an extension, only to ask whether it is pinned
-   * (Chrome 91+), so the page guides and then confirms.
+   * (Chrome 91+), so the page guides and then confirms. Resolves true once there is nothing
+   * left to watch: the extension is pinned, or the browser cannot tell.
    */
-  async function checkPin(): Promise<void> {
+  async function checkPin(): Promise<boolean> {
     const settings = await api.action.getUserSettings?.().catch(() => undefined);
     const known = typeof settings?.isOnToolbar === "boolean";
     const pinned = settings?.isOnToolbar === true;
@@ -42,6 +43,7 @@ export async function mountWelcome(doc: Document, deps: WelcomeDeps) {
     state.hidden = !known;
     state.dataset.tone = pinned ? "ok" : "";
     state.textContent = known ? t(pinned ? "welcomePinDone" : "welcomePinWaiting") : "";
+    return pinned || !known;
   }
 
   /** Step 2: YouTube first (ready, or one click), then the other suggestions. */
@@ -93,4 +95,40 @@ export async function mountWelcome(doc: Document, deps: WelcomeDeps) {
   renderSites();
   await checkPin();
   return { checkPin, add };
+}
+
+export const PIN_POLL_MS = 1_500;
+
+export interface PinWatchDeps {
+  doc: Pick<Document, "visibilityState" | "addEventListener" | "removeEventListener">;
+  win: Pick<Window, "addEventListener" | "removeEventListener">;
+  setInterval: (fn: () => void, ms: number) => unknown;
+  clearInterval: (handle: unknown) => void;
+}
+
+/**
+ * Pinning happens in the browser's own menu, so the page looks again while it is in view, and
+ * stops for good once the extension is pinned (or the browser cannot tell). Returns `stop`.
+ */
+export function watchPin(checkPin: () => Promise<boolean>, deps: PinWatchDeps): () => void {
+  let stopped = false;
+  const check = () => {
+    if (stopped || deps.doc.visibilityState !== "visible") return;
+    void checkPin()
+      .then((done) => {
+        if (done) stop();
+      })
+      .catch(() => undefined);
+  };
+  const handle = deps.setInterval(check, PIN_POLL_MS);
+  deps.win.addEventListener("focus", check);
+  deps.doc.addEventListener("visibilitychange", check);
+  function stop(): void {
+    if (stopped) return;
+    stopped = true;
+    deps.clearInterval(handle);
+    deps.win.removeEventListener("focus", check);
+    deps.doc.removeEventListener("visibilitychange", check);
+  }
+  return stop;
 }

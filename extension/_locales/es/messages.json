@@ -59,6 +59,12 @@
   "errorRejectedHint": {
     "message": "Vuelve a intentarlo. Si se repite, revisa ymd."
   },
+  "errorTooMany": {
+    "message": "Hay más de 10.000 cookies en los sitios de la lista; ymd no acepta tantas."
+  },
+  "errorTooManyHint": {
+    "message": "Quita de la lista los sitios que no necesites y pulsa «Enviar ahora»."
+  },
   "errorUnknown": {
     "message": "No se pudo hablar con ymd."
   },
@@ -148,6 +154,12 @@
   },
   "badgeError": {
     "message": "ymd Cookies: no se pudo hablar con ymd"
+  },
+  "badgeRejected": {
+    "message": "ymd Cookies: ymd no pudo guardar las cookies"
+  },
+  "badgeTooMany": {
+    "message": "ymd Cookies: demasiadas cookies para enviar a ymd"
   },
   "currentUseSession": {
     "message": "Usar mi sesión de $SITE$ en ymd",

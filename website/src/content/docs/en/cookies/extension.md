@@ -72,20 +72,21 @@ Pin “ymd Cookies” to the browser toolbar and open it:
   - With more than five sites, the list folds: **Show all (N)** reveals the rest and **Show less** folds it again. A site you just added always stays in view.
   - Your YouTube session is stored in `youtube.com` cookies, so adding YouTube gives no access to your Google account.
 
-The extension icon shows an amber **!** when you're signed out of YouTube, and a red one when it can't reach ymd; hovering over it shows the reason. In ymd, **Settings → Accounts** shows the same **YouTube session** and explains how to restore it.
+The extension icon shows an amber **!** when you're signed out of YouTube, and a red one when the last send failed: ymd didn't answer, couldn't save the cookies, or the listed sites have more than 10,000 cookies. Hovering over it shows the reason. In ymd, **Settings → Accounts** shows the same **YouTube session** and explains how to restore it.
 
 ## What it sends and where
 
 - **To whom:** only to the native program `com.ymd.cookies` (ymd), over Native Messaging. The browser starts it as a local process and passes the message on standard input. There's no network, server or telemetry.
 - **What:** the cookies of the domains on the list, with the `chrome.cookies.Cookie` fields (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), plus the browser name and the extension version.
-- **When:** 3 s after a cookie on the list changes, every 30 min as a full sync, and when you click **Send now**. It only sends when the content changed (a SHA-256 hash is compared).
+- **When:** 3 s after a cookie on the list changes (at most 30 s after the first change, even if changes keep coming), every 30 min as a full sync, and when you click **Send now**. It only sends when the content changed (a SHA-256 hash is compared).
+- **If a send fails:** the extension doesn't resend the cookies on every change. It tries again with the 30-min sync; if ymd rejected the send or didn't answer, it waits longer each time (30 min, 1 h, 2 h… up to 6 h). **Send now** tries right away. A send that gets no answer from ymd within 30 s counts as failed. With more than 10,000 cookies, the most ymd accepts, nothing is sent.
 - **What ymd does:** writes `cookies.txt` (Netscape format) in its data folder, encrypted with a key from the system keychain and readable only by your user, and uses it with yt-dlp.
 
 The full protocol is in [Cookie bridge protocol](/ymd/en/desarrollo/puente-de-cookies/).
 
 ## Privacy
 
-- The extension stores the site list, the status (last sync, cookie count, domains and the last error) and the hash. It never stores a cookie value.
+- The extension stores the site list, the status (last sync, cookie count, domains and the last error), the hash and, after a failure, the hash of the failed attempt with its error code. It never stores a cookie value.
 - Cookies are sent only to ymd on this computer. They're never sent over the network or to the developer.
 - No other extension or web page can communicate with “ymd Cookies”, and ymd never hands cookies back to anyone. Details in [Security](/ymd/en/desarrollo/puente-de-cookies/#security).
 - To stop sharing: remove the site from the list or uninstall the extension. **Delete copy**, in **Settings → Accounts**, deletes ymd's `cookies.txt`.
@@ -100,6 +101,9 @@ The loaded extension doesn't have ymd's ID. Remove it and load it from the folde
 
 **“ymd closed before answering” or “ymd could not save the cookies”.**
 Try again with **Send now**. If the error persists, update ymd.
+
+**“The listed sites have more than 10,000 cookies”.**
+ymd accepts at most 10,000 cookies per send. Remove the sites you don't need from the list and click **Send now**.
 
 **The card stays on “Pending”.**
 The first sync arrives when a cookie changes or when you click **Send now** in the extension. Check that you're signed in to YouTube in that browser.

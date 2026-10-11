@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { KEYS } from "../lib/storage";
-import { mountWelcome } from "../lib/welcome-view";
+import { mountWelcome, PIN_POLL_MS, watchPin } from "../lib/welcome-view";
 import {
   createChromeFake,
   EXTENSION_DIR,
@@ -46,10 +46,49 @@ describe("welcome page", () => {
     expect($("pin-state").dataset.tone).toBe("ok");
   });
 
+  it("stops looking once the extension is pinned", async () => {
+    const { fake, view } = await mount({ pinned: false });
+    let tick: (() => void) | undefined;
+    let cleared = false;
+    const focus = new EventTarget();
+    const calls: number[] = [];
+    const checkPin = async () => {
+      calls.push(1);
+      return view.checkPin();
+    };
+    watchPin(checkPin, {
+      doc: document,
+      win: focus as unknown as Window,
+      setInterval: (fn, ms) => {
+        expect(ms).toBe(PIN_POLL_MS);
+        tick = fn;
+        return 7;
+      },
+      clearInterval: (h) => {
+        expect(h).toBe(7);
+        cleared = true;
+      },
+    });
+    tick?.();
+    await flush(2);
+    expect(cleared).toBe(false);
+    fake.setPinned(true);
+    tick?.();
+    await flush(2);
+    expect(cleared).toBe(true);
+    expect($("step-pin").dataset.done).toBe("true");
+    const before = calls.length;
+    tick?.();
+    focus.dispatchEvent(new Event("focus"));
+    await flush(2);
+    expect(calls).toHaveLength(before);
+  });
+
   it("hides the pin state where the browser cannot tell", async () => {
     const fake = createChromeFake();
     delete fake.api.action.getUserSettings;
-    await mountWelcome(document, { api: fake.api });
+    const view = await mountWelcome(document, { api: fake.api });
+    expect(await view.checkPin()).toBe(true); // nothing to watch
     expect($("pin-state").hidden).toBe(true);
     expect($("step-pin").dataset.done).toBe("false");
   });
