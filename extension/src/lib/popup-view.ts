@@ -267,6 +267,23 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
   send.addEventListener("click", () => void sendNow());
 
   const form = $<HTMLFormElement>("add-form");
+  const addToggle = $<HTMLButtonElement>("add-toggle");
+  /** «+ Otro sitio…» unfolds the field; adding a site folds it back. */
+  function setAddOpen(open: boolean): void {
+    form.hidden = !open;
+    addToggle.hidden = open;
+    addToggle.setAttribute("aria-expanded", String(open));
+    if (open) $<HTMLInputElement>("add-input").focus();
+  }
+  addToggle.addEventListener("click", () => setAddOpen(true));
+  $<HTMLInputElement>("add-input").addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !(event.target as HTMLInputElement).value) {
+      event.preventDefault();
+      showAddError(null);
+      setAddOpen(false);
+      addToggle.focus();
+    }
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const input = $<HTMLInputElement>("add-input");
@@ -278,6 +295,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
         input.value = "";
         showAddError(null);
         renderSites();
+        setAddOpen(false);
       } else if (res.reason === "invalid") {
         showAddError(t("addInvalid"));
       } else {

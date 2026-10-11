@@ -419,3 +419,19 @@ body {
   height: 1.75rem;
   font-size: var(--text-sm);
 }
+
+/* «+ Otro sitio…»: a quiet link that unfolds the typed-domain field */
+.add-toggle {
+  align-self: flex-start;
+  min-height: 0;
+  height: 1.75rem;
+  margin-top: var(--space-1);
+  /* the + lines up with the chips above */
+  margin-inline-start: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.add-toggle:hover {
+  color: var(--text);
+}

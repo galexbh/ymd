@@ -241,5 +241,8 @@
   },
   "sitesShowLess": {
     "message": "Mostrar menos"
+  },
+  "addOther": {
+    "message": "Otro sitio…"
   }
 }
