@@ -213,7 +213,12 @@
     "appUpdateNotes": "Ver novedades",
     "appUpdateNotifyBody": "Abre ymd para ver las novedades e instalarla con un clic.",
     "hiddenToTray": "ymd sigue en la bandeja del sistema. Ciérralo desde su icono o cambia esto en Ajustes → Avanzado.",
-    "hiddenToTrayMac": "ymd sigue en la barra de menús. Ciérralo desde su icono o cambia esto en Ajustes → Avanzado."
+    "hiddenToTrayMac": "ymd sigue en la barra de menús. Ciérralo desde su icono o cambia esto en Ajustes → Avanzado.",
+    "jobDone": "Descarga terminada",
+    "jobFailed": "No se pudo descargar «{{title}}»",
+    "jobsDone": "{{count}} descargas terminadas",
+    "jobsMixed": "{{count}} descargas terminaron: {{failed}} con error",
+    "jobsMixedBody": "Abre ymd para ver qué falló en el Registro."
   },
   "presets": {
     "builtin": {
@@ -373,6 +378,17 @@
       "tomorrow": "La cola empieza mañana a las {{time}}",
       "body": "Lo que esté en cola espera hasta esa hora; lo que ya se descarga sigue. Si cierras ymd, la hora se olvida.",
       "startNow": "Empezar ahora"
+    },
+    "pending": {
+      "title_one": "Hay {{count}} descarga sin terminar",
+      "title_other": "Hay {{count}} descargas sin terminar",
+      "body": "Quedaron a medias al cerrar ymd. Al reanudarlas, siguen desde donde iban.",
+      "resume": "Reanudar",
+      "discard": "Descartar",
+      "secretTitle_one": "{{count}} descarga necesita la contraseña o el código",
+      "secretTitle_other": "{{count}} descargas necesitan la contraseña o el código",
+      "secretBody": "Vuelve a pegarlas en Recibir: necesitan la contraseña o el código.",
+      "untitled": "Sin título"
     }
   },
   "catalog": {
@@ -552,6 +568,8 @@
       "limitRateOther": "Otro…",
       "limitRateCustom": "Límite en MB/s",
       "limitRateInvalid": "Escribe un número entero entre 1 y 1000.",
+      "notify": "Avisar cuando termine una descarga",
+      "notifyHint": "Solo si ymd está en segundo plano. Varias descargas que terminan juntas llegan en un solo aviso.",
       "clipboard": "Portapapeles",
       "clipboardWatch": "Detectar enlaces copiados",
       "clipboardModes": {

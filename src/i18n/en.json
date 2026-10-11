@@ -213,7 +213,12 @@
     "appUpdateNotes": "What’s new",
     "appUpdateNotifyBody": "Open ymd to see what’s new and install it in one click.",
     "hiddenToTray": "ymd is still in the system tray. Quit it from its icon or change this in Settings → Advanced.",
-    "hiddenToTrayMac": "ymd is still in the menu bar. Quit it from its icon or change this in Settings → Advanced."
+    "hiddenToTrayMac": "ymd is still in the menu bar. Quit it from its icon or change this in Settings → Advanced.",
+    "jobDone": "Download finished",
+    "jobFailed": "Couldn’t download “{{title}}”",
+    "jobsDone": "{{count}} downloads finished",
+    "jobsMixed": "{{count}} downloads ended: {{failed}} failed",
+    "jobsMixedBody": "Open ymd to see what failed in the Ledger."
   },
   "presets": {
     "builtin": {
@@ -373,6 +378,17 @@
       "tomorrow": "The queue starts tomorrow at {{time}}",
       "body": "Queued downloads wait until then; running ones carry on. Quitting ymd forgets the time.",
       "startNow": "Start now"
+    },
+    "pending": {
+      "title_one": "{{count}} download didn’t finish",
+      "title_other": "{{count}} downloads didn’t finish",
+      "body": "They were halfway through when ymd closed. Resumed, they pick up where they left off.",
+      "resume": "Resume",
+      "discard": "Discard",
+      "secretTitle_one": "{{count}} download needs its password or code",
+      "secretTitle_other": "{{count}} downloads need their password or code",
+      "secretBody": "Paste them again in Receive: they need the password or the code.",
+      "untitled": "Untitled"
     }
   },
   "catalog": {
@@ -552,6 +568,8 @@
       "limitRateOther": "Other…",
       "limitRateCustom": "Limit in MB/s",
       "limitRateInvalid": "Enter a whole number between 1 and 1000.",
+      "notify": "Notify me when a download ends",
+      "notifyHint": "Only while ymd is in the background. Downloads that end together arrive as one notification.",
       "clipboard": "Clipboard",
       "clipboardWatch": "Detect copied links",
       "clipboardModes": {

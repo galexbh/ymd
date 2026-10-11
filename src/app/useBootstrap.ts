@@ -8,6 +8,7 @@ import { useHistory } from "../store/history";
 import { connectJobs, onJobChange } from "../store/jobs";
 import { connectBrowserLinks, connectClipboard } from "../store/clipboard";
 import { useSettings } from "../store/settings";
+import { connectJobNotice } from "./jobNotice";
 import { showInFolder } from "./native";
 import { connectTrayNotice } from "./trayNotice";
 import { connectAppUpdates } from "./updateNotice";
@@ -41,6 +42,7 @@ export function useBootstrap() {
     void useSettings.getState().load();
     offs.push(connectAppUpdates());
     offs.push(connectTrayNotice());
+    offs.push(connectJobNotice());
     void Promise.all([connectJobs(), connectDeps()]).then((fns) => {
       if (alive) offs.push(...fns);
       else fns.forEach((f) => f());

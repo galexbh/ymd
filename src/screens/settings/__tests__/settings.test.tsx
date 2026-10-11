@@ -407,6 +407,24 @@ describe("template", () => {
   });
 });
 
+describe("Ajustes → Descargas: avisos", () => {
+  it("notifies by default and the switch saves notifyDownloads", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "downloads" });
+    const toggle = screen.getByRole("switch", { name: /^Avisar cuando termine una descarga/ });
+    expect(toggle).toBeChecked();
+    expect(screen.getByText(/Solo si ymd está en segundo plano/)).toBeInTheDocument();
+
+    await user.click(toggle);
+    await tick(0);
+    await waitFor(() => expect(be.snapshot().settings.notifyDownloads).toBe(false));
+    expect(toggle).not.toBeChecked();
+
+    await user.click(toggle);
+    await tick(0);
+    await waitFor(() => expect(be.snapshot().settings.notifyDownloads).toBe(true));
+  });
+});
+
 describe("Ajustes → Avanzado: al cerrar la ventana", () => {
   it("keeps ymd in the tray by default and the switch saves closeToTray", async () => {
     const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });

@@ -211,6 +211,7 @@ export function defaultSettings(platform: MockPlatform): Settings {
     closeToTray: true,
     trayHintShown: false,
     limitRateMbps: null,
+    notifyDownloads: true,
   };
 }
 

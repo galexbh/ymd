@@ -113,6 +113,19 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let history = Arc::new(History::open(&paths.history_db())?);
+    // Job dirs survive only for downloads that can still be resumed (nothing auto-starts:
+    // the Cola screen offers them). Any other `tmp/<uuid>` is left over from a crash.
+    let keep: std::collections::HashSet<_> = match history.pending_list() {
+        Ok(rows) => rows.into_iter().map(|p| p.id).collect(),
+        Err(e) => {
+            log::warn!("pending jobs: cannot read them: {e:#}");
+            Default::default()
+        }
+    };
+    let orphans = jobs::sweep_orphan_tmp(&paths.tmp_dir(), &keep);
+    if orphans > 0 {
+        log::info!("removed {orphans} left-over job folders");
+    }
     let keychain = Arc::new(OsKeychain {
         index_file: paths.auth_dir().join("accounts.json"),
     });
@@ -203,6 +216,9 @@ pub fn run() {
             commands::jobs::jobs_next_seq,
             commands::jobs::queue_schedule,
             commands::jobs::queue_schedule_get,
+            commands::jobs::jobs_pending,
+            commands::jobs::jobs_resume,
+            commands::jobs::jobs_discard_pending,
             commands::history::history_query,
             commands::history::history_delete,
             commands::history::history_clear,
@@ -221,11 +237,20 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building ymd")
-        .run(|_app, _event| {
-            // macOS: clicking the Dock icon brings back a window hidden to the menu bar.
-            #[cfg(target_os = "macos")]
-            if let tauri::RunEvent::Reopen { .. } = _event {
-                open_url::focus_main(_app);
+        .run(|app, event| {
+            match &event {
+                // «Salir» in the tray (`app.exit(0)`) or the last window closing: kill the
+                // downloads now, but keep their `.part` files and rows so they can be resumed.
+                tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
+                    if let Some(state) = app.try_state::<Arc<AppState>>() {
+                        let jobs = state.jobs.clone();
+                        tauri::async_runtime::block_on(async move { jobs.shutdown().await });
+                    }
+                }
+                // macOS: clicking the Dock icon brings back a window hidden to the menu bar.
+                #[cfg(target_os = "macos")]
+                tauri::RunEvent::Reopen { .. } => open_url::focus_main(app),
+                _ => {}
             }
         });
 }

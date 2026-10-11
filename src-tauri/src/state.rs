@@ -6,7 +6,8 @@ use crate::deps::Tools;
 use crate::history::History;
 use crate::jobs::{JobEnv, JobManager};
 use crate::model::{
-    EnqueueRequest, Job, Preset, QueueSchedule, Settings, EVT_JOB_UPDATE, EVT_QUEUE_SCHEDULE,
+    EnqueueRequest, Job, JobId, PendingJob, Preset, QueueSchedule, Settings, EVT_JOB_UPDATE,
+    EVT_QUEUE_SCHEDULE,
 };
 use crate::paths::AppPaths;
 use std::path::PathBuf;
@@ -94,18 +95,21 @@ impl JobEnv for TauriJobEnv {
         // Accession numbers continue after the last archived download.
         self.state().history.max_seq_hint() + 1
     }
+    /// Records history only: the UI decides whether a system notification is worth it
+    /// (`src/app/jobNotice.ts`: in the background, with «notifyDownloads» on, bursts grouped).
     fn completed(&self, job: &Job, preset: &Preset) {
         if let Err(e) = self.state().history.record(job, preset) {
             log::warn!("history record failed: {e:#}");
         }
-        use tauri_plugin_notification::NotificationExt;
-        let title = job.title.clone().unwrap_or_else(|| job.url.clone());
-        let _ = self
-            .app
-            .notification()
-            .builder()
-            .title("ymd")
-            .body(title)
-            .show();
+    }
+    fn pending_save(&self, pending: &PendingJob) {
+        if let Err(e) = self.state().history.pending_save(pending) {
+            log::warn!("pending job save failed: {e:#}");
+        }
+    }
+    fn pending_delete(&self, id: &JobId) {
+        if let Err(e) = self.state().history.pending_delete(id) {
+            log::warn!("pending job delete failed: {e:#}");
+        }
     }
 }

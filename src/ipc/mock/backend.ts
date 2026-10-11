@@ -31,6 +31,7 @@ import {
   type JobError,
   type JobId,
   type JsRuntimeInfo,
+  type PendingJob,
   type Preset,
   type ProbeResult,
   type QueueSchedule,
@@ -284,6 +285,7 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
   const rate = s.limitRateMbps;
   s.limitRateMbps =
     typeof rate === "number" && Number.isInteger(rate) && rate >= 1 && rate <= 1000 ? rate : null;
+  if (typeof s.notifyDownloads !== "boolean") s.notifyDownloads = true;
   return s;
 }
 
@@ -311,6 +313,8 @@ export class MockBackend {
   private jsRuntime: JsRuntimeInfo | null = null;
   private installing = new Set<DepId>();
   private jobs = new Map<JobId, SimJob>();
+  /** downloads a "previous session" left unfinished (`simulateRestart`), by id */
+  private pending = new Map<JobId, PendingJob>();
   private seq = 0;
   /** scheduled queue start (simulated epoch ms), like `JobManager::start_at`; in memory only */
   private startAt: number | null = null;
@@ -430,6 +434,41 @@ export class MockBackend {
   }
 
   /**
+   * ymd quit and started again (like `JobManager::shutdown` + the next launch): queued and
+   * running jobs become pending rows (secrets dropped, only flagged), and the session's list
+   * empties (`job://removed` for each, so a running UI starts clean). Returns the new rows.
+   */
+  simulateRestart(): PendingJob[] {
+    const given = (v: string | null | undefined) => typeof v === "string" && v.length > 0;
+    const added: PendingJob[] = [];
+    const sims = [...this.jobs.values()].sort((a, b) => a.job.seq - b.job.seq);
+    for (const sim of sims) {
+      this.stopTimer(sim);
+      const j = sim.job;
+      if (!isTerminal(j.stage)) {
+        const row: PendingJob = {
+          id: j.id,
+          seq: j.seq,
+          url: j.url,
+          presetId: j.presetId,
+          playlistItems: sim.req.playlistItems ? [...sim.req.playlistItems] : null,
+          outputDir: j.outputDir,
+          title: j.title,
+          thumbnail: j.thumbnail,
+          kind: j.kind,
+          createdAt: j.createdAt,
+          needsSecret: given(sim.req.videoPassword) || given(sim.req.twofactor),
+        };
+        this.pending.set(row.id, row);
+        added.push(clone(row));
+      }
+      this.jobs.delete(j.id);
+      this.emit(EVT_JOB_REMOVED, j.id);
+    }
+    return added;
+  }
+
+  /**
    * The extension delivered `count` cookies from `browser` (writes cookies.txt + meta).
    * `extensionVersion` is the sender's manifest version (default: the bundled one; null = an
    * extension older than the version field).
@@ -501,6 +540,7 @@ export class MockBackend {
       cookies: clone(this.cookies),
       credentials: this.credentialList(),
       extension: clone(this.extension),
+      pending: [...this.pending.values()].map((p) => clone(p)),
     };
   }
 
@@ -556,6 +596,13 @@ export class MockBackend {
         return this.setSchedule((a.at as string | null | undefined) ?? null);
       case "queue_schedule_get":
         return this.scheduleString();
+      case "jobs_pending":
+        return [...this.pending.values()].sort((x, y) => x.seq - y.seq).map((p) => clone(p));
+      case "jobs_resume":
+        return this.resume((a.ids as JobId[] | undefined) ?? []);
+      case "jobs_discard_pending":
+        for (const id of (a.ids as JobId[] | undefined) ?? []) this.pending.delete(id);
+        return null;
       // history
       case "history_query":
         return this.historyQuery(a.query as HistoryQuery);
@@ -858,7 +905,35 @@ export class MockBackend {
     return p;
   }
 
-  private enqueue(req: EnqueueRequest): Job {
+  /** Like `JobManager::resume`: same id and number; secret-needing rows are skipped. */
+  private resume(ids: JobId[]): Job[] {
+    const out: Job[] = [];
+    const rows = ids
+      .map((id) => this.pending.get(id))
+      .filter((p): p is PendingJob => p !== undefined && !p.needsSecret && !this.jobs.has(p.id))
+      .sort((x, y) => x.seq - y.seq);
+    for (const p of rows) {
+      this.pending.delete(p.id);
+      out.push(
+        this.enqueue(
+          {
+            url: p.url,
+            presetId: p.presetId,
+            playlistItems: p.playlistItems,
+            outputDir: p.outputDir,
+            videoPassword: null,
+            twofactor: null,
+            title: p.title,
+            thumbnail: p.thumbnail,
+          },
+          p,
+        ),
+      );
+    }
+    return out;
+  }
+
+  private enqueue(req: EnqueueRequest, resumed?: PendingJob): Job {
     if (!req || typeof req.url !== "string" || !req.url.trim()) {
       throw commandError("unsupported_url", "empty URL");
     }
@@ -892,10 +967,13 @@ export class MockBackend {
     }
 
     const now = new Date(this.clock.now()).toISOString();
-    const id = `job-${hash(`${url}|${this.seq}|${now}`).toString(16)}-${this.seq + 1}`;
+    const id =
+      resumed?.id ?? `job-${hash(`${url}|${this.seq}|${now}`).toString(16)}-${this.seq + 1}`;
+    const seq = resumed ? resumed.seq : this.seq + 1;
+    this.seq = Math.max(this.seq, seq);
     const job: Job = {
       id,
-      seq: ++this.seq,
+      seq,
       url,
       title: req.title ?? probed.title,
       thumbnail: req.thumbnail ?? probed.thumbnail ?? thumbnail(url, preset.kind),
@@ -912,7 +990,7 @@ export class MockBackend {
       error: null,
       playlistIndex: probed.kind === "playlist" ? 1 : null,
       playlistCount: probed.kind === "playlist" ? items.length : null,
-      createdAt: now,
+      createdAt: resumed?.createdAt ?? now,
       finishedAt: null,
     };
     const lower = url.toLowerCase();

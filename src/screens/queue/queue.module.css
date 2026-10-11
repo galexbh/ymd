@@ -35,3 +35,33 @@
   margin: 0;
   font-size: var(--text-lg);
 }
+.pending {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.pendingList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.pendingItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.pendingItem > :first-child {
+  flex: none;
+  color: var(--text-muted);
+}
+.pendingTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

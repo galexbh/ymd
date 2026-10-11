@@ -9,6 +9,7 @@ import { resetDepsStore } from "../../store/deps";
 import { resetHistoryStore } from "../../store/history";
 import { resetJobsStore } from "../../store/jobs";
 import { resetNav, useNav, type Route, type SettingsSection } from "../../store/nav";
+import { resetPendingStore } from "../../store/pending";
 import { resetClipboardStore } from "../../store/clipboard";
 import { resetReceiveStore } from "../../store/receive";
 import { resetSettingsStore } from "../../store/settings";
@@ -21,6 +22,7 @@ export function resetStores() {
   resetReceiveStore();
   resetClipboardStore();
   resetHistoryStore();
+  resetPendingStore();
   resetNav();
   useToasts.setState({ toasts: [] });
   useShortcutHelp.setState({ open: false });

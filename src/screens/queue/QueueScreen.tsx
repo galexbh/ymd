@@ -7,6 +7,7 @@ import { JobsLedger } from "../shared/JobsLedger";
 import { ScreenHeader } from "../shared/ScreenHeader";
 import { ScheduleBanner, ScheduleControl } from "./QueueSchedule";
 import screen from "../shared/screen.module.css";
+import { PendingNotice } from "./PendingNotice";
 import s from "./queue.module.css";
 
 type Filter = "all" | "active" | "queued" | "done" | "failed";
@@ -53,6 +54,7 @@ export function QueueScreen() {
         }
       />
       <ScheduleBanner />
+      <PendingNotice />
       <div className={s.bar}>
         <SegmentedControl<Filter>
           label={t("queue.filter")}

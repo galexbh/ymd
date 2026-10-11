@@ -1,6 +1,6 @@
 use super::State;
 use crate::model::{
-    CmdResult, CommandError, EnqueueRequest, Job, JobId, ProbeResult, EVT_JOB_REMOVED,
+    CmdResult, CommandError, EnqueueRequest, Job, JobId, PendingJob, ProbeResult, EVT_JOB_REMOVED,
 };
 use tauri::{AppHandle, Emitter};
 
@@ -82,4 +82,41 @@ fn schedule_string(state: &State<'_>) -> Option<String> {
 #[tauri::command]
 pub async fn jobs_next_seq(state: State<'_>) -> CmdResult<u64> {
     Ok(state.jobs.next_seq().await)
+}
+
+/// Downloads a previous session left unfinished, minus the ones already back in the list.
+#[tauri::command]
+pub async fn jobs_pending(state: State<'_>) -> CmdResult<Vec<PendingJob>> {
+    let active = state.jobs.ids().await;
+    Ok(state
+        .history
+        .pending_list()?
+        .into_iter()
+        .filter(|p| !active.contains(&p.id))
+        .collect())
+}
+
+/// Re-queues the given unfinished downloads with their id and number (the ones that need a
+/// video password or 2FA code are skipped: those secrets were never stored).
+#[tauri::command]
+pub async fn jobs_resume(state: State<'_>, ids: Vec<JobId>) -> CmdResult<Vec<Job>> {
+    let rows = state
+        .history
+        .pending_list()?
+        .into_iter()
+        .filter(|p| ids.contains(&p.id))
+        .collect();
+    Ok(state.jobs.resume(rows).await)
+}
+
+/// Forgets unfinished downloads and deletes their partial files in `tmp/<id>`.
+#[tauri::command]
+pub async fn jobs_discard_pending(state: State<'_>, ids: Vec<JobId>) -> CmdResult<()> {
+    let active = state.jobs.ids().await;
+    let tmp = state.paths().tmp_dir();
+    for id in ids.iter().filter(|id| !active.contains(*id)) {
+        state.history.pending_delete(id)?;
+        crate::jobs::discard_tmp(&tmp, id);
+    }
+    Ok(())
 }

@@ -5,7 +5,7 @@
 //! filepath) is written on insert and matched with `LIKE ... ESCAPE '\'` against the
 //! lowercased, escaped query, so `%` and `_` in user input are literal.
 
-use crate::model::{HistoryItem, HistoryPage, HistoryQuery, Job, MediaKind, Preset};
+use crate::model::{HistoryItem, HistoryPage, HistoryQuery, Job, MediaKind, PendingJob, Preset};
 use anyhow::{bail, Context};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
@@ -35,6 +35,21 @@ const MIGRATIONS: &[&str] = &[
     "ALTER TABLE downloads ADD COLUMN seq INTEGER;
     ALTER TABLE downloads ADD COLUMN preset_id TEXT;
     CREATE INDEX IF NOT EXISTS idx_downloads_seq ON downloads(seq);",
+    // v3: downloads still queued or running when ymd closed, so they can be resumed. Never
+    // holds a video password or 2FA code: `needs_secret` only records that one was given.
+    "CREATE TABLE IF NOT EXISTS pending_jobs (
+        id             TEXT PRIMARY KEY,
+        seq            INTEGER NOT NULL,
+        url            TEXT NOT NULL,
+        preset_id      TEXT NOT NULL,
+        playlist_items TEXT,
+        output_dir     TEXT NOT NULL,
+        title          TEXT,
+        thumbnail      TEXT,
+        kind           TEXT NOT NULL,
+        created_at     TEXT NOT NULL,
+        needs_secret   INTEGER NOT NULL DEFAULT 0
+    );",
 ];
 
 pub const SCHEMA_VERSION: i64 = MIGRATIONS.len() as i64;
@@ -101,7 +116,82 @@ impl History {
             .query_row("SELECT MAX(seq) FROM downloads", [], |r| r.get(0))
             .ok()
             .flatten();
-        from_seq.max(from_max).max(from_job_seq).unwrap_or(0).max(0) as u64
+        // Unfinished downloads keep their number: the next one must come after them too.
+        let from_pending: Option<i64> = conn
+            .query_row("SELECT MAX(seq) FROM pending_jobs", [], |r| r.get(0))
+            .ok()
+            .flatten();
+        from_seq
+            .max(from_max)
+            .max(from_job_seq)
+            .max(from_pending)
+            .unwrap_or(0)
+            .max(0) as u64
+    }
+
+    /// Remember a queued download (replaces the row with the same id).
+    pub fn pending_save(&self, p: &PendingJob) -> anyhow::Result<()> {
+        let items = p
+            .playlist_items
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        self.conn().execute(
+            "INSERT OR REPLACE INTO pending_jobs
+                (id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            params![
+                p.id,
+                p.seq as i64,
+                p.url,
+                p.preset_id,
+                items,
+                p.output_dir,
+                p.title,
+                p.thumbnail,
+                kind_str(p.kind),
+                p.created_at,
+                p.needs_secret as i64,
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// Forget a download (it finished, failed, was canceled or discarded).
+    pub fn pending_delete(&self, id: &str) -> anyhow::Result<()> {
+        self.conn()
+            .execute("DELETE FROM pending_jobs WHERE id = ?1", [id])?;
+        Ok(())
+    }
+
+    /// Downloads left unfinished, oldest number first.
+    pub fn pending_list(&self) -> anyhow::Result<Vec<PendingJob>> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare(
+            "SELECT id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret
+             FROM pending_jobs ORDER BY seq ASC, id ASC",
+        )?;
+        let rows = stmt.query_map([], |r| {
+            let seq: i64 = r.get(1)?;
+            let items: Option<String> = r.get(4)?;
+            let kind: String = r.get(8)?;
+            let needs: i64 = r.get(10)?;
+            Ok(PendingJob {
+                id: r.get(0)?,
+                seq: u64::try_from(seq).unwrap_or(0),
+                url: r.get(2)?,
+                preset_id: r.get(3)?,
+                // A corrupt list falls back to the whole playlist rather than losing the row.
+                playlist_items: items.map(|s| serde_json::from_str(&s).unwrap_or_default()),
+                output_dir: r.get(5)?,
+                title: r.get(6)?,
+                thumbnail: r.get(7)?,
+                kind: parse_kind(&kind),
+                created_at: r.get(9)?,
+                needs_secret: needs != 0,
+            })
+        })?;
+        Ok(rows.collect::<Result<Vec<_>, _>>()?)
     }
 
     /// Record a completed job (needs `filepath`).

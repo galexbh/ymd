@@ -92,8 +92,8 @@ pub fn create<R: Runtime>(app: &AppHandle<R>, lang: Language) -> bool {
             .show_menu_on_left_click(false)
             .on_menu_event(|app, event| match event.id.as_ref() {
                 MENU_OPEN => crate::open_url::focus_main(app),
-                // Same path as closing the last window: Tauri exits and the child processes
-                // (kill_on_drop + process group / job) go with it.
+                // Same path as closing the last window: the run loop's exit events stop the
+                // downloads (`JobManager::shutdown`), keeping them resumable on next start.
                 MENU_QUIT => app.exit(0),
                 _ => {}
             })

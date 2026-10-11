@@ -70,6 +70,7 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 - **Saltar lo ya descargado**: yt-dlp anota cada video en un archivo de registro y no lo repite.
 - **Usar aria2c**: descarga cada archivo por varias conexiones (requiere instalar aria2c en Dependencias).
 - **Límite de velocidad**: **Sin límite** (lo predeterminado), 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir un número entero entre 1 y 1000. Cada descarga respeta ese tope por separado, y con aria2c también se aplica a aria2c. Se aplica a las descargas que empiecen a partir de ahora: las que ya están en curso siguen a la velocidad con la que empezaron.
+- **Avisar cuando termine una descarga**: ver [Avisos](#avisos).
 
 ### Programar el inicio
 
@@ -77,14 +78,33 @@ Para dejar descargas en cola y que empiecen más tarde (por ejemplo, de noche), 
 
 Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** quita la hora programada y arranca la cola de inmediato. La hora solo vive mientras ymd está abierto: si sales de ymd, se olvida.
 
+## Avisos
+
+Mientras ymd está en segundo plano (otra ventana delante, minimizado o en la bandeja), una notificación del sistema avisa cuando termina una descarga:
+
+- Si se archivó, la notificación dice **Descarga terminada** y el título del video.
+- Si falló, dice **No se pudo descargar «…»** y el motivo. Al volver a ymd se abre el **Registro**, donde la fila explica qué hacer.
+- Varias descargas que terminan casi a la vez llegan en una sola notificación («3 descargas terminadas»; si alguna falló, también lo dice).
+
+Con la ventana de ymd delante no hay notificación: basta el aviso dentro de la app. Para no recibirlas, apaga **Ajustes → Descargas → Avisar cuando termine una descarga**.
+
 ## Al cerrar la ventana
 
 Al pulsar la X, ymd no se cierra: se oculta en la bandeja del sistema, junto al reloj (en macOS, en la barra de menús). Las descargas siguen y responde al instante a **Descargar con ymd** desde el navegador. La primera vez lo avisa con una notificación.
 
 - Clic en el icono o **Abrir ymd** en su menú: vuelve la ventana.
-- **Salir** en su menú: cierra ymd por completo.
+- **Salir** en su menú: cierra ymd por completo. Las descargas a medias se detienen, pero no se pierden: ver [Descargas sin terminar](#descargas-sin-terminar).
 
 Para que la X cierre ymd, apaga **Ajustes → Avanzado → Al cerrar la ventana → Mantener ymd en la bandeja del sistema** (en macOS, **Mantener ymd en la barra de menús**). En los escritorios Linux sin bandeja del sistema, la X cierra ymd siempre.
+
+## Descargas sin terminar
+
+Si ymd se cierra con descargas en curso o en cola (con **Salir**, al apagar el equipo o por un cierre inesperado), las recuerda. La próxima vez, el **Registro** muestra «Hay N descargas sin terminar» con su número y título:
+
+- **Reanudar** las vuelve a poner en la cola con el mismo número. yt-dlp sigue desde donde iba, sin bajar de nuevo lo que ya tenía.
+- **Descartar** las olvida y borra sus archivos parciales.
+
+Nada se reanuda solo: tú decides cuándo. Las descargas que usaron una **Contraseña del video** o un **Código de verificación (2FA)** aparecen aparte, porque ymd nunca guarda esos datos: vuelve a pegarlas en **Recibir** y escríbelos otra vez.
 
 ## El registro
 

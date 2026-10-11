@@ -172,6 +172,31 @@ fn close_to_tray_round_trips() {
 }
 
 #[test]
+fn notify_downloads_defaults_on_loads_on_from_old_files_and_round_trips() {
+    assert!(defs().notify_downloads);
+    let (_dir, file) = staged("v0_partial.json");
+    assert!(!std::fs::read_to_string(&file)
+        .unwrap()
+        .contains("notifyDownloads"));
+    assert!(load(&file, defs()).notify_downloads);
+
+    let mut old = serde_json::to_value(defs()).unwrap();
+    old.as_object_mut().unwrap().remove("notifyDownloads");
+    let direct: Settings = serde_json::from_value(old).unwrap();
+    assert!(direct.notify_downloads);
+
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("settings.json");
+    let mut s = defs();
+    s.notify_downloads = false;
+    save(&file, &sanitize(s)).unwrap();
+    assert!(std::fs::read_to_string(&file)
+        .unwrap()
+        .contains("\"notifyDownloads\": false"));
+    assert!(!load(&file, defs()).notify_downloads);
+}
+
+#[test]
 fn a_save_from_the_ui_never_unsets_the_tray_notice() {
     let mut old = defs();
     old.tray_hint_shown = true;
