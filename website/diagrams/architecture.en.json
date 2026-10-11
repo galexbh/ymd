@@ -9,7 +9,7 @@
     "repository": {
       "url": "git@github.com:galexbh/ymd.git",
       "link_mode": "local-only",
-      "revision": "219842f9f6fd568577e69a598fd235dabca93f69"
+      "revision": "6ec140e24863b810292780d348d14776abd44986"
     }
   },
   "components": [
@@ -32,7 +32,7 @@
       "sources": [
         {
           "path": "src/ipc/commands.ts",
-          "line": 33,
+          "line": 34,
           "label": "api: single invoke"
         },
         {
@@ -53,7 +53,7 @@
       "sources": [
         {
           "path": "src-tauri/src/lib.rs",
-          "line": 191,
+          "line": 246,
           "label": "generate_handler"
         }
       ]
@@ -68,8 +68,8 @@
       "sources": [
         {
           "path": "src-tauri/src/settings.rs",
-          "line": 141,
-          "end_line": 149,
+          "line": 146,
+          "end_line": 154,
           "label": "load / save"
         }
       ]
@@ -84,12 +84,12 @@
       "sources": [
         {
           "path": "src-tauri/src/deps/manager.rs",
-          "line": 349,
+          "line": 409,
           "label": "install"
         },
         {
           "path": "src-tauri/src/deps/manager.rs",
-          "line": 459,
+          "line": 546,
           "label": "download_verify_swap"
         }
       ]
@@ -97,8 +97,8 @@
     {
       "id": "github",
       "type": "cloud",
-      "label": "GitHub Releases",
-      "sublabel": "yt-dlp, FFmpeg, Deno",
+      "label": "GitHub · nodejs.org",
+      "sublabel": "yt-dlp, FFmpeg, Node.js",
       "pos": [720, 40],
       "size": [130, 56],
       "sources": [
@@ -109,9 +109,9 @@
           "label": "releases API"
         },
         {
-          "path": "src-tauri/src/deps/catalog.rs",
-          "line": 266,
-          "label": "denoland/deno"
+          "path": "src-tauri/src/deps/nodejs.rs",
+          "line": 112,
+          "label": "Node.js LTS (index.json)"
         }
       ]
     },
@@ -126,13 +126,13 @@
         {
           "path": "src-tauri/src/jobs.rs",
           "line": 1,
-          "end_line": 6,
+          "end_line": 4,
           "label": "FIFO + limit"
         },
         {
           "path": "src-tauri/src/jobs.rs",
-          "line": 318,
-          "end_line": 324,
+          "line": 513,
+          "end_line": 519,
           "label": "spawn yt-dlp"
         }
       ]
@@ -141,7 +141,7 @@
       "id": "ytdlp",
       "type": "external",
       "label": "yt-dlp",
-      "sublabel": "+ ffmpeg, Deno",
+      "sublabel": "+ ffmpeg, Node.js",
       "pos": [720, 340],
       "size": [130, 60],
       "sources": [
@@ -189,13 +189,13 @@
       "sources": [
         {
           "path": "src-tauri/src/history.rs",
-          "line": 108,
+          "line": 198,
           "label": "record"
         },
         {
           "path": "src-tauri/src/state.rs",
-          "line": 89,
-          "end_line": 92,
+          "line": 100,
+          "end_line": 103,
           "label": "on completion"
         }
       ]
@@ -238,8 +238,8 @@
         },
         {
           "path": "src-tauri/src/auth/native_host.rs",
-          "line": 359,
-          "end_line": 386,
+          "line": 389,
+          "end_line": 416,
           "label": "native host"
         }
       ]
