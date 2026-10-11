@@ -135,6 +135,7 @@ describe("Recibir", () => {
     pasteLink(VIDEO);
     await tick(0);
     const card = await screen.findByTestId("accession-card");
+    await user.click(within(card).getByText("Tramo"));
     const group = within(card).getByRole("group", { name: "Tramo" });
     const from = within(group).getByRole("textbox", { name: "Desde" });
     const to = within(group).getByRole("textbox", { name: "Hasta" });
@@ -169,16 +170,69 @@ describe("Recibir", () => {
     expect(within(row).getByTestId("job-clip")).toHaveAttribute("title", "Tramo 1:30–1:45");
   });
 
+  it("«Tramo» is a disclosure: closed by default, held open while the range is invalid", async () => {
+    const { user, tick } = await renderApp();
+    pasteLink(VIDEO);
+    await tick(0);
+    await screen.findByTestId("accession-card");
+    const tramo = screen.getByTestId("clip-fields");
+    const summary = screen.getByTestId("clip-summary");
+    expect(tramo).not.toHaveAttribute("open");
+    expect(summary).toHaveTextContent(/^Tramo$/);
+
+    await user.click(summary);
+    expect(tramo).toHaveAttribute("open");
+    const from = screen.getByRole("textbox", { name: "Desde" });
+    const to = screen.getByRole("textbox", { name: "Hasta" });
+    await user.type(from, "2:00");
+    await user.type(to, "1:00");
+    expect(screen.getByRole("button", { name: "Ingresar" })).toBeDisabled();
+    // the error blocks Ingresar, so it cannot be folded away
+    await user.click(summary);
+    expect(tramo).toHaveAttribute("open");
+    expect(screen.getByText("«Hasta» tiene que ir después de «Desde».")).toBeVisible();
+    expect(screen.queryByTestId("clip-summary-range")).toBeNull();
+
+    // a valid range shows in the summary, and the disclosure folds again
+    await user.clear(from);
+    await user.type(from, "1:30");
+    await user.clear(to);
+    await user.type(to, "2:45");
+    expect(screen.getByTestId("clip-summary-range")).toHaveTextContent("1:30–2:45");
+    expect(summary).toHaveTextContent("Tramo · 1:30–2:45");
+    await user.click(summary);
+    expect(tramo).not.toHaveAttribute("open");
+    expect(screen.getByTestId("clip-summary-range")).toHaveTextContent("1:30–2:45");
+  });
+
+  it("«Tramo» opens on its own when the card comes back with a range typed", async () => {
+    const { user, tick } = await renderApp();
+    pasteLink(VIDEO);
+    await tick(0);
+    await screen.findByTestId("accession-card");
+    await user.click(screen.getByText("Tramo"));
+    await user.type(screen.getByRole("textbox", { name: "Desde" }), "0:10");
+    // leave Recibir for the catalog and come back: the counter keeps the link and the typed range
+    await user.click(screen.getByTestId("nav-catalog"));
+    await user.click(screen.getByTestId("nav-receive"));
+    expect(await screen.findByTestId("clip-fields")).toHaveAttribute("open");
+    expect(screen.getByRole("textbox", { name: "Desde" })).toHaveValue("0:10");
+  });
+
   it("«Tramo» empty files the whole video, resets per link and is not offered for playlists", async () => {
     const { be, user, tick } = await renderApp();
     pasteLink(VIDEO);
     await tick(0);
     await screen.findByTestId("accession-card");
+    await user.click(screen.getByText("Tramo"));
     await user.type(screen.getByRole("textbox", { name: "Desde" }), "5");
     // a new link starts with empty fields
     pasteLink("https://www.youtube.com/watch?v=zyxwvut9876");
     await tick(0);
     await screen.findByTestId("accession-card");
+    // …and a closed «Tramo»
+    expect(screen.getByTestId("clip-fields")).not.toHaveAttribute("open");
+    await user.click(screen.getByText("Tramo"));
     expect(screen.getByRole("textbox", { name: "Desde" })).toHaveValue("");
     await user.click(screen.getByRole("button", { name: "Ingresar" }));
     await tick(0);

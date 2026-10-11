@@ -51,6 +51,11 @@ export function formatClock(seconds: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
+/** «1:30–2:45»: a range as two clock times joined by an en dash. */
+export function formatClipRange(clip: Clip): string {
+  return `${formatClock(clip.start)}–${formatClock(clip.end)}`;
+}
+
 const ok = (clip: Clip | null): ClipCheck => ({ clip, error: null, field: null });
 const fail = (error: ClipErrorKey, field: "start" | "end"): ClipCheck => ({
   clip: null,

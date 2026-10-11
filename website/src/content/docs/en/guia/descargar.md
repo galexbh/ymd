@@ -62,11 +62,12 @@ Each selected entry goes into the ledger as its own download (“Entry 3 of 12�
 
 ## Download only a section
 
-A video's card (not a playlist's) includes the **Section** block, with two fields: **From** and **To**. They take seconds (`90`), `m:ss` (`1:30`) or `h:mm:ss` (`1:02:03`):
+A video's card (not a playlist's) includes **Section**, which starts closed. Open it to see two fields: **From** and **To**. They take seconds (`90`), `m:ss` (`1:30`) or `h:mm:ss` (`1:02:03`):
 
 - With both fields empty, the whole video is downloaded.
 - An empty **From** starts at `0:00`; an empty **To** runs to the end of the video.
-- If a time isn't in a valid format, **To** doesn't come after **From**, or the section goes past the end of the video, the field says so and **File it** stays disabled until it's fixed.
+- If a time isn't in a valid format, **To** doesn't come after **From**, or the section goes past the end of the video, the field says so and **File it** stays disabled until it's fixed. Until then, **Section** can't be closed.
+- With a valid section, **Section** shows it next to its title even when closed (“Section · 1:30–2:45”).
 
 The file name ends with the section, using dots instead of colons so it's valid on every system: `My video [abc123] [1.30-2.45].mp4`. In the ledger, the row shows the section next to the title (“1:30–2:45”).
 

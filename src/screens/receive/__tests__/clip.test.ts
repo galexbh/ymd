@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatClock, parseClock, validateClip } from "../clip";
+import { formatClipRange, formatClock, parseClock, validateClip } from "../clip";
 
 describe("parseClock", () => {
   it.each([
@@ -37,6 +37,13 @@ describe("parseClock", () => {
     "1h30",
   ])("rejects %j", (text) => {
     expect(parseClock(text)).toBeNull();
+  });
+});
+
+describe("formatClipRange", () => {
+  it("joins both ends with an en dash", () => {
+    expect(formatClipRange({ start: 90, end: 165 })).toBe("1:30–2:45");
+    expect(formatClipRange({ start: 0, end: 3723.5 })).toBe("0:00–1:02:03");
   });
 });
 

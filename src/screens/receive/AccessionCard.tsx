@@ -8,7 +8,7 @@ import { useJobs } from "../../store/jobs";
 import { clipAvailable, useReceive } from "../../store/receive";
 import { useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
-import { formatClock, validateClip } from "./clip";
+import { formatClipRange, formatClock, validateClip } from "./clip";
 import { activePreset, destinationFor } from "./ingest";
 import { PlaylistPicker } from "./PlaylistPicker";
 import s from "./receive.module.css";
@@ -102,7 +102,7 @@ export const AccessionCard = memo(function AccessionCard({ probe }: { probe: Pro
               </dd>
             </div>
           </dl>
-          {clipAvailable(probe) && <ClipFields duration={probe.duration!} />}
+          {clipAvailable(probe) && <ClipFields key={probe.url} duration={probe.duration!} />}
           <OneOffOptions />
         </div>
       </div>
@@ -111,48 +111,74 @@ export const AccessionCard = memo(function AccessionCard({ probe }: { probe: Pro
   );
 });
 
-/** «Tramo»: download only a time range of the video (empty = the whole video). */
+/**
+ * «Tramo»: download only a time range of the video (empty = the whole video). A disclosure,
+ * closed until a range is typed; an invalid range keeps it open so the field error that blocks
+ * Ingresar is never hidden.
+ */
 function ClipFields({ duration }: { duration: number }) {
   const { t } = useTranslation();
-  const legendId = useId();
+  const titleId = useId();
   const clipStart = useReceive((st) => st.clipStart);
   const clipEnd = useReceive((st) => st.clipEnd);
   const check = validateClip(clipStart, clipEnd, duration);
   const setClip = useReceive((st) => st.setClip);
-  const error = check.error ? t(check.error, { duration: formatClock(duration) }) : null;
+  const [open, setOpen] = useState(() => Boolean(clipStart.trim() || clipEnd.trim()));
+  const invalid = check.error !== null;
+  const error = invalid ? t(check.error!, { duration: formatClock(duration) }) : null;
   return (
-    <div role="group" aria-labelledby={legendId} className={s.clip} data-testid="clip-fields">
-      <span id={legendId} className={s.clipLabel}>
-        {t("receive.clip.title")}
-      </span>
-      <div className={s.clipFields}>
-        <TextField
-          label={t("receive.clip.start")}
-          mono
-          inputMode="decimal"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="0:00"
-          value={clipStart}
-          error={check.field === "start" ? error : undefined}
-          onChange={(e) => setClip("clipStart", e.target.value)}
-          data-testid="clip-start"
-        />
-        <TextField
-          label={t("receive.clip.end")}
-          mono
-          inputMode="decimal"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder={formatClock(duration)}
-          value={clipEnd}
-          error={check.field === "end" ? error : undefined}
-          onChange={(e) => setClip("clipEnd", e.target.value)}
-          data-testid="clip-end"
-        />
+    <details
+      className={s.options}
+      open={open || invalid}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+      data-testid="clip-fields"
+    >
+      <summary
+        // an invalid range cannot be folded away: its error is what blocks Ingresar
+        onClick={(e) => invalid && e.preventDefault()}
+        data-locked={invalid || undefined}
+        data-testid="clip-summary"
+      >
+        <Icon icon={ChevronRight} size={14} className={s.summaryIcon} />
+        <span id={titleId}>{t("receive.clip.title")}</span>
+        {/* a word break for text and accessible name; the flex gap does the spacing */}
+        {check.clip && " "}
+        {check.clip && (
+          <span className={s.summaryRange} data-testid="clip-summary-range">
+            <span aria-hidden="true">·</span> {formatClipRange(check.clip)}
+          </span>
+        )}
+      </summary>
+      <div role="group" aria-labelledby={titleId} className={s.optionsBody}>
+        <div className={s.clipFields}>
+          <TextField
+            label={t("receive.clip.start")}
+            mono
+            inputMode="decimal"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="0:00"
+            value={clipStart}
+            error={check.field === "start" ? error : undefined}
+            onChange={(e) => setClip("clipStart", e.target.value)}
+            data-testid="clip-start"
+          />
+          <TextField
+            label={t("receive.clip.end")}
+            mono
+            inputMode="decimal"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder={formatClock(duration)}
+            value={clipEnd}
+            error={check.field === "end" ? error : undefined}
+            onChange={(e) => setClip("clipEnd", e.target.value)}
+            data-testid="clip-end"
+          />
+        </div>
+        <p className={s.optionsHint}>{t("receive.clip.hint")}</p>
       </div>
-      <p className={s.clipHint}>{t("receive.clip.hint")}</p>
-    </div>
+    </details>
   );
 }
 
