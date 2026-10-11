@@ -1,13 +1,9 @@
 ---
 title: Contributing
-description: Setup, commands and project rules.
+description: Setup, commands and merge requirements.
 ---
 
 A summary of the contributing guide. The full version is in [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
-
-## The rule
-
-**Every change ships with tests, and CI must be green.** No PR merges with red tests, without tests for new behavior, or with a failing CI job. If a test fails because of something you didn't touch, fix it or report it; don't disable it.
 
 ## Setup
 
@@ -37,16 +33,19 @@ Mock mode runs the frontend against a stateful fake backend (`src/ipc/mock/`): d
 | `pnpm docs:dev`      | This documentation site, in development mode     |
 | `pnpm docs:build`    | Builds the site and validates its internal links |
 
-Before opening a PR: `pnpm check && pnpm test:rust && pnpm lint:rust`.
+Full local check: `pnpm check && pnpm test:rust && pnpm lint:rust`.
 
-## Conventions
+## Merge requirements
 
-- **IPC contract:** a new command touches, in the same commit, `model.rs`, the Rust command, `src/ipc/types.ts`, `commands.ts` or `events.ts`, the fake backend and their tests. See [Architecture](/ymd/en/desarrollo/arquitectura/).
-- **i18n:** Spanish and English with identical keys (a test checks it). No hard-coded strings in components.
-- **Design:** components use tokens only (theme CSS variables); every visual change is checked in light and dark themes.
-- **Security:** yt-dlp and the other tools always run with an argv list, never through a shell. No secrets on disk in plain text or in process arguments.
-- **Commits:** imperative and concise. If an AI wrote or co-wrote the change, add the `Co-Authored-By` trailer.
+A PR is merged when it meets these requirements. The details are in [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
+
+- **Tests and CI:** the change includes tests for new or modified behavior, and every CI job passes (see [Tests and CI](/ymd/en/desarrollo/tests-y-ci/)).
+- **IPC contract:** commands and events stay in sync across `model.rs`, the Rust command, `src/ipc/types.ts`, `commands.ts` or `events.ts`, the mock backend and their tests (see [Architecture](/ymd/en/desarrollo/arquitectura/#ipc-contract)).
+- **i18n:** Spanish and English with identical keys; components contain no hard-coded strings.
+- **Design:** components use tokens only (theme CSS variables), and visual changes are checked in light and dark themes.
+- **Security:** yt-dlp and the other tools run with an argv list, never through a shell. No secret is stored on disk in plain text or passed in process arguments.
+- **Documentation:** user-visible changes are reflected in the Spanish and English pages.
 
 ## Documentation
 
-This site lives in `website/` (Astro Starlight) and is published to GitHub Pages on merge to `main`. Every page has a Spanish version (root) and an English one (`en/`); a change in app behavior updates both.
+This site lives in `website/` (Astro Starlight) and is published to GitHub Pages on every merge to `main`. Spanish pages are at the root and English pages under `en/`, with the same file names.

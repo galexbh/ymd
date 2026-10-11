@@ -449,7 +449,7 @@ function Column({ theme }: { theme: ResolvedTheme }) {
             <Switch
               checked={sw}
               onChange={setSw}
-              label="Actualizar yt-dlp solo"
+              label="Actualizar yt-dlp automáticamente"
               description="Revisa una vez al día."
             />
           </Cell>

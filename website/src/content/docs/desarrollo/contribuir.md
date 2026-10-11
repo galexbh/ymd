@@ -1,13 +1,9 @@
 ---
 title: Contribuir
-description: Puesta en marcha, comandos y reglas del proyecto.
+description: Puesta en marcha, comandos y requisitos para fusionar cambios.
 ---
 
 Resumen de la guía para contribuir. La versión completa está en [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
-
-## La regla
-
-**Todo cambio entra con tests, y CI debe estar en verde.** Ningún PR se fusiona con tests en rojo, sin tests para el comportamiento nuevo o con un job de CI fallando. Si un test falla por algo que no tocaste, se arregla o se reporta; no se desactiva.
 
 ## Puesta en marcha
 
@@ -37,16 +33,19 @@ El modo mock arranca el frontend con un backend falso con estado (`src/ipc/mock/
 | `pnpm docs:dev`      | Este sitio de documentación, en modo desarrollo  |
 | `pnpm docs:build`    | Compila el sitio y valida sus enlaces internos   |
 
-Antes de abrir un PR: `pnpm check && pnpm test:rust && pnpm lint:rust`.
+Comprobación local completa: `pnpm check && pnpm test:rust && pnpm lint:rust`.
 
-## Convenciones
+## Requisitos para fusionar
 
-- **Contrato IPC:** un comando nuevo toca, en el mismo commit, `model.rs`, el comando Rust, `src/ipc/types.ts`, `commands.ts` o `events.ts`, el backend falso y sus tests. Ver [Arquitectura](/ymd/desarrollo/arquitectura/).
-- **i18n:** español e inglés con claves idénticas (hay un test). Ningún texto en duro en componentes.
-- **Diseño:** en componentes solo se usan tokens (variables CSS del tema); todo cambio visual se revisa en tema claro y oscuro.
-- **Seguridad:** yt-dlp y demás herramientas se ejecutan siempre con una lista argv, nunca con una shell. Ningún secreto en disco en texto plano ni en argumentos de proceso.
-- **Commits:** en imperativo y concisos. Si el cambio lo escribió o coescribió una IA, añade la línea de atribución `Co-Authored-By`.
+Un PR se fusiona cuando cumple estos requisitos. El detalle está en [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
+
+- **Tests y CI:** el cambio incluye tests para el comportamiento nuevo o modificado, y todos los jobs de CI pasan (ver [Tests y CI](/ymd/desarrollo/tests-y-ci/)).
+- **Contrato IPC:** los comandos y eventos se mantienen sincronizados entre `model.rs`, el comando Rust, `src/ipc/types.ts`, `commands.ts` o `events.ts`, el backend simulado y sus tests (ver [Arquitectura](/ymd/desarrollo/arquitectura/#contrato-ipc)).
+- **i18n:** español e inglés con claves idénticas; los componentes no contienen textos fijos.
+- **Diseño:** los componentes solo usan tokens (variables CSS del tema), y los cambios visuales se revisan en tema claro y oscuro.
+- **Seguridad:** yt-dlp y las demás herramientas se ejecutan con una lista argv, nunca con una shell. Ningún secreto se guarda en disco en texto plano ni pasa por argumentos de proceso.
+- **Documentación:** los cambios visibles para el usuario se reflejan en las páginas en español y en inglés.
 
 ## Documentación
 
-Este sitio vive en `website/` (Astro Starlight) y se publica en GitHub Pages al fusionar en `main`. Cada página tiene su versión en español (raíz) y en inglés (`en/`); un cambio de comportamiento de la app actualiza ambas.
+Este sitio está en `website/` (Astro Starlight) y se publica en GitHub Pages con cada fusión en `main`. Las páginas en español están en la raíz y las inglesas en `en/`, con los mismos nombres de archivo.

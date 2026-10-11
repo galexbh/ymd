@@ -1,5 +1,5 @@
 ---
-title: Por qué hacen falta
+title: Por qué se necesitan cookies
 description: Cuándo necesita ymd tu sesión, y qué opciones hay.
 ---
 
@@ -9,7 +9,7 @@ Algunos videos solo se descargan con una sesión iniciada:
 - Videos con restricción de edad, privados a los que tu cuenta tiene acceso, o solo para miembros.
 - Sitios que exigen iniciar sesión, como Vimeo o Udemy.
 
-yt-dlp no tiene tu sesión por sí mismo. ymd se la puede dar de varias formas, todas opcionales y configuradas en **Ajustes → Cuentas**:
+yt-dlp no tiene acceso a tu sesión de forma predeterminada. ymd se la puede dar de varias formas, todas opcionales y configuradas en **Ajustes → Cuentas**:
 
 | Opción                                           | Para qué                                                                                         |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -24,11 +24,12 @@ En **Ajustes → Cuentas → Cookies del navegador**, **Origen de las cookies** 
 - **Sin sesión**: ymd descarga como si no hubieras iniciado sesión. Úsalo para videos públicos o si no quieres usar tu cuenta: con muchas descargas, YouTube puede marcar o limitar una cuenta usada con yt-dlp.
 - **Extensión**: para Brave, Chrome, Edge y otros navegadores Chromium. La extensión de ymd envía tus cookies cada vez que cambian.
 - **Firefox**: ymd lee las cookies de Firefox en cada descarga, aunque esté abierto. En macOS se llama **Firefox o Safari**.
-  ymd no importa archivos `cookies.txt` exportados a mano: un archivo así guarda todas tus sesiones en texto plano, fuera de la protección del navegador. La extensión entrega las cookies directamente, y ymd las guarda cifradas.
+
+ymd no importa archivos `cookies.txt` exportados manualmente: un archivo así guarda todas tus sesiones en texto plano, fuera de la protección del navegador. La extensión entrega las cookies directamente, y ymd las guarda cifradas.
 
 ## Privacidad
 
-- Las contraseñas de sitios viven solo en el llavero del sistema; nunca en disco ni en los argumentos de procesos.
+- Las contraseñas de sitios se guardan solo en el llavero del sistema; nunca en disco ni en los argumentos de procesos.
 - La copia de cookies de ymd se guarda en su carpeta de datos, con permisos solo para tu usuario, y se borra con **Borrar copia**.
 - yt-dlp recibe una copia temporal de las cookies en cada ejecución.
 - La contraseña de un video y el código 2FA de una descarga se usan en esa descarga y no se guardan.

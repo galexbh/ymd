@@ -12,11 +12,11 @@ ymd updates from [GitHub Releases](https://github.com/galexbh/ymd/releases). Eve
 - If ymd is in the background, you also get a system notification, once per version.
 - **Settings → Advanced → ymd** shows the **Installed version**, a **Check for updates** button and, when a new version is out, what’s new in it.
 
-Installed copies only see published versions. If the check fails, try again later or download the latest version from the [releases page](https://github.com/galexbh/ymd/releases/latest).
+If the check fails, try again later or download the latest version from the [releases page](https://github.com/galexbh/ymd/releases/latest).
 
 ## yt-dlp
 
-Sites change often and yt-dlp fixes them just as fast, so it pays to keep it current. In **Settings → Advanced → yt-dlp**:
+Sites change often and yt-dlp publishes fixes frequently, so keeping it up to date is recommended. In **Settings → Advanced → yt-dlp**:
 
 ### Update channel
 
@@ -28,6 +28,6 @@ Sites change often and yt-dlp fixes them just as fast, so it pays to keep it cur
 
 ### Automatic updates
 
-**Update yt-dlp automatically** checks when ymd opens and updates when nothing is downloading. yt-dlp can't be changed while downloads are running or queued.
+**Update yt-dlp automatically** checks when ymd opens and updates when nothing is downloading. yt-dlp can't be updated while downloads are running or queued.
 
-You can also update by hand from [Dependencies](/ymd/en/dependencias/) with **Check for updates**. If the system's yt-dlp is out of date, ymd offers to install its own copy, which takes precedence; the system file is left untouched.
+You can also update manually from [Dependencies](/ymd/en/dependencias/) with **Check for updates**. If the system's yt-dlp is out of date, ymd offers to install its own copy, which takes precedence; the system file is left untouched.

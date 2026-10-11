@@ -4,7 +4,7 @@ description: Contrato de Native Messaging entre la extensión ymd Cookies y ymd.
 tableOfContents: false
 ---
 
-Contrato compartido por `extension/` y `src-tauri/src/auth/native_host.rs`. Un cambio en uno se hace en el otro en el mismo PR, junto con esta página y su versión en inglés.
+Contrato entre la extensión (`extension/`) y el host nativo de ymd (`src-tauri/src/auth/native_host.rs`).
 
 <figure class="archify-figure">
   <iframe data-archify="/ymd/diagramas/puente-de-cookies.html" title="Diagrama de secuencia del puente de cookies" loading="lazy"></iframe>
@@ -17,13 +17,13 @@ Contrato compartido por `extension/` y `src-tauri/src/auth/native_host.rs`. Un c
 - ID de la extensión (fijado por la `key` del manifiesto): `gicaphbpepkphmeciigjhdpnbcaflfgd`
 - ID de la versión de la Chrome Web Store (la tienda asigna el suyo): `hhojlkpllmndkaolmebblijfcjkjpdpi`
 - Orígenes permitidos: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/` y `chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/`. ymd rechaza cualquier otro.
-- `key` del manifiesto (pública, SPKI DER en base64). `extension/src/__tests__/manifest.test.ts` lee este bloque y comprueba que coincide con `extension/manifest.json`:
+- `key` del manifiesto (pública, SPKI DER en base64), la misma de `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
 ```
 
-La clave privada correspondiente **no** está en el repositorio. Vive en `~/.ymd/extension-key.pem` en la máquina del mantenedor y no se sube a la tienda: la versión de la Chrome Web Store tiene su propio ID, y ymd acepta los dos.
+La clave privada correspondiente no forma parte del repositorio. La versión de la Chrome Web Store no usa esta clave: la tienda le asigna su propio ID, y ymd acepta los dos.
 
 ## Transporte
 
@@ -54,7 +54,7 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 
 - El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
 - Escribe `cookies.meta.json` con `origin: "extension:<browser>"` y, si llegó, `extensionVersion`.
-- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, o no llegó, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza sola.
+- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, o no llegó, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza automáticamente.
 - La app lee ambos con `cookies_info` y `extension_status`.
 - `open` lanza `ymd --open-url <url>` y responde enseguida. Si ymd ya está abierto, esa segunda instancia le pasa el enlace y se cierra, y ymd pasa al frente; si no, ymd arranca con él. El enlace aparece en **Recibir** con su ficha. Nunca se descarga nada sin tu clic.
 
@@ -63,22 +63,22 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 Cómo cuida el puente tus cookies y los enlaces que envías.
 
 - **Sin red.** Las cookies viajan por Native Messaging, de proceso a proceso. No hay puertos abiertos, servidor ni telemetría.
-- **Solo esta extensión habla con el host.** El navegador solo lanza el host para el origen del ID fijo, y el host lo vuelve a comprobar. La extensión no acepta mensajes de otras extensiones ni de páginas web (`externally_connectable` vacío), y solo atiende a su propio popup.
-- **El host solo escribe.** Ninguna respuesta devuelve cookies: solo el conteo y los dominios. Quien lograra hablar con el host no podría leer nada.
+- **Solo esta extensión se comunica con el host.** El navegador solo lanza el host para el origen del ID fijo, y el host lo vuelve a comprobar. La extensión no acepta mensajes de otras extensiones ni de páginas web (`externally_connectable` vacío), y solo atiende a su propio popup.
+- **El host solo escribe.** Ninguna respuesta devuelve cookies: solo el conteo y los dominios. Un proceso que lograra comunicarse con el host no podría obtener ninguna cookie.
 - **Los enlaces solo se revisan.** «Descargar con ymd» acepta únicamente enlaces web y ymd los muestra en **Recibir**; descargar siempre requiere tu clic.
-- **Lo mínimo.** Solo se envían los sitios de la lista. La extensión que trae ymd pide en su manifiesto solo `*://*.youtube.com/*`; el paquete de la Chrome Web Store no pide ninguno. Cada sitio que se agrega pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
+- **Permisos mínimos.** Solo se envían los sitios de la lista. La extensión que trae ymd pide en su manifiesto solo `*://*.youtube.com/*`; el paquete de la Chrome Web Store no pide ninguno. Cada sitio que se agrega pide permiso al navegador, y se rechazan los dominios compartidos por muchos sitios (`co.uk`, `github.io`, `blogspot.com`…), que darían acceso a sitios ajenos.
 - **Validación estricta.** Mensajes de 16 MiB como máximo, 10.000 cookies como máximo, y cada cookie con un dominio y una ruta válidos, sin caracteres de control y de 4096 bytes como máximo. Lo que no cumple se descarta.
 - **Cifrado en disco.** `cookies.txt` se guarda cifrado con ChaCha20-Poly1305, con una clave aleatoria en el llavero del sistema (Administrador de credenciales, Llavero de macOS o Secret Service). El texto plano solo existe en memoria y en la copia que yt-dlp recibe durante una descarga; esa copia se borra al terminar, y al arrancar ymd si quedó alguna por un cierre forzado. Sin llavero disponible (algunos Linux sin Secret Service), el archivo se guarda sin cifrar, solo para tu usuario, y el log lo indica.
 - **La extensión no guarda valores.** En el navegador solo guarda la lista de sitios, el estado y una huella SHA-256 del conjunto.
-- **Páginas cerradas.** La política de contenido de la extensión solo permite sus propios archivos y ninguna conexión de red.
+- **Política de contenido restrictiva.** La política de contenido de la extensión solo permite sus propios archivos y ninguna conexión de red.
 
 ### Buenas prácticas
 
-Como cualquier aplicación que guarda sesiones, ymd cuenta con que el equipo esté sano:
+Como cualquier aplicación que guarda sesiones, ymd asume que el equipo no está comprometido:
 
 - Mantén el sistema operativo y el navegador actualizados.
 - Instala ymd y la extensión solo desde las fuentes oficiales: los releases de GitHub y la carpeta que trae ymd.
-- Agrega a la lista solo los sitios que necesitas, y usa **Borrar copia** en **Ajustes → Cuentas** cuando ya no la uses.
+- Agrega a la lista solo los sitios que necesitas, y usa **Borrar copia** en **Ajustes → Cuentas** cuando ya no necesites la copia.
 
 ## Registro del host
 
