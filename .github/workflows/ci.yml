@@ -1,8 +1,9 @@
 # Gate for every change: nothing merges unless all jobs are green.
 #
 # Pull requests run the suites the change can affect (a docs-only PR runs only the format
-# check); pushes to `main` always run everything, including the 3-OS app build and coverage.
-# Skipped jobs count as passing for branch protection.
+# check); pushes to `main` always run everything. Rust coverage comes from the Linux cell of
+# the rust job (cargo llvm-cov replaces cargo test there). Skipped jobs count as passing for
+# branch protection.
 name: CI
 
 on:
@@ -12,9 +13,11 @@ on:
     branches: [main, "redesign/**"]
   workflow_dispatch:
 
+# A new push to a PR cancels its previous run; pushes to main always finish, so every commit
+# on main gets a result and saves its caches.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -38,10 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
-      full: ${{ steps.mode.outputs.full }}
       rust: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.rust == 'true' }}
-      # What the commit itself touched, even on main (rust-coverage is skipped otherwise).
-      rust-changed: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.rust == 'true' }}
       frontend: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.frontend == 'true' }}
       extension: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.extension == 'true' }}
       deps: ${{ steps.mode.outputs.full == 'true' || steps.filter.outputs.deps == 'true' }}
@@ -194,8 +194,9 @@ jobs:
             ' >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # `pnpm build` would run tsc again; Typecheck above already did.
       - name: Production build
-        run: pnpm build
+        run: pnpm exec vite build
 
       - name: Playwright version
         id: pw
@@ -341,10 +342,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: ${{ runner.os == 'Linux' && 'rustfmt, clippy, llvm-tools-preview' || 'rustfmt, clippy' }}
 
-      # PRs read main's cache but never overwrite it. build-check restores this same cache
-      # (shared-key), so each OS keeps one debug cache instead of two.
+      # PRs read main's cache but never overwrite it. On Linux it also holds cargo-llvm-cov's
+      # instrumented build (target/llvm-cov-target, a nested target dir rust-cache keeps),
+      # which the nightly smoke test reuses.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
@@ -359,6 +361,12 @@ jobs:
             libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
             libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
 
+      - name: Install cargo-llvm-cov
+        if: runner.os == 'Linux'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
       # `tauri::generate_context!` needs `frontendDist` (../dist) to exist at compile time.
       - name: Frontend dist stub
         run: |
@@ -371,68 +379,46 @@ jobs:
 
       - name: cargo clippy
         working-directory: src-tauri
-        run: cargo clippy --all-targets --features test-support -- -D warnings
+        run: cargo clippy --locked --all-targets --features test-support -- -D warnings
 
       - name: cargo test
+        if: runner.os != 'Linux'
         working-directory: src-tauri
-        run: cargo test --features test-support
+        run: cargo test --locked --features test-support
 
-  # Instrumented rebuild: a report, not a gate. Only on main, and only when Rust changed (its
-  # ~800 MB cache is the largest one; the repository's cache budget is 10 GB).
-  rust-coverage:
-    name: rust coverage (report)
-    needs: [changes, rust]
-    if: needs.changes.outputs.full == 'true' && needs.changes.outputs.rust-changed == 'true'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-          key: coverage
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov
-      - name: Linux system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
-            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
-      - name: Frontend dist stub
-        run: mkdir -p dist && echo '<!doctype html><title>ymd</title>' > dist/index.html
-      - name: cargo llvm-cov
+      # The same suite, instrumented: a gate exactly like cargo test, plus the coverage report
+      # (no threshold). Replaces the separate coverage job that rebuilt everything on main.
+      - name: cargo test + coverage (llvm-cov)
+        if: runner.os == 'Linux'
         working-directory: src-tauri
         run: |
-          cargo llvm-cov --features test-support --lcov --output-path lcov.info
+          cargo llvm-cov --locked --features test-support --lcov --output-path lcov.info
           {
             echo '### Rust coverage'
             echo '```'
             cargo llvm-cov report --summary-only
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v7
+
+      - name: Upload coverage
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
         with:
           name: rust-coverage
           path: src-tauri/lcov.info
           retention-days: 14
 
-  # The real app build (frontend + extension + Tauri). All 3 OS on main; Linux on PRs that
-  # touch the app (the rust job already compiles the crate on every OS).
+  # The real app build (frontend + extension + Tauri), Linux only: the rust job already
+  # compiles and tests the crate on every OS, and release.yml / warm-release-cache.yml build
+  # the release binaries on all three. Own cache: without test-support and dev-dependencies
+  # the feature set differs from the rust job's, so restoring that cache still recompiled
+  # 60-127 crates.
   build-check:
-    name: build-check (${{ matrix.os }})
+    name: build-check (ubuntu-22.04)
     needs: changes
     if: needs.changes.outputs.rust == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.extension == 'true'
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ${{ fromJSON(needs.changes.outputs.full == 'true' && '["windows-latest","macos-latest","ubuntu-22.04"]' || '["ubuntu-22.04"]') }}
     steps:
       - uses: actions/checkout@v7
 
@@ -445,16 +431,13 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # Restores the rust job's cache: same dependencies (test-support adds none), and saving a
-      # second copy would only push other caches out of the 10 GB budget.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          shared-key: debug
-          save-if: false
+          shared-key: build
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Linux system dependencies
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -463,6 +446,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Runs `beforeBuildCommand` (frontend + extension) then compiles the app; no installers.
+      # Compiles the app without installers. beforeBuildCommand is overridden to skip `tsc`
+      # (the frontend job typechecks); vite and the extension build still run because the app
+      # embeds dist/ and bundles extension/dist as a resource. `pnpm exec` hands the JSON to
+      # the CLI as one argument (no script shell in between); `-- --locked` goes to cargo.
       - name: tauri build (no bundle)
-        run: pnpm tauri build --debug --no-bundle
+        run: >-
+          pnpm exec tauri build --debug --no-bundle
+          --config '{"build":{"beforeBuildCommand":"pnpm exec vite build && pnpm ext:build"}}'
+          -- --locked

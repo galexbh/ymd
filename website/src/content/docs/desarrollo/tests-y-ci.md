@@ -30,16 +30,27 @@ Es la puerta de cada cambio: nada se fusiona sin todos los jobs en verde. Un job
 
 - Un cambio en `ci.yml` activa todos los filtros.
 - `format` (oxfmt) corre siempre, porque cubre también la documentación.
-- `build-check` compila la app real (frontend, extensión y Tauri) en Linux en los PR que tocan la app.
-- **En `main` corre todo**, sin importar las rutas: los tres sistemas en `build-check` y el informe de cobertura de Rust. Lo mismo al lanzarlo a mano (`workflow_dispatch`).
+- En Linux, el job `rust` corre los tests con `cargo llvm-cov` en lugar de `cargo test`: la misma suite, que también genera el informe de cobertura (resumen en la ejecución y artefacto `rust-coverage`, sin umbral). Windows y macOS usan `cargo test`.
+- `build-check` compila la app real (frontend, extensión y Tauri, en modo debug y sin instaladores) solo en Linux, con su propia caché de Rust. Los instaladores de los tres sistemas se compilan en `release.yml`.
+- clippy, los tests y las compilaciones de CI usan `--locked`: si `Cargo.lock` no está al día, CI falla en vez de actualizarlo.
+- **En `main` corre todo**, sin importar las rutas. Lo mismo al lanzarlo a mano (`workflow_dispatch`).
+- Un push nuevo a un PR cancela la ejecución anterior de ese PR; en `main` cada push termina su ejecución.
 
 Los jobs omitidos cuentan como aprobados para la protección de rama.
 
+## Cachés
+
+GitHub da 10 GB de caché por repositorio. Las cachés de Rust se guardan solo desde `main` (los PR las leen sin sobrescribirlas) y hay una por propósito y sistema: `debug` (job `rust`), `build` (`build-check`) y `release-<sistema>` (instaladores).
+
+Una caché guardada desde un tag solo la puede leer ese tag, así que `release.yml` no guarda la suya: la prepara `warm-release-cache.yml`, que compila en `main` los mismos binarios de release (mismos runners, targets y variables de entorno). Si se cambia la matriz o el entorno de `release.yml`, hay que cambiar ese workflow igual.
+
 ## Otros workflows
 
-| Workflow              | Cuándo                                                                 | Qué hace                                                                                |
-| --------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `release.yml`         | tags `v*`                                                              | Instaladores firmados y release en borrador (ver [Releases](/ymd/desarrollo/releases/)) |
-| `docs.yml`            | push a `main` que toca `website/**`, `CHANGELOG.md` o `docs/assets/**` | Publica este sitio en GitHub Pages                                                      |
-| `nightly-smoke.yml`   | cada día                                                               | Descarga real con el yt-dlp nightly; abre un issue si falla                             |
-| `supported-sites.yml` | cada semana                                                            | Actualiza la lista de sitios compatibles y abre un PR si cambió                         |
+| Workflow                 | Cuándo                                                                  | Qué hace                                                                                           |
+| ------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `release.yml`            | tags `v*`                                                               | Instaladores firmados y release en borrador (ver [Releases](/ymd/desarrollo/releases/))            |
+| `docs.yml`               | push a `main` que toca `website/**`, `CHANGELOG.md` o `docs/assets/**`  | Publica este sitio en GitHub Pages                                                                 |
+| `nightly-smoke.yml`      | cada día                                                                | Descarga real con el yt-dlp nightly; abre un issue si falla                                        |
+| `supported-sites.yml`    | cada semana                                                             | Actualiza la lista de sitios compatibles y abre un PR si cambió                                    |
+| `warm-release-cache.yml` | push a `main` que toca `Cargo.lock` o `Cargo.toml`, cada semana, a mano | Compila los binarios de release sin instaladores y guarda la caché que lee `release.yml`           |
+| `cache-cleanup.yml`      | al cerrar un PR; cada día; a mano                                       | Borra las cachés del PR cerrado; en `main` deja solo la caché más reciente de cada grupo de claves |
