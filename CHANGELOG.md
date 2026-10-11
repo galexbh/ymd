@@ -16,6 +16,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Cambios
 
+- **Listas desplegables con el estilo de ymd.** En Windows, al abrir un selector (por ejemplo **Preajuste** en **Recibir**), la lista usa los colores, la tipografía y el check de la app en lugar de la lista gris del sistema. En macOS y Linux sigue la lista del sistema.
 - **«Ninguno» ahora se llama «Sin sesión»** en **Origen de las cookies**, con una pista que explica para qué sirve: descargar como si no hubieras iniciado sesión.
 
 ### Correcciones
