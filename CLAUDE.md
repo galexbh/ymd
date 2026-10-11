@@ -54,7 +54,9 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
   `docs/assets/` only holds README images. Diagrams: Archify sources in `website/diagrams/` (see its README),
   published HTML in `website/public/diagramas/`; regenerate both when the code they cite changes.
 - `.github/workflows/` — `ci.yml` (gate), `release.yml` (tags `v*`), `docs.yml` (Pages deploy),
-  `nightly-smoke.yml`.
+  `nightly-smoke.yml`, `warm-release-cache.yml` (saves on main the Rust cache release.yml
+  restores; keep its matrix/env in sync), `cache-cleanup.yml` (PR caches on close, daily prune
+  of superseded main caches).
 
 ### Mock backend
 

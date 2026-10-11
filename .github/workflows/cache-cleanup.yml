@@ -1,10 +1,26 @@
-# Deletes a pull request's caches when it closes. They are scoped to refs/pull/N/merge, so no
-# other run can restore them, and left alone they push main's caches out of the 10 GB budget.
+# Keeps the repository under GitHub's 10 GB cache budget.
+#
+# - When a pull request closes, deletes its caches. They are scoped to refs/pull/N/merge, so no
+#   other run can restore them, and left alone they push main's caches out of the budget.
+# - Daily (or by hand), prunes main's superseded caches. Every Cargo.lock change (each version
+#   bump included, since it holds ymd's own version) or new stable Rust saves a new ~4 GB set
+#   of Rust caches while the old ones linger. Caches are grouped by key with the trailing hash
+#   segments removed (`v0-rust-debug-Linux-x64-9273cf05-76490bd0` -> `v0-rust-debug-Linux-x64`,
+#   `node-cache-Linux-x64-pnpm-<sha256>` -> `node-cache-Linux-x64-pnpm`); the newest cache of
+#   each group stays and the older ones are deleted.
 name: Cache cleanup
 
 on:
   pull_request:
     types: [closed]
+  schedule:
+    - cron: "23 3 * * *" # daily, 03:23 UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Only list what would be deleted"
+        type: boolean
+        default: false
 
 permissions:
   actions: write
@@ -12,6 +28,7 @@ permissions:
 jobs:
   cleanup:
     name: delete PR caches
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -23,3 +40,31 @@ jobs:
         run: |
           gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id' |
             while read -r id; do gh cache delete "$id"; done
+
+  prune-main:
+    name: prune superseded main caches
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Delete all but the newest cache per key group on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry-run && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          stale=$(gh cache list --ref refs/heads/main --limit 200 \
+            --json id,key,createdAt,sizeInBytes --jq '
+              map(. + {group: (.key | sub("(-[0-9a-f]{8,})+$"; ""))})
+              | group_by(.group)
+              | map(sort_by(.createdAt) | reverse | .[1:][])
+              | .[]
+              | "\(.id)\t\(.sizeInBytes / 1048576 | floor) MB\t\(.key)"')
+          if [ -z "$stale" ]; then
+            echo "Nothing to prune."
+            exit 0
+          fi
+          printf '%s\n' "$stale"
+          [ "$DRY_RUN" = "true" ] && exit 0
+          printf '%s\n' "$stale" | cut -f1 | while read -r id; do gh cache delete "$id"; done
