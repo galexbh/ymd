@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { api, toCommandError } from "../ipc/commands";
 import { events } from "../ipc/events";
+import { settleListeners } from "./listen";
 import type { CommandError, DepId, DepProgress, DepsReport, DepStatus } from "../ipc/types";
 
 export type DepBusy = "install" | "remove";
@@ -104,7 +105,7 @@ export const useDeps = create<DepsState>((set, get) => ({
 }));
 
 export async function connectDeps(): Promise<() => void> {
-  const offs = await Promise.all([
+  const offs = await settleListeners([
     events.onDepsProgress((p) => useDeps.getState().onProgress(p)),
     events.onDepsChanged((r) => useDeps.getState().setReport(r)),
   ]);

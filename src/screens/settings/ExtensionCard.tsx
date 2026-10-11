@@ -93,7 +93,8 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
     onSyncedRef.current = onSynced;
   });
 
-  // poll every 5 s and on window focus; nothing runs after unmount
+  // poll every 5 s (not while the window is hidden in the tray) and on focus or when shown
+  // again; nothing runs after unmount
   useEffect(() => {
     let alive = true;
     let busy = false;
@@ -114,13 +115,19 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
           busy = false;
         });
     };
+    const hidden = () => document.visibilityState === "hidden";
+    const tick = () => {
+      if (!hidden()) refresh();
+    };
     refresh();
-    const id = window.setInterval(refresh, EXTENSION_POLL_MS);
+    const id = window.setInterval(tick, EXTENSION_POLL_MS);
     window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", tick);
     return () => {
       alive = false;
       window.clearInterval(id);
       window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", tick);
       if (copiedTimer.current) clearTimeout(copiedTimer.current);
     };
   }, []);

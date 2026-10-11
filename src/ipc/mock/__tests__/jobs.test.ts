@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { api } from "../../commands";
 import { events } from "../../events";
 import type { EnqueueRequest, Job } from "../../types";
-import { installMockBackend, type MockBackendOptions } from "..";
+import { MAX_FINISHED_JOBS, installMockBackend, type MockBackendOptions } from "..";
 
 const VIDEO = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 const PLAYLIST = "https://www.youtube.com/playlist?list=PLabc123";
@@ -384,5 +384,24 @@ describe("mock backend — resume after restart", () => {
 
     await api.jobsDiscardPending([b.id]);
     expect(await api.jobsPending()).toEqual([]);
+  });
+
+  it("evicts the oldest finished jobs beyond MAX_FINISHED_JOBS with job://removed", async () => {
+    const t = setup();
+    await t.listen();
+    const ids: string[] = [];
+    for (let i = 0; i < MAX_FINISHED_JOBS + 2; i++) {
+      const j = await api.enqueue(req(VIDEO));
+      ids.push(j.id);
+      await api.jobCancel(j.id);
+    }
+    // a live job is never evicted
+    const live = await api.enqueue(req(VIDEO));
+    await t.clock.advanceAsync(0);
+    expect(t.removed).toEqual([ids[0], ids[1]]);
+    const list = await api.jobsList();
+    expect(list).toHaveLength(MAX_FINISHED_JOBS + 1);
+    expect(list.some((j) => j.id === live.id)).toBe(true);
+    expect(list.some((j) => j.id === ids[0])).toBe(false);
   });
 });

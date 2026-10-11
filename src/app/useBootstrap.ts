@@ -7,13 +7,14 @@ import { connectDeps } from "../store/deps";
 import { useHistory } from "../store/history";
 import { connectJobs, onJobChange } from "../store/jobs";
 import { connectBrowserLinks, connectClipboard } from "../store/clipboard";
+import { useNav } from "../store/nav";
 import { useSettings } from "../store/settings";
 import { connectJobNotice } from "./jobNotice";
 import { showInFolder } from "./native";
 import { connectTrayNotice } from "./trayNotice";
 import { connectAppUpdates } from "./updateNotice";
 
-function announce(job: Job, prev: Job | undefined) {
+export function announce(job: Job, prev: Job | undefined) {
   if (job.stage !== "done" || !prev || prev.stage === "done") return;
   const title = job.title ?? job.url;
   useToasts.getState().push({
@@ -28,8 +29,11 @@ function announce(job: Job, prev: Job | undefined) {
         ]
       : undefined,
   });
-  // the catalog gains rows when something is filed
-  if (useHistory.getState().status !== "idle") void useHistory.getState().refresh();
+  // the catalog gains rows when something is filed; only re-query when it is on screen (the
+  // catalog refreshes itself on every visit), not once per finished job while in the tray
+  if (useNav.getState().route === "catalog" && useHistory.getState().status !== "idle") {
+    void useHistory.getState().refresh();
+  }
 }
 
 export function useBootstrap() {
@@ -43,9 +47,15 @@ export function useBootstrap() {
     offs.push(connectAppUpdates());
     offs.push(connectTrayNotice());
     offs.push(connectJobNotice());
-    void Promise.all([connectJobs(), connectDeps()]).then((fns) => {
-      if (alive) offs.push(...fns);
-      else fns.forEach((f) => f());
+    void Promise.allSettled([connectJobs(), connectDeps()]).then((results) => {
+      for (const r of results) {
+        if (r.status === "rejected") {
+          console.error("ymd: could not subscribe to backend events", r.reason);
+          continue;
+        }
+        if (alive) offs.push(r.value);
+        else r.value();
+      }
     });
     return () => {
       alive = false;

@@ -12,6 +12,8 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Correcciones
 
+- **Menos trabajo con muchas descargas o con ymd en la bandeja.** La interfaz ya no se vuelve a dibujar entera con cada avance de descarga: solo cambia la fila de esa descarga, y la cuadrícula de una playlist en **Recibir** no se toca. Con la ventana oculta, el avance se aplica cada 2 s (los finales y errores siguen llegando al instante, igual que los avisos), la tarjeta de la extensión deja de consultar su estado y el **Catálogo** se actualiza al abrirlo en lugar de una vez por descarga terminada.
+- ymd ya no acumula memoria con el tiempo: libera la actualización encontrada al volver a buscar, los errores de filas ya quitadas y los temporizadores de avisos cerrados antes de tiempo.
 - **Extensión: sin reenvíos en bucle tras un error.** Si un envío falla, la extensión ya no reenvía las cookies con cada cambio: reintenta con la sincronización de cada 30 min, con espera creciente (30 min, 1 h, 2 h… hasta 6 h) si ymd rechazó el envío o no respondió. **Enviar ahora** sigue intentándolo en el momento. Extensión 1.4.4.
 - **Extensión: un ymd que no responde ya no bloquea los envíos.** Cada mensaje al puente espera 30 s como máximo, y solo queda en cola un envío pendiente.
 - **Extensión: más de 10.000 cookies se avisa sin enviar.** La ventana explica el motivo y el icono muestra **!** en rojo, igual que cuando ymd no pudo guardar las cookies.

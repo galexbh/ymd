@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, memo, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Job } from "../../ipc/types";
+import type { Job, JobId } from "../../ipc/types";
 import {
   BytesFigure,
   EmptyState,
@@ -46,15 +46,21 @@ import s from "./jobs.module.css";
 import screen from "./screen.module.css";
 
 export interface JobsLedgerProps {
-  jobs: Job[];
+  /** row ids, in display order (see `useJobIds`); each row reads its own job from the store */
+  ids: JobId[];
   caption: string;
   /** what to show when there are no rows */
   empty?: "teach" | "filtered";
 }
 
-export function JobsLedger({ jobs, caption, empty = "teach" }: JobsLedgerProps) {
+/** Memoized: re-renders only when the rows (ids/order) change, never on a progress update. */
+export const JobsLedger = memo(function JobsLedger({
+  ids,
+  caption,
+  empty = "teach",
+}: JobsLedgerProps) {
   const { t } = useTranslation();
-  if (jobs.length === 0) {
+  if (ids.length === 0) {
     return empty === "teach" ? (
       <EmptyState icon={Inbox} title={t("ledger.empty.title")}>
         <p>{t("ledger.empty.body")}</p>
@@ -93,18 +99,25 @@ export function JobsLedger({ jobs, caption, empty = "teach" }: JobsLedgerProps) 
           </tr>
         </LedgerHead>
         <LedgerBody>
-          {jobs.map((j) => (
-            <JobRow key={j.id} job={j} />
+          {ids.map((id) => (
+            <JobRow key={id} id={id} />
           ))}
         </LedgerBody>
       </Ledger>
     </div>
   );
-}
+});
 
 const COLS = 9;
 
-function JobRow({ job }: { job: Job }) {
+/** One ledger row; subscribes to its own job only, so other jobs' progress never reaches it. */
+const JobRow = memo(function JobRow({ id }: { id: JobId }) {
+  const job = useJobs((st) => st.jobs[id]);
+  // a row the ledger has not dropped yet (removed in the same tick) renders nothing
+  return job ? <JobRowView job={job} /> : null;
+});
+
+function JobRowView({ job }: { job: Job }) {
   const { t } = useTranslation();
   const locale = currentLocale();
   const preset = useSettings((st) => st.settings?.presets.find((p) => p.id === job.presetId));
