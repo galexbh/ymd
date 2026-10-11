@@ -23,13 +23,13 @@ Es la puerta de cada cambio: nada se fusiona sin todos los jobs en verde. Un job
 | Filtro      | Rutas principales                                                           | Jobs                                                          |
 | ----------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `rust`      | `src-tauri/**`                                                              | `rust` (fmt, clippy, tests en Windows, macOS y Linux)         |
-| `frontend`  | `src/**`, `e2e/**`, `public/**`, configuración de Vite, TypeScript y ESLint | `frontend` (lint, tipos, unitarios con cobertura, build, e2e) |
+| `frontend`  | `src/**`, `e2e/**`, `public/**`, configuración de Vite, TypeScript y Oxlint | `frontend` (lint, tipos, unitarios con cobertura, build, e2e) |
 | `extension` | `extension/**`, `src/styles/**`                                             | `extension` (lint, unitarios, build, zip, e2e)                |
 | `deps`      | `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `Cargo.lock`                | `audit` (pnpm audit y cargo audit)                            |
 | `website`   | `website/**`, `CHANGELOG.md`, `docs/assets/**`                              | `docs` (compila el sitio y valida enlaces)                    |
 
 - Un cambio en `ci.yml` activa todos los filtros.
-- `format` (Prettier) corre siempre, porque cubre también la documentación.
+- `format` (oxfmt) corre siempre, porque cubre también la documentación.
 - En Linux, el job `rust` corre los tests con `cargo llvm-cov` en lugar de `cargo test`: la misma suite, que también genera el informe de cobertura (resumen en la ejecución y artefacto `rust-coverage`, sin umbral). Windows y macOS usan `cargo test`.
 - `build-check` compila la app real (frontend, extensión y Tauri, en modo debug y sin instaladores) solo en Linux, con su propia caché de Rust. Los instaladores de los tres sistemas se compilan en `release.yml`.
 - clippy, los tests y las compilaciones de CI usan `--locked`: si `Cargo.lock` no está al día, CI falla en vez de actualizarlo.

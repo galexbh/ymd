@@ -23,13 +23,13 @@ The gate for every change: nothing merges unless every job is green. A `changes`
 | Filter      | Main paths                                                          | Jobs                                                     |
 | ----------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
 | `rust`      | `src-tauri/**`                                                      | `rust` (fmt, clippy, tests on Windows, macOS and Linux)  |
-| `frontend`  | `src/**`, `e2e/**`, `public/**`, Vite, TypeScript and ESLint config | `frontend` (lint, types, unit with coverage, build, e2e) |
+| `frontend`  | `src/**`, `e2e/**`, `public/**`, Vite, TypeScript and Oxlint config | `frontend` (lint, types, unit with coverage, build, e2e) |
 | `extension` | `extension/**`, `src/styles/**`                                     | `extension` (lint, unit, build, zip, e2e)                |
 | `deps`      | `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `Cargo.lock`        | `audit` (pnpm audit and cargo audit)                     |
 | `website`   | `website/**`, `CHANGELOG.md`, `docs/assets/**`                      | `docs` (builds the site and validates links)             |
 
 - A change to `ci.yml` turns on every filter.
-- `format` (Prettier) always runs, since it covers the documentation too.
+- `format` (oxfmt) always runs, since it covers the documentation too.
 - On Linux, the `rust` job runs the tests with `cargo llvm-cov` instead of `cargo test`: the same suite, which also produces the coverage report (a summary in the run and the `rust-coverage` artifact, no threshold). Windows and macOS use `cargo test`.
 - `build-check` builds the real app (frontend, extension and Tauri, debug and without installers) on Linux only, with its own Rust cache. The installers for all three OSes are built by `release.yml`.
 - clippy, the tests and the CI builds use `--locked`: if `Cargo.lock` is out of date, CI fails instead of updating it.

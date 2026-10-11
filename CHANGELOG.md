@@ -6,6 +6,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Proyecto
 
+- Oxlint y oxfmt reemplazan a ESLint y Prettier: mismas reglas (incluidas las de hooks y React Compiler) y el mismo estilo, con `pnpm lint` y `pnpm format:check` varias veces más rápidos. La configuración vive en `.oxlintrc.json` y `.oxfmtrc.json`; en VS Code se recomienda la extensión Oxc.
 - CI más rápida y barata: la cobertura de Rust sale del job `rust` en Linux (sin un job aparte que recompilaba todo), `build-check` corre solo en Linux con su propia caché y sin repetir `tsc`, los push a `main` ya no se cancelan entre sí y cargo usa `--locked`. El nuevo `warm-release-cache.yml` prepara en `main` la caché de Rust que lee `release.yml`, y `cache-cleanup.yml` borra a diario las cachés viejas de `main` para no pasar de los 10 GB.
 
 ## [0.5.1] - 2026-10-10
@@ -154,6 +155,7 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.5.1...HEAD
 [0.5.1]: https://github.com/galexbh/ymd/releases/tag/v0.5.1
 [0.5.0]: https://github.com/galexbh/ymd/releases/tag/v0.5.0
 [0.4.0]: https://github.com/galexbh/ymd/releases/tag/v0.4.0

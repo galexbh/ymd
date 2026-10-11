@@ -69,7 +69,8 @@ export interface PopupResponse {
 }
 
 export type NativeResult =
-  { ok: true; reply: Record<string, unknown> } | { ok: false; error: StatusError };
+  | { ok: true; reply: Record<string, unknown> }
+  | { ok: false; error: StatusError };
 
 /** One `sendNativeMessage` round trip, with `lastError` and `{ok:false}` folded into a result. */
 export function sendNative(

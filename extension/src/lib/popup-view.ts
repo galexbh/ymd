@@ -249,7 +249,8 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     $("send-label").textContent = t("sending");
     try {
       const res = (await api.runtime.sendMessage({ type: "send-now" } satisfies PopupRequest)) as
-        PopupResponse | undefined;
+        | PopupResponse
+        | undefined;
       if (res?.status) status = res.status;
       else status = await readStatus(api);
     } catch (e) {

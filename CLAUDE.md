@@ -19,6 +19,7 @@ corepack pnpm check             # lint + format:check + typecheck + vitest
 corepack pnpm test:coverage     # vitest + v8 coverage (80% lines on pure modules)
 corepack pnpm e2e               # Playwright vs dev:mock (e2e:install once)
 corepack pnpm test:rust         # cargo test --features test-support
+corepack pnpm lint              # Oxlint (lint:fix to autofix); format / format:check = oxfmt
 corepack pnpm lint:rust         # cargo fmt --check + clippy -D warnings
 corepack pnpm docs:dev          # docs site (website/, Astro Starlight)
 corepack pnpm docs:build        # build docs + validate internal links
@@ -80,7 +81,8 @@ Scenarios: `first-run`, `ready`, `outdated`, `complete`.
    plaintext or in process arguments (keychain + `--netrc-cmd`; video password / 2FA in memory
    only). ymd's cookies file must be owner-only (0600 / user ACL). Never commit binaries,
    cookies or credentials.
-5. **Formatting**: Prettier for TS/JSON/MD/YAML, rustfmt for Rust; LF line endings.
+5. **Formatting and lint**: oxfmt for TS/JSON/CSS/MD/YAML, rustfmt for Rust; LF line endings.
+   Oxlint lints TS/JS (`.oxlintrc.json`); `.oxfmtrc.json` holds the format options and ignores.
 6. Keep `@tauri-apps/*` npm packages on the same major.minor as the Rust crates.
    npm dependencies are pinned to exact versions (no `^`/`~`; `.npmrc` has `save-exact`).
 7. **Docs**: a user-visible behavior change updates the matching `website/` page in both es and
