@@ -20,13 +20,24 @@ describe("shell", () => {
   it("shows the rail with versions and a live count on Registro", async () => {
     const { be, tick } = await renderApp({ settings: { language: "es", concurrency: 1 } });
     expect(screen.getByTestId("rail-ytdlp")).toHaveTextContent("2026.10.07.234512");
-    expect(screen.getByText("Node.js v22.11.0")).toBeInTheDocument();
+    expect(screen.queryByText("Entorno JS")).toBeNull();
+    expect(screen.queryByText("Node.js v22.11.0")).toBeNull();
     await be.invoke("enqueue", enqueue("https://www.youtube.com/watch?v=aaaaaaa0001"));
     await be.invoke("enqueue", enqueue("https://www.youtube.com/watch?v=aaaaaaa0002"));
     await tick(0);
     expect(
       within(screen.getByTestId("nav-queue")).getByLabelText("2 descargas en curso o en cola"),
     ).toBeInTheDocument();
+  });
+
+  it("links to the author's site from the rail footer", async () => {
+    const { be, user, tick } = await renderApp({ settings: { language: "es" } });
+    const link = screen.getByRole("button", { name: "Hecho por galexbh.dev" });
+    expect(link).toHaveTextContent("galexbh.dev");
+    await user.click(link);
+    await tick(0);
+    const urls = calls(be, "plugin:opener|open_url").map((c) => c.args?.url);
+    expect(urls).toEqual(["https://galexbh.dev/"]);
   });
 
   it("navigates with the rail and Ctrl+1..5, Ctrl+, opens Ajustes", async () => {

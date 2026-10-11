@@ -166,11 +166,18 @@
   background: transparent;
   color: var(--text-muted);
   font-size: var(--text-sm);
+  text-align: start;
   cursor: pointer;
 }
 .helpButton:hover {
   background: var(--surface-hover);
   color: var(--text);
+}
+/* the author's link sits under the help button, one step quieter */
+.author {
+  margin-top: calc(-1 * var(--space-2));
+  color: var(--text-faint);
+  font-size: var(--text-xs);
 }
 
 /* narrow windows: the rail keeps its icons, labels stay for screen readers */
