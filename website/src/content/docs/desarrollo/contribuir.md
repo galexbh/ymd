@@ -3,7 +3,7 @@ title: Contribuir
 description: Puesta en marcha, comandos y reglas del proyecto.
 ---
 
-Resumen de la guía para contribuir. La versión completa está en [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/CONTRIBUTING.md).
+Resumen de la guía para contribuir. La versión completa está en [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
 
 ## La regla
 

@@ -3,7 +3,7 @@ title: Contributing
 description: Setup, commands and project rules.
 ---
 
-A summary of the contributing guide. The full version is in [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/CONTRIBUTING.md).
+A summary of the contributing guide. The full version is in [CONTRIBUTING.md](https://github.com/galexbh/ymd/blob/main/.github/CONTRIBUTING.md).
 
 ## The rule
 

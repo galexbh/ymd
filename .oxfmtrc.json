@@ -24,7 +24,7 @@
     "src-tauri/**/snapshots",
     "*.snap",
     ".impeccable",
-    "DESIGN.md",
+    "docs/DESIGN.md",
     "src/data/supported-sites.json",
     "website/**/*.astro",
     "website/.astro",
