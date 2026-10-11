@@ -130,29 +130,25 @@ fn root_path() -> String {
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum Request {
     Hello {
-        #[serde(default)]
-        version: Option<u32>,
+        version: u32,
     },
     Cookies {
-        #[serde(default)]
-        version: Option<u32>,
+        version: u32,
         browser: String,
         cookies: Vec<ChromeCookie>,
         /// Manifest version of the sending extension (`chrome.runtime.getManifest().version`).
-        /// Older extensions don't send it; a malformed one is ignored ([`valid_extension_version`]).
-        #[serde(default)]
-        extension: Option<String>,
+        /// A malformed one is not stored ([`valid_extension_version`]).
+        extension: String,
     },
     /// «Descargar con ymd»: open `url` in ymd's Recibir (never downloads by itself).
     Open {
-        #[serde(default)]
-        version: Option<u32>,
+        version: u32,
         url: String,
     },
 }
 
 impl Request {
-    fn version(&self) -> Option<u32> {
+    fn version(&self) -> u32 {
         match self {
             Request::Hello { version }
             | Request::Cookies { version, .. }
@@ -176,12 +172,11 @@ pub fn parse_request(body: &[u8]) -> Result<Request, CommandError> {
             e.column()
         ))
     })?;
-    if let Some(v) = req.version() {
-        if v > PROTOCOL {
-            return Err(CommandError::unknown(format!(
-                "protocol version {v} is newer than {PROTOCOL}; update ymd"
-            )));
-        }
+    let v = req.version();
+    if v > PROTOCOL {
+        return Err(CommandError::unknown(format!(
+            "protocol version {v} is newer than {PROTOCOL}; update ymd"
+        )));
     }
     Ok(req)
 }
@@ -219,8 +214,6 @@ fn hello_reply() -> Value {
         "app": "ymd",
         "appVersion": env!("CARGO_PKG_VERSION"),
         "protocol": PROTOCOL,
-        // What this host understands, so an extension can hide what an older ymd can't do.
-        "features": ["cookies", "open"],
     })
 }
 
@@ -332,7 +325,7 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
             let _entered = span.enter();
             let started = std::time::Instant::now();
             let received = cookies.len();
-            let result = store_cookies(data_dir, browser, &cookies, extension.as_deref());
+            let result = store_cookies(data_dir, browser, &cookies, &extension);
             // Counts only: never a cookie name, value or domain.
             match &result {
                 Ok((stored, _)) => tracing::info!(
@@ -362,7 +355,7 @@ fn store_cookies(
     data_dir: &Path,
     browser: &str,
     cookies: &[ChromeCookie],
-    extension: Option<&str>,
+    extension: &str,
 ) -> Result<(u32, Vec<String>), CommandError> {
     if cookies.len() > MAX_COOKIES {
         return Err(CommandError::unknown(format!(
@@ -376,7 +369,7 @@ fn store_cookies(
         data_dir: data_dir.to_path_buf(),
         config_dir: data_dir.to_path_buf(),
     };
-    let extension = extension.and_then(valid_extension_version);
+    let extension = valid_extension_version(extension);
     let info = crate::auth::cookies::store_from_extension(
         &paths,
         &text,
@@ -476,26 +469,26 @@ mod tests {
     fn message_parsing() {
         assert_eq!(
             parse_request(br#"{"type":"hello","version":1}"#).unwrap(),
-            Request::Hello { version: Some(1) }
-        );
-        assert_eq!(
-            parse_request(br#"{"type":"hello"}"#).unwrap(),
-            Request::Hello { version: None }
+            Request::Hello { version: 1 }
         );
         let r = parse_request(
-            br#"{"type":"cookies","version":1,"browser":"brave","cookies":[
+            br#"{"type":"cookies","version":1,"browser":"brave","extension":"1.4.3","cookies":[
                 {"domain":".youtube.com","hostOnly":false,"path":"/","secure":true,
                  "httpOnly":true,"session":false,"expirationDate":1999999999.5,
                  "name":"SID","value":"v","sameSite":"lax","storeId":"0"}]}"#,
         )
         .unwrap();
         let Request::Cookies {
-            browser, cookies, ..
+            browser,
+            cookies,
+            extension,
+            ..
         } = r
         else {
             panic!("not cookies")
         };
         assert_eq!(browser, "brave");
+        assert_eq!(extension, "1.4.3");
         assert_eq!(cookies.len(), 1);
         assert!(cookies[0].http_only && !cookies[0].host_only);
         assert_eq!(cookies[0].expiration_date, Some(1_999_999_999.5));
@@ -506,6 +499,11 @@ mod tests {
             br#"{"type":"bogus","value":"SECRETVALUE"}"#,
             br#"not json SECRETVALUE"#,
             br#"{"type":"hello","version":2}"#,
+            // `version` and, on cookies, `extension` are required.
+            br#"{"type":"hello"}"#,
+            br#"{"type":"open","url":"https://example.com/SECRETVALUE"}"#,
+            br#"{"type":"cookies","browser":"brave","extension":"1.4.3","cookies":[]}"#,
+            br#"{"type":"cookies","version":1,"browser":"brave","cookies":[{"domain":"a.b","name":"n","value":"SECRETVALUE"}]}"#,
         ] {
             let e = parse_request(bad).unwrap_err();
             assert_eq!(e.code, ErrorCode::Unknown);
@@ -536,21 +534,6 @@ mod tests {
     }
 
     #[test]
-    fn cookies_message_version_is_optional() {
-        let body =
-            br#"{"type":"cookies","version":1,"browser":"brave","extension":"1.4.1","cookies":[]}"#;
-        let Request::Cookies { extension, .. } = parse_request(body).unwrap() else {
-            panic!("not cookies")
-        };
-        assert_eq!(extension.as_deref(), Some("1.4.1"));
-        let body = br#"{"type":"cookies","browser":"brave","cookies":[]}"#;
-        let Request::Cookies { extension, .. } = parse_request(body).unwrap() else {
-            panic!("not cookies")
-        };
-        assert_eq!(extension, None);
-    }
-
-    #[test]
     fn host_stores_the_extension_version() {
         let dir = tempfile::tempdir().unwrap();
         let paths = AppPaths {
@@ -560,26 +543,22 @@ mod tests {
         };
         let msg = |ext: &str| {
             format!(
-                r#"{{"type":"cookies","version":1,"browser":"brave",{ext}"cookies":[
+                r#"{{"type":"cookies","version":1,"browser":"brave","extension":{ext},"cookies":[
                 {{"domain":".youtube.com","name":"SID","value":"v"}}]}}"#
             )
         };
-        let (_, v) = run(msg(r#""extension":"1.4.1","#).as_bytes(), dir.path());
-        assert_eq!(v["ok"], true);
+        let (_, v) = run(msg(r#""1.4.1""#).as_bytes(), dir.path());
+        assert_eq!(
+            v,
+            json!({"ok": true, "count": 1, "domains": ["youtube.com"]})
+        );
         assert_eq!(
             crate::auth::cookies::extension_version(&paths).as_deref(),
             Some("1.4.1")
         );
         // Malformed: stored without a version, the sync still succeeds.
-        let (_, v) = run(msg(r#""extension":"1.4<script>","#).as_bytes(), dir.path());
+        let (_, v) = run(msg(r#""1.4<script>""#).as_bytes(), dir.path());
         assert_eq!(v["ok"], true);
-        assert_eq!(crate::auth::cookies::extension_version(&paths), None);
-        // An older extension without the field keeps working.
-        let (_, v) = run(msg("").as_bytes(), dir.path());
-        assert_eq!(
-            v,
-            json!({"ok": true, "count": 1, "domains": ["youtube.com"]})
-        );
         assert_eq!(crate::auth::cookies::extension_version(&paths), None);
     }
 
@@ -684,10 +663,10 @@ mod tests {
     fn too_many_cookies_is_an_error_and_writes_nothing() {
         let dir = tempfile::tempdir().unwrap();
         let req = Request::Cookies {
-            version: Some(1),
+            version: 1,
             browser: "brave".into(),
             cookies: vec![cookie(".youtube.com", false, "n", "v"); MAX_COOKIES + 1],
-            extension: None,
+            extension: "1.4.3".into(),
         };
         let e = handle(req, dir.path()).unwrap_err();
         assert!(e.detail.contains("too many cookies"), "{}", e.detail);
@@ -766,7 +745,7 @@ mod tests {
     #[test]
     fn host_main_rejects_origin_without_reading() {
         let dir = tempfile::tempdir().unwrap();
-        let input = frame(br#"{"type":"hello"}"#);
+        let input = frame(br#"{"type":"hello","version":1}"#);
         let mut out = Vec::new();
         let mut reader = input.as_slice();
         let code = host_main(
@@ -802,9 +781,14 @@ mod tests {
         assert_eq!(v["app"], "ymd");
         assert_eq!(v["appVersion"], env!("CARGO_PKG_VERSION"));
         assert_eq!(v["protocol"], 1);
+        assert_eq!(
+            v.as_object().unwrap().len(),
+            4,
+            "ok, app, appVersion, protocol"
+        );
 
         let (code, v) = run(
-            br#"{"type":"cookies","version":1,"browser":"edge","cookies":[
+            br#"{"type":"cookies","version":1,"browser":"edge","extension":"1.4.3","cookies":[
                 {"domain":"a.com","hostOnly":true,"path":"/","secure":false,"httpOnly":false,
                  "session":true,"name":"n","value":"SECRETVALUE"}]}"#,
             dir.path(),
@@ -814,7 +798,7 @@ mod tests {
 
         // Nothing representable → error reply, and the previous jar stays.
         let (code, v) = run(
-            br#"{"type":"cookies","browser":"edge","cookies":[
+            br#"{"type":"cookies","version":1,"browser":"edge","extension":"1.4.3","cookies":[
                 {"domain":"a.com","name":"n","value":"SECRET\tVALUE"}]}"#,
             dir.path(),
         );

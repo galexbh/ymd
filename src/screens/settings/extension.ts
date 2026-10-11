@@ -35,14 +35,13 @@ export function olderVersion(a: string, b: string): boolean {
 
 /**
  * The bundled extension is newer than the one that synced (an unpacked extension doesn't
- * update itself: the user reloads it). A sync without a version came from an extension older
- * than the version field, so it is outdated too.
+ * update itself: the user reloads it). Without both versions nothing is compared.
  */
 export function extensionOutdated(st: ExtensionStatus): boolean {
   const bundled = st.bundledVersion;
-  const sync = st.lastSync;
-  if (!bundled || !sync) return false;
-  return !sync.extensionVersion || olderVersion(sync.extensionVersion, bundled);
+  const synced = st.lastSync?.extensionVersion;
+  if (!bundled || !synced) return false;
+  return olderVersion(synced, bundled);
 }
 
 /** Display name for the browser string the extension reports ("brave", "other", ...). */

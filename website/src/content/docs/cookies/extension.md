@@ -108,4 +108,4 @@ La primera sincronización llega cuando cambia una cookie o al pulsar **Enviar a
 Brave muestra este aviso con cualquier extensión cargada en modo desarrollador; no indica un problema.
 
 **«Hay una versión nueva de la extensión».**
-ymd incluye una versión de la extensión más reciente que la que tienes cargada. En la página de extensiones del navegador, pulsa el botón de recargar de **ymd Cookies**. Si la tarjeta dice **Anterior a esta función** en **Versión de la extensión**, la extensión cargada es anterior a esta función: recárgala de todos modos.
+ymd incluye una versión de la extensión más reciente que la que tienes cargada. En la página de extensiones del navegador, pulsa el botón de recargar de **ymd Cookies**.

@@ -9,8 +9,8 @@ Fallos reales encontrados durante el desarrollo de ymd, su causa y dónde está 
 
 - **Síntoma:** al leer las cookies de Edge, ymd pedía cerrarlo aunque no hubiera ninguna ventana abierta.
 - **Causa:** el «Inicio rápido» de Edge deja el navegador en segundo plano, y la base de cookies sigue bloqueada mientras tanto.
-- **Solución:** desde la versión 0.4.0, ymd no lee directamente los navegadores Chromium: usa la extensión. Al actualizar, quien tenía elegido uno pasa a **Extensión** en **Origen de las cookies**.
-- **Dónde está:** `src/screens/settings/AccountsSettings.tsx`, migración en `sanitize` de `src-tauri/src/settings.rs`.
+- **Solución:** ymd no lee directamente los navegadores Chromium: sus cookies llegan a través de la extensión (**Extensión** en **Origen de las cookies**).
+- **Dónde está:** `src/screens/settings/AccountsSettings.tsx`.
 
 ## yt-dlp no descifra las cookies de Chrome en Windows
 

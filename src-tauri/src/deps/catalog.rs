@@ -66,8 +66,6 @@ pub enum ArchiveKind {
 pub enum Checksum {
     /// A SHA2-256SUMS-style file in the same release (`<hex>  <name>` lines).
     SumsFile { asset: String },
-    /// A sidecar file containing the hex digest for this asset (`<asset>.sha256sum`).
-    Sidecar { asset: String },
     /// Source publishes none: served over HTTPS from the official host, shown as unverified.
     None,
 }

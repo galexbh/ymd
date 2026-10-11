@@ -16,7 +16,7 @@
 //! back. Custom presets are kept as-is (after validation), after the builtins.
 
 use crate::model::{
-    AudioFormat, AudioOptions, Browser, ClipboardWatch, CookieSource, Density, Language, MediaKind,
+    AudioFormat, AudioOptions, ClipboardWatch, CookieSource, Density, Language, MediaKind,
     PostProcess, Preset, Radius, Settings, ThemeMode, ThemeSettings, UpdateChannel, VideoContainer,
     VideoOptions,
 };
@@ -236,12 +236,6 @@ pub fn sanitize(settings: Settings) -> Settings {
         .bin_dir
         .map(|d| d.trim().to_string())
         .filter(|d| !d.is_empty());
-    // Chromium browsers are read through the extension now; older settings move there.
-    if let CookieSource::Browser { browser, .. } = &s.cookies {
-        if !matches!(browser, Browser::Firefox | Browser::Safari) {
-            s.cookies = CookieSource::Extension;
-        }
-    }
     if let CookieSource::Browser { profile, .. } = &mut s.cookies {
         *profile = profile
             .take()

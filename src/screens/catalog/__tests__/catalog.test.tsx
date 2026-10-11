@@ -95,16 +95,6 @@ describe("Catálogo", () => {
     expect(within(rows()[0]).getByText("000012")).toBeInTheDocument();
   });
 
-  it("legacy rows without a number show an em dash and keep their stored preset name", async () => {
-    const { user, tick } = await renderApp({ route: "catalog" });
-    await waitFor(() => expect(rows().length).toBe(20));
-    await user.click(screen.getByRole("button", { name: "Página siguiente" }));
-    await tick(0);
-    await waitFor(() => expect(rows().length).toBe(5));
-    const oldest = rows()[rows().length - 1];
-    expect(within(oldest).getAllByText("—").length).toBeGreaterThan(0);
-  });
-
   it("the number carries from the counter through the ledger into the catalog", async () => {
     const { user, tick } = await renderApp();
     await user.type(

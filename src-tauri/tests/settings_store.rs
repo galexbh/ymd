@@ -118,42 +118,9 @@ fn clipboard_watch_defaults_to_known_and_serializes_lowercase() {
 // ───────────── load ─────────────
 
 #[test]
-fn load_old_file_without_clipboard_watch_uses_default() {
-    // v0_partial predates the field.
-    let (_dir, file) = staged("v0_partial.json");
-    let raw = std::fs::read_to_string(&file).unwrap();
-    assert!(!raw.contains("clipboardWatch"));
-    let s = load(&file, defs());
-    assert_eq!(s.clipboard_watch, ClipboardWatch::Known);
-    // siblings from the old file are kept
-    assert_eq!(s.language, Language::Es);
-    assert_eq!(s.concurrency, 5);
-
-    // A complete pre-clipboard settings document also deserializes directly (IPC path).
-    let mut old = serde_json::to_value(defs()).unwrap();
-    old.as_object_mut().unwrap().remove("clipboardWatch");
-    let direct: Settings = serde_json::from_value(old).unwrap();
-    assert_eq!(direct.clipboard_watch, ClipboardWatch::Known);
-}
-
-#[test]
-fn close_to_tray_defaults_on_and_old_files_load_with_it_on() {
+fn close_to_tray_defaults_on() {
     assert!(defs().close_to_tray);
     assert!(!defs().tray_hint_shown);
-    // v0_partial predates both fields.
-    let (_dir, file) = staged("v0_partial.json");
-    let s = load(&file, defs());
-    assert!(s.close_to_tray);
-    assert!(!s.tray_hint_shown);
-
-    // The IPC path deserializes a document without them too.
-    let mut old = serde_json::to_value(defs()).unwrap();
-    let obj = old.as_object_mut().unwrap();
-    obj.remove("closeToTray");
-    obj.remove("trayHintShown");
-    let direct: Settings = serde_json::from_value(old).unwrap();
-    assert!(direct.close_to_tray);
-    assert!(!direct.tray_hint_shown);
 }
 
 #[test]
@@ -172,18 +139,8 @@ fn close_to_tray_round_trips() {
 }
 
 #[test]
-fn notify_downloads_defaults_on_loads_on_from_old_files_and_round_trips() {
+fn notify_downloads_defaults_on_and_round_trips() {
     assert!(defs().notify_downloads);
-    let (_dir, file) = staged("v0_partial.json");
-    assert!(!std::fs::read_to_string(&file)
-        .unwrap()
-        .contains("notifyDownloads"));
-    assert!(load(&file, defs()).notify_downloads);
-
-    let mut old = serde_json::to_value(defs()).unwrap();
-    old.as_object_mut().unwrap().remove("notifyDownloads");
-    let direct: Settings = serde_json::from_value(old).unwrap();
-    assert!(direct.notify_downloads);
 
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("settings.json");
@@ -279,7 +236,7 @@ fn load_non_object_json_is_treated_as_corrupt() {
 }
 
 #[test]
-fn load_partial_old_version_merges_over_defaults() {
+fn load_partial_file_merges_over_defaults() {
     let (_dir, file) = staged("v0_partial.json");
     let s = load(&file, defs());
     let d = defs();
@@ -349,26 +306,10 @@ fn load_ignores_unknown_fields_and_keeps_known_ones() {
     assert_eq!(s.concurrency, 2);
     assert_eq!(s.ytdlp_channel, UpdateChannel::Stable);
     assert!(!s.auto_update && s.use_download_archive && s.use_aria2c && s.onboarded);
-    // a Chromium browser saved by an older version moves to the extension
     assert_eq!(s.cookies, CookieSource::Extension);
     // empty preset list -> builtins come back
     assert_eq!(ids(&s), ids(&defs()));
     assert_eq!(s.default_preset_id, "mp3-320");
-}
-
-/// The manual cookies.txt source is gone: a saved `{"kind":"file"}` loads as no cookies.
-#[test]
-fn the_retired_file_source_loads_as_none() {
-    let dir = tempfile::tempdir().unwrap();
-    let file = dir.path().join("settings.json");
-    std::fs::write(
-        &file,
-        r#"{ "language": "en", "cookies": { "kind": "file" } }"#,
-    )
-    .unwrap();
-    let s = load(&file, defs());
-    assert_eq!(s.cookies, CookieSource::None);
-    assert_eq!(s.language, Language::En, "the rest of the file still loads");
 }
 
 #[test]
@@ -621,44 +562,6 @@ fn sanitize_trims_dirs_and_bin_dir() {
             profile: None
         }
     );
-}
-
-#[test]
-fn sanitize_moves_chromium_browsers_to_the_extension() {
-    for browser in [
-        Browser::Brave,
-        Browser::Chrome,
-        Browser::Chromium,
-        Browser::Edge,
-        Browser::Opera,
-        Browser::Vivaldi,
-        Browser::Whale,
-    ] {
-        let out = sanitize(Settings {
-            cookies: CookieSource::Browser {
-                browser,
-                profile: Some("Default".into()),
-            },
-            ..defs()
-        });
-        assert_eq!(out.cookies, CookieSource::Extension, "{browser:?}");
-    }
-    for browser in [Browser::Firefox, Browser::Safari] {
-        let out = sanitize(Settings {
-            cookies: CookieSource::Browser {
-                browser,
-                profile: None,
-            },
-            ..defs()
-        });
-        assert_eq!(
-            out.cookies,
-            CookieSource::Browser {
-                browser,
-                profile: None
-            }
-        );
-    }
 }
 
 #[test]

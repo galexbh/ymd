@@ -35,7 +35,6 @@ function handle(buf) {
       app: "ymd",
       appVersion: "0.0.0-e2e",
       protocol: 1,
-      features: ["cookies", "open"],
     };
   } else if (message.type === "cookies") {
     const domains = [

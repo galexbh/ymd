@@ -435,33 +435,7 @@ fn v2_keeps_accession_number_and_preset_id() {
     assert!(h.max_seq_hint() >= 4242);
 }
 
-#[test]
-fn v1_rows_survive_the_v2_migration() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("h.sqlite3");
-    {
-        let conn = rusqlite::Connection::open(&path).unwrap();
-        conn.execute_batch(
-            "CREATE TABLE downloads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, title TEXT NOT NULL,
-                filepath TEXT NOT NULL, kind TEXT NOT NULL, preset_name TEXT NOT NULL,
-                size INTEGER, thumbnail TEXT, extractor TEXT, completed_at TEXT NOT NULL,
-                haystack TEXT NOT NULL DEFAULT '');
-             INSERT INTO downloads (url, title, filepath, kind, preset_name, completed_at, haystack)
-             VALUES ('u', 'Old row', '/x.mp4', 'video', 'Mejor calidad', '2024-01-01T00:00:00Z', 'old row');
-             PRAGMA user_version = 1;",
-        )
-        .unwrap();
-    }
-    let h = History::open(&path).unwrap();
-    assert_eq!(h.schema_version().unwrap(), SCHEMA_VERSION);
-    let page = h.query(&q(None, None, 10, 0)).unwrap();
-    assert_eq!(page.items.len(), 1);
-    assert_eq!(page.items[0].seq, None);
-    assert_eq!(page.items[0].preset_id, None);
-}
-
-// ───────────── v3: pending jobs ─────────────
+// ───────────── pending jobs ─────────────
 
 fn pending(id: &str, seq: u64) -> PendingJob {
     PendingJob {
@@ -480,33 +454,14 @@ fn pending(id: &str, seq: u64) -> PendingJob {
 }
 
 #[test]
-fn v2_database_migrates_to_v3_and_keeps_its_rows() {
+fn pending_rows_survive_a_reopen() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("h.sqlite3");
-    {
-        let conn = rusqlite::Connection::open(&path).unwrap();
-        conn.execute_batch(
-            "CREATE TABLE downloads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, title TEXT NOT NULL,
-                filepath TEXT NOT NULL, kind TEXT NOT NULL, preset_name TEXT NOT NULL,
-                size INTEGER, thumbnail TEXT, extractor TEXT, completed_at TEXT NOT NULL,
-                haystack TEXT NOT NULL DEFAULT '', seq INTEGER, preset_id TEXT);
-             INSERT INTO downloads (url, title, filepath, kind, preset_name, completed_at, haystack, seq, preset_id)
-             VALUES ('u', 'v2 row', '/x.mp4', 'video', 'Mejor calidad', '2024-01-01T00:00:00Z', 'v2 row', 12, 'best');
-             PRAGMA user_version = 2;",
-        )
-        .unwrap();
-    }
     let h = History::open(&path).unwrap();
-    assert_eq!(SCHEMA_VERSION, 3);
-    assert_eq!(h.schema_version().unwrap(), 3);
-    let page = h.query(&q(None, None, 10, 0)).unwrap();
-    assert_eq!(titles(&page), ["v2 row"]);
-    assert_eq!(page.items[0].seq, Some(12));
+    assert_eq!(h.schema_version().unwrap(), SCHEMA_VERSION);
     assert!(h.pending_list().unwrap().is_empty());
     h.pending_save(&pending("a", 13)).unwrap();
     drop(h);
-    // The table and its rows survive a reopen.
     let h = History::open(&path).unwrap();
     assert_eq!(h.pending_list().unwrap(), vec![pending("a", 13)]);
 }

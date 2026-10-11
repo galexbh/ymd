@@ -478,18 +478,13 @@ impl DepsManager {
         asset: &Asset,
         source: &Source,
     ) -> anyhow::Result<(Option<String>, bool)> {
-        let (sums_asset, sidecar) = match &source.checksum {
-            Checksum::SumsFile { asset } => (asset, false),
-            Checksum::Sidecar { asset } => (asset, true),
+        let sums_asset = match &source.checksum {
+            Checksum::SumsFile { asset } => asset,
             Checksum::None => return Ok((asset.sha256().map(str::to_string), false)),
         };
         let sums = release.asset(sums_asset)?;
         let text = github::fetch_text(&self.http, &sums.browser_download_url).await?;
-        let hex = if sidecar {
-            verify::parse_sidecar(&text)
-        } else {
-            verify::parse_sums_file(&text, &asset.name)
-        };
+        let hex = verify::parse_sums_file(&text, &asset.name);
         let hex = hex.ok_or_else(|| anyhow!("{} has no checksum for {}", sums.name, asset.name))?;
         Ok((Some(hex), true))
     }

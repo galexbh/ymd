@@ -104,14 +104,6 @@ fn publish<'a>(
                 sha(b"unrelated")
             ),
         )),
-        // Some sidecars are PowerShell `Get-FileHash` output; exercise that format.
-        Checksum::Sidecar { asset } => Some((
-            asset.clone(),
-            format!(
-                "\r\nAlgorithm : SHA256\r\nHash      : {}\r\nPath      : C:\\x\\{asset_name}\r\n",
-                digest.to_uppercase()
-            ),
-        )),
         Checksum::None => None,
     };
     if let Some((name, text)) = checksum_file {

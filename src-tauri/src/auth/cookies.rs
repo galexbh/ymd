@@ -1,6 +1,6 @@
 //! ymd's cookies.txt (written by the ymd Cookies extension through the native host) / test /
 //! clear. Owner: C. There is no manual import: a hand-exported cookies.txt carries every session
-//! in plain text, so ymd neither accepts one nor keeps one an older version imported.
+//! in plain text, so ymd does not accept one.
 //! The file lives at `AppPaths::cookies_file()` with owner-only permissions (0600 / user ACL),
 //! sealed with a key from the OS keychain (see `super::jar`); every read and write of it goes
 //! through `read_jar` / `write_jar`.
@@ -29,7 +29,7 @@ pub const TEST_URL: &str = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
 struct Meta {
     created_at: String,
     origin: String,
-    /// Manifest version of the extension that wrote the jar (absent for older extensions).
+    /// Manifest version of the extension that wrote the jar (`None` when it sent no valid one).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     extension_version: Option<String>,
 }
@@ -39,13 +39,8 @@ fn meta_file(paths: &AppPaths) -> PathBuf {
 }
 
 /// Write `text` (a Netscape jar) as ymd's cookies.txt plus its meta, both owner-only and
-/// atomic, after validating it. Used by the native-messaging host
-/// (`origin = "extension:<browser>"`).
-pub fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
-    store_from_extension(paths, text, origin, None)
-}
-
-/// [`store`], also recording the manifest version of the extension that sent the jar.
+/// atomic, after validating it, recording the manifest version of the extension that sent the
+/// jar. Used by the native-messaging host (`origin = "extension:<browser>"`).
 pub fn store_from_extension(
     paths: &AppPaths,
     text: &str,
@@ -185,18 +180,9 @@ fn normalize_for_ytdlp(text: &str) -> String {
 /// Plain text of ymd's jar (decrypted when sealed). `None` when there is no jar.
 fn read_jar(paths: &AppPaths) -> Option<anyhow::Result<String>> {
     let bytes = std::fs::read(paths.cookies_file()).ok()?;
-    let sealed = super::jar::is_sealed(&bytes);
     Some(
-        super::jar::decode(&bytes, super::jar::key().as_ref()).map(|plain| {
-            let text = String::from_utf8_lossy(&plain).into_owned();
-            // A plain jar from an older version gets sealed the first time it is read.
-            if !sealed && super::jar::key().is_some() {
-                if let Err(e) = write_jar(paths, &text) {
-                    log::warn!("cookie jar: could not seal the existing file: {}", e.detail);
-                }
-            }
-            text
-        }),
+        super::jar::decode(&bytes, super::jar::key().as_ref())
+            .map(|plain| String::from_utf8_lossy(&plain).into_owned()),
     )
 }
 
@@ -250,7 +236,7 @@ fn read_meta(paths: &AppPaths) -> Option<Meta> {
 }
 
 /// Manifest version of the extension that wrote the current jar. `None` without a jar meta or
-/// when an extension older than this field wrote it.
+/// without a valid version in it.
 pub fn extension_version(paths: &AppPaths) -> Option<String> {
     read_meta(paths)?.extension_version
 }
@@ -269,16 +255,6 @@ pub fn clear(paths: &AppPaths) -> CmdResult<()> {
         }
     }
     Ok(())
-}
-
-/// Origin label older versions wrote for a hand-imported cookies.txt.
-pub const MANUAL_IMPORT_ORIGIN: &str = "import";
-
-/// Deletes a cookie copy that came from a manual cookies.txt import (no longer supported).
-/// Copies written by the extension are left alone. True when one was removed.
-pub fn remove_manual_import(paths: &AppPaths) -> bool {
-    let manual = read_meta(paths).is_some_and(|m| m.origin == MANUAL_IMPORT_ORIGIN);
-    manual && clear(paths).is_ok()
 }
 
 /// Run `--simulate` against a test URL with the given cookie args; classify failures
@@ -742,12 +718,18 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
             data_dir: dir.path().join("data"),
             config_dir: dir.path().join("config"),
         };
-        assert!(store(&p, "# only a comment\n", "extension:brave").is_err());
+        let comment_only = "# only a comment\n";
+        assert!(store_from_extension(&p, comment_only, "extension:brave", Some("1.4.3")).is_err());
         assert!(!p.cookies_file().exists());
-        let info = store(&p, VALID, "extension:brave").unwrap();
+        assert_eq!(extension_version(&p), None);
+        let info = store_from_extension(&p, VALID, "extension:brave", None).unwrap();
         assert_eq!(info.origin, "extension:brave");
         assert_eq!(info.cookie_count, 3);
-        assert_eq!(extension_version(&p), None);
+        assert_eq!(
+            extension_version(&p),
+            None,
+            "an invalid version is not stored"
+        );
         let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
         assert!(!meta.contains("extensionVersion"), "{meta}");
 
@@ -757,21 +739,8 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
         assert!(meta.contains(r#""extensionVersion":"1.4.1""#), "{meta}");
 
-        // A later sync from an older extension forgets the version.
-        store(&p, VALID, "extension:edge").unwrap();
-        assert_eq!(extension_version(&p), None);
         clear(&p).unwrap();
         assert_eq!(extension_version(&p), None);
-    }
-
-    #[test]
-    fn meta_without_version_still_reads() {
-        let m: Meta = serde_json::from_str(
-            r#"{"createdAt":"2026-01-01T00:00:00Z","origin":"extension:brave"}"#,
-        )
-        .unwrap();
-        assert_eq!(m.extension_version, None);
-        assert_eq!(m.origin, "extension:brave");
     }
 
     #[test]

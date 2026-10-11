@@ -361,7 +361,7 @@ export interface ExtensionSync {
   domains: string[];
   /** sites with a signed-in session in the synced jar */
   signedIn: string[];
-  /** manifest version of the extension that synced ("1.4.1"); null for extensions older than this field */
+  /** manifest version of the extension that synced ("1.4.1"); null when the stored meta has no valid version */
   extensionVersion: string | null;
 }
 

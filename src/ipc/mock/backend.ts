@@ -477,8 +477,8 @@ export class MockBackend {
 
   /**
    * The extension delivered `count` cookies from `browser` (writes cookies.txt + meta).
-   * `extensionVersion` is the sender's manifest version (default: the bundled one; null = an
-   * extension older than the version field).
+   * `extensionVersion` is the sender's manifest version (default: the bundled one; null = no
+   * valid version stored).
    */
   simulateExtensionSync(
     browser: string,

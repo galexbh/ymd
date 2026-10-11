@@ -18,7 +18,7 @@
   "autoUpdate": false,
   "useDownloadArchive": true,
   "useAria2c": true,
-  "cookies": { "kind": "browser", "browser": "brave", "profile": "Profile 1" },
+  "cookies": { "kind": "extension" },
   "presets": [],
   "defaultPresetId": "mp3-320",
   "onboarded": true,

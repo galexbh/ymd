@@ -12,6 +12,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Proyecto
 
+- Se eliminó el código de migración de versiones anteriores (ajustes, cookies, extensión y protocolo del puente); el protocolo exige ahora `version` y `extension`. Extensión 1.4.3.
 - Documentación revisada: tono profesional y sin notas internas.
 - README y portada de la documentación presentan ymd por lo que resuelve («Pega un enlace y guarda el video…»), con una sección «Qué resuelve este proyecto» y la nueva página [Casos de borde](https://galexbh.github.io/ymd/desarrollo/casos-de-borde/): once problemas reales con su síntoma, causa, arreglo y código.
 

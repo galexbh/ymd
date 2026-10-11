@@ -64,14 +64,13 @@ fn hello() {
     assert_eq!(code, 0);
     assert_eq!(
         reply(&out),
-        json!({"ok": true, "app": "ymd", "appVersion": env!("CARGO_PKG_VERSION"), "protocol": 1,
-               "features": ["cookies", "open"]})
+        json!({"ok": true, "app": "ymd", "appVersion": env!("CARGO_PKG_VERSION"), "protocol": 1})
     );
     // Without a trailing slash too.
     let (code, out) = run(
         &format!("chrome-extension://{EXTENSION_ID}"),
         dir.path(),
-        &frame(&json!({"type": "hello"})),
+        &frame(&json!({"type": "hello", "version": 1})),
     );
     assert_eq!(code, 0);
     assert_eq!(reply(&out)["ok"], true);
@@ -82,7 +81,7 @@ fn hello() {
 fn cookies_are_stored() {
     let dir = tempfile::tempdir().unwrap();
     let msg = json!({
-        "type": "cookies", "version": 1, "browser": "brave",
+        "type": "cookies", "version": 1, "browser": "brave", "extension": "1.4.3",
         "cookies": [
             {"domain": ".youtube.com", "hostOnly": false, "path": "/", "secure": true,
              "httpOnly": true, "session": false, "expirationDate": 1999999999.9,
@@ -161,7 +160,7 @@ fn cookies_are_sealed_at_rest_when_a_key_is_available() {
     let dir = tempfile::tempdir().unwrap();
     let key = [9u8; 32];
     let msg = json!({
-        "type": "cookies", "version": 1, "browser": "chrome",
+        "type": "cookies", "version": 1, "browser": "chrome", "extension": "1.4.3",
         "cookies": [{"domain": ".youtube.com", "hostOnly": false, "path": "/", "secure": true,
             "httpOnly": true, "session": false, "expirationDate": 1999999999,
             "name": "SID", "value": "synthetic-sealed-value"}]
@@ -220,7 +219,7 @@ fn open_refuses_a_non_web_link_and_launches_nothing() {
         let (code, out) = run_env(
             &origin(),
             dir.path(),
-            &frame(&json!({"type": "open", "url": url})),
+            &frame(&json!({"type": "open", "version": 1, "url": url})),
             &[("YMD_TEST_OPEN_RECORD", &record_s)],
         );
         assert_eq!(code, 0);
@@ -234,7 +233,7 @@ fn open_refuses_a_non_web_link_and_launches_nothing() {
 #[test]
 fn wrong_origin_exits_1_and_writes_nothing() {
     let dir = tempfile::tempdir().unwrap();
-    let msg = json!({"type": "cookies", "browser": "brave", "cookies": [
+    let msg = json!({"type": "cookies", "version": 1, "browser": "brave", "extension": "1.4.3", "cookies": [
         {"domain": "a.com", "hostOnly": true, "name": "n", "value": "v"}]});
     for bad in [
         "chrome-extension://abcdefghijklmnopabcdefghijklmnop/".to_string(),

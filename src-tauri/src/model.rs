@@ -329,8 +329,7 @@ pub enum CookieSource {
         profile: Option<String>,
     },
     /// ymd's cookies.txt in the app data dir, kept up to date by the ymd Cookies extension
-    /// (Chromium browsers). A setting saved as the retired `file` source (manual import)
-    /// loads as `None`.
+    /// (Chromium browsers).
     Extension,
 }
 
@@ -356,22 +355,22 @@ pub struct Settings {
     pub presets: Vec<Preset>,
     pub default_preset_id: String,
     pub onboarded: bool,
-    /// Clipboard link detection on window focus. Absent in files written before it existed.
+    /// Clipboard link detection on window focus. Fields from here on default when a
+    /// document leaves them out.
     #[serde(default)]
     pub clipboard_watch: ClipboardWatch,
-    /// The window's X hides ymd to the system tray instead of quitting. Absent in older
-    /// files: on.
+    /// The window's X hides ymd to the system tray instead of quitting (default on).
     #[serde(default = "default_true")]
     pub close_to_tray: bool,
     /// The one-time «ymd sigue en la bandeja» notice was shown. Set by the backend.
     #[serde(default)]
     pub tray_hint_shown: bool,
     /// Download speed cap in MB/s for jobs that start afterwards (1..=1000). `None` =
-    /// unlimited. Absent in older files.
+    /// unlimited.
     #[serde(default)]
     pub limit_rate_mbps: Option<u32>,
     /// System notification when a download finishes or fails while ymd is in the background.
-    /// Absent in older files: on.
+    /// Default on.
     #[serde(default = "default_true")]
     pub notify_downloads: bool,
 }
@@ -624,8 +623,8 @@ pub struct ExtensionSync {
     /// Sites with a signed-in session in the synced jar ("youtube.com").
     #[serde(default)]
     pub signed_in: Vec<String>,
-    /// Manifest version of the extension that synced ("1.4.1"); `None` for extensions older
-    /// than this field.
+    /// Manifest version of the extension that synced ("1.4.1"); `None` when the stored meta
+    /// has no valid version.
     #[serde(default)]
     pub extension_version: Option<String>,
 }

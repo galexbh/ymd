@@ -746,7 +746,6 @@
     "firefoxDefault": "Tu navegador predeterminado es Firefox",
     "firefoxDefaultBody": "ymd lee las cookies de Firefox directamente, así que no necesitas la extensión. Inicia sesión en YouTube en Firefox y usa sus cookies.",
     "useFirefox": "Usar cookies de Firefox",
-    "versionUnknown": "Anterior a esta función",
     "outdated": "Hay una versión nueva de la extensión ({{version}}). Abre {{browser}} → extensiones y pulsa recargar en ymd Cookies."
   },
   "accounts": {
