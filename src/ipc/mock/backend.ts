@@ -325,6 +325,8 @@ export class MockBackend {
   private extension: ExtensionStatus;
   private seed: number;
   private clipboard: string | null;
+  /** the next «Exportar diagnóstico» save dialog is closed without picking a file */
+  private saveDialogCancels = false;
   private disposed = false;
 
   constructor(options: MockBackendOptions = {}, emitter: MockEmitter = () => {}) {
@@ -399,6 +401,11 @@ export class MockBackend {
 
   setBrowserRunning(browser: Browser, running: boolean): void {
     if (browser === "brave") this.braveRunning = running;
+  }
+
+  /** Make the next diagnostics save dialogs cancel (true) or pick a file (false). */
+  setSaveDialogCancels(cancel: boolean): void {
+    this.saveDialogCancels = cancel;
   }
 
   /** Put text on the simulated system clipboard (null = empty, reading fails like the OS). */
@@ -601,6 +608,11 @@ export class MockBackend {
         return clone(this.extension);
       case "extension_open_page":
         return this.extensionOpenPage((a.browser as Browser | null | undefined) ?? null);
+      // diagnostics
+      case "app_data_dir":
+        return this.paths.dataDir;
+      case "diagnostics_export":
+        return this.diagnosticsExport();
       default:
         if (cmd.startsWith("plugin:")) return this.plugin(cmd, a);
         throw commandError("unknown", `mock backend: unhandled command "${cmd}"`);
@@ -1288,6 +1300,18 @@ export class MockBackend {
     }
     if (!target.installed) throw commandError("unknown", `${browser} is not installed`);
     return null;
+  }
+
+  // ───────────── Diagnostics ─────────────
+
+  /** Path of the zip the real backend would save (`ymd-diagnostico-YYYYMMDD-HHMM.zip`), or
+   * null when the save dialog is cancelled. Nothing is written. */
+  private diagnosticsExport(): string | null {
+    if (this.saveDialogCancels) return null;
+    const d = new Date(this.clock.now());
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+    return joinPath(this.paths.sep, this.paths.downloads, `ymd-diagnostico-${stamp}.zip`);
   }
 
   // ───────────── Tauri plugins used by the app ─────────────

@@ -328,32 +328,62 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
             ..
         } => {
             let browser = browser_name(&browser);
-            if cookies.len() > MAX_COOKIES {
-                return Err(CommandError::unknown(format!(
-                    "too many cookies in one message ({}, at most {MAX_COOKIES})",
-                    cookies.len()
-                )));
+            let span = tracing::info_span!("cookie_sync", browser);
+            let _entered = span.enter();
+            let started = std::time::Instant::now();
+            let received = cookies.len();
+            let result = store_cookies(data_dir, browser, &cookies, extension.as_deref());
+            // Counts only: never a cookie name, value or domain.
+            match &result {
+                Ok((stored, _)) => tracing::info!(
+                    received,
+                    stored,
+                    duration_ms = crate::diagnostics::elapsed_ms(started),
+                    outcome = "ok",
+                    "{}",
+                    crate::diagnostics::MSG_COOKIES
+                ),
+                Err(e) => tracing::warn!(
+                    received,
+                    duration_ms = crate::diagnostics::elapsed_ms(started),
+                    outcome = "error",
+                    error_code = %crate::diagnostics::wire_name(&e.code),
+                    "{}",
+                    crate::diagnostics::MSG_COOKIES
+                ),
             }
-            let text = cookies_to_netscape(&cookies);
-            let paths = AppPaths {
-                bin_dir: data_dir.join("bin"),
-                data_dir: data_dir.to_path_buf(),
-                config_dir: data_dir.to_path_buf(),
-            };
-            let extension = extension.as_deref().and_then(valid_extension_version);
-            let info = crate::auth::cookies::store_from_extension(
-                &paths,
-                &text,
-                &format!("extension:{browser}"),
-                extension.as_deref(),
-            )?;
-            log::info!(
-                "cookie bridge: stored {} cookies from {browser}",
-                info.cookie_count
-            );
-            Ok(json!({"ok": true, "count": info.cookie_count, "domains": info.domains}))
+            result.map(|(count, domains)| json!({"ok": true, "count": count, "domains": domains}))
         }
     }
+}
+
+/// Stores the cookies sent by the extension; returns (cookies stored, their domains).
+fn store_cookies(
+    data_dir: &Path,
+    browser: &str,
+    cookies: &[ChromeCookie],
+    extension: Option<&str>,
+) -> Result<(u32, Vec<String>), CommandError> {
+    if cookies.len() > MAX_COOKIES {
+        return Err(CommandError::unknown(format!(
+            "too many cookies in one message ({}, at most {MAX_COOKIES})",
+            cookies.len()
+        )));
+    }
+    let text = cookies_to_netscape(cookies);
+    let paths = AppPaths {
+        bin_dir: data_dir.join("bin"),
+        data_dir: data_dir.to_path_buf(),
+        config_dir: data_dir.to_path_buf(),
+    };
+    let extension = extension.and_then(valid_extension_version);
+    let info = crate::auth::cookies::store_from_extension(
+        &paths,
+        &text,
+        &format!("extension:{browser}"),
+        extension.as_deref(),
+    )?;
+    Ok((info.cookie_count, info.domains))
 }
 
 /// Run the host. `args[0]` is the caller origin; the rest (`--parent-window=N`) is ignored.

@@ -1,5 +1,7 @@
-import { FolderOpen, RefreshCw } from "lucide-react";
+import { FileArchive, FolderOpen, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { api, toCommandError } from "../../ipc/commands";
 import type { UpdateChannel } from "../../ipc/types";
 import {
   Button,
@@ -9,24 +11,47 @@ import {
   Section,
   SegmentedControl,
   Switch,
+  useToasts,
 } from "../../ui";
 import { inTauri, useAppUpdate } from "../../store/appUpdate";
-import { openExternal, openFile, osPlatform, parentDir } from "../../app/native";
+import { openExternal, openFile, osPlatform, showInFolder } from "../../app/native";
 import { useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
 import screen from "../shared/screen.module.css";
 import { FolderField } from "./DownloadsSettings";
 import s from "./settings.module.css";
 
-async function dataDir(fallback: string | undefined): Promise<string | null> {
-  try {
-    const { appLocalDataDir } = await import("@tauri-apps/api/path");
-    const dir = await appLocalDataDir();
-    if (dir) return dir;
-  } catch {
-    // not available outside Tauri
-  }
-  return fallback ? parentDir(fallback) : null;
+/** «Exportar diagnóstico»: the backend asks where to save the zip; null = cancelled. */
+function useDiagnosticsExport() {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    setBusy(true);
+    try {
+      const path = await api.diagnosticsExport();
+      if (!path) return;
+      useToasts.getState().push({
+        tone: "success",
+        title: t("settings.advanced.diagnostics.saved"),
+        body: path,
+        actions: [
+          {
+            label: t("ledger.action.reveal"),
+            onClick: () => void showInFolder(path).catch(() => {}),
+          },
+        ],
+      });
+    } catch (e) {
+      useToasts.getState().push({
+        tone: "error",
+        title: t("settings.advanced.diagnostics.failed"),
+        body: toCommandError(e).detail,
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { busy, run };
 }
 
 function AppUpdateSection() {
@@ -145,6 +170,7 @@ export function AdvancedSettings() {
   const settings = useSettings((st) => st.settings)!;
   const update = useSettings((st) => st.update);
   const binDir = useDeps((st) => st.report?.binDir);
+  const diagnostics = useDiagnosticsExport();
   const setBinDir = (dir: string | null) => {
     update({ binDir: dir });
     // the tool report depends on where the tools live
@@ -205,13 +231,25 @@ export function AdvancedSettings() {
             variant="secondary"
             leadingIcon={FolderOpen}
             onClick={async () => {
-              const dir = await dataDir(binDir);
+              // the backend's own data dir (Roaming on Windows), not a guess from the UI
+              const dir = await api.appDataDir().catch(() => null);
               if (dir) await openFile(dir).catch(() => {});
             }}
           >
             {t("settings.advanced.openData")}
           </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            leadingIcon={FileArchive}
+            loading={diagnostics.busy}
+            disabled={diagnostics.busy}
+            onClick={() => void diagnostics.run()}
+          >
+            {t("settings.advanced.diagnostics.export")}
+          </Button>
         </div>
+        <p className={s.fieldHint}>{t("settings.advanced.diagnostics.hint")}</p>
       </Section>
     </>
   );

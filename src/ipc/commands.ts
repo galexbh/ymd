@@ -76,6 +76,12 @@ export const api = {
   extensionStatus: () => invoke<ExtensionStatus>("extension_status"),
   /** launches (or focuses) a browser; null = the default browser by its own executable */
   extensionOpenPage: (browser: Browser | null) => invoke<void>("extension_open_page", { browser }),
+
+  // diagnostics (local only: nothing is uploaded)
+  /** ymd's data folder (history, logs, cookie copy), as the backend resolves it */
+  appDataDir: () => invoke<string>("app_data_dir"),
+  /** «Exportar diagnóstico»: saved zip path, or null when the save dialog was cancelled */
+  diagnosticsExport: () => invoke<string | null>("diagnostics_export"),
 };
 
 export type Api = typeof api;

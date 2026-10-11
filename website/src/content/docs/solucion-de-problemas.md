@@ -118,3 +118,33 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 Al instalar ymd en Windows, SmartScreen puede mostrar este aviso porque el instalador aún no tiene firma de código (Authenticode).
 
 **Arreglo:** selecciona **Más información** y luego **Ejecutar de todas formas**. Ver [Instalación](/ymd/guia/instalacion/#aviso-de-smartscreen).
+
+## Reportar un problema
+
+### Registros de ymd
+
+ymd anota lo que hace (cuánto tarda cada etapa de una descarga, cómo terminó, el código de error, las actualizaciones de herramientas y cuántas cookies llegaron de la extensión) en archivos de texto dentro de su carpeta de datos, en `logs`:
+
+- **Windows:** `%APPDATA%\com.ymd.app\logs`
+- **macOS:** `~/Library/Application Support/com.ymd.app/logs`
+- **Linux:** `~/.local/share/com.ymd.app/logs`
+
+**Ajustes → Avanzado → Abrir carpeta de datos** abre esa carpeta. Hay un archivo por día (`ymd.AAAA-MM-DD.jsonl`) y ymd borra solo los que tienen más de 14 días (y los más viejos si entre todos pasan de 20 MB).
+
+Los registros nunca salen de tu computadora: ymd no tiene analíticas ni telemetría y no los envía a ningún lado. Tampoco guardan enlaces, contraseñas, códigos 2FA ni cookies; antes de escribir cada línea, ymd borra rutas de tu carpeta personal, parámetros de enlaces y cualquier cosa con forma de token.
+
+### Exportar diagnóstico
+
+Para reportar un problema en los [issues de ymd](https://github.com/galexbh/ymd/issues):
+
+1. Abre **Ajustes → Avanzado** y pulsa **Exportar diagnóstico**.
+2. Elige dónde guardar el archivo `ymd-diagnostico-AAAAMMDD-HHMM.zip`. Al terminar, el aviso **Diagnóstico guardado** trae **Mostrar en la carpeta**.
+3. Adjunta ese zip al issue y cuenta qué hiciste y qué esperabas.
+
+El zip se arma en tu computadora y solo lo compartes tú. Contiene:
+
+- `info.txt`: versión de ymd, sistema operativo y arquitectura, idioma, versiones de yt-dlp, FFmpeg y Deno, el entorno JavaScript en uso y un resumen de tus ajustes (solo opciones y números, como el canal de yt-dlp o cuántas descargas simultáneas; ninguna carpeta).
+- `logs/`: los registros de los últimos 14 días, limpiados otra vez al exportarlos.
+- `timings.txt`: cuánto tardó cada etapa (descarga, unión, posprocesado) de las últimas descargas.
+
+No contiene tu historial, el registro de descargas, cookies, contraseñas, datos del llavero del sistema ni tu archivo de ajustes.

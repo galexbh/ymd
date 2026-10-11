@@ -650,6 +650,12 @@
       "binDirCustom": "Ubicación personalizada.",
       "binDirReset": "Volver a la predeterminada",
       "openData": "Abrir carpeta de datos",
+      "diagnostics": {
+        "export": "Exportar diagnóstico",
+        "hint": "Un archivo para adjuntar a un issue. No incluye cookies, contraseñas ni tu historial.",
+        "saved": "Diagnóstico guardado",
+        "failed": "No se pudo exportar el diagnóstico"
+      },
       "tray": {
         "title": "Al cerrar la ventana",
         "keep": "Mantener ymd en la bandeja del sistema",
