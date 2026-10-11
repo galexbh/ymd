@@ -7,8 +7,9 @@
 //!   (they lack curl_cffi).
 //! - `yt-dlp/FFmpeg-Builds` tag `latest`: `ffmpeg-master-latest-{win64,winarm64}-gpl.zip`,
 //!   `ffmpeg-master-latest-{linux64,linuxarm64}-gpl.tar.xz` + `checksums.sha256`. No macOS build.
-//! - `denoland/deno`: `deno-<triple>.zip` + `deno-<triple>.zip.sha256sum` for every OS/arch
-//!   (the Windows sidecar is PowerShell `Get-FileHash` output, see `verify::parse_sidecar`).
+//! - Node.js (nodejs.org, not GitHub, see `deps::nodejs`): latest LTS >= 22 from
+//!   `dist/index.json`; `node-v{V}-win-{x64,arm64}.zip`, `node-v{V}-darwin-{x64,arm64}.tar.gz`,
+//!   `node-v{V}-linux-{x64,arm64}.tar.xz` + `SHASUMS256.txt`. Only `node`/`node.exe` is kept.
 //! - `aria2/aria2`: `aria2-<ver>-win-64bit-build1.zip` only (no checksums, no macOS/Linux).
 //! - `wez/atomicparsley`: `AtomicParsleyWindows.zip` (x64), `AtomicParsleyMacOS.zip` (arm64
 //!   Mach-O only), `AtomicParsleyLinux.zip` (x86_64 glibc). No checksums.
@@ -65,15 +66,25 @@ pub enum ArchiveKind {
 pub enum Checksum {
     /// A SHA2-256SUMS-style file in the same release (`<hex>  <name>` lines).
     SumsFile { asset: String },
-    /// A sidecar file containing the hex digest for this asset (e.g. Deno `.sha256sum`).
+    /// A sidecar file containing the hex digest for this asset (`<asset>.sha256sum`).
     Sidecar { asset: String },
     /// Source publishes none: served over HTTPS from the official host, shown as unverified.
     None,
 }
 
+/// Where a source's releases are resolved.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Host {
+    /// GitHub Releases API (`repo` = `owner/repo`).
+    GitHub,
+    /// nodejs.org `dist/index.json` (latest LTS); `repo` is just a display name.
+    NodeJs,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Source {
-    /// GitHub `owner/repo` whose releases are queried.
+    pub host: Host,
+    /// GitHub `owner/repo` whose releases are queried (display name for other hosts).
     pub repo: String,
     /// Release tag to use; `None` = latest.
     pub tag: Option<String>,
@@ -165,6 +176,7 @@ fn src(
     checksum: Checksum,
 ) -> Source {
     Source {
+        host: Host::GitHub,
         repo: repo.to_string(),
         tag: tag.map(str::to_string),
         asset: asset.into(),
@@ -246,30 +258,34 @@ pub fn spec(id: DepId, platform: Platform, channel_repo: &str) -> DepSpec {
                 manual_hint: (os == Macos).then_some("brew install ffmpeg"),
             }
         }
-        DepId::Deno => {
-            let triple = match (os, arch) {
-                (Windows, X86_64) => "x86_64-pc-windows-msvc",
-                (Windows, Aarch64) => "aarch64-pc-windows-msvc",
-                (Macos, X86_64) => "x86_64-apple-darwin",
-                (Macos, Aarch64) => "aarch64-apple-darwin",
-                (Linux, X86_64) => "x86_64-unknown-linux-gnu",
-                (Linux, Aarch64) => "aarch64-unknown-linux-gnu",
+        DepId::Node => {
+            let (plat, ext, archive) = match (os, arch) {
+                (Windows, X86_64) => ("win-x64", "zip", ArchiveKind::Zip),
+                (Windows, Aarch64) => ("win-arm64", "zip", ArchiveKind::Zip),
+                (Macos, X86_64) => ("darwin-x64", "tar.gz", ArchiveKind::TarGz),
+                (Macos, Aarch64) => ("darwin-arm64", "tar.gz", ArchiveKind::TarGz),
+                (Linux, X86_64) => ("linux-x64", "tar.xz", ArchiveKind::TarXz),
+                (Linux, Aarch64) => ("linux-arm64", "tar.xz", ArchiveKind::TarXz),
             };
-            let asset = format!("deno-{triple}.zip");
-            let sidecar = format!("{asset}.sha256sum");
             DepSpec {
                 id,
                 level: DepLevel::Recommended,
-                exe: "deno",
+                exe: "node",
                 version_args: &["--version"],
-                source: Some(src(
-                    "denoland/deno",
-                    None,
-                    asset,
-                    ArchiveKind::Zip,
-                    &["deno"],
-                    Checksum::Sidecar { asset: sidecar },
-                )),
+                source: Some(Source {
+                    host: Host::NodeJs,
+                    asset_is_prefix: true,
+                    ..src(
+                        super::nodejs::NODE_HOST,
+                        None,
+                        format!("node-*-{plat}.{ext}"),
+                        archive,
+                        &["node"],
+                        Checksum::SumsFile {
+                            asset: super::nodejs::SUMS_FILE.into(),
+                        },
+                    )
+                }),
                 manual_hint: None,
             }
         }
@@ -381,10 +397,11 @@ mod tests {
                     let s = spec(id, p, channel_repo(channel));
                     let line = match &s.source {
                         Some(src) => format!(
-                            "{channel:?} {:?}/{:?} {id:?} [{:?}] {}@{} {}{} {:?} bins={:?} sum={:?}",
+                            "{channel:?} {:?}/{:?} {id:?} [{:?}] {:?}:{}@{} {}{} {:?} bins={:?} sum={:?}",
                             p.os,
                             p.arch,
                             s.level,
+                            src.host,
                             src.repo,
                             src.tag.as_deref().unwrap_or("latest-release"),
                             src.asset,
@@ -493,6 +510,21 @@ mod tests {
             ..exact
         };
         assert!(prefix.matches("yt-dlp_linux.zip"));
+
+        let node = spec(
+            DepId::Node,
+            Platform {
+                os: Os::Windows,
+                arch: Arch::X86_64,
+            },
+            YTDLP_STABLE_REPO,
+        )
+        .source
+        .unwrap();
+        assert_eq!(node.host, Host::NodeJs);
+        assert!(node.matches("node-v24.21.0-win-x64.zip"));
+        assert!(!node.matches("node-v24.21.0-win-x64.7z"));
+        assert!(!node.matches("node-v24.21.0-win-arm64.zip"));
         assert!(glob_match("a*", "a"));
         assert!(!glob_match("ab*ba", "aba"));
     }

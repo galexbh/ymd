@@ -33,7 +33,8 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
   - `model.rs` — every IPC type (serde, camelCase). **Source of truth of the contract.**
   - `commands/` — thin `#[tauri::command]` layer (deps, jobs, history, settings, auth).
   - `deps/` — managed binaries: `catalog.rs` (pure: assets per OS/arch), `manager.rs`
-    (download, SHA-256 verify, atomic swap), `jsruntime.rs` (deno/node/bun/quickjs detection).
+    (download, SHA-256 verify, atomic swap), `jsruntime.rs` (node/deno/bun/quickjs detection),
+    `nodejs.rs` (latest Node LTS from nodejs.org).
   - `ytdlp/` — `args.rs` (pure argv builder, insta snapshots), `progress.rs` (stdout marker
     parser), `errors.rs` (stderr → `ErrorCode`), `probe.rs` (`-J` → `ProbeResult`).
   - `jobs.rs` (queue, semaphore, cancel = kill tree), `history.rs` (SQLite),

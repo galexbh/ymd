@@ -35,7 +35,7 @@
 - **Catalog:** searchable history with quick access to each file and its folder.
 - **Post-processing:** embedded thumbnail, metadata and subtitles; SponsorBlock.
 - **Editable presets**, each with its own destination folder.
-- **Managed dependencies:** installs and updates yt-dlp, ffmpeg and Deno in a per-user folder, verified with SHA-256.
+- **Managed dependencies:** installs and updates yt-dlp, ffmpeg and Node.js in a per-user folder, verified with SHA-256.
 - **Cookies and accounts:** a companion extension for Brave, Chrome and Edge; Firefox cookies; credentials kept in the OS keychain.
 - **Copied-link detection** from the clipboard, configurable.
 - **Error diagnosis** for yt-dlp failures, with the action that fixes them.
@@ -81,7 +81,7 @@ On first launch, the welcome screen installs what ymd needs. From then on ymd ke
 
 ## Dependencies
 
-ymd installs yt-dlp, FFmpeg and Deno in a per-user folder, verified with SHA-256, and keeps them up to date. Full table, locations and JavaScript runtimes in [Dependencies](https://galexbh.github.io/ymd/en/dependencias/).
+ymd installs yt-dlp, FFmpeg and Node.js in a per-user folder, verified with SHA-256, and keeps them up to date. Full table, locations and JavaScript runtimes in [Dependencies](https://galexbh.github.io/ymd/en/dependencias/).
 
 ## Cookies and accounts
 
@@ -123,4 +123,4 @@ The concrete problems that had to be solved, with their cause and fix, are in [E
 
 ## Acknowledgements
 
-[yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Deno](https://deno.com/), [Tauri](https://tauri.app/), [React](https://react.dev/) and [Lucide](https://lucide.dev/).
+[yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Node.js](https://nodejs.org/), [Tauri](https://tauri.app/), [React](https://react.dev/) and [Lucide](https://lucide.dev/).

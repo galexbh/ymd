@@ -9,9 +9,9 @@ describe("Primera ejecución", () => {
       screen.getByRole("heading", { level: 1, name: "Antes del primer ingreso" }),
     ).toBeInTheDocument();
     const ledger = screen.getByTestId("deps-ledger");
-    // required tools + Deno (no JS runtime on this machine); optional ones are not pushed
+    // required tools + Node.js (no JS runtime on this machine); optional ones are not pushed
     expect(within(ledger).getByText("yt-dlp")).toBeInTheDocument();
-    expect(within(ledger).getByText("Deno")).toBeInTheDocument();
+    expect(within(ledger).getByText("Node.js")).toBeInTheDocument();
     expect(within(ledger).queryByText("aria2c")).toBeNull();
     expect(screen.getByTestId("onboarding-finish")).toBeDisabled();
 

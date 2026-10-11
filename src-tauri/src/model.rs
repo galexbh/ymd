@@ -13,7 +13,10 @@ use serde::{Deserialize, Serialize};
 pub enum DepId {
     Ytdlp,
     Ffmpeg,
-    Deno,
+    /// Managed Node.js LTS (JS runtime for yt-dlp's EJS). Replaced the managed Deno;
+    /// `"deno"` from older data still deserializes (as Node).
+    #[serde(alias = "deno")]
+    Node,
     Aria2c,
     Atomicparsley,
 }
@@ -22,7 +25,7 @@ impl DepId {
     pub const ALL: [DepId; 5] = [
         DepId::Ytdlp,
         DepId::Ffmpeg,
-        DepId::Deno,
+        DepId::Node,
         DepId::Aria2c,
         DepId::Atomicparsley,
     ];
@@ -82,7 +85,7 @@ pub struct JsRuntimeInfo {
     pub name: JsRuntimeName,
     pub path: String,
     pub version: Option<String>,
-    /// Installed by ymd (managed Deno) rather than found on PATH.
+    /// Installed by ymd (managed Node.js) rather than found on PATH.
     pub managed: bool,
 }
 

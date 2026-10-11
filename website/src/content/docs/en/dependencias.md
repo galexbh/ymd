@@ -7,13 +7,13 @@ ymd installs the tools it needs in your user folder, checks their signature when
 
 ## Tools
 
-| Tool                                                  | Level       | Purpose                                                  | Source                                                                                                                                                      |
-| ----------------------------------------------------- | ----------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp)            | required    | The download engine.                                     | Official executable from the chosen channel (stable, nightly or master), verified with `SHA2-256SUMS`.                                                      |
-| [FFmpeg](https://ffmpeg.org/) (ffmpeg and ffprobe)    | required    | Merges video and audio and converts formats.             | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) on Windows and Linux, verified with `checksums.sha256`. On macOS: `brew install ffmpeg`.    |
-| [Deno](https://deno.com/)                             | recommended | JavaScript runtime YouTube requires to hand out formats. | [denoland/deno](https://github.com/denoland/deno), verified with its `.sha256sum` file.                                                                     |
-| [aria2c](https://aria2.github.io/)                    | optional    | Downloads over several connections at once.              | Windows: [aria2/aria2](https://github.com/aria2/aria2) (no published checksum). macOS: `brew install aria2`. Linux: `sudo apt install aria2`.               |
-| [AtomicParsley](https://github.com/wez/atomicparsley) | optional    | Embeds cover art in MP4 and M4A files.                   | [wez/atomicparsley](https://github.com/wez/atomicparsley) (no published checksum) on Windows, Apple Silicon macOS and x64 Linux; otherwise Homebrew or apt. |
+| Tool                                                  | Level       | Purpose                                                            | Source                                                                                                                                                      |
+| ----------------------------------------------------- | ----------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp)            | required    | The download engine.                                               | Official executable from the chosen channel (stable, nightly or master), verified with `SHA2-256SUMS`.                                                      |
+| [FFmpeg](https://ffmpeg.org/) (ffmpeg and ffprobe)    | required    | Merges video and audio and converts formats.                       | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) on Windows and Linux, verified with `checksums.sha256`. On macOS: `brew install ffmpeg`.    |
+| [Node.js](https://nodejs.org/)                        | recommended | JavaScript runtime (Node.js) YouTube requires to hand out formats. | The latest LTS release (22 or later) from [nodejs.org](https://nodejs.org/dist/), verified with `SHASUMS256.txt`. Only the `node` executable is kept.       |
+| [aria2c](https://aria2.github.io/)                    | optional    | Downloads over several connections at once.                        | Windows: [aria2/aria2](https://github.com/aria2/aria2) (no published checksum). macOS: `brew install aria2`. Linux: `sudo apt install aria2`.               |
+| [AtomicParsley](https://github.com/wez/atomicparsley) | optional    | Embeds cover art in MP4 and M4A files.                             | [wez/atomicparsley](https://github.com/wez/atomicparsley) (no published checksum) on Windows, Apple Silicon macOS and x64 Linux; otherwise Homebrew or apt. |
 
 When there's no downloadable build for your system, the screen shows the package manager command instead.
 
@@ -35,13 +35,15 @@ Every download is checked against the SHA-256 checksum the author publishes befo
 
 ## System copies
 
-If a tool is already installed on the system (on `PATH`), it shows as **System** and is used. If the system's yt-dlp is out of date, ymd can **Install an up-to-date copy**: its own takes precedence and the system file is left untouched.
+If a tool is already installed on the system (on `PATH`), it shows as **System** and is used. If the system's yt-dlp or Node.js is out of date (for Node.js, older than the latest LTS), ymd can **Install an up-to-date copy**: its own takes precedence and the system file is left untouched.
 
 ## JavaScript runtime
 
 YouTube requires running JavaScript to hand out formats. yt-dlp uses the first runtime it finds, in this order:
 
-1. Deno installed by ymd.
-2. Deno, Node, Bun or QuickJS from the system.
+1. Node.js installed by ymd.
+2. Node, Deno, Bun or QuickJS from the system.
 
-ymd only hands yt-dlp versions it supports: Deno 2.3.0 or later, Node 22 or later, Bun 1.2.11 to 1.3.14, QuickJS 2023-12-09 or later (QuickJS-NG, any). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Deno in one click.
+ymd only hands yt-dlp versions it supports: Deno 2.3.0 or later, Node 22 or later, Bun 1.2.11 to 1.3.14, QuickJS 2023-12-09 or later (QuickJS-NG, any). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Node.js in one click (**Install Node.js**).
+
+ymd used to install Deno. Since [Deno joined Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), its runtime only gets one more year of fixes, so ymd now manages Node.js LTS, which yt-dlp supports from version 22. On update, ymd deletes the Deno it had installed in the tools folder; a Deno installed on the system is still detected and used.

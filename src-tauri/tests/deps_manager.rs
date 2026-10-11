@@ -1,5 +1,5 @@
-//! DepsManager against a mock GitHub API (httpmock). No real network, except the
-//! `#[ignore]`d smoke test at the bottom.
+//! DepsManager against a mock GitHub API and a mock nodejs.org (httpmock). No real network,
+//! except the `#[ignore]`d smoke tests at the bottom.
 
 use httpmock::prelude::*;
 use sha2::{Digest, Sha256};
@@ -7,13 +7,16 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tempfile::TempDir;
-use ymd_lib::deps::catalog::{self, ArchiveKind, Checksum, Platform, Source};
+use ymd_lib::deps::catalog::{self, ArchiveKind, Checksum, Host, Platform, Source};
 use ymd_lib::deps::manager::{DepsManager, ProgressFn};
 use ymd_lib::deps::manifest::Manifest;
+use ymd_lib::deps::nodejs;
 use ymd_lib::model::{DepId, DepPhase, DepProgress, DepState, UpdateChannel};
 use ymd_lib::paths::{exe_name, AppPaths};
 
 const CHANNEL: UpdateChannel = UpdateChannel::Stable;
+/// Path of the fake nodejs.org `dist/` on the mock server.
+const NODE_DIST: &str = "/node/dist";
 
 fn source(id: DepId) -> Option<Source> {
     catalog::spec(id, Platform::current(), catalog::channel_repo(CHANNEL)).source
@@ -39,7 +42,7 @@ fn env() -> Env {
         dir.path().join("config"),
         Some(bin.to_str().unwrap()),
     );
-    let mgr = DepsManager::with_api_base(paths, CHANNEL, server.base_url());
+    let mgr = DepsManager::with_endpoints(paths, CHANNEL, server.base_url(), server.url(NODE_DIST));
     Env {
         server,
         _dir: dir,
@@ -101,7 +104,7 @@ fn publish<'a>(
                 sha(b"unrelated")
             ),
         )),
-        // Deno's Windows sidecars are PowerShell `Get-FileHash` output; exercise that format.
+        // Some sidecars are PowerShell `Get-FileHash` output; exercise that format.
         Checksum::Sidecar { asset } => Some((
             asset.clone(),
             format!(
@@ -170,10 +173,24 @@ fn tar_xz_bytes(files: &[(String, Vec<u8>)]) -> Vec<u8> {
     b.into_inner().unwrap().finish().unwrap()
 }
 
+fn tar_gz_bytes(files: &[(String, Vec<u8>)]) -> Vec<u8> {
+    let enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    let mut b = tar::Builder::new(enc);
+    for (name, data) in files {
+        let mut h = tar::Header::new_gnu();
+        h.set_size(data.len() as u64);
+        h.set_mode(0o755);
+        h.set_cksum();
+        b.append_data(&mut h, name, data.as_slice()).unwrap();
+    }
+    b.into_inner().unwrap().finish().unwrap()
+}
+
 fn archive_bytes(kind: &ArchiveKind, files: &[(String, Vec<u8>)]) -> Vec<u8> {
     match kind {
         ArchiveKind::Zip => zip_bytes(files),
         ArchiveKind::TarXz => tar_xz_bytes(files),
+        ArchiveKind::TarGz => tar_gz_bytes(files),
         other => panic!("no test builder for {other:?}"),
     }
 }
@@ -240,27 +257,210 @@ async fn installs_raw_ytdlp_with_sums_file() {
     assert_eq!(report.deps.len(), DepId::ALL.len());
 }
 
+/// Real-looking Node archive for `version` (`v24.21.0`): `node.exe` at the root on Windows,
+/// `bin/node` on Unix, plus files that must not be extracted.
+fn node_archive(src: &Source, version: &str, body: &[u8]) -> Vec<u8> {
+    let name = nodejs::asset_name(src, version);
+    let root = name
+        .trim_end_matches(".zip")
+        .trim_end_matches(".tar.gz")
+        .trim_end_matches(".tar.xz")
+        .to_string();
+    let exe = if cfg!(windows) {
+        format!("{root}/node.exe")
+    } else {
+        format!("{root}/bin/node")
+    };
+    archive_bytes(
+        &src.archive,
+        &[
+            (format!("{root}/README.md"), b"readme".to_vec()),
+            (exe, body.to_vec()),
+            (format!("{root}/{}", exe_name("npm")), b"npm".to_vec()),
+        ],
+    )
+}
+
+/// Serve a fake nodejs.org: `index.json` listing `index` (version, lts) newest first, and for
+/// `version` the archive + `SHASUMS256.txt`. Returns the mocks so a test can replace them.
+fn publish_node<'a>(
+    server: &'a MockServer,
+    src: &Source,
+    index: &[(&str, bool)],
+    version: &str,
+    archive: &[u8],
+    checksum_override: Option<&str>,
+) -> Vec<httpmock::Mock<'a>> {
+    let key = nodejs::files_key(&src.asset).unwrap();
+    let entries: Vec<serde_json::Value> = index
+        .iter()
+        .map(|(v, lts)| {
+            let lts = if *lts {
+                serde_json::json!("Krypton")
+            } else {
+                serde_json::json!(false)
+            };
+            serde_json::json!({
+                "version": v,
+                "date": "2026-10-01",
+                "files": [key, "src", "headers"],
+                "lts": lts,
+            })
+        })
+        .collect();
+    let name = nodejs::asset_name(src, version);
+    let digest = checksum_override
+        .map(str::to_string)
+        .unwrap_or_else(|| sha(archive));
+    let sums = format!(
+        "{}  node-{version}.tar.gz\n{digest}  {name}\n{}  win-x64/node.exe\n",
+        sha(b"other"),
+        sha(b"exe")
+    );
+    let dir = format!("{NODE_DIST}/{version}");
+    let body = archive.to_vec();
+    vec![
+        server.mock(|when, then| {
+            when.method(GET)
+                .path(format!("{NODE_DIST}/index.json"))
+                .header_exists("user-agent");
+            then.status(200)
+                .header("content-type", "application/json")
+                .json_body(serde_json::Value::Array(entries));
+        }),
+        server.mock(|when, then| {
+            when.method(GET)
+                .path(format!("{dir}/{}", nodejs::SUMS_FILE));
+            then.status(200).body(sums);
+        }),
+        server.mock(|when, then| {
+            when.method(GET).path(format!("{dir}/{name}"));
+            then.status(200).body(body);
+        }),
+    ]
+}
+
+fn node_status(r: &ymd_lib::model::DepsReport) -> ymd_lib::model::DepStatus {
+    r.deps
+        .iter()
+        .find(|d| d.id == DepId::Node)
+        .cloned()
+        .unwrap()
+}
+
 #[tokio::test]
-async fn installs_deno_from_zip_with_sidecar() {
+async fn installs_node_lts_from_nodejs_org() {
     let e = env();
-    let src = source(DepId::Deno).unwrap();
-    assert_eq!(src.archive, ArchiveKind::Zip);
-    let zip = zip_bytes(&[
-        (exe_name("deno"), b"deno-bin".to_vec()),
-        ("README.md".into(), b"x".to_vec()),
-    ]);
-    publish(&e.server, &src, "v2.9.7", &src.asset, &zip, None);
+    let src = source(DepId::Node).unwrap();
+    assert_eq!(src.host, Host::NodeJs);
+    let index = [
+        ("v26.11.1", false),
+        ("v24.21.0", true),
+        ("v22.30.0", true),
+        ("v20.19.9", true),
+    ];
+    let v1 = publish_node(
+        &e.server,
+        &src,
+        &index,
+        "v24.21.0",
+        &node_archive(&src, "v24.21.0", b"node-24"),
+        None,
+    );
 
     let events = Events::default();
-    e.mgr.install(DepId::Deno, events.callback()).await.unwrap();
+    e.mgr.install(DepId::Node, events.callback()).await.unwrap();
 
-    let deno = e.bin.join(exe_name("deno"));
-    assert_eq!(std::fs::read(&deno).unwrap(), b"deno-bin");
-    assert_executable(&deno);
+    let node = e.bin.join(exe_name("node"));
+    assert_eq!(std::fs::read(&node).unwrap(), b"node-24");
+    assert_executable(&node);
     assert!(!e.bin.join("README.md").exists());
+    assert!(!e.bin.join(exe_name("npm")).exists());
     no_leftovers(&e.bin);
-    assert!(events.phases().contains(&DepPhase::Extracting));
-    assert!(Manifest::load(&e.bin).get(DepId::Deno).unwrap().verified);
+    assert_eq!(
+        events.phases(),
+        vec![
+            DepPhase::Resolving,
+            DepPhase::Downloading,
+            DepPhase::Verifying,
+            DepPhase::Extracting,
+            DepPhase::Done
+        ]
+    );
+    let entry = Manifest::load(&e.bin).get(DepId::Node).cloned().unwrap();
+    assert_eq!(entry.tag, "v24.21.0");
+    assert_eq!(entry.asset, nodejs::asset_name(&src, "v24.21.0"));
+    assert_eq!(entry.files, vec![exe_name("node")]);
+    assert!(entry.verified);
+
+    let st = node_status(&e.mgr.report(true).await.unwrap());
+    assert_eq!(st.state, DepState::Installed);
+    assert_eq!(st.latest.as_deref(), Some("v24.21.0"));
+    assert!(!st.update_available);
+    assert!(st.verified && st.can_install);
+
+    // A newer LTS shows up as an update; a newer non-LTS line never does.
+    for mut m in v1 {
+        m.delete();
+    }
+    publish_node(
+        &e.server,
+        &src,
+        &[("v26.12.0", false), ("v24.22.0", true), ("v24.21.0", true)],
+        "v24.22.0",
+        &node_archive(&src, "v24.22.0", b"node-24.22"),
+        None,
+    );
+    let st = node_status(&e.mgr.report(true).await.unwrap());
+    assert_eq!(st.latest.as_deref(), Some("v24.22.0"));
+    assert!(st.update_available);
+    e.mgr
+        .install(DepId::Node, Events::default().callback())
+        .await
+        .unwrap();
+    assert_eq!(std::fs::read(&node).unwrap(), b"node-24.22");
+    assert!(!node_status(&e.mgr.report(true).await.unwrap()).update_available);
+}
+
+#[tokio::test]
+async fn node_checksum_mismatch_or_no_lts_installs_nothing() {
+    let e = env();
+    let src = source(DepId::Node).unwrap();
+    let mocks = publish_node(
+        &e.server,
+        &src,
+        &[("v24.21.0", true)],
+        "v24.21.0",
+        &node_archive(&src, "v24.21.0", b"tampered"),
+        Some(&sha(b"what-was-published")),
+    );
+    let err = e
+        .mgr
+        .install(DepId::Node, Events::default().callback())
+        .await
+        .unwrap_err();
+    assert!(format!("{err:#}").contains("checksum mismatch"), "{err:#}");
+    assert!(!e.bin.join(exe_name("node")).exists());
+    no_leftovers(&e.bin);
+
+    // Only Node < 22 or non-LTS lines: nothing yt-dlp accepts.
+    for mut m in mocks {
+        m.delete();
+    }
+    publish_node(
+        &e.server,
+        &src,
+        &[("v26.0.0", false), ("v20.19.9", true)],
+        "v20.19.9",
+        b"x",
+        None,
+    );
+    let err = e
+        .mgr
+        .install(DepId::Node, Events::default().callback())
+        .await
+        .unwrap_err();
+    assert!(err.to_string().contains("no Node.js LTS"), "{err:#}");
 }
 
 #[tokio::test]
@@ -410,22 +610,28 @@ async fn update_replaces_previous_version() {
 #[tokio::test]
 async fn remove_deletes_only_managed_files() {
     let e = env();
-    let src = source(DepId::Deno).unwrap();
-    let zip = zip_bytes(&[(exe_name("deno"), b"deno-bin".to_vec())]);
-    publish(&e.server, &src, "v2.9.7", &src.asset, &zip, None);
+    let src = source(DepId::Node).unwrap();
+    let archive = node_archive(&src, "v24.21.0", b"node-bin");
+    publish_node(
+        &e.server,
+        &src,
+        &[("v24.21.0", true)],
+        "v24.21.0",
+        &archive,
+        None,
+    );
     e.mgr
-        .install(DepId::Deno, Events::default().callback())
+        .install(DepId::Node, Events::default().callback())
         .await
         .unwrap();
     std::fs::write(e.bin.join("unrelated.txt"), b"keep").unwrap();
 
-    e.mgr.remove(DepId::Deno).await.unwrap();
-    assert!(!e.bin.join(exe_name("deno")).exists());
+    e.mgr.remove(DepId::Node).await.unwrap();
+    assert!(!e.bin.join(exe_name("node")).exists());
     assert!(e.bin.join("unrelated.txt").exists());
-    assert!(Manifest::load(&e.bin).get(DepId::Deno).is_none());
+    assert!(Manifest::load(&e.bin).get(DepId::Node).is_none());
     let report = e.mgr.report(false).await.unwrap();
-    let deno = report.deps.iter().find(|d| d.id == DepId::Deno).unwrap();
-    assert_ne!(deno.state, DepState::Installed);
+    assert_ne!(node_status(&report).state, DepState::Installed);
     assert!(report.js_runtimes_found.iter().all(|r| !r.managed));
 
     // Removing something that is not installed is a no-op.
@@ -554,4 +760,47 @@ async fn real_network_smoke() {
             assert!(!d.update_available, "{d:?}");
         }
     }
+}
+
+/// Real network: resolves the current Node.js LTS on nodejs.org, downloads it, checks
+/// `SHASUMS256.txt`, extracts `node` and runs it. Set `YMD_SMOKE_DIR` to keep the bin dir.
+/// `cargo test --features test-support --test deps_manager real_node_smoke -- --ignored --nocapture`
+#[tokio::test]
+#[ignore = "downloads ~30 MB from nodejs.org"]
+async fn real_node_smoke() {
+    let dir = tempfile::tempdir().unwrap();
+    let keep = std::env::var_os("YMD_SMOKE_DIR").map(PathBuf::from);
+    let bin = keep.unwrap_or_else(|| dir.path().join("bin"));
+    let paths = AppPaths::new(
+        dir.path().join("data"),
+        dir.path().join("config"),
+        Some(bin.to_str().unwrap()),
+    );
+    let mgr = DepsManager::new(paths, UpdateChannel::Stable);
+    let started = std::time::Instant::now();
+    mgr.install(DepId::Node, Events::default().callback())
+        .await
+        .unwrap_or_else(|e| panic!("node: {e:#}"));
+    println!("node: installed in {:.1?}", started.elapsed());
+    let entry = Manifest::load(&bin).get(DepId::Node).cloned().unwrap();
+    println!("manifest: {entry:?}");
+    assert!(entry.verified);
+    let st = node_status(&mgr.report(true).await.unwrap());
+    println!("status: {st:?}");
+    assert_eq!(st.state, DepState::Installed);
+    let major = st
+        .version
+        .as_deref()
+        .and_then(|v| v.split('.').next())
+        .and_then(|m| m.parse::<u64>().ok())
+        .unwrap();
+    assert!(major >= nodejs::MIN_MAJOR, "{st:?}");
+    assert_eq!(
+        st.latest.as_deref().map(|l| l.trim_start_matches('v')),
+        st.version.as_deref()
+    );
+    assert!(!st.update_available, "{st:?}");
+    let rt = mgr.tools().await.js_runtime.unwrap();
+    println!("js_runtime={rt:?}");
+    assert!(rt.managed);
 }

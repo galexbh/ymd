@@ -17,7 +17,7 @@ export function DepsScreen() {
   const installingAll = useDeps((st) => st.installingAll);
   const allError = useDeps((st) => st.allError);
   const loadError = useDeps((st) => st.loadError);
-  const denoBusy = useDeps((st) => !!st.busy.deno);
+  const nodeBusy = useDeps((st) => !!st.busy.node);
   const { load, installRecommended, install } = useDeps.getState();
   const missing = recommendedMissing(report);
 
@@ -120,13 +120,13 @@ export function DepsScreen() {
                   title={t("deps.runtime.noneTitle")}
                   actions={[
                     {
-                      label: t("fix.installDeno"),
+                      label: t("fix.installNode"),
                       primary: true,
-                      onClick: () => void install("deno"),
+                      onClick: () => void install("node"),
                     },
                   ]}
                 >
-                  {denoBusy ? t("deps.state.installing") : t("deps.runtime.noneBody")}
+                  {nodeBusy ? t("deps.state.installing") : t("deps.runtime.noneBody")}
                 </Notice>
               )}
             </div>

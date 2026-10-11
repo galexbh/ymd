@@ -69,16 +69,19 @@ jobs:
           echo "$PWD/$name/bin" >> "$GITHUB_PATH"
           echo "SMOKE_FFMPEG_DIR=$PWD/$name/bin" >> "$GITHUB_ENV"
 
-      # YouTube needs a JS runtime for its challenges (yt-dlp-ejs); ymd installs Deno by default.
-      - uses: denoland/setup-deno@v2
+      # YouTube needs a JS runtime for its challenges (yt-dlp-ejs); ymd installs Node.js LTS and
+      # hands it to yt-dlp explicitly (yt-dlp only enables deno by default).
+      - uses: actions/setup-node@v7
         with:
-          deno-version: v2.x
+          node-version: lts/*
+      - name: Use Node.js as yt-dlp's JS runtime
+        run: echo "SMOKE_NODE=$(command -v node)" >> "$GITHUB_ENV"
 
       - name: Tool versions
         run: |
           yt-dlp --version
           ffmpeg -hide_banner -version | head -1
-          deno --version | head -1
+          "$SMOKE_NODE" --version
 
       # YouTube sometimes asks GitHub's runner IPs to "confirm you're not a bot". That says
       # nothing about ymd or yt-dlp, so it is reported as a warning and the remaining download
@@ -90,6 +93,7 @@ jobs:
           set -o pipefail
           if ! yt-dlp --newline --progress --no-playlist \
             --ffmpeg-location "$SMOKE_FFMPEG_DIR" \
+            --no-js-runtimes --js-runtimes "node:$SMOKE_NODE" \
             -f "bv*[height<=360]+ba/b[height<=360]" --merge-output-format mp4 \
             -P "$RUNNER_TEMP/out" -o "video.%(ext)s" \
             "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/video.log" | tail -n 40; then
@@ -112,6 +116,7 @@ jobs:
           set -o pipefail
           yt-dlp --newline --progress --no-playlist \
             --ffmpeg-location "$SMOKE_FFMPEG_DIR" \
+            --no-js-runtimes --js-runtimes "node:$SMOKE_NODE" \
             -x --audio-format mp3 --audio-quality 5 \
             -P "$RUNNER_TEMP/out" -o "audio.%(ext)s" \
             "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/audio.log" | tail -n 40

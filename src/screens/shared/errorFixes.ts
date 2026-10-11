@@ -64,13 +64,13 @@ export function useErrorFixes() {
         break;
       case "install": {
         const id =
-          code === "ffmpeg_missing" ? "ffmpeg" : code === "js_runtime_missing" ? "deno" : null;
+          code === "ffmpeg_missing" ? "ffmpeg" : code === "js_runtime_missing" ? "node" : null;
         out.push({
           label:
             id === "ffmpeg"
               ? t("fix.installFfmpeg")
-              : id === "deno"
-                ? t("fix.installDeno")
+              : id === "node"
+                ? t("fix.installNode")
                 : t("fix.installMissing"),
           primary: true,
           onClick: () => {

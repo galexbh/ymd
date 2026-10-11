@@ -5,7 +5,7 @@ import { calls, renderApp } from "../../../app/__tests__/harness";
 describe("Dependencias", () => {
   it("lists every tool with level, state and verification", async () => {
     await renderApp({ route: "deps" });
-    for (const id of ["ytdlp", "ffmpeg", "deno", "aria2c", "atomicparsley"]) {
+    for (const id of ["ytdlp", "ffmpeg", "node", "aria2c", "atomicparsley"]) {
       expect(screen.getByTestId(`deps-row-${id}`)).toBeInTheDocument();
     }
     const ytdlp = screen.getByTestId("deps-row-ytdlp");
@@ -13,9 +13,12 @@ describe("Dependencias", () => {
     expect(within(ytdlp).getByText("Instalado")).toBeInTheDocument();
     expect(within(ytdlp).getByText("verificado SHA-256")).toBeInTheDocument();
     expect(within(screen.getByTestId("deps-row-aria2c")).getByText("Falta")).toBeInTheDocument();
-    // which JS runtime yt-dlp will use (Node detected in "ready")
-    expect(screen.getByText("Node.js")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Instalar Deno" })).toBeNull();
+    // Node.js found on PATH: the row says "Del sistema" and yt-dlp uses it
+    const node = screen.getByTestId("deps-row-node");
+    expect(within(node).getByText("Node.js")).toBeInTheDocument();
+    expect(within(node).getByText("Del sistema")).toBeInTheDocument();
+    expect(screen.getAllByText("Node.js").length).toBeGreaterThan(1);
+    expect(screen.queryByRole("button", { name: "Instalar Node.js" })).toBeNull();
     expect(screen.getByTestId("deps-bindir")).toHaveTextContent(
       "C:\\Users\\ana\\AppData\\Local\\ymd\\bin",
     );
@@ -55,12 +58,12 @@ describe("Dependencias", () => {
     ).toBeInTheDocument();
   });
 
-  it("offers Deno when no JS runtime is detected", async () => {
+  it("offers Node.js when no JS runtime is detected", async () => {
     const { be, user, tick } = await renderApp({ scenario: "first-run", route: "deps" });
     expect(screen.getByText("No hay entorno JavaScript")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Instalar Deno" }));
+    await user.click(screen.getByRole("button", { name: "Instalar Node.js" }));
     await tick(2500);
-    expect(calls(be, "deps_install").map((c) => c.args!.id)).toEqual(["deno"]);
+    expect(calls(be, "deps_install").map((c) => c.args!.id)).toEqual(["node"]);
     expect(screen.getByText("instalado por ymd")).toBeInTheDocument();
   });
 

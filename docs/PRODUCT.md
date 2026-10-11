@@ -26,7 +26,7 @@ ymd is a desktop front end for yt-dlp that turns its command line into a calm, r
 
 ymd owns the whole yt-dlp toolchain:
 
-- It installs yt-dlp, ffmpeg/ffprobe, a JS runtime (Deno) and the optional helpers (aria2c, AtomicParsley) into a per-user folder, verifies their checksums, and updates them automatically.
+- It installs yt-dlp, ffmpeg/ffprobe, a JS runtime (Node.js LTS) and the optional helpers (aria2c, AtomicParsley) into a per-user folder, verifies their checksums, and updates them automatically.
 - It translates yt-dlp's raw errors into actions the user can take, such as "close Brave and retry" or "use your browser cookies".
 - Authentication works through browser cookies and the OS keychain, never through stored plaintext passwords.
 

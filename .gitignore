@@ -37,6 +37,8 @@ test-results
 /ffprobe*
 /deno
 /deno.exe
+/node
+/node.exe
 /cookies*.txt
 src-tauri/bin/
 *.netrc

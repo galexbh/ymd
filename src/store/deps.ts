@@ -146,14 +146,17 @@ export function requiredReady(r: DepsReport | null): boolean {
   return r.deps.filter((d) => d.level === "required").every(isPresent);
 }
 
-/** What "Instalar lo necesario" would install: required + Deno when no JS runtime exists. */
+/** What "Instalar lo necesario" would install: required + Node.js when no JS runtime exists. */
 export function recommendedMissing(r: DepsReport | null): DepStatus[] {
   if (!r) return [];
   return r.deps.filter(
     (d) =>
       (d.level === "required" ||
-        (d.level === "recommended" && (d.id !== "deno" || !r.jsRuntime))) &&
-      (d.state === "missing" || d.state === "error") &&
+        (d.level === "recommended" && (d.id !== "node" || !r.jsRuntime))) &&
+      (d.state === "missing" ||
+        d.state === "error" ||
+        // a system Node.js yt-dlp cannot use leaves no runtime: install the managed one
+        (d.id === "node" && d.state === "system" && !r.jsRuntime)) &&
       d.canInstall,
   );
 }

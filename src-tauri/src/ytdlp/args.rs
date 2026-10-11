@@ -270,7 +270,7 @@ pub fn probe_args(url: &str, tools: &Tools, auth_args: &[String]) -> Vec<String>
 /// Shared tool flags: `--ffmpeg-location`, `--js-runtimes`, `--no-js-runtimes` reset, etc.
 ///
 /// yt-dlp only enables `deno` by default; when ymd picked a runtime it clears the defaults and
-/// enables exactly that one (so a lower-priority runtime like node is actually used).
+/// enables exactly that one (so the managed Node.js, or a system runtime, is actually used).
 pub fn tool_args(tools: &Tools) -> Vec<String> {
     let mut a = Vec::new();
     if let Some(dir) = &tools.ffmpeg_dir {
@@ -410,9 +410,9 @@ mod tests {
                 ytdlp: Some(r"C:\Users\user\AppData\Local\ymd\bin\yt-dlp.exe".into()),
                 ffmpeg_dir: Some(r"C:\Users\user\AppData\Local\ymd\bin".into()),
                 js_runtime: Some(JsRuntimeInfo {
-                    name: JsRuntimeName::Deno,
-                    path: r"C:\Users\user\AppData\Local\ymd\bin\deno.exe".into(),
-                    version: Some("2.5.0".into()),
+                    name: JsRuntimeName::Node,
+                    path: r"C:\Users\user\AppData\Local\ymd\bin\node.exe".into(),
+                    version: Some("24.21.0".into()),
                     managed: true,
                 }),
                 aria2c: Some(r"C:\Users\user\AppData\Local\ymd\bin\aria2c.exe".into()),

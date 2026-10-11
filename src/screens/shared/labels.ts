@@ -37,7 +37,7 @@ export function formatCode(t: TFunction, p: Preset | undefined): string {
 export const DEP_NAMES: Record<DepId, string> = {
   ytdlp: "yt-dlp",
   ffmpeg: "ffmpeg",
-  deno: "Deno",
+  node: "Node.js",
   aria2c: "aria2c",
   atomicparsley: "AtomicParsley",
 };
