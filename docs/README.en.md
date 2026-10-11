@@ -117,7 +117,7 @@ ymd is not affiliated with YouTube or any other site. Respect each site's terms 
 
 - **A terminal tool turned into an app anyone can use.** People who never open a console paste a link and download; the app installs, verifies and keeps its own dependencies up to date.
 - **Reusing the browser's session safely to download what requires an account.** It is the same pattern as fetching your own data from a portal where you have an account: cookies travel over a local channel, with no network, and are stored encrypted.
-- **Shipping and updating a signed desktop app on three operating systems with CI.** Every version is built, signed and published from GitHub Actions, and the app updates itself.
+- **Shipping and updating a desktop app on three operating systems with CI.** Every version is built and published from GitHub Actions, and the app updates itself through signed updates.
 
 The concrete problems that had to be solved, with their cause and fix, are in [Edge cases](https://galexbh.github.io/ymd/en/desarrollo/casos-de-borde/).
 

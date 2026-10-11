@@ -117,7 +117,7 @@ ymd no está afiliado a YouTube ni a ningún otro sitio. Respeta los términos d
 
 - **Una herramienta de terminal convertida en una app para cualquiera.** Quien no usa la consola pega un enlace y descarga; la app instala, verifica y mantiene al día sus propias dependencias.
 - **Usar la sesión del navegador de forma segura para descargar lo que pide una cuenta.** Es el mismo patrón que bajar tus propios datos de un portal donde tienes cuenta: las cookies viajan por un canal local, sin red, y se guardan cifradas.
-- **Publicar y actualizar una app de escritorio firmada en tres sistemas operativos con CI.** Cada versión se compila, se firma y se publica desde GitHub Actions, y la app se actualiza sola.
+- **Publicar y actualizar una app de escritorio en tres sistemas operativos con CI.** Cada versión se compila y se publica desde GitHub Actions, y la app se actualiza sola con actualizaciones firmadas.
 
 Los problemas concretos que hubo que resolver, con su causa y su arreglo, están en [Casos de borde](https://galexbh.github.io/ymd/desarrollo/casos-de-borde/).
 
