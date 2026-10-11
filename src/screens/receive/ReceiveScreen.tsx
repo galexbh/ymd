@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { ListChecks } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, ErrorNotice, Section, Skeleton } from "../../ui";
-import { sortedJobs, useJobs } from "../../store/jobs";
+import { isTerminal, useJobIds, useJobs } from "../../store/jobs";
 import { useNav } from "../../store/nav";
 import { useReceive } from "../../store/receive";
 import { useSettings } from "../../store/settings";
@@ -23,11 +23,9 @@ export function ReceiveScreen() {
   const probeError = useReceive((st) => st.probeError);
   const enqueueError = useReceive((st) => st.enqueueError);
   const batch = useReceive((st) => st.batch);
-  const jobsMap = useJobs((st) => st.jobs);
-  const jobs = sortedJobs(jobsMap);
-  const hasFinished = jobs.some(
-    (j) => j.stage === "done" || j.stage === "canceled" || j.stage === "error",
-  );
+  // ids + a flag, not the job map: progress events must not re-render the screen
+  const ids = useJobIds();
+  const hasFinished = useJobs((st) => Object.values(st.jobs).some((j) => isTerminal(j.stage)));
   const navigate = useNav((n) => n.navigate);
   const fixes = useErrorFixes();
 
@@ -82,7 +80,7 @@ export function ReceiveScreen() {
                 {t("ledger.clearFinished")}
               </Button>
             )}
-            {jobs.length > 0 && (
+            {ids.length > 0 && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -95,7 +93,7 @@ export function ReceiveScreen() {
           </>
         }
       >
-        <JobsLedger jobs={jobs} caption={t("receive.ledgerTitle")} />
+        <JobsLedger ids={ids} caption={t("receive.ledgerTitle")} />
       </Section>
     </div>
   );

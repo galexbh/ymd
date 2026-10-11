@@ -81,6 +81,14 @@ export const useAppUpdate = create<AppUpdateState>((set, get) => ({
     try {
       const { check } = await import("@tauri-apps/plugin-updater");
       const update = await check();
+      // the plugin's Update is a Rust-side resource: free the one a re-check replaces
+      if (pending && pending !== update) {
+        try {
+          await pending.close();
+        } catch {
+          // already gone on the Rust side
+        }
+      }
       pending = update;
       if (update) {
         set({

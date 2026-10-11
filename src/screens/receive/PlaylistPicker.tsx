@@ -1,12 +1,13 @@
-import { useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ProbeResult } from "../../ipc/types";
+import type { PlaylistEntry, ProbeResult } from "../../ipc/types";
 import { Button, DurationFigure, Figure, ThumbCell } from "../../ui";
 import { selectedDuration, useReceive } from "../../store/receive";
 import s from "./receive.module.css";
 
-/** Stamp-size grid of playlist entries; selected ones are circled in ink. */
-export function PlaylistPicker({ probe }: { probe: ProbeResult }) {
+/** Stamp-size grid of playlist entries; selected ones are circled in ink. Memoized: only the
+ * probe or the selection re-render it, and then only the cells whose selection changed. */
+export const PlaylistPicker = memo(function PlaylistPicker({ probe }: { probe: ProbeResult }) {
   const { t } = useTranslation();
   const selected = useReceive((st) => st.selected);
   const { toggle, selectAll, selectNone, selectRange } = useReceive.getState();
@@ -14,7 +15,14 @@ export function PlaylistPicker({ probe }: { probe: ProbeResult }) {
   const count = probe.entries.length;
   const [from, setFrom] = useState("1");
   const [to, setTo] = useState(String(count));
-  const sel = new Set(selected);
+  const sel = useMemo(() => new Set(selected), [selected]);
+  const onToggle = useCallback(
+    (index: number, on: boolean) => {
+      toggle(index, on, shift.current);
+      shift.current = false;
+    },
+    [toggle],
+  );
 
   const applyRange = () => {
     const a = Number.parseInt(from, 10);
@@ -77,21 +85,31 @@ export function PlaylistPicker({ probe }: { probe: ProbeResult }) {
         }}
       >
         {probe.entries.map((e) => (
-          <ThumbCell
-            key={e.index}
-            seq={e.index}
-            title={e.title}
-            thumbnail={e.thumbnail}
-            duration={e.duration}
-            selected={sel.has(e.index)}
-            onSelectedChange={(on) => {
-              toggle(e.index, on, shift.current);
-              shift.current = false;
-            }}
-          />
+          <PickerCell key={e.index} entry={e} selected={sel.has(e.index)} onToggle={onToggle} />
         ))}
       </div>
       {selected.length === 0 && <p className={s.pickerWarn}>{t("receive.picker.noneWarn")}</p>}
     </section>
   );
-}
+});
+
+const PickerCell = memo(function PickerCell({
+  entry,
+  selected,
+  onToggle,
+}: {
+  entry: PlaylistEntry;
+  selected: boolean;
+  onToggle: (index: number, on: boolean) => void;
+}) {
+  return (
+    <ThumbCell
+      seq={entry.index}
+      title={entry.title}
+      thumbnail={entry.thumbnail}
+      duration={entry.duration}
+      selected={selected}
+      onSelectedChange={(on) => onToggle(entry.index, on)}
+    />
+  );
+});

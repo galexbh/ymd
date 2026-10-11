@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { memo, useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ProbeResult } from "../../ipc/types";
 import { ChevronRight } from "lucide-react";
@@ -12,8 +12,9 @@ import { activePreset, destinationFor } from "./ingest";
 import { PlaylistPicker } from "./PlaylistPicker";
 import s from "./receive.module.css";
 
-/** The accession card: what was handed over, and where it will be filed. */
-export function AccessionCard({ probe }: { probe: ProbeResult }) {
+/** The accession card: what was handed over, and where it will be filed. Memoized so the
+ * ledger below changing never re-renders it (nor the playlist grid inside). */
+export const AccessionCard = memo(function AccessionCard({ probe }: { probe: ProbeResult }) {
   const { t } = useTranslation();
   const titleId = useId();
   const settings = useSettings((st) => st.settings);
@@ -106,7 +107,7 @@ export function AccessionCard({ probe }: { probe: ProbeResult }) {
       {playlist && <PlaylistPicker probe={probe} />}
     </article>
   );
-}
+});
 
 function OneOffOptions() {
   const { t } = useTranslation();
