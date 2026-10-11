@@ -18,7 +18,7 @@ description: Qué tests hay, dónde viven y qué ejecuta cada workflow.
 
 ## CI (`ci.yml`)
 
-Es la puerta de cada cambio: nada se fusiona sin todos los jobs en verde. Un job `changes` decide qué áreas toca el cambio con filtros de rutas:
+`ci.yml` valida cada cambio; la fusión requiere que todos los jobs pasen. Un job `changes` decide qué áreas toca el cambio con filtros de rutas:
 
 | Filtro      | Rutas principales                                                           | Jobs                                                          |
 | ----------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -40,9 +40,9 @@ Los jobs omitidos cuentan como aprobados para la protección de rama.
 
 ## Cachés
 
-GitHub da 10 GB de caché por repositorio. Las cachés de Rust se guardan solo desde `main` (los PR las leen sin sobrescribirlas) y hay una por propósito y sistema: `debug` (job `rust`), `build` (`build-check`) y `release-<sistema>` (instaladores).
+GitHub limita la caché a 10 GB por repositorio. Las cachés de Rust se guardan solo desde `main` (los PR las leen sin sobrescribirlas) y hay una por propósito y sistema: `debug` (job `rust`), `build` (`build-check`) y `release-<sistema>` (instaladores).
 
-Una caché guardada desde un tag solo la puede leer ese tag, así que `release.yml` no guarda la suya: la prepara `warm-release-cache.yml`, que compila en `main` los mismos binarios de release (mismos runners, targets y variables de entorno). Si se cambia la matriz o el entorno de `release.yml`, hay que cambiar ese workflow igual.
+Una caché guardada desde un tag solo la puede leer ese tag, así que `release.yml` no guarda la suya: la prepara `warm-release-cache.yml`, que compila en `main` los mismos binarios de release (mismos runners, targets y variables de entorno).
 
 ## Otros workflows
 

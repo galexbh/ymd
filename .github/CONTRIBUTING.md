@@ -119,7 +119,8 @@ La documentación de usuario y de desarrollo vive en `website/` (Astro Starlight
   con los textos reales de la interfaz (`src/i18n/*.json`).
 - El contrato del puente de cookies es `desarrollo/puente-de-cookies.md` (y su versión en
   `en/`). Un cambio en el protocolo toca la extensión, `native_host.rs` y ambas páginas en el
-  mismo PR; `extension/src/__tests__/manifest.test.ts` lee la clave del manifiesto de ellas.
+  mismo PR; `extension/src/__tests__/manifest.test.ts` lee de ellas el bloque de la `key` y la
+  línea «ID de la extensión» / "Extension ID", así que no cambies su formato.
 - La página Changelog muestra el `CHANGELOG.md` de la raíz; no se copia.
 - `pnpm docs:build` falla si hay enlaces internos rotos. `docs/assets/` guarda solo las imágenes
   del README.
@@ -152,6 +153,8 @@ tema claro y oscuro. Respeta `prefers-reduced-motion` y el foco visible.
   4. Revisarlo y **publicarlo**: las copias instaladas solo ven releases publicados.
 - Para generar un instalador en local (`pnpm tauri build`), exporta antes las dos variables de entorno de firma. Sin ellas, el paso de firma del actualizador falla. Para compilar sin empaquetar, `pnpm tauri build --no-bundle` no las necesita.
 - Los instaladores de Windows no llevan firma de código (Authenticode), así que SmartScreen muestra un aviso en la primera instalación.
+- `warm-release-cache.yml` prepara en `main` la caché de Rust que lee `release.yml`. Si cambias la
+  matriz o el entorno de `release.yml`, cambia `warm-release-cache.yml` en el mismo PR.
 
 ## Commits
 
@@ -180,6 +183,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - i18n: `es` and `en` keys must be identical. Theming: tokens only, check light and dark.
 - Docs: `website/` (Astro Starlight, published to <https://galexbh.github.io/ymd/>). Update the
   es and en pages with behavior changes; `pnpm docs:build` validates internal links. The cookie
-  bridge contract is `website/src/content/docs/{,en/}desarrollo/puente-de-cookies.md`.
+  bridge contract is `website/src/content/docs/{,en/}desarrollo/puente-de-cookies.md`; change it
+  together with the extension and `native_host.rs` in the same PR.
+- Releases: a change to the matrix or environment of `release.yml` also changes
+  `warm-release-cache.yml`, in the same PR.
 - Security: argv only (no shell), no secrets on disk or in argv, owner-only cookie file.
 - Add an AI co-author trailer to commits written with an AI assistant.

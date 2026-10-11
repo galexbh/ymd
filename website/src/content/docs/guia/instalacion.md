@@ -16,12 +16,12 @@ El instalador no incluye yt-dlp ni FFmpeg. ymd los descarga desde sus fuentes of
 ## Windows
 
 1. Descarga `ymd_<versión>_x64-setup.exe`.
-2. Ejecútalo. El instalador (NSIS) instala ymd solo para tu usuario y no pide permisos de administrador.
+2. Ejecútalo. El instalador instala ymd únicamente para tu usuario y no pide permisos de administrador.
 3. Abre ymd desde el menú Inicio.
 
 ### Aviso de SmartScreen
 
-El instalador aún no tiene firma de código (Authenticode), así que Windows SmartScreen puede mostrar «Windows protegió su PC» la primera vez. Selecciona **Más información** y luego **Ejecutar de todas formas**.
+El instalador no tiene firma de código (Authenticode), así que Windows SmartScreen puede mostrar «Windows protegió su PC» la primera vez. Selecciona **Más información** y luego **Ejecutar de todas formas**.
 
 Las actualizaciones posteriores de ymd sí van firmadas para el actualizador integrado (ver [Actualizaciones](/ymd/guia/actualizaciones/)); SmartScreen solo interviene en la instalación manual.
 
@@ -43,4 +43,4 @@ En macOS no hay una compilación de FFmpeg que ymd pueda descargar. La pantalla 
 - **macOS:** arrastra ymd desde **Aplicaciones** a la papelera.
 - **Linux:** borra el AppImage o desinstala el paquete.
 
-Las herramientas descargadas viven en la [carpeta de herramientas](/ymd/dependencias/#carpeta-de-herramientas), fuera de la instalación de ymd. Puedes borrarlas a mano si ya no las necesitas.
+Las herramientas descargadas se guardan en la [carpeta de herramientas](/ymd/dependencias/#carpeta-de-herramientas), fuera de la instalación de ymd. Puedes borrarlas manualmente si ya no las necesitas.

@@ -3,7 +3,7 @@ title: Cookies de Firefox
 description: Que ymd lea las cookies de Firefox (o Safari en macOS) directamente, y por qué los navegadores Chromium van por la extensión.
 ---
 
-Con **Origen de las cookies → Firefox**, ymd lee las cookies de Firefox en cada descarga (`--cookies-from-browser`). En macOS la opción se llama **Firefox o Safari** y permite elegir cualquiera de los dos.
+Con **Origen de las cookies → Firefox**, ymd lee las cookies de Firefox en cada descarga. En macOS la opción se llama **Firefox o Safari** y permite elegir cualquiera de los dos.
 
 ## Elegir perfil
 
@@ -15,13 +15,13 @@ En **Ajustes → Cuentas → Cookies del navegador**:
 
 Firefox puede estar abierto mientras descargas: ymd lee una copia de sus cookies.
 
-## ¿Y Brave, Chrome o Edge?
+## Navegadores Chromium
 
-Los navegadores Chromium no se leen directamente; para ellos está la [extensión ymd Cookies](/ymd/cookies/extension/) (origen **Extensión**). Hay dos motivos:
+Brave, Chrome, Edge y los demás navegadores Chromium no se leen directamente; para ellos está la [extensión ymd Cookies](/ymd/cookies/extension/) (origen **Extensión**). Por dos motivos:
 
-- En Windows cifran sus cookies con cifrado ligado a la aplicación (_app-bound encryption_): solo el propio navegador puede descifrarlas, así que ningún otro programa las abre.
-- Mantienen bloqueada la base de cookies mientras corren, y muchos siguen corriendo en segundo plano después de cerrar la última ventana (por ejemplo, el «Inicio rápido» de Edge).
+- En Windows cifran sus cookies con cifrado ligado a la aplicación (_app-bound encryption_): solo el propio navegador puede descifrarlas, así que ningún otro programa puede leerlas.
+- Mantienen bloqueada la base de cookies mientras se ejecutan, y muchos siguen ejecutándose en segundo plano después de cerrar la última ventana (por ejemplo, el «Inicio rápido» de Edge).
 
-La extensión evita las dos cosas: lee las cookies desde dentro del navegador y funciona con el navegador abierto, en Windows, macOS y Linux.
+La extensión resuelve ambos problemas: lee las cookies desde dentro del navegador y funciona con el navegador abierto, en Windows, macOS y Linux.
 
 Más en [Solución de problemas](/ymd/solucion-de-problemas/).

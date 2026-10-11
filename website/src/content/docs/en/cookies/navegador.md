@@ -3,7 +3,7 @@ title: Firefox cookies
 description: Letting ymd read Firefox's cookies (or Safari's on macOS) directly, and why Chromium browsers go through the extension.
 ---
 
-With **Cookie source → Firefox**, ymd reads Firefox's cookies on every download (`--cookies-from-browser`). On macOS the option is called **Firefox or Safari** and lets you pick either one.
+With **Cookie source → Firefox**, ymd reads Firefox's cookies on every download. On macOS the option is called **Firefox or Safari** and lets you pick either one.
 
 ## Pick a profile
 
@@ -15,13 +15,13 @@ In **Settings → Accounts → Browser cookies**:
 
 Firefox can stay open while you download: ymd reads a copy of its cookies.
 
-## What about Brave, Chrome or Edge?
+## Chromium browsers
 
-Chromium browsers aren't read directly; they use the [ymd Cookies extension](/ymd/en/cookies/extension/) (source **Extension**). Two reasons:
+Brave, Chrome, Edge and other Chromium browsers aren't read directly; they use the [ymd Cookies extension](/ymd/en/cookies/extension/) (source **Extension**). There are two reasons:
 
-- On Windows they encrypt their cookies with app-bound encryption: only the browser itself can decrypt them, so no other program can open them.
+- On Windows they encrypt their cookies with app-bound encryption: only the browser itself can decrypt them, so no other program can read them.
 - They keep the cookie database locked while they run, and many keep running in the background after the last window closes (Edge's “Startup boost”, for example).
 
-The extension avoids both: it reads the cookies from inside the browser and works with the browser open, on Windows, macOS and Linux.
+The extension solves both problems: it reads the cookies from inside the browser and works with the browser open, on Windows, macOS and Linux.
 
 More in [Troubleshooting](/ymd/en/solucion-de-problemas/).

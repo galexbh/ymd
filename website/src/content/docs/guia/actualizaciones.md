@@ -12,11 +12,11 @@ ymd se actualiza desde [GitHub Releases](https://github.com/galexbh/ymd/releases
 - Si ymd está en segundo plano, también recibes una notificación del sistema, una sola vez por versión.
 - En **Ajustes → Avanzado → ymd** se ven la **Versión instalada**, el botón **Buscar actualización** y, cuando hay una versión nueva, sus novedades.
 
-Las copias instaladas solo ven versiones publicadas. Si la búsqueda falla, vuelve a intentarlo más tarde o descarga la última versión desde la [página de releases](https://github.com/galexbh/ymd/releases/latest).
+Si la búsqueda falla, vuelve a intentarlo más tarde o descarga la última versión desde la [página de releases](https://github.com/galexbh/ymd/releases/latest).
 
 ## yt-dlp
 
-Los sitios cambian a menudo y yt-dlp se corrige igual de rápido, así que conviene tenerlo al día. En **Ajustes → Avanzado → yt-dlp**:
+Los sitios cambian a menudo y yt-dlp publica correcciones con frecuencia, así que se recomienda mantenerlo actualizado. En **Ajustes → Avanzado → yt-dlp**:
 
 ### Canal de actualización
 
@@ -28,6 +28,6 @@ Los sitios cambian a menudo y yt-dlp se corrige igual de rápido, así que convi
 
 ### Actualización automática
 
-**Actualizar yt-dlp solo** revisa al abrir ymd y actualiza cuando no hay descargas en curso. yt-dlp no se puede cambiar mientras haya descargas en curso o en cola.
+**Actualizar yt-dlp automáticamente** revisa al abrir ymd y actualiza cuando no hay descargas en curso. yt-dlp no se puede actualizar mientras haya descargas en curso o en cola.
 
-También puedes actualizar a mano desde [Dependencias](/ymd/dependencias/) con **Buscar actualizaciones**. Si la copia de yt-dlp del sistema está desactualizada, ymd ofrece instalar la suya, que tendrá prioridad; el archivo del sistema no se toca.
+También puedes actualizar manualmente desde [Dependencias](/ymd/dependencias/) con **Buscar actualizaciones**. Si la copia de yt-dlp del sistema está desactualizada, ymd ofrece instalar la suya, que tendrá prioridad; el archivo del sistema no se toca.

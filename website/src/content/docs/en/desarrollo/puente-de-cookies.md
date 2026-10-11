@@ -4,7 +4,7 @@ description: The Native Messaging contract between the ymd Cookies extension and
 tableOfContents: false
 ---
 
-Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change both in the same PR, together with this page and its Spanish version.
+Contract between the extension (`extension/`) and ymd's native host (`src-tauri/src/auth/native_host.rs`).
 
 <figure class="archify-figure">
   <iframe data-archify="/ymd/diagramas/en/cookie-bridge.html" title="Cookie bridge sequence diagram" loading="lazy"></iframe>
@@ -17,13 +17,13 @@ Contract shared by `extension/` and `src-tauri/src/auth/native_host.rs`. Change 
 - Extension ID (fixed by the manifest `key`): `gicaphbpepkphmeciigjhdpnbcaflfgd`
 - Chrome Web Store build ID (the store assigns its own): `hhojlkpllmndkaolmebblijfcjkjpdpi`
 - Allowed origins: `chrome-extension://gicaphbpepkphmeciigjhdpnbcaflfgd/` and `chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/`. ymd refuses any other.
-- Manifest `key` (public, SPKI DER base64). `extension/src/__tests__/manifest.test.ts` reads this block and checks it matches `extension/manifest.json`:
+- Manifest `key` (public, SPKI DER base64), the same as in `extension/manifest.json`:
 
 ```
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAleZOXLWNeehtpLVMJ3N2+P25O02a6I+9f2iACBHuQDaqRH6x2PFX8QIRBjGk5Ab8y4kTlJq72+2/NmQ+AUJ93dRt4HZNxBIKlxz2J/pd2o+krs3Xjx8qNX318pb40jmn5Y8gb4IKrKITa26Qm3fuT0cIY0WvoK0qSLynK/wI1FznJ0nELbiDwrnvYHeuEjzUouDF/H1QzzsbtfNp22X0UdiXFTQQjb1k0LgF9rlQCS2OPAgj3JCxxEPYOp7UW+6Cn3/BsHcRPgHEZ/HIYSlJTtNUdSB7cOwzRhvTcRRMQdjEUvTx/T+0dA4n8/0CgShKSk5mPBAauwQfh+OByGarPwIDAQAB
 ```
 
-The matching private key is **not** in the repo. It lives at `~/.ymd/extension-key.pem` on the maintainer's machine and is not uploaded to the store: the Chrome Web Store build has its own ID, and ymd accepts both.
+The matching private key is not part of the repository. The Chrome Web Store build doesn't use this key: the store assigns its own ID, and ymd accepts both.
 
 ## Transport
 
@@ -54,7 +54,7 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
 - It writes `cookies.meta.json` with `origin: "extension:<browser>"` and, when sent, `extensionVersion`.
-- `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). When the synced one is older, or missing, the card asks to reload the extension: an unpacked extension doesn't update itself.
+- `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). When the synced one is older, or missing, the card asks to reload the extension: an unpacked extension doesn't update automatically.
 - The app reads both through `cookies_info` / `extension_status`.
 - `open` launches `ymd --open-url <url>` and replies right away. If ymd is already open, that second instance hands it the link and exits, and ymd comes to the front; otherwise ymd starts with it. The link shows up in **Receive** with its card. Nothing is ever downloaded without your click.
 
@@ -63,22 +63,22 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 How the bridge looks after your cookies and the links you send.
 
 - **No network.** Cookies travel over Native Messaging, process to process. No open ports, no server, no telemetry.
-- **Only this extension talks to the host.** The browser launches the host only for the fixed ID's origin, and the host checks it again. The extension accepts no messages from other extensions or web pages (empty `externally_connectable`), and only answers its own popup.
-- **The host only writes.** No reply carries cookies: only the count and the domains. Anything that managed to talk to the host couldn't read a thing.
+- **Only this extension communicates with the host.** The browser launches the host only for the fixed ID's origin, and the host checks it again. The extension accepts no messages from other extensions or web pages (empty `externally_connectable`), and only answers its own popup.
+- **The host only writes.** No reply carries cookies: only the count and the domains. A process that managed to communicate with the host could not retrieve any cookies.
 - **Links are only reviewed.** “Download with ymd” accepts web links only and ymd shows them in **Receive**; downloading always takes your click.
-- **The minimum.** Only the sites on the list are sent. The extension that ships with ymd asks in its manifest only for `*://*.youtube.com/*`; the Chrome Web Store package asks for none. Each site added asks the browser for permission, and domains shared by many sites (`co.uk`, `github.io`, `blogspot.com`…) are refused, since they'd grant access to unrelated sites.
+- **Minimal permissions.** Only the sites on the list are sent. The extension that ships with ymd asks in its manifest only for `*://*.youtube.com/*`; the Chrome Web Store package asks for none. Each site added asks the browser for permission, and domains shared by many sites (`co.uk`, `github.io`, `blogspot.com`…) are refused, since they'd grant access to unrelated sites.
 - **Strict validation.** Messages of at most 16 MiB, at most 10,000 cookies, and each cookie with a valid domain and path, no control characters and at most 4096 bytes. Anything else is dropped.
 - **Encrypted at rest.** `cookies.txt` is sealed with ChaCha20-Poly1305 under a random key kept in the system keychain (Credential Manager, macOS Keychain or Secret Service). Plain text only exists in memory and in the copy yt-dlp gets during a download; that copy is deleted when it ends, and at ymd's start-up if one was left by a forced quit. With no keychain available (some Linux setups without a Secret Service) the file is stored unencrypted, owner-only, and the log says so.
 - **The extension stores no values.** In the browser it only keeps the site list, the status and a SHA-256 fingerprint of the set.
-- **Locked-down pages.** The extension's content security policy allows only its own files and no network connections.
+- **Restrictive content policy.** The extension's content security policy allows only its own files and no network connections.
 
 ### Good practices
 
-Like any application that keeps sessions, ymd relies on a healthy computer:
+Like any application that keeps sessions, ymd assumes the computer is not compromised:
 
 - Keep the operating system and the browser up to date.
 - Install ymd and the extension only from the official sources: the GitHub releases and the folder that ships with ymd.
-- Add only the sites you need to the list, and use **Delete copy** in **Settings → Accounts** once you no longer need it.
+- Add only the sites you need to the list, and use **Delete copy** in **Settings → Accounts** once you no longer need the copy.
 
 ## Host registration
 

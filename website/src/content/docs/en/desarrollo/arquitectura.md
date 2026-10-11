@@ -55,7 +55,7 @@ Every queued job goes through these stages (`JobStage` in `model.rs`). Merging a
 
 ## IPC contract
 
-A new command or event lands in a single commit:
+An IPC command or event spans these pieces:
 
 1. `src-tauri/src/model.rs`: serde types (camelCase).
 2. `src-tauri/src/commands/*.rs`: the `#[tauri::command]` and its registration in `lib.rs`.

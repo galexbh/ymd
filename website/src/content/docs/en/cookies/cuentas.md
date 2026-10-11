@@ -7,7 +7,7 @@ Some sites, such as Vimeo, accept a username and password in yt-dlp. ymd keeps t
 
 ## Add an account
 
-1. In **Site**, search the site by name (for example "Vimeo, Udemy, Twitch…"). Only sites that take an account in yt-dlp are listed.
+1. In **Site**, search the site by name (for example “Vimeo, Udemy, Twitch…”). Only sites that take an account in yt-dlp are listed.
 2. Enter **Username** and **Password**.
 3. Click **Save account**.
 
@@ -19,14 +19,14 @@ YouTube doesn't accept a username and password. For YouTube, use [cookies](/ymd/
 
 - The password goes to the system keychain: Credential Manager on Windows, Keychain on macOS and Secret Service on Linux. ymd never shows it again.
 - ymd only keeps an index of site and username on disk, with no passwords, to list the accounts.
-- When downloading, yt-dlp asks for the account with `--netrc-cmd`: it runs ymd as a helper, which reads the keychain and prints a single netrc line on standard output. The password never touches the disk or any process's arguments.
+- When downloading, ymd hands the account to yt-dlp straight from the keychain: the password never touches the disk or any process's arguments. Technical details in [Architecture](/ymd/en/desarrollo/arquitectura/).
 
 ## Supported sites
 
-**Supported sites** shows the official extractor list of yt-dlp, ymd's download engine (about 1,700), bundled with ymd and updated with each release. You can search by name or description and filter by **Takes an account** or **Broken** (per yt-dlp).
+**Supported sites** shows the official extractor list of yt-dlp, ymd's download engine (more than 1,700), bundled with ymd and updated with each release. You can search by name or description and filter by **Takes an account** or **Broken** (per yt-dlp).
 
 **How do I add more?** sums up the options:
 
 - **The site asks for an account**: pick it in **Site accounts** and save your username and password.
 - **The site has no account or needs a browser login**: use cookies.
-- **The site isn't on the list**: paste the link anyway; yt-dlp's generic extractor works with many pages. If it fails, you can ask for support in [yt-dlp's issues](https://github.com/yt-dlp/yt-dlp/issues).
+- **The site isn't on the list**: paste the link anyway; yt-dlp's generic extractor supports many pages. If it doesn't work, you can request support in [yt-dlp's issues](https://github.com/yt-dlp/yt-dlp/issues).
