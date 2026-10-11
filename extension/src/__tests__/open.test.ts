@@ -1,13 +1,9 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { clickedLink, webLink } from "../lib/links";
-import { mountPopup } from "../lib/popup-view";
 import { KEYS } from "../lib/storage";
-import { createSyncEngine, installBackground, MENU_ID, type OpenResult } from "../lib/sync";
+import { COMMAND_ID, createSyncEngine, installBackground, MENU_ID } from "../lib/sync";
 import {
   createChromeFake,
-  EXTENSION_DIR,
   flush,
   HOST_NOT_FOUND,
   POPUP_SENDER,
@@ -55,10 +51,31 @@ describe("webLink / clickedLink", () => {
     expect(clickedLink({ srcUrl: "blob:https://www.youtube.com/x", pageUrl: YT })).toBe(YT);
     expect(clickedLink({ pageUrl: "chrome://newtab" })).toBeNull();
   });
+
+  it("uses an embedded player (frame) before the page", () => {
+    const frame = "https://player.vimeo.com/video/76979871";
+    expect(clickedLink({ frameUrl: frame, pageUrl: "https://blog.example.com/post" })).toBe(frame);
+    expect(
+      clickedLink({ srcUrl: "blob:https://player.vimeo.com/x", frameUrl: frame, pageUrl: YT }),
+    ).toBe(frame);
+  });
+
+  it("uses selected text only when it is a web link", () => {
+    expect(clickedLink({ selectionText: ` ${YT} `, pageUrl: "https://a.com/" })).toBe(YT);
+    expect(clickedLink({ selectionText: "a cat video", pageUrl: "https://a.com/" })).toBe(
+      "https://a.com/",
+    );
+    expect(clickedLink({ selectionText: "javascript:alert(1)", pageUrl: YT })).toBe(YT);
+  });
+
+  it("a mailto: or blob: link falls back to the page", () => {
+    expect(clickedLink({ linkUrl: "mailto:a@b.com", pageUrl: YT })).toBe(YT);
+    expect(clickedLink({ linkUrl: "blob:https://a.com/x", pageUrl: YT })).toBe(YT);
+  });
 });
 
 describe("«Descargar con ymd» menu", () => {
-  it("is created on install for links, media and pages on the web", async () => {
+  it("is created on install for links, media, frames, selections and pages on the web", async () => {
     const { fake } = setup();
     fake.events.installed.emit({ reason: "install" });
     await flush();
@@ -66,11 +83,12 @@ describe("«Descargar con ymd» menu", () => {
       {
         id: MENU_ID,
         title: "Descargar con ymd",
-        contexts: ["link", "video", "audio", "page"],
+        contexts: ["link", "video", "audio", "frame", "selection", "page"],
         documentUrlPatterns: ["http://*/*", "https://*/*"],
-        targetUrlPatterns: ["http://*/*", "https://*/*"],
       },
     ]);
+    // no targetUrlPatterns: on YouTube the <video> is a blob: URL and it would hide the item
+    expect(fake.record.menus[0]).not.toHaveProperty("targetUrlPatterns");
     // recreated, not duplicated, on browser start
     fake.events.startup.emit();
     await flush();
@@ -80,6 +98,17 @@ describe("«Descargar con ymd» menu", () => {
   it("a click sends the link to ymd", async () => {
     const { fake } = setup();
     fake.events.menuClicked.emit({ menuItemId: MENU_ID, linkUrl: YT, pageUrl: "https://a.com/" });
+    await flush();
+    expect(opens(fake)).toEqual([{ type: "open", version: 1, url: YT }]);
+  });
+
+  it("a right-click on YouTube's player (a blob: video) sends the page", async () => {
+    const { fake } = setup();
+    fake.events.menuClicked.emit({
+      menuItemId: MENU_ID,
+      srcUrl: "blob:https://www.youtube.com/0b1c",
+      pageUrl: YT,
+    });
     await flush();
     expect(opens(fake)).toEqual([{ type: "open", version: 1, url: YT }]);
   });
@@ -102,57 +131,31 @@ describe("«Descargar con ymd» menu", () => {
   });
 });
 
-describe("popup «Esta página»", () => {
-  const html = readFileSync(resolve(EXTENSION_DIR, "popup.html"), "utf8");
-  const BODY = /<body>([\s\S]*)<\/body>/.exec(html)?.[1] ?? "";
-  beforeEach(() => {
-    document.body.innerHTML = BODY;
-  });
-  afterEach(() => {
-    document.body.innerHTML = "";
-  });
-  const $ = (id: string) => document.getElementById(id) as HTMLElement;
-
-  async function mount(options: FakeOptions) {
-    const { fake } = setup(options);
-    const view = await mountPopup(document, { api: fake.api, now: () => 1 });
-    return { fake, view };
-  }
-
-  it("shows the active site and sends it to ymd", async () => {
-    const { fake, view } = await mount({ activeTab: { url: YT } });
-    expect($("current").hidden).toBe(false);
-    expect($("current-host").textContent).toBe("youtube.com");
-    await view.downloadPage();
+describe("Alt+Shift+Y shortcut", () => {
+  it("sends the active tab to ymd", async () => {
+    const { fake } = setup({ activeTab: { url: YT } });
+    fake.events.command.emit(COMMAND_ID);
+    await flush();
     expect(opens(fake)).toEqual([{ type: "open", version: 1, url: YT }]);
-    expect($("download-result").textContent).toBe("Enviado a ymd. Revisa la ventana de ymd.");
-    expect($("download-result").dataset.tone).toBe("ok");
   });
 
-  it("explains when ymd can't be reached", async () => {
-    const { view } = await mount({ activeTab: { url: YT }, native: { lastError: HOST_NOT_FOUND } });
-    await view.downloadPage();
-    expect($("download-result").dataset.tone).toBe("error");
-    expect($("download-result").textContent).toMatch(/No se pudo abrir ymd/);
+  it("ignores other commands, browser pages and no tab", async () => {
+    const { fake } = setup({ activeTab: { url: "chrome://extensions" } });
+    fake.events.command.emit(COMMAND_ID);
+    fake.events.command.emit("other");
+    const empty = setup();
+    empty.fake.events.command.emit(COMMAND_ID);
+    await flush();
+    expect(opens(fake)).toEqual([]);
+    expect(opens(empty.fake)).toEqual([]);
   });
+});
 
-  it("stays hidden on browser pages and with no tab", async () => {
-    await mount({ activeTab: { url: "chrome://extensions" } });
-    expect($("current").hidden).toBe(true);
-    document.body.innerHTML = BODY;
-    await mount({});
-    expect($("current").hidden).toBe(true);
-  });
-
-  it("the worker answers an open request only from the popup", async () => {
+describe("popup messages", () => {
+  it("the worker no longer takes open requests from the popup", () => {
     const { fake } = setup();
     const [listener] = fake.events.message.listeners;
-    let reply: OpenResult | undefined;
-    expect(
-      listener({ type: "open", url: YT }, POPUP_SENDER, (r) => (reply = r as OpenResult)),
-    ).toBe(true);
-    expect(listener({ type: "open" }, POPUP_SENDER, () => undefined)).toBe(false);
-    await flush();
-    expect(reply).toEqual({ ok: true, error: null });
+    expect(listener({ type: "open", url: YT }, POPUP_SENDER, () => undefined)).toBe(false);
+    expect(opens(fake)).toEqual([]);
   });
 });

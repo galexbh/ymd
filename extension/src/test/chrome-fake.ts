@@ -157,6 +157,8 @@ export function createChromeFake(options: FakeOptions = {}) {
     installed: fakeEvent<(details: { reason: string }) => void>(),
     startup: fakeEvent<() => void>(),
     menuClicked: fakeEvent<(info: MenuClickInfo, tab?: Tab) => void>(),
+    /** Keyboard shortcuts (`commands` in the manifest). */
+    command: fakeEvent<(command: string, tab?: Tab) => void>(),
   };
 
   const record = {
@@ -283,6 +285,9 @@ export function createChromeFake(options: FakeOptions = {}) {
       async getUserSettings() {
         return { isOnToolbar: pinned };
       },
+    },
+    commands: {
+      onCommand: events.command,
     },
     tabs: {
       async query() {

@@ -131,6 +131,52 @@ describe("popup in Spanish", () => {
     expect(chips.map((c) => c.textContent)).toEqual(["Vimeo", "SoundCloud", "Twitch"]);
   });
 
+  it("has no «Descargar con ymd» button: the context menu and Alt+Shift+Y do that", async () => {
+    await mount("es", { activeTab: { url: "https://www.youtube.com/watch?v=1" } });
+    expect(document.getElementById("download-page")).toBeNull();
+    expect(document.getElementById("download-result")).toBeNull();
+  });
+
+  it("folds a long list at five sites behind «Mostrar todos (N)»", async () => {
+    const sites = ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com", "g.com"];
+    await mount("es", { sites });
+    await flush();
+    const domains = () =>
+      [...document.querySelectorAll("#site-list .domain")].map((d) => d.textContent);
+    const toggle = $("sites-toggle");
+    expect(domains()).toEqual(sites.slice(0, 5));
+    expect(toggle.hidden).toBe(false);
+    expect(toggle.textContent).toBe("Mostrar todos (7)");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.getAttribute("aria-controls")).toBe("site-list");
+
+    toggle.click();
+    expect(domains()).toEqual(sites);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(toggle.textContent).toBe("Mostrar menos");
+
+    toggle.click();
+    expect(domains()).toEqual(sites.slice(0, 5));
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("five sites or fewer show no toggle", async () => {
+    await mount("es", { sites: ["a.com", "b.com", "c.com", "d.com", "e.com"] });
+    expect(document.querySelectorAll("#site-list li")).toHaveLength(5);
+    expect($("sites-toggle").hidden).toBe(true);
+  });
+
+  it("a site just added is shown even past the fifth row", async () => {
+    const sites = ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com"];
+    await mount("es", { grant: true, sites });
+    ($("add-input") as HTMLInputElement).value = "vimeo.com";
+    ($("add-form") as HTMLFormElement).requestSubmit();
+    await flush();
+    const domains = [...document.querySelectorAll("#site-list .domain")].map((d) => d.textContent);
+    expect(domains).toEqual([...sites, "vimeo.com"]);
+    expect($("sites-toggle").getAttribute("aria-expanded")).toBe("true");
+  });
+
   it("follows a dark system theme", async () => {
     await mount("es", {}, true);
     expect(document.documentElement.dataset.theme).toBe("dark");
@@ -138,6 +184,13 @@ describe("popup in Spanish", () => {
 });
 
 describe("popup in English", () => {
+  it("names the list toggle in English", async () => {
+    await mount("en", { sites: ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com"] });
+    expect($("sites-toggle").textContent).toBe("Show all (6)");
+    $("sites-toggle").click();
+    expect($("sites-toggle").textContent).toBe("Show less");
+  });
+
   it("renders the stamp states in English", async () => {
     await mount("en", {
       storage: { [KEYS.status]: status({ lastSyncAt: NOW - 2 * 3_600_000, count: 7 }) },

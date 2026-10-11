@@ -44,7 +44,7 @@ describe("manifest", () => {
     expect(manifest).toMatchObject({
       manifest_version: 3,
       name: "ymd Cookies",
-      version: "1.4.0",
+      version: "1.4.1",
       default_locale: "es",
       permissions: ["cookies", "nativeMessaging", "storage", "alarms", "contextMenus", "activeTab"],
       host_permissions: ["*://*.youtube.com/*"],
@@ -52,6 +52,16 @@ describe("manifest", () => {
       background: { service_worker: "background.js", type: "module" },
       action: { default_popup: "popup.html" },
     });
+  });
+
+  it("declares the Alt+Shift+Y shortcut, which needs no permission", () => {
+    expect(manifest.commands).toEqual({
+      "download-page": {
+        suggested_key: { default: "Alt+Shift+Y" },
+        description: "__MSG_commandDownload__",
+      },
+    });
+    expect(manifest.permissions).not.toContain("commands");
   });
 
   it("presets only YouTube; every other site is optional, granted when the person adds it", () => {

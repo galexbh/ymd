@@ -49,8 +49,10 @@ En Windows, ymd registra el puente en las claves de Brave, Edge y Vivaldi, y sie
 
 Desde el navegador, sin copiar ni pegar:
 
-- **Clic derecho** en un enlace, un video o en cualquier parte de la página → **Descargar con ymd**.
-- O abre la ventana de la extensión y, en **Esta página**, pulsa **Descargar con ymd**.
+- **Clic derecho** → **Descargar con ymd** en un enlace, un video o audio, un texto seleccionado que sea un enlace, un reproductor incrustado (por ejemplo, un video de YouTube o Vimeo dentro de otra página) o en cualquier parte de la página. Si lo que pulsaste no es un enlace web (el video de YouTube, por ejemplo, o un enlace `mailto:`), se envía la página.
+- O pulsa **Alt+Shift+Y** para enviar la pestaña abierta. Puedes cambiar el atajo en `brave://extensions/shortcuts` (o `chrome://extensions/shortcuts`, según tu navegador).
+
+El menú propio de la barra de direcciones es del navegador: ninguna extensión puede agregar entradas ahí. Usa el clic derecho en la página o el atajo.
 
 ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador ya tenía otro enlace, ymd te pregunta antes de cambiarlo. Nada se descarga hasta que pulsas **Ingresar**.
 
@@ -61,8 +63,8 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
 - El sello **Puente con ymd** dice **Conectada**, **Sin conexión** o **Error**, con el último envío y el número de cookies.
 - **Sesión de YouTube** dice si la copia que recibió ymd tiene tu sesión: **Activa** o **Cerrada**. Se sabe por el nombre de las cookies, sin mirar su contenido.
 - **Enviar ahora** fuerza un envío.
-- **Esta página**: **Descargar con ymd** para la pestaña abierta y, si estás en un sitio que ymd conoce (Vimeo, SoundCloud, Twitch…) y aún no está en la lista, **Usar mi sesión de …** lo agrega con un clic.
-- **Sitios permitidos**: en la extensión que trae ymd, empieza con `youtube.com`, cuyo permiso viene en el manifiesto. La versión de la Chrome Web Store empieza vacía y su página de bienvenida ofrece **Usar YouTube**. **Sitios sugeridos** agrega YouTube, Vimeo, SoundCloud o Twitch con un clic, y **Agregar un sitio** acepta cualquier otro dominio. Cada sitio, con sus subdominios, pide el permiso del navegador en ese momento, y quitarlo devuelve el permiso. Si un sitio de la lista perdió su permiso (por ejemplo, porque lo retiraste en el navegador), muestra **Permitir**. La sesión de YouTube vive en las cookies de `youtube.com`, así que agregar YouTube no da acceso a tu cuenta de Google.
+- **Esta página**: aparece solo si estás en un sitio que ymd conoce (Vimeo, SoundCloud, Twitch…) y aún no está en la lista; **Usar mi sesión de …** lo agrega con un clic. En YouTube, si ya está agregado, o en un sitio desconocido, no se muestra.
+- **Sitios permitidos**: en la extensión que trae ymd, empieza con `youtube.com`, cuyo permiso viene en el manifiesto. La versión de la Chrome Web Store empieza vacía y su página de bienvenida ofrece **Usar YouTube**. **Sitios sugeridos** agrega YouTube, Vimeo, SoundCloud o Twitch con un clic, y **Agregar un sitio** acepta cualquier otro dominio. Cada sitio, con sus subdominios, pide el permiso del navegador en ese momento, y quitarlo devuelve el permiso. Si un sitio de la lista perdió su permiso (por ejemplo, porque lo retiraste en el navegador), muestra **Permitir**. Con más de cinco sitios, la lista se pliega: **Mostrar todos (N)** muestra el resto y **Mostrar menos** la vuelve a plegar. Un sitio recién agregado siempre queda a la vista. La sesión de YouTube vive en las cookies de `youtube.com`, así que agregar YouTube no da acceso a tu cuenta de Google.
 
 El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube está cerrada, y en rojo cuando no puede hablar con ymd; al pasar el ratón explica cuál. En ymd, **Ajustes → Cuentas** muestra la misma **Sesión de YouTube** y te indica cómo recuperarla.
 
