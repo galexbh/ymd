@@ -67,6 +67,21 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(page).toHaveScreenshot(`ajustes-apariencia-${colorScheme}.png`);
   });
 
+  test(`ajustes — preajuste de audio — ${colorScheme}`, async ({ page, app }) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+    await page.clock.install({ time: T0 });
+    await app.open({ scenario: "ready", speed: 1 });
+    await page.clock.runFor(500);
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-tab-presets").click();
+    await page.getByRole("button", { name: "Editar MP3 320 kbps" }).click();
+    const tidy = page.getByTestId("preset-audio-tidy");
+    await page.getByRole("checkbox", { name: "Incrustar miniatura" }).uncheck();
+    await tidy.getByRole("checkbox", { name: /Igualar volumen/ }).check();
+    await expect(tidy.getByRole("checkbox", { name: /Carátula cuadrada/ })).toBeDisabled();
+    await expect(tidy).toHaveScreenshot(`ajustes-preajuste-audio-${colorScheme}.png`);
+  });
+
   test(`ajustes — cuentas — ${colorScheme}`, async ({ page, app }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await page.clock.install({ time: T0 });

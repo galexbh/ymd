@@ -397,6 +397,55 @@ describe("Ajustes → Preajustes", () => {
     });
     expect(screen.getByText(/Preajuste «MP3 320 kbps \(copia\)» borrado/)).toBeInTheDocument();
   });
+
+  it("audio presets offer the tidy-up options; each one is disabled without its prerequisite", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "presets" });
+    // Video presets don't show them.
+    await user.click(screen.getByRole("button", { name: "Editar MP4 1080p" }));
+    expect(screen.queryByTestId("preset-audio-tidy")).toBeNull();
+    expect(screen.queryByRole("checkbox", { name: /Igualar volumen/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Editar MP3 320 kbps" }));
+    const editor = screen.getByTestId("preset-editor");
+    const tidy = within(editor).getByTestId("preset-audio-tidy");
+    expect(within(tidy).getByText("Ajustes del audio")).toBeInTheDocument();
+    const split = within(tidy).getByRole("checkbox", { name: /Separar artista y título/ });
+    const square = within(tidy).getByRole("checkbox", { name: /Carátula cuadrada/ });
+    const normalize = within(tidy).getByRole("checkbox", { name: /Igualar volumen/ });
+    for (const c of [split, square, normalize]) {
+      expect(c).toBeEnabled();
+      expect(c).not.toBeChecked();
+    }
+    expect(normalize).toHaveAccessibleDescription(/-14 LUFS/);
+
+    await user.click(within(editor).getByRole("checkbox", { name: "Incrustar miniatura" }));
+    expect(square).toBeDisabled();
+    expect(square).toHaveAccessibleDescription("Requiere «Incrustar miniatura».");
+    await user.click(within(editor).getByRole("checkbox", { name: "Incrustar metadatos" }));
+    expect(split).toBeDisabled();
+    expect(split).toHaveAccessibleDescription("Requiere «Incrustar metadatos».");
+    await user.click(within(editor).getByRole("checkbox", { name: "Incrustar miniatura" }));
+    await user.click(within(editor).getByRole("checkbox", { name: "Incrustar metadatos" }));
+
+    for (const c of [split, square, normalize]) await user.click(c);
+    await user.click(within(editor).getByTestId("preset-save"));
+    await tick(0);
+    await waitFor(() =>
+      expect(
+        be.snapshot().settings.presets.find((p) => p.id === "mp3-320")!.postprocess,
+      ).toMatchObject({ splitArtistTitle: true, squareCover: true, normalizeVolume: true }),
+    );
+
+    // «Original» copies the stream: nothing to normalize.
+    await user.click(screen.getByRole("button", { name: "Editar Audio original" }));
+    const original = within(screen.getByTestId("preset-editor")).getByRole("checkbox", {
+      name: /Igualar volumen/,
+    });
+    expect(original).toBeDisabled();
+    expect(original).toHaveAccessibleDescription(
+      "No disponible con el formato Original, que no convierte el audio.",
+    );
+  });
 });
 
 describe("template", () => {

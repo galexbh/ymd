@@ -79,6 +79,9 @@ fn default_postprocess() -> PostProcess {
         embed_subs: false,
         sub_langs: String::new(),
         sponsorblock_remove: Vec::new(),
+        split_artist_title: false,
+        square_cover: false,
+        normalize_volume: false,
     }
 }
 

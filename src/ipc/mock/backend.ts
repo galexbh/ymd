@@ -281,6 +281,13 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
     seen.add(p.id);
     return true;
   });
+  // `#[serde(default)]` on the audio tidy-up flags: older presets load them as off.
+  for (const p of s.presets) {
+    if (!p.postprocess) continue;
+    p.postprocess.splitArtistTitle = p.postprocess.splitArtistTitle === true;
+    p.postprocess.squareCover = p.postprocess.squareCover === true;
+    p.postprocess.normalizeVolume = p.postprocess.normalizeVolume === true;
+  }
   if (s.presets.length === 0) s.presets = builtinPresets();
   if (!s.presets.some((p) => p.id === s.defaultPresetId)) s.defaultPresetId = s.presets[0].id;
   if (!CLIPBOARD_WATCH.includes(s.clipboardWatch)) s.clipboardWatch = fallback.clipboardWatch;

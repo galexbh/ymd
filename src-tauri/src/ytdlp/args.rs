@@ -11,7 +11,7 @@
 //! - `%(playlist_index)s` is zero-padded to the playlist size ("08", "10").
 
 use crate::deps::{jsruntime, Tools};
-use crate::model::{AudioFormat, MediaKind, Preset, VideoContainer};
+use crate::model::{AudioFormat, AudioOptions, MediaKind, Preset, VideoContainer};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -209,7 +209,73 @@ pub fn format_args(preset: &Preset) -> Vec<String> {
     }
 }
 
-/// Embedding and SponsorBlock.
+/// `--parse-metadata` rule for "Split artist and title". It runs at `post_process` (after the
+/// filename is fixed, before the metadata is embedded), so only the tags change. Titles not
+/// shaped "Artist - Title" (a hyphen, en dash or em dash between spaces) are left as they are:
+/// yt-dlp prints "Could not interpret 'title' as …" and keeps going.
+pub const SPLIT_ARTIST_TITLE: &str = r"post_process:title:(?P<artist>.+?)\s+[-–—]\s+(?P<title>.+)";
+/// `--convert-thumbnails` mapping for "Square cover". yt-dlp skips the conversion (and with it
+/// the crop below) when the thumbnail already has the target format, so JPEG thumbnails become
+/// PNG and everything else becomes JPEG.
+pub const SQUARE_COVER_FORMAT: &str = "jpg>png/jpeg>png/jpg";
+/// `--ppa` for "Square cover": center-crop to the shorter side while converting the thumbnail.
+/// yt-dlp splits the value with shlex (the double quotes keep the filter as one argument) and
+/// ffmpeg's filter parser reads the single quotes (so the commas are not filter separators).
+pub const SQUARE_COVER_PPA: &str =
+    r#"ThumbnailsConvertor+ffmpeg_o:-vf "crop='min(iw,ih)':'min(iw,ih)'""#;
+/// ffmpeg output options for "Normalize volume": single-pass EBU R128 loudnorm to -14 LUFS.
+/// loudnorm upsamples to 192 kHz internally, so the output rate is set explicitly.
+pub const NORMALIZE_VOLUME_FILTER: &str = "-af loudnorm=I=-14:TP=-1.5:LRA=11 -ar 48000";
+
+/// `--ppa` for "Normalize volume", applied while yt-dlp extracts the audio (`ExtractAudio`).
+///
+/// When the downloaded codec already matches the chosen format (opus → Opus, AAC → M4A, …),
+/// yt-dlp stream-copies (`-acodec copy`), and ffmpeg rejects a filter on a copied stream. The
+/// encoder and quality are therefore repeated after the filter, mirroring yt-dlp 2026.08's
+/// `FFmpegExtractAudioPP._quality_args`, so the audio is always re-encoded as the preset says
+/// (when yt-dlp already re-encodes, the repeated options are the same ones). `None` for
+/// `AudioFormat::Best`, which keeps the original stream. If the downloaded file already has the
+/// target extension and codec (an .mp3 for MP3), yt-dlp skips extraction and the volume is kept.
+pub fn normalize_volume_ppa(audio: &AudioOptions) -> Option<String> {
+    let encoder = match audio.format {
+        AudioFormat::Best => return None,
+        AudioFormat::Mp3 => "libmp3lame",
+        AudioFormat::M4a => "aac",
+        AudioFormat::Opus => "libopus",
+        AudioFormat::Flac => "flac",
+    };
+    let mut v = format!("ExtractAudio:{NORMALIZE_VOLUME_FILTER} -c:a {encoder}");
+    // yt-dlp's default `--audio-quality` is 5; "320K" means 320 (a bitrate above 10).
+    let q = audio.quality.trim().trim_end_matches(['k', 'K']);
+    let q: f64 = if q.is_empty() {
+        5.0
+    } else {
+        q.parse().unwrap_or(5.0)
+    };
+    if q > 10.0 {
+        v.push_str(&format!(" -b:a {q}k"));
+    } else {
+        let limits = match audio.format {
+            AudioFormat::Mp3 => Some((10.0, 0.0)),
+            AudioFormat::M4a => Some((0.1, 4.0)),
+            _ => None,
+        };
+        if let Some((worst, best)) = limits {
+            // Rounded so float noise (0.10000000000000009) stays out of the argv.
+            let scaled: f64 = ((best + (worst - best) * (q / 10.0)) * 1000.0).round() / 1000.0;
+            v.push_str(&format!(" -q:a {scaled}"));
+        }
+    }
+    Some(v)
+}
+
+/// Embedding, SponsorBlock and the audio tidy-up options.
+///
+/// The audio-only options are ignored for video presets, and each one only applies when it can
+/// have an effect: splitting the title needs embedded metadata, the square cover needs an
+/// embedded thumbnail, and loudness normalization needs a re-encode (not `AudioFormat::Best`).
+/// Each `--ppa` is scoped to its own postprocessor, so neither reaches the other nor
+/// SponsorBlock's `ModifyChapters`.
 pub fn postprocess_args(preset: &Preset) -> Vec<String> {
     let pp = &preset.postprocess;
     let mut a = Vec::new();
@@ -233,6 +299,24 @@ pub fn postprocess_args(preset: &Preset) -> Vec<String> {
         .collect();
     if !cats.is_empty() {
         a.extend([s("--sponsorblock-remove"), cats.join(",")]);
+    }
+    if preset.kind == MediaKind::Audio {
+        if pp.split_artist_title && pp.embed_metadata {
+            a.extend([s("--parse-metadata"), s(SPLIT_ARTIST_TITLE)]);
+        }
+        if pp.square_cover && pp.embed_thumbnail {
+            a.extend([
+                s("--convert-thumbnails"),
+                s(SQUARE_COVER_FORMAT),
+                s("--ppa"),
+                s(SQUARE_COVER_PPA),
+            ]);
+        }
+        if pp.normalize_volume {
+            if let Some(ppa) = normalize_volume_ppa(&preset.audio) {
+                a.extend([s("--ppa"), ppa]);
+            }
+        }
     }
     a
 }
@@ -323,6 +407,9 @@ mod tests {
             embed_subs: false,
             sub_langs: String::new(),
             sponsorblock_remove: vec![],
+            split_artist_title: false,
+            square_cover: false,
+            normalize_volume: false,
         }
     }
 
@@ -333,6 +420,9 @@ mod tests {
             embed_subs: true,
             sub_langs: "es.*,en.*".into(),
             sponsorblock_remove: vec!["sponsor".into(), " selfpromo ".into(), "".into()],
+            split_artist_title: true,
+            square_cover: true,
+            normalize_volume: true,
         }
     }
 
@@ -343,6 +433,9 @@ mod tests {
             embed_subs: false,
             sub_langs: String::new(),
             sponsorblock_remove: vec![],
+            split_artist_title: false,
+            square_cover: false,
+            normalize_volume: false,
         }
     }
 
@@ -540,6 +633,181 @@ mod tests {
                 insta::assert_yaml_snapshot!(format!("download_pp_{pp_name}_{}", preset.id), args);
             }
         }
+    }
+
+    fn tidy(split: bool, square: bool, normalize: bool) -> PostProcess {
+        PostProcess {
+            split_artist_title: split,
+            square_cover: square,
+            normalize_volume: normalize,
+            ..pp_default()
+        }
+    }
+
+    #[test]
+    fn snapshot_audio_tidy_combinations() {
+        let w = windows();
+        let cases = [
+            ("split", AudioFormat::Mp3, tidy(true, false, false)),
+            ("square", AudioFormat::Mp3, tidy(false, true, false)),
+            ("normalize", AudioFormat::Mp3, tidy(false, false, true)),
+            ("all_mp3", AudioFormat::Mp3, tidy(true, true, true)),
+            ("all_m4a", AudioFormat::M4a, tidy(true, true, true)),
+            ("all_original", AudioFormat::Best, tidy(true, true, true)),
+            (
+                "all_no_embeds",
+                AudioFormat::Mp3,
+                PostProcess {
+                    embed_thumbnail: false,
+                    embed_metadata: false,
+                    ..tidy(true, true, true)
+                },
+            ),
+        ];
+        for (name, format, pp) in cases {
+            let mut preset = audio("tidy", format, "0");
+            preset.postprocess = pp;
+            let args = download_args(&spec(&preset, &w, None, false, false, vec![]));
+            insta::assert_yaml_snapshot!(format!("download_tidy_{name}"), args);
+        }
+    }
+
+    #[test]
+    fn audio_tidy_rules() {
+        let flag = |a: &[String], f: &str| a.iter().filter(|x| *x == f).count();
+        // Video presets ignore all three options.
+        let mut v = video("best", None, VideoContainer::Mp4);
+        v.postprocess = tidy(true, true, true);
+        v.postprocess.sponsorblock_remove = vec!["sponsor".into()];
+        let a = postprocess_args(&v);
+        assert_eq!(
+            a,
+            [
+                "--embed-thumbnail",
+                "--embed-metadata",
+                "--sponsorblock-remove",
+                "sponsor"
+            ]
+        );
+
+        // Each option needs its prerequisite.
+        let mut p = audio("x", AudioFormat::Mp3, "0");
+        p.postprocess = tidy(true, true, true);
+        p.postprocess.sponsorblock_remove = vec!["sponsor".into()];
+        let a = postprocess_args(&p);
+        assert_eq!(flag(&a, "--parse-metadata"), 1);
+        assert_eq!(flag(&a, "--convert-thumbnails"), 1);
+        assert_eq!(flag(&a, "--ppa"), 2);
+        assert!(a.contains(&SQUARE_COVER_PPA.to_string()));
+        assert!(a.contains(&normalize_volume_ppa(&p.audio).unwrap()));
+        assert!(a.contains(&"--sponsorblock-remove".to_string()));
+
+        p.postprocess.embed_metadata = false;
+        assert_eq!(flag(&postprocess_args(&p), "--parse-metadata"), 0);
+        p.postprocess.embed_thumbnail = false;
+        let a = postprocess_args(&p);
+        assert_eq!(flag(&a, "--convert-thumbnails"), 0);
+        assert_eq!(
+            a.iter()
+                .filter(|x| x.starts_with("ThumbnailsConvertor"))
+                .count(),
+            0
+        );
+        assert_eq!(flag(&a, "--ppa"), 1);
+
+        // Original keeps the stream as is: nothing to normalize.
+        p.audio.format = AudioFormat::Best;
+        assert_eq!(flag(&postprocess_args(&p), "--ppa"), 0);
+        for f in [AudioFormat::M4a, AudioFormat::Opus, AudioFormat::Flac] {
+            p.audio.format = f;
+            assert_eq!(flag(&postprocess_args(&p), "--ppa"), 1, "{f:?}");
+        }
+
+        // Off by default: nothing new for existing presets.
+        let a = postprocess_args(&audio("x", AudioFormat::Mp3, "0"));
+        assert_eq!(a, ["--embed-thumbnail", "--embed-metadata"]);
+    }
+
+    /// The `--ppa` values are split by yt-dlp with POSIX shlex: the crop filter must reach
+    /// ffmpeg as one argument with its single quotes intact.
+    #[test]
+    fn square_cover_ppa_survives_shlex() {
+        let (key, args) = SQUARE_COVER_PPA.split_once(':').unwrap();
+        assert_eq!(key, "ThumbnailsConvertor+ffmpeg_o");
+        assert_eq!(shlex_split(args), ["-vf", "crop='min(iw,ih)':'min(iw,ih)'"]);
+        let ppa = normalize_volume_ppa(&audio("x", AudioFormat::Mp3, "320K").audio).unwrap();
+        let (key, args) = ppa.split_once(':').unwrap();
+        assert_eq!(key, "ExtractAudio");
+        assert_eq!(
+            shlex_split(args),
+            [
+                "-af",
+                "loudnorm=I=-14:TP=-1.5:LRA=11",
+                "-ar",
+                "48000",
+                "-c:a",
+                "libmp3lame",
+                "-b:a",
+                "320k"
+            ]
+        );
+    }
+
+    /// Encoder and quality repeated after the filter, as yt-dlp would pass them on a re-encode
+    /// (so a stream copy becomes a re-encode with the preset's quality).
+    #[test]
+    fn normalize_volume_mirrors_ytdlp_quality() {
+        let ppa = |f: AudioFormat, q: &str| normalize_volume_ppa(&audio("x", f, q).audio);
+        let tail = |f: AudioFormat, q: &str| {
+            ppa(f, q)
+                .unwrap()
+                .strip_prefix(&format!("ExtractAudio:{NORMALIZE_VOLUME_FILTER} "))
+                .unwrap()
+                .to_string()
+        };
+        assert_eq!(ppa(AudioFormat::Best, "0"), None);
+        assert_eq!(tail(AudioFormat::Mp3, "320K"), "-c:a libmp3lame -b:a 320k");
+        assert_eq!(tail(AudioFormat::Mp3, "0"), "-c:a libmp3lame -q:a 0");
+        assert_eq!(tail(AudioFormat::Mp3, "2"), "-c:a libmp3lame -q:a 2");
+        assert_eq!(tail(AudioFormat::Mp3, ""), "-c:a libmp3lame -q:a 5");
+        assert_eq!(tail(AudioFormat::M4a, "0"), "-c:a aac -q:a 4");
+        assert_eq!(tail(AudioFormat::M4a, "10"), "-c:a aac -q:a 0.1");
+        assert_eq!(tail(AudioFormat::M4a, "192K"), "-c:a aac -b:a 192k");
+        assert_eq!(tail(AudioFormat::Opus, "0"), "-c:a libopus");
+        assert_eq!(tail(AudioFormat::Opus, "128K"), "-c:a libopus -b:a 128k");
+        assert_eq!(tail(AudioFormat::Flac, "0"), "-c:a flac");
+    }
+
+    /// Minimal POSIX shlex (whitespace, single and double quotes) for the test above.
+    fn shlex_split(v: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut cur = String::new();
+        let mut quote: Option<char> = None;
+        let mut started = false;
+        for c in v.chars() {
+            match (quote, c) {
+                (Some(q), c) if c == q => quote = None,
+                (Some(_), c) => cur.push(c),
+                (None, '"' | '\'') => {
+                    quote = Some(c);
+                    started = true;
+                }
+                (None, c) if c.is_whitespace() => {
+                    if started {
+                        out.push(std::mem::take(&mut cur));
+                        started = false;
+                    }
+                }
+                (None, c) => {
+                    cur.push(c);
+                    started = true;
+                }
+            }
+        }
+        if started {
+            out.push(cur);
+        }
+        out
     }
 
     #[test]

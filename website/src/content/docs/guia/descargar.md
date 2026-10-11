@@ -35,9 +35,20 @@ En **Ajustes → Preajustes** puedes crear los tuyos (**Nuevo preajuste**) o dup
 - **Formato de audio** (MP3, M4A, Opus, FLAC u original) y **Calidad** para audio.
 - **Incrustar miniatura**, **Incrustar metadatos** e **Incrustar subtítulos**, con sus **Idiomas de subtítulos** (por ejemplo `es,en`).
 - **Quitar segmentos con SponsorBlock**, eligiendo las categorías (patrocinio, intro, cierre, autopromoción…).
+- **Ajustes del audio**, solo en preajustes de audio (ver abajo).
 - **Carpeta del preajuste**: vacía usa la carpeta general de videos o de música.
 
-En un preajuste incluido solo se pueden cambiar las opciones de incrustación y la carpeta; el formato se actualiza con ymd. **Usar como preajuste predeterminado** lo deja elegido en el mostrador.
+En un preajuste incluido solo se pueden cambiar las opciones de incrustación, los ajustes del audio y la carpeta; el formato se actualiza con ymd. **Usar como preajuste predeterminado** lo deja elegido en el mostrador.
+
+### Ajustes del audio
+
+Tres opciones para dejar ordenada una biblioteca de música. Vienen apagadas y se aplican al terminar la descarga:
+
+- **Separar artista y título**: si el título del video tiene la forma «Artista - Canción» (con guion, guion medio o raya entre espacios), guarda «Artista» en la etiqueta de artista y «Canción» en la de título. Los títulos con otra forma quedan como están. El nombre del archivo no cambia. Requiere **Incrustar metadatos**.
+- **Carátula cuadrada**: recorta la miniatura por el centro al lado más corto, de modo que una imagen 16:9 de 1280×720 queda en 720×720. Requiere **Incrustar miniatura**.
+- **Igualar volumen**: normaliza el volumen a -14 LUFS (EBU R128) para que todas las canciones suenen parejo. El audio se vuelve a codificar con la calidad del preajuste y queda a 48 kHz.
+
+**Igualar volumen** no está disponible con el formato **Original (sin convertir)**, porque ese formato guarda el audio tal como llega, sin codificarlo de nuevo. Tampoco se aplica cuando el sitio ya entrega un archivo con el mismo formato elegido (por ejemplo, un `.m4a` para **M4A**): yt-dlp no lo convierte y el volumen queda igual.
 
 ## Playlists
 

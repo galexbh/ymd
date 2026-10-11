@@ -42,6 +42,9 @@ fn custom_preset(id: &str) -> Preset {
             embed_subs: false,
             sub_langs: String::new(),
             sponsorblock_remove: vec![],
+            split_artist_title: false,
+            square_cover: false,
+            normalize_volume: false,
         },
         output_dir: None,
         builtin: false,
@@ -83,6 +86,10 @@ fn builtin_preset_ids_are_stable() {
         .iter()
         .all(|p| p.postprocess.embed_thumbnail && p.postprocess.embed_metadata));
     assert!(p.iter().all(|p| !p.postprocess.embed_subs));
+    // Audio tidy-up options are opt-in.
+    assert!(p.iter().all(|p| !p.postprocess.split_artist_title
+        && !p.postprocess.square_cover
+        && !p.postprocess.normalize_volume));
     let mp3 = &p[3];
     assert_eq!(mp3.kind, MediaKind::Audio);
     assert_eq!(mp3.audio.format, AudioFormat::Mp3);
@@ -275,6 +282,10 @@ fn load_partial_file_merges_over_defaults() {
     assert!(best.postprocess.embed_subs);
     assert_eq!(best.postprocess.sub_langs, "es.*");
     assert_eq!(best.postprocess.sponsorblock_remove, ["sponsor"]);
+    // Files written before the audio tidy-up options existed load them as off.
+    assert!(!best.postprocess.split_artist_title);
+    assert!(!best.postprocess.square_cover);
+    assert!(!best.postprocess.normalize_volume);
     assert_eq!(best.output_dir.as_deref(), Some("D:\\Media\\Best"));
 
     let pod = s.presets.iter().find(|p| p.id == "my-podcast").unwrap();
@@ -341,6 +352,44 @@ fn load_invalid_values_fall_back_per_field() {
     // `x` kept with its invalid kind defaulted
     assert_eq!(ids(&s).last(), Some(&"x"));
     assert_eq!(s.presets.last().unwrap().kind, MediaKind::Video);
+}
+
+#[test]
+fn postprocess_without_audio_tidy_fields_deserializes_as_off() {
+    let pp: PostProcess = serde_json::from_value(serde_json::json!({
+        "embedThumbnail": true,
+        "embedMetadata": true,
+        "embedSubs": false,
+        "subLangs": "",
+        "sponsorblockRemove": []
+    }))
+    .unwrap();
+    assert!(!pp.split_artist_title && !pp.square_cover && !pp.normalize_volume);
+    let v = serde_json::to_value(&pp).unwrap();
+    assert_eq!(v["splitArtistTitle"], false);
+    assert_eq!(v["squareCover"], false);
+    assert_eq!(v["normalizeVolume"], false);
+}
+
+#[test]
+fn audio_tidy_options_survive_sanitize_on_builtins_and_customs() {
+    let mut s = defs();
+    let mp3 = s.presets.iter_mut().find(|p| p.id == "mp3-320").unwrap();
+    mp3.postprocess.split_artist_title = true;
+    mp3.postprocess.square_cover = true;
+    mp3.postprocess.normalize_volume = true;
+    let mut custom = custom_preset("my-flac");
+    custom.postprocess.normalize_volume = true;
+    s.presets.push(custom);
+
+    let out = sanitize(s);
+    let mp3 = out.presets.iter().find(|p| p.id == "mp3-320").unwrap();
+    assert!(mp3.postprocess.split_artist_title);
+    assert!(mp3.postprocess.square_cover);
+    assert!(mp3.postprocess.normalize_volume);
+    let custom = out.presets.iter().find(|p| p.id == "my-flac").unwrap();
+    assert!(custom.postprocess.normalize_volume);
+    assert!(!custom.postprocess.square_cover);
 }
 
 // ───────────── builtin presets merge ─────────────
