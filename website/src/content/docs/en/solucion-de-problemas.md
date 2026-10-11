@@ -11,7 +11,7 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `bot_check`. YouTube blocked the request until you prove you're a person, which needs a signed-in session.
 
-**Fix:** turn on your browser cookies in **Settings → Accounts**, then try again. The **Open Settings → Accounts** button takes you there. On Windows with Brave, Chrome or Edge, use the [ymd Cookies extension](/ymd/en/cookies/extension/); otherwise [Firefox](/ymd/en/cookies/navegador/).
+**Fix:** turn on your browser cookies in **Settings → Accounts**, then try again. The **Open Settings → Accounts** button takes you there. With Brave, Chrome, Edge or another Chromium browser, use the [ymd Cookies extension](/ymd/en/cookies/extension/) on any system; with Firefox (or Safari on macOS), ymd [reads the cookies directly](/ymd/en/cookies/navegador/).
 
 ### Age-restricted video
 
@@ -41,7 +41,7 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `geoblocked`. The uploader restricted the video by region.
 
-**Fix:** try from a connection in an allowed region.
+**Fix:** download from a connection located in an allowed region.
 
 ## Browser cookies
 
@@ -49,13 +49,13 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `cookies_locked`. The browser is open and keeps its cookie database locked, so yt-dlp can't read it.
 
-**Fix:** it happens with Chromium browsers, which ymd no longer reads directly. Choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/), which works with the browser open.
+**Fix:** it happens with Chromium browsers, which ymd doesn't read directly. Choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/), which works with the browser open.
 
 ### Couldn't read the browser's cookies
 
-`cookies_decrypt`. yt-dlp found the cookies but couldn't decrypt them. On Windows, Brave, Chrome and Edge encrypt them so no other program can read them (see [Firefox cookies](/ymd/en/cookies/navegador/#what-about-brave-chrome-or-edge)).
+`cookies_decrypt`. yt-dlp found the cookies but couldn't decrypt them. On Windows, Brave, Chrome and Edge encrypt them so no other program can read them (see [Chromium browsers](/ymd/en/cookies/navegador/#chromium-browsers)).
 
-**Fix:** choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/). Firefox also works.
+**Fix:** choose **Extension** as the source in **Settings → Accounts** and use the [ymd Cookies extension](/ymd/en/cookies/extension/). As an alternative, use [Firefox cookies](/ymd/en/cookies/navegador/).
 
 ## Tools
 
@@ -111,11 +111,11 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `unknown`. yt-dlp failed with an error ymd doesn't recognize.
 
-**Fix:** retry. If it fails again, update yt-dlp in **Dependencies** and copy the technical detail if you need to report it. Sites change often; the [Nightly](/ymd/en/guia/actualizaciones/#update-channel) channel usually gets the fix first.
+**Fix:** try again. If it fails again, update yt-dlp in **Dependencies** and copy the technical detail if you need to report it. Sites change often; the [Nightly](/ymd/en/guia/actualizaciones/#update-channel) channel usually gets the fix first.
 
 ### Windows protected your PC (SmartScreen)
 
-When installing ymd on Windows, SmartScreen may show this warning because the installer isn't code-signed (Authenticode) yet.
+When installing ymd on Windows, SmartScreen may show this warning because the installer isn't code-signed (Authenticode).
 
 **Fix:** select **More info**, then **Run anyway**. See [Installation](/ymd/en/guia/instalacion/#smartscreen-warning).
 
@@ -129,7 +129,7 @@ ymd notes what it does (how long each stage of a download takes, how it ended, t
 - **macOS:** `~/Library/Application Support/com.ymd.app/logs`
 - **Linux:** `~/.local/share/com.ymd.app/logs`
 
-**Settings → Advanced → Open data folder** opens that folder. There's one file per day (`ymd.YYYY-MM-DD.jsonl`), and ymd deletes the ones older than 14 days on its own (and the oldest ones if together they go past 20 MB).
+**Settings → Advanced → Open data folder** opens that folder. There's one file per day (`ymd.YYYY-MM-DD.jsonl`), and ymd automatically deletes the ones older than 14 days (and the oldest ones if together they exceed 20 MB).
 
 The logs never leave your computer: ymd has no analytics or telemetry and sends them nowhere. They don't store links, passwords, 2FA codes or cookies either; before writing each line, ymd strips your home-folder paths, link parameters and anything that looks like a token.
 
@@ -137,11 +137,11 @@ The logs never leave your computer: ymd has no analytics or telemetry and sends 
 
 To report a problem in [ymd's issues](https://github.com/galexbh/ymd/issues):
 
-1. Open **Settings → Advanced** and press **Export diagnostics**.
+1. Open **Settings → Advanced** and click **Export diagnostics**.
 2. Choose where to save the `ymd-diagnostico-YYYYMMDD-HHMM.zip` file. When it's done, the **Diagnostics saved** notice has **Show in folder**.
 3. Attach that zip to the issue and describe what you did and what you expected.
 
-The zip is built on your computer and only you share it. It contains:
+The zip is created on your computer and is only shared if you attach it. It contains:
 
 - `info.txt`: ymd's version, operating system and architecture, language, the yt-dlp, FFmpeg and Node.js versions, the JavaScript runtime in use and a summary of your settings (only options and numbers, like the yt-dlp channel or how many simultaneous downloads; no folders).
 - `logs/`: the logs from the last 14 days, cleaned again on export.

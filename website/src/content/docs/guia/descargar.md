@@ -14,7 +14,7 @@ La pantalla **Recibir** tiene un mostrador de ingreso:
 3. Elige **Video** o **Audio** y un **Preajuste**.
 4. Pulsa **Ingresar** (o <kbd>Enter</kbd>).
 
-Para videos protegidos, **Opciones de esta descarga** acepta una **Contraseña del video** y un **Código de verificación (2FA)**. No se guardan: se usan en esa descarga y se olvidan.
+Para videos protegidos, **Opciones de esta descarga** acepta una **Contraseña del video** y un **Código de verificación (2FA)**. No se guardan: solo se usan en esa descarga.
 
 ## Preajustes
 
@@ -37,7 +37,7 @@ En **Ajustes → Preajustes** puedes crear los tuyos (**Nuevo preajuste**) o dup
 - **Quitar segmentos con SponsorBlock**, eligiendo las categorías (patrocinio, intro, cierre, autopromoción…).
 - **Carpeta del preajuste**: vacía usa la carpeta general de videos o de música.
 
-En un preajuste incluido solo cambian lo que se incrusta y la carpeta; el formato se mantiene al día con ymd. **Usar como preajuste predeterminado** lo deja elegido en el mostrador.
+En un preajuste incluido solo se pueden cambiar las opciones de incrustación y la carpeta; el formato se actualiza con ymd. **Usar como preajuste predeterminado** lo deja elegido en el mostrador.
 
 ## Playlists
 
@@ -69,14 +69,14 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 - **Nombre de archivo**: la **Plantilla** usa los campos de yt-dlp, como `%(title)s`, `%(id)s`, `%(uploader)s` o `%(ext)s`. Debe incluir `%(ext)s`.
 - **Saltar lo ya descargado**: yt-dlp anota cada video en un archivo de registro y no lo repite.
 - **Usar aria2c**: descarga cada archivo por varias conexiones (requiere instalar aria2c en Dependencias).
-- **Límite de velocidad**: **Sin límite** (lo predeterminado), 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir un número entero entre 1 y 1000. Cada descarga respeta ese tope por separado, y con aria2c también se aplica a aria2c. Se aplica a las descargas que empiecen a partir de ahora: las que ya están en curso siguen a la velocidad con la que empezaron.
+- **Límite de velocidad**: **Sin límite** (lo predeterminado), 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir un número entero entre 1 y 1000. Cada descarga respeta ese tope por separado, y con aria2c también se aplica a aria2c. El límite se aplica a las descargas que empiecen después de guardarlo; las que ya están en curso mantienen la velocidad con la que empezaron.
 - **Avisar cuando termine una descarga**: ver [Avisos](#avisos).
 
 ### Programar el inicio
 
-Para dejar descargas en cola y que empiecen más tarde (por ejemplo, de noche), escribe una hora en la pantalla **Registro**, junto a **Programar inicio**, y pulsa el botón. Si esa hora ya pasó hoy, la cola empieza mañana a esa hora.
+Para dejar descargas en cola y que empiecen más tarde (por ejemplo, durante la noche), escribe una hora en la pantalla **Registro**, junto a **Programar inicio**, y pulsa el botón. Si esa hora ya pasó hoy, la cola empieza mañana a esa hora.
 
-Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** quita la hora programada y arranca la cola de inmediato. La hora solo vive mientras ymd está abierto: si sales de ymd, se olvida.
+Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** quita la hora programada e inicia la cola de inmediato. La hora programada se descarta al salir de ymd.
 
 ## Avisos
 
@@ -86,7 +86,7 @@ Mientras ymd está en segundo plano (otra ventana delante, minimizado o en la ba
 - Si falló, dice **No se pudo descargar «…»** y el motivo. Al volver a ymd se abre el **Registro**, donde la fila explica qué hacer.
 - Varias descargas que terminan casi a la vez llegan en una sola notificación («3 descargas terminadas»; si alguna falló, también lo dice).
 
-Con la ventana de ymd delante no hay notificación: basta el aviso dentro de la app. Para no recibirlas, apaga **Ajustes → Descargas → Avisar cuando termine una descarga**.
+Con la ventana de ymd en primer plano no hay notificación del sistema; el aviso se muestra dentro de la app. Para no recibirlas, apaga **Ajustes → Descargas → Avisar cuando termine una descarga**.
 
 ## Al cerrar la ventana
 
@@ -102,9 +102,9 @@ Para que la X cierre ymd, apaga **Ajustes → Avanzado → Al cerrar la ventana 
 Si ymd se cierra con descargas en curso o en cola (con **Salir**, al apagar el equipo o por un cierre inesperado), las recuerda. La próxima vez, el **Registro** muestra «Hay N descargas sin terminar» con su número y título:
 
 - **Reanudar** las vuelve a poner en la cola con el mismo número. yt-dlp sigue desde donde iba, sin bajar de nuevo lo que ya tenía.
-- **Descartar** las olvida y borra sus archivos parciales.
+- **Descartar** las quita de la lista y borra sus archivos parciales.
 
-Nada se reanuda solo: tú decides cuándo. Las descargas que usaron una **Contraseña del video** o un **Código de verificación (2FA)** aparecen aparte, porque ymd nunca guarda esos datos: vuelve a pegarlas en **Recibir** y escríbelos otra vez.
+Las descargas no se reanudan automáticamente. Las que usaron una **Contraseña del video** o un **Código de verificación (2FA)** aparecen aparte, porque ymd nunca guarda esos datos: vuelve a pegar su enlace en **Recibir** y escribe esos datos otra vez.
 
 ## El registro
 
@@ -116,15 +116,15 @@ Cada fila tiene sus acciones: **Cancelar**, **Reintentar**, **Abrir archivo**, *
 
 El estado de cada ingreso aparece como un sello:
 
-| Sello       | Significado                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------- |
-| En cola     | Espera su turno.                                                                                    |
-| Descargando | yt-dlp está bajando el archivo.                                                                     |
-| Uniendo     | ffmpeg une las pistas de video y audio.                                                             |
-| Procesando  | Post-proceso: miniatura, metadatos, subtítulos, SponsorBlock o conversión.                          |
-| Archivado   | Terminado. El archivo queda anotado en el [Catálogo](/ymd/guia/catalogo/).                          |
-| Fallido     | Algo falló. El mensaje explica qué hacer; ver [Solución de problemas](/ymd/solucion-de-problemas/). |
-| Anulado     | Cancelado por ti.                                                                                   |
+| Sello       | Significado                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| En cola     | Espera su turno.                                                                                                    |
+| Descargando | yt-dlp está bajando el archivo.                                                                                     |
+| Uniendo     | ffmpeg une las pistas de video y audio.                                                                             |
+| Procesando  | Post-proceso: miniatura, metadatos, subtítulos, SponsorBlock o conversión.                                          |
+| Archivado   | Terminado. El archivo queda anotado en el [Catálogo](/ymd/guia/catalogo/).                                          |
+| Fallido     | La descarga no se completó. El mensaje explica qué hacer; ver [Solución de problemas](/ymd/solucion-de-problemas/). |
+| Anulado     | Cancelado por ti.                                                                                                   |
 
 Una descarga fallida muestra el motivo y un botón con el arreglo directo. **Mostrar el detalle del error** despliega la última línea de yt-dlp, útil para reportar un problema.
 

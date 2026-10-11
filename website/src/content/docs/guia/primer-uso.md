@@ -9,7 +9,7 @@ La primera vez que abres ymd aparece la pantalla **Antes del primer ingreso**. T
 
 ymd descarga con [yt-dlp](https://github.com/yt-dlp/yt-dlp) y une video y audio con [FFmpeg](https://ffmpeg.org/). Pulsa **Instalar lo necesario** para que ymd los descargue, verificados, en tu carpeta de usuario. Si tu equipo no tiene un entorno JavaScript, también instala [Node.js](https://nodejs.org/), que YouTube exige para entregar los formatos.
 
-Si la instalación no termina, suele ser la conexión o un límite temporal de GitHub. Lo que ya se instaló se conserva; reintenta en un momento. Puedes revisar, actualizar o quitar las herramientas cuando quieras en [Dependencias](/ymd/dependencias/).
+Si la instalación no termina, la causa suele ser la conexión o un límite temporal de GitHub. Lo que ya se instaló se conserva; vuelve a intentarlo en unos minutos. Puedes revisar, actualizar o quitar las herramientas cuando quieras en [Dependencias](/ymd/dependencias/).
 
 ## Dónde se archiva
 

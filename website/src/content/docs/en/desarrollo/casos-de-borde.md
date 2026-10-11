@@ -1,25 +1,25 @@
 ---
 title: Edge cases
-description: Real problems ymd solved that no tutorial covers, with their cause, their fix and where the code lives.
+description: Real problems solved while developing ymd, with their cause, their fix and where the code lives.
 ---
 
-What no tutorial covers: real failures that came up while building ymd, why they happened and where the fix landed. Each case follows **Symptom → Cause → Fix → Where it lives**.
+Real failures found while developing ymd, their cause and where the fix lives. Each case follows **Symptom → Cause → Fix → Where it lives**.
 
-## Edge showed as "open" with no windows
+## Edge showed as “open” with no windows
 
 - **Symptom:** when reading Edge's cookies, ymd asked to close it even though no window was open.
 - **Cause:** Edge's Startup boost keeps the browser running in the background, and the cookie database stays locked meanwhile.
-- **Fix:** ymd no longer reads Chromium browsers directly: it uses the extension. Anyone who had one selected moves to **Extension** in **Cookie source** on update (0.4.0).
+- **Fix:** since version 0.4.0, ymd doesn't read Chromium browsers directly: it uses the extension. On update, anyone who had one selected moves to **Extension** in **Cookie source**.
 - **Where it lives:** `src/screens/settings/AccountsSettings.tsx`, migration in `sanitize` in `src-tauri/src/settings.rs`.
 
 ## yt-dlp can't decrypt Chrome cookies on Windows
 
-- **Symptom:** with Chrome, Brave or Edge on Windows, yt-dlp fails to decrypt the cookies ("Failed to decrypt with DPAPI").
+- **Symptom:** with Chrome, Brave or Edge on Windows, yt-dlp fails to decrypt the cookies (“Failed to decrypt with DPAPI”).
 - **Cause:** Chromium's app-bound encryption only lets the browser itself decrypt its cookies.
 - **Fix:** the ymd Cookies extension reads the cookies from inside the browser and hands them to ymd over Native Messaging, with no network. See [Cookie bridge protocol](/ymd/en/desarrollo/puente-de-cookies/).
 - **Where it lives:** `src-tauri/src/auth/native_host.rs`, `extension/src/lib/sync.ts`.
 
-## yt-dlp clobbered freshly synced cookies
+## yt-dlp overwrote freshly synced cookies
 
 - **Symptom:** after a download, the cookies the extension had just sent went back to an old version.
 - **Cause:** on exit, yt-dlp rewrites the file it got through `--cookies` with what it had in memory when it started.
@@ -54,17 +54,17 @@ What no tutorial covers: real failures that came up while building ymd, why they
 - **Fix:** the entry only uses `documentUrlPatterns`, and `clickedLink` picks the right link: the clicked link, the selection or the page, skipping anything that isn't a web link.
 - **Where it lives:** `extension/src/lib/sync.ts`, `extension/src/lib/links.ts`.
 
-## Unpacked extensions don't update themselves
+## Unpacked extensions don't update automatically
 
 - **Symptom:** after updating ymd, the extension loaded in the browser stayed on its previous version.
 - **Cause:** an extension loaded unpacked gets no automatic updates; it has to be reloaded by hand.
 - **Fix:** the extension sends its version with every sync. When the one bundled with ymd is newer, the extension card asks to open the browser's extensions and click reload on ymd Cookies.
 - **Where it lives:** `src/screens/settings/ExtensionCard.tsx`, `extensionOutdated` in `src/screens/settings/extension.ts`.
 
-## YouTube asks to "confirm you're not a bot" in CI
+## YouTube asks to “confirm you're not a bot” in CI
 
 - **Symptom:** the nightly test against real YouTube failed on GitHub runners with nothing changed in ymd.
-- **Cause:** YouTube sometimes flags runner IPs and answers "Sign in to confirm you're not a bot".
+- **Cause:** YouTube sometimes flags runner IPs and answers “Sign in to confirm you're not a bot”.
 - **Fix:** that answer is reported as a warning (`::warning`) and the download checks are skipped; any other failure still breaks the job.
 - **Where it lives:** `.github/workflows/nightly-smoke.yml`.
 
@@ -72,7 +72,7 @@ What no tutorial covers: real failures that came up while building ymd, why they
 
 - **Symptom:** quitting ymd mid-download lost those downloads; saving them as-is would have left video passwords or 2FA codes on disk.
 - **Cause:** jobs lived only in memory, and their partial files depended on a per-job temporary folder.
-- **Fix:** the `pending_jobs` table keeps each unfinished job with its same id, so **Resume** reuses `tmp/<id>` and yt-dlp continues from its `.part` files. Jobs that used a secret only store `needs_secret` and never resume on their own.
+- **Fix:** the `pending_jobs` table keeps each unfinished job with its same id, so **Resume** reuses `tmp/<id>` and yt-dlp continues from its `.part` files. Jobs that used a secret only store `needs_secret` and never resume automatically.
 - **Where it lives:** `src-tauri/src/jobs.rs`, `src-tauri/src/history.rs`.
 
 ## The production minifier rejected a CSS selector

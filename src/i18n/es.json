@@ -660,7 +660,7 @@
         "nightly": "Recomendado: una compilación diaria con las correcciones más recientes.",
         "master": "Cada cambio en cuanto se publica. Solo si buscas un arreglo concreto."
       },
-      "autoUpdate": "Actualizar yt-dlp solo",
+      "autoUpdate": "Actualizar yt-dlp automáticamente",
       "autoUpdateHint": "Revisa al abrir ymd y actualiza cuando no hay descargas en curso.",
       "binDir": "Carpeta de herramientas",
       "binDirLabel": "Ubicación",

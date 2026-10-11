@@ -453,6 +453,19 @@ describe("Ajustes → Avanzado: al cerrar la ventana", () => {
   });
 });
 
+describe("Ajustes → Avanzado: yt-dlp", () => {
+  it("«Actualizar yt-dlp automáticamente» is on by default and the switch saves autoUpdate", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });
+    const toggle = screen.getByRole("switch", { name: /^Actualizar yt-dlp automáticamente/ });
+    expect(toggle).toBeChecked();
+
+    await user.click(toggle);
+    await tick(0);
+    await waitFor(() => expect(be.snapshot().settings.autoUpdate).toBe(false));
+    expect(toggle).not.toBeChecked();
+  });
+});
+
 describe("Ajustes → Avanzado: carpeta de datos y diagnóstico", () => {
   it("«Abrir carpeta de datos» opens the backend's data dir (Roaming on Windows)", async () => {
     const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });

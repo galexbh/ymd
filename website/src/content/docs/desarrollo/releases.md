@@ -15,11 +15,7 @@ description: Cómo se publica una versión de ymd y cómo se firman las actualiz
 
 ymd se actualiza con `tauri-plugin-updater`: lee `releases/latest/download/latest.json` de GitHub y cada instalador va firmado (minisign). La clave pública vive en `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`).
 
-La clave privada nunca entra al repo:
-
-- En CI está en los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
-- En la máquina del mantenedor, fuera del repositorio, con su contraseña aparte.
-- Si se pierde, las copias instaladas ya no aceptarán actualizaciones: habría que publicar una versión con otra clave e instalarla a mano.
+La clave privada no forma parte del repositorio. En CI se proporciona con los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
 
 Para generar un instalador en local (`pnpm tauri build`), exporta antes esas dos variables de entorno; sin ellas, el paso de firma del actualizador falla. `pnpm tauri build --no-bundle` compila sin empaquetar y no las necesita.
 

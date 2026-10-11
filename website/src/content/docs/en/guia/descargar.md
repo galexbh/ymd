@@ -14,7 +14,7 @@ The **Receive** screen has an intake counter:
 3. Pick **Video** or **Audio** and a **Preset**.
 4. Click **File it** (or press <kbd>Enter</kbd>).
 
-For protected videos, **Options for this download** takes a **Video password** and a **Verification code (2FA)**. They aren't saved: they're used for that download and then forgotten.
+For protected videos, **Options for this download** takes a **Video password** and a **Verification code (2FA)**. They aren't saved: they're only used for that download.
 
 ## Presets
 
@@ -37,7 +37,7 @@ In **Settings → Presets** you can create your own (**New preset**) or duplicat
 - **Remove segments with SponsorBlock**, choosing the categories (sponsor, intro, endcards, self-promotion…).
 - **Preset folder**: empty uses the general video or music folder.
 
-On a built-in preset only the embedding options and the folder change; the format stays current with ymd. **Use as the default preset** keeps it selected at the counter.
+On a built-in preset only the embedding options and the folder can be changed; the format is updated with ymd. **Use as the default preset** keeps it selected at the counter.
 
 ## Playlists
 
@@ -47,13 +47,13 @@ When the link is a playlist, the card shows a thumbnail grid with every entry:
 - **From** … **to** and **Select range** pick a stretch.
 - <kbd>Shift</kbd> + click marks every entry between two clicks.
 
-Each selected entry goes into the ledger as its own download ("Entry 3 of 12").
+Each selected entry goes into the ledger as its own download (“Entry 3 of 12”).
 
 ## Several links at once
 
 If you paste text with two or more links into the **Link** field (one per line or separated by spaces), the field stays as it is and the **Several links** panel opens:
 
-- The title says how many links will be queued ("3 links") and the list shows them in the order you pasted them. Repeated links count once.
+- The title says how many links will be queued (“3 links”) and the list shows them in the order you pasted them. Repeated links count once.
 - Anything that isn't a downloadable link is struck through and marked **Excluded**, with a note saying how many are left out. Up to 200 links fit at a time; any extra ones are reported too.
 - They all use the **Video** or **Audio** choice and the **Preset** picked at the counter, and go to the same **Shelf**. With **Ask for the folder on every download**, the folder is asked once for all of them.
 - **Whole playlists**: when off, a playlist link downloads only the linked video; when on, each playlist link downloads the whole playlist.
@@ -69,14 +69,14 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 - **File name**: the **Template** uses yt-dlp fields such as `%(title)s`, `%(id)s`, `%(uploader)s` or `%(ext)s`. It must include `%(ext)s`.
 - **Skip what's already downloaded**: yt-dlp notes every video in an archive file and never repeats it.
 - **Use aria2c**: downloads each file over several connections (install aria2c in Dependencies first).
-- **Speed limit**: **No limit** (the default), 1, 2, 5, 10, 20 or 50 MB/s, or **Other…** to type a whole number between 1 and 1000. Each download keeps to that cap on its own, and with aria2c the cap applies to aria2c too. It applies to downloads that start from now on: running ones keep the speed they started with.
+- **Speed limit**: **No limit** (the default), 1, 2, 5, 10, 20 or 50 MB/s, or **Other…** to type a whole number between 1 and 1000. Each download applies that cap separately, and with aria2c the cap applies to aria2c too. The limit applies to downloads that start after you save it; running ones keep the speed they started with.
 - **Notify me when a download ends**: see [Notifications](#notifications).
 
 ### Scheduling the start
 
-To leave downloads queued and have them start later (at night, say), type a time on the **Ledger** screen next to **Schedule start** and press the button. If that time already passed today, the queue starts tomorrow at that time.
+To leave downloads queued and have them start later (for example, overnight), type a time on the **Ledger** screen next to **Schedule start** and click the button. If that time already passed today, the queue starts tomorrow at that time.
 
-Meanwhile a notice reads "The queue starts at 23:30" (or "tomorrow at …"): queued downloads wait and running ones carry on. **Start now** drops the scheduled time and starts the queue right away. The time only lives while ymd is open: quitting ymd forgets it.
+Meanwhile a notice reads “The queue starts at 23:30” (or “tomorrow at …”): queued downloads wait and running ones carry on. **Start now** clears the scheduled time and starts the queue right away. The scheduled time is discarded when you quit ymd.
 
 ## Notifications
 
@@ -84,9 +84,9 @@ While ymd is in the background (another window in front, minimized or in the tra
 
 - If it was archived, the notification says **Download finished** and the video's title.
 - If it failed, it says **Couldn’t download “…”** and why. When you come back to ymd, the **Ledger** opens, where the row explains what to do.
-- Downloads that end at about the same time arrive as one notification ("3 downloads finished"; if any failed, it says so too).
+- Downloads that end at about the same time arrive as one notification (“3 downloads finished”; if any failed, it says so too).
 
-With ymd's window in front there is no notification: the in-app message is enough. To stop them, turn off **Settings → Downloads → Notify me when a download ends**.
+With ymd's window in front there is no system notification; the notice appears inside the app. To stop them, turn off **Settings → Downloads → Notify me when a download ends**.
 
 ## When closing the window
 
@@ -99,12 +99,12 @@ To make the X quit ymd, turn off **Settings → Advanced → When closing the wi
 
 ## Unfinished downloads
 
-If ymd closes with downloads running or queued (with **Quit**, when the computer shuts down or after a crash), it remembers them. Next time, the **Ledger** shows "N downloads didn’t finish" with their number and title:
+If ymd closes with downloads running or queued (with **Quit**, when the computer shuts down or after a crash), it remembers them. Next time, the **Ledger** shows “N downloads didn’t finish” with their number and title:
 
 - **Resume** puts them back in the queue with the same number. yt-dlp picks up where it left off, without downloading again what it already had.
-- **Discard** forgets them and deletes their partial files.
+- **Discard** removes them from the list and deletes their partial files.
 
-Nothing resumes on its own: you decide when. Downloads that used a **Video password** or a **Verification code (2FA)** are listed apart, because ymd never stores those: paste them again in **Receive** and type them again.
+Downloads don't resume automatically. Those that used a **Video password** or a **Verification code (2FA)** are listed separately, because ymd never stores that data: paste their link again in **Receive** and enter that data again.
 
 ## The ledger
 
@@ -116,15 +116,15 @@ Each row has its actions: **Cancel**, **Retry**, **Open file**, **Show in folder
 
 Each accession's status shows as a stamp:
 
-| Stamp       | Meaning                                                                                                   |
-| ----------- | --------------------------------------------------------------------------------------------------------- |
-| Queued      | Waiting for its turn.                                                                                     |
-| Downloading | yt-dlp is fetching the file.                                                                              |
-| Merging     | ffmpeg joins the video and audio tracks.                                                                  |
-| Processing  | Post-processing: thumbnail, metadata, subtitles, SponsorBlock or conversion.                              |
-| Archived    | Done. The file is noted in the [Catalog](/ymd/en/guia/catalogo/).                                         |
-| Failed      | Something went wrong. The message says what to do; see [Troubleshooting](/ymd/en/solucion-de-problemas/). |
-| Canceled    | You canceled it.                                                                                          |
+| Stamp       | Meaning                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| Queued      | Waiting for its turn.                                                                                             |
+| Downloading | yt-dlp is fetching the file.                                                                                      |
+| Merging     | ffmpeg joins the video and audio tracks.                                                                          |
+| Processing  | Post-processing: thumbnail, metadata, subtitles, SponsorBlock or conversion.                                      |
+| Archived    | Done. The file is noted in the [Catalog](/ymd/en/guia/catalogo/).                                                 |
+| Failed      | The download didn't complete. The message says what to do; see [Troubleshooting](/ymd/en/solucion-de-problemas/). |
+| Canceled    | You canceled it.                                                                                                  |
 
 A failed download shows the reason and a button with the direct fix. **Show the error detail** expands yt-dlp's last line, useful for reporting a problem.
 

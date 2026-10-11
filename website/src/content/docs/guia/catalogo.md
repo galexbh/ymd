@@ -7,7 +7,7 @@ La pantalla **Catálogo** guarda todo lo que ymd ha archivado, con su fecha, tí
 
 ## Buscar
 
-**Buscar en el catálogo** encuentra por título, enlace, carpeta o número de ingreso (**N.º**). El filtro **Tipo** limita a video o audio. El catálogo se recorre por páginas.
+**Buscar en el catálogo** encuentra por título, enlace, carpeta o número de ingreso (**N.º**). El filtro **Tipo** limita a video o audio. El catálogo se muestra por páginas.
 
 ## Acciones
 

@@ -1,9 +1,9 @@
 ---
 title: Dependencies
-description: The tools ymd installs, where they live and how they're verified.
+description: The tools ymd installs, where they're stored and how they're verified.
 ---
 
-ymd installs the tools it needs in your user folder, checks their signature when the author publishes one, and keeps them up to date. It installs nothing system-wide. The **Dependencies** screen lists each tool with its level, status (**Installed**, **System**, **Missing**), version and verification.
+ymd installs the tools it needs in your user folder, checks their SHA-256 checksum when the author publishes one, and keeps them up to date. It installs nothing system-wide. The **Dependencies** screen lists each tool with its level, status (**Installed**, **System**, **Missing**), version and verification.
 
 ## Tools
 
@@ -21,13 +21,13 @@ Actions: **Install everything recommended**, **Check for updates**, and per tool
 
 ## Tools folder
 
-| System  | Default location                                         |
-| ------- | -------------------------------------------------------- |
-| Windows | `%LOCALAPPDATA%\ymd\bin`                                 |
-| macOS   | `~/Library/Application Support/<app id>/bin`             |
-| Linux   | `$XDG_DATA_HOME/<app id>/bin` (usually `~/.local/share`) |
+| System  | Default location                                            |
+| ------- | ----------------------------------------------------------- |
+| Windows | `%LOCALAPPDATA%\ymd\bin`                                    |
+| macOS   | `~/Library/Application Support/com.ymd.app/bin`             |
+| Linux   | `$XDG_DATA_HOME/com.ymd.app/bin` (usually `~/.local/share`) |
 
-The programs live here, outside ymd's install; removing them doesn't touch your downloads. Change the location in **Settings → Advanced → Tools folder** (**Back to the default** restores it). **Open data folder** opens the folder where ymd keeps its history, its cookie copy and its [logs](/ymd/en/solucion-de-problemas/#ymds-logs).
+The tools are stored here, outside ymd's installation; removing them doesn't affect your downloads. Change the location in **Settings → Advanced → Tools folder** (**Back to the default** restores it). **Open data folder** opens the folder where ymd keeps its history, its cookie copy and its [logs](/ymd/en/solucion-de-problemas/#ymds-logs).
 
 ## Verification
 
@@ -44,6 +44,6 @@ YouTube requires running JavaScript to hand out formats. yt-dlp uses the first r
 1. Node.js installed by ymd.
 2. Node, Deno, Bun or QuickJS from the system.
 
-ymd only hands yt-dlp versions it supports: Deno 2.3.0 or later, Node 22 or later, Bun 1.2.11 to 1.3.14, QuickJS 2023-12-09 or later (QuickJS-NG, any). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Node.js in one click (**Install Node.js**).
+ymd only hands yt-dlp runtimes in a version yt-dlp supports (for Node.js, 22 or later). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Node.js in one click (**Install Node.js**).
 
-ymd used to install Deno. Since [Deno joined Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), its runtime only gets one more year of fixes, so ymd now manages Node.js LTS, which yt-dlp supports from version 22. A Deno installed on the system is still detected and used.
+ymd manages Node.js LTS. A Deno installed on the system is still detected and used.

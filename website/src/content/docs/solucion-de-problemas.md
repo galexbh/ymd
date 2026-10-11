@@ -11,7 +11,7 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `bot_check`. YouTube bloqueó la petición hasta que confirmes que eres una persona, algo que exige una sesión iniciada.
 
-**Arreglo:** activa las cookies de tu navegador en **Ajustes → Cuentas** y vuelve a intentarlo. El botón **Abrir Ajustes → Cuentas** lleva ahí. En Windows con Brave, Chrome o Edge, usa la [extensión ymd Cookies](/ymd/cookies/extension/); si no, [Firefox](/ymd/cookies/navegador/).
+**Arreglo:** activa las cookies de tu navegador en **Ajustes → Cuentas** y vuelve a intentarlo. El botón **Abrir Ajustes → Cuentas** lleva ahí. Con Brave, Chrome, Edge u otro navegador Chromium, usa la [extensión ymd Cookies](/ymd/cookies/extension/) en cualquier sistema; con Firefox (o Safari en macOS), ymd [lee las cookies directamente](/ymd/cookies/navegador/).
 
 ### Video con restricción de edad
 
@@ -41,7 +41,7 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `geoblocked`. El autor limitó el video por región.
 
-**Arreglo:** prueba desde una conexión en una región permitida.
+**Arreglo:** descarga desde una conexión ubicada en una región permitida.
 
 ## Cookies del navegador
 
@@ -49,13 +49,13 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `cookies_locked`. El navegador está abierto y mantiene bloqueada su base de cookies, así que yt-dlp no puede leerla.
 
-**Arreglo:** ocurre con navegadores Chromium, que ymd ya no lee directamente. Elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/), que funciona con el navegador abierto.
+**Arreglo:** ocurre con navegadores Chromium, que ymd no lee directamente. Elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/), que funciona con el navegador abierto.
 
 ### No se pudieron leer las cookies del navegador
 
-`cookies_decrypt`. yt-dlp encontró las cookies pero no pudo descifrarlas. En Windows, Brave, Chrome y Edge las cifran de forma que ningún otro programa puede leerlas (ver [Cookies de Firefox](/ymd/cookies/navegador/#y-brave-chrome-o-edge)).
+`cookies_decrypt`. yt-dlp encontró las cookies pero no pudo descifrarlas. En Windows, Brave, Chrome y Edge las cifran de forma que ningún otro programa puede leerlas (ver [Navegadores Chromium](/ymd/cookies/navegador/#navegadores-chromium)).
 
-**Arreglo:** elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/). También puedes usar Firefox.
+**Arreglo:** elige **Extensión** como origen en **Ajustes → Cuentas** y usa la [extensión ymd Cookies](/ymd/cookies/extension/). Como alternativa, usa las [cookies de Firefox](/ymd/cookies/navegador/).
 
 ## Herramientas
 
@@ -111,11 +111,11 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `unknown`. yt-dlp falló con un error que ymd no reconoce.
 
-**Arreglo:** reintenta. Si vuelve a fallar, actualiza yt-dlp en **Dependencias** y copia el detalle técnico si necesitas reportarlo. Los sitios cambian a menudo; el canal [Nightly](/ymd/guia/actualizaciones/#canal-de-actualización) suele traer el arreglo antes.
+**Arreglo:** vuelve a intentarlo. Si falla de nuevo, actualiza yt-dlp en **Dependencias** y copia el detalle técnico si necesitas reportarlo. Los sitios cambian a menudo; el canal [Nightly](/ymd/guia/actualizaciones/#canal-de-actualización) suele traer el arreglo antes.
 
 ### Windows protegió su PC (SmartScreen)
 
-Al instalar ymd en Windows, SmartScreen puede mostrar este aviso porque el instalador aún no tiene firma de código (Authenticode).
+Al instalar ymd en Windows, SmartScreen puede mostrar este aviso porque el instalador no tiene firma de código (Authenticode).
 
 **Arreglo:** selecciona **Más información** y luego **Ejecutar de todas formas**. Ver [Instalación](/ymd/guia/instalacion/#aviso-de-smartscreen).
 
@@ -129,9 +129,9 @@ ymd anota lo que hace (cuánto tarda cada etapa de una descarga, cómo terminó,
 - **macOS:** `~/Library/Application Support/com.ymd.app/logs`
 - **Linux:** `~/.local/share/com.ymd.app/logs`
 
-**Ajustes → Avanzado → Abrir carpeta de datos** abre esa carpeta. Hay un archivo por día (`ymd.AAAA-MM-DD.jsonl`) y ymd borra solo los que tienen más de 14 días (y los más viejos si entre todos pasan de 20 MB).
+**Ajustes → Avanzado → Abrir carpeta de datos** abre esa carpeta. Hay un archivo por día (`ymd.AAAA-MM-DD.jsonl`) y ymd borra automáticamente los que tienen más de 14 días (y los más antiguos si entre todos superan 20 MB).
 
-Los registros nunca salen de tu computadora: ymd no tiene analíticas ni telemetría y no los envía a ningún lado. Tampoco guardan enlaces, contraseñas, códigos 2FA ni cookies; antes de escribir cada línea, ymd borra rutas de tu carpeta personal, parámetros de enlaces y cualquier cosa con forma de token.
+Los registros nunca salen de tu equipo: ymd no tiene analíticas ni telemetría y no los envía a ningún lado. Tampoco guardan enlaces, contraseñas, códigos 2FA ni cookies; antes de escribir cada línea, ymd borra rutas de tu carpeta personal, parámetros de enlaces y cualquier cosa con forma de token.
 
 ### Exportar diagnóstico
 
@@ -141,7 +141,7 @@ Para reportar un problema en los [issues de ymd](https://github.com/galexbh/ymd/
 2. Elige dónde guardar el archivo `ymd-diagnostico-AAAAMMDD-HHMM.zip`. Al terminar, el aviso **Diagnóstico guardado** trae **Mostrar en la carpeta**.
 3. Adjunta ese zip al issue y cuenta qué hiciste y qué esperabas.
 
-El zip se arma en tu computadora y solo lo compartes tú. Contiene:
+El zip se genera en tu equipo y solo se comparte si tú lo adjuntas. Contiene:
 
 - `info.txt`: versión de ymd, sistema operativo y arquitectura, idioma, versiones de yt-dlp, FFmpeg y Node.js, el entorno JavaScript en uso y un resumen de tus ajustes (solo opciones y números, como el canal de yt-dlp o cuántas descargas simultáneas; ninguna carpeta).
 - `logs/`: los registros de los últimos 14 días, limpiados otra vez al exportarlos.

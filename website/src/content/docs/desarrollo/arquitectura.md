@@ -55,7 +55,7 @@ Cada trabajo de la cola pasa por estas etapas (`JobStage` en `model.rs`). Uniend
 
 ## Contrato IPC
 
-Un comando o evento nuevo se añade en un solo commit:
+Un comando o evento del IPC abarca estas piezas:
 
 1. `src-tauri/src/model.rs`: tipos serde (camelCase).
 2. `src-tauri/src/commands/*.rs`: el `#[tauri::command]` y su registro en `lib.rs`.

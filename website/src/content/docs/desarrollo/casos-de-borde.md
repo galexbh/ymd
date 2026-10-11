@@ -1,15 +1,15 @@
 ---
 title: Casos de borde
-description: Problemas reales que ymd resolvió y que no aparecen en ningún tutorial, con su causa, su arreglo y dónde vive el código.
+description: Problemas reales resueltos durante el desarrollo de ymd, con su causa, su solución y la ubicación del código.
 ---
 
-Lo que no está en ningún tutorial: fallos reales que aparecieron al construir ymd, por qué pasaban y dónde quedó el arreglo. Cada caso sigue el orden **Síntoma → Causa → Solución → Dónde está**.
+Fallos reales encontrados durante el desarrollo de ymd, su causa y dónde está la solución. Cada caso sigue el orden **Síntoma → Causa → Solución → Dónde está**.
 
 ## Edge aparecía «abierto» sin ninguna ventana
 
 - **Síntoma:** al leer las cookies de Edge, ymd pedía cerrarlo aunque no hubiera ninguna ventana abierta.
 - **Causa:** el «Inicio rápido» de Edge deja el navegador en segundo plano, y la base de cookies sigue bloqueada mientras tanto.
-- **Solución:** ymd ya no lee directamente los navegadores Chromium: usa la extensión. Quien tenía elegido uno pasa a **Extensión** en **Origen de las cookies** al actualizar (0.4.0).
+- **Solución:** desde la versión 0.4.0, ymd no lee directamente los navegadores Chromium: usa la extensión. Al actualizar, quien tenía elegido uno pasa a **Extensión** en **Origen de las cookies**.
 - **Dónde está:** `src/screens/settings/AccountsSettings.tsx`, migración en `sanitize` de `src-tauri/src/settings.rs`.
 
 ## yt-dlp no descifra las cookies de Chrome en Windows
@@ -19,7 +19,7 @@ Lo que no está en ningún tutorial: fallos reales que aparecieron al construir 
 - **Solución:** la extensión ymd Cookies lee las cookies desde dentro del navegador y se las pasa a ymd por Native Messaging, sin red. Ver [Protocolo del puente de cookies](/ymd/desarrollo/puente-de-cookies/).
 - **Dónde está:** `src-tauri/src/auth/native_host.rs`, `extension/src/lib/sync.ts`.
 
-## yt-dlp pisaba las cookies recién sincronizadas
+## yt-dlp sobrescribía las cookies recién sincronizadas
 
 - **Síntoma:** después de una descarga, las cookies que la extensión acababa de enviar volvían a una versión vieja.
 - **Causa:** yt-dlp reescribe al salir el archivo que recibe en `--cookies`, con lo que tenía en memoria al empezar.
@@ -54,7 +54,7 @@ Lo que no está en ningún tutorial: fallos reales que aparecieron al construir 
 - **Solución:** la entrada solo usa `documentUrlPatterns`, y `clickedLink` elige el enlace correcto: el del enlace pulsado, la selección o la página, descartando lo que no sea web.
 - **Dónde está:** `extension/src/lib/sync.ts`, `extension/src/lib/links.ts`.
 
-## Las extensiones desempaquetadas no se actualizan solas
+## Las extensiones desempaquetadas no se actualizan automáticamente
 
 - **Síntoma:** al actualizar ymd, la extensión cargada en el navegador seguía en su versión anterior.
 - **Causa:** una extensión cargada como desempaquetada no recibe actualizaciones automáticas; hay que recargarla a mano.
@@ -72,7 +72,7 @@ Lo que no está en ningún tutorial: fallos reales que aparecieron al construir 
 
 - **Síntoma:** al cerrar ymd con descargas a medias, se perdían; guardarlas tal cual habría dejado contraseñas de video o códigos 2FA en disco.
 - **Causa:** el trabajo vivía solo en memoria, y su archivo parcial dependía de una carpeta temporal por trabajo.
-- **Solución:** la tabla `pending_jobs` guarda cada trabajo sin terminar con su mismo id, así **Reanudar** reutiliza `tmp/<id>` y yt-dlp sigue desde sus `.part`. Las que usaron un secreto solo guardan `needs_secret` y no se reanudan solas.
+- **Solución:** la tabla `pending_jobs` guarda cada trabajo sin terminar con su mismo id, así **Reanudar** reutiliza `tmp/<id>` y yt-dlp sigue desde sus `.part`. Las que usaron un secreto solo guardan `needs_secret` y no se reanudan automáticamente.
 - **Dónde está:** `src-tauri/src/jobs.rs`, `src-tauri/src/history.rs`.
 
 ## El minificador de producción rechazaba un selector CSS

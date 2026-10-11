@@ -1,9 +1,9 @@
 ---
 title: Dependencias
-description: Las herramientas que ymd instala, dónde viven y cómo se verifican.
+description: Las herramientas que ymd instala, dónde se guardan y cómo se verifican.
 ---
 
-ymd instala las herramientas que necesita en tu carpeta de usuario, comprueba su firma cuando el autor la publica y las mantiene al día. No instala nada a nivel de sistema. La pantalla **Dependencias** muestra cada herramienta con su nivel, estado (**Instalado**, **Del sistema**, **Falta**), versión y verificación.
+ymd instala las herramientas que necesita en tu carpeta de usuario, comprueba su suma SHA-256 cuando el autor la publica y las mantiene actualizadas. No instala nada a nivel de sistema. La pantalla **Dependencias** muestra cada herramienta con su nivel, estado (**Instalado**, **Del sistema**, **Falta**), versión y verificación.
 
 ## Herramientas
 
@@ -21,13 +21,13 @@ Acciones: **Instalar todo lo recomendado**, **Buscar actualizaciones**, y por he
 
 ## Carpeta de herramientas
 
-| Sistema | Ubicación predeterminada                                           |
-| ------- | ------------------------------------------------------------------ |
-| Windows | `%LOCALAPPDATA%\ymd\bin`                                           |
-| macOS   | `~/Library/Application Support/<id de la app>/bin`                 |
-| Linux   | `$XDG_DATA_HOME/<id de la app>/bin` (normalmente `~/.local/share`) |
+| Sistema | Ubicación predeterminada                                        |
+| ------- | --------------------------------------------------------------- |
+| Windows | `%LOCALAPPDATA%\ymd\bin`                                        |
+| macOS   | `~/Library/Application Support/com.ymd.app/bin`                 |
+| Linux   | `$XDG_DATA_HOME/com.ymd.app/bin` (normalmente `~/.local/share`) |
 
-Los programas viven aquí, fuera de la instalación de ymd; borrarlos no afecta tus descargas. La ubicación se cambia en **Ajustes → Avanzado → Carpeta de herramientas** (**Volver a la predeterminada** la restablece). **Abrir carpeta de datos** abre la carpeta donde ymd guarda su historial, su copia de cookies y sus [registros](/ymd/solucion-de-problemas/#registros-de-ymd).
+Las herramientas se guardan aquí, fuera de la instalación de ymd; borrarlas no afecta tus descargas. La ubicación se cambia en **Ajustes → Avanzado → Carpeta de herramientas** (**Volver a la predeterminada** la restablece). **Abrir carpeta de datos** abre la carpeta donde ymd guarda su historial, su copia de cookies y sus [registros](/ymd/solucion-de-problemas/#registros-de-ymd).
 
 ## Verificación
 
@@ -35,7 +35,7 @@ Cada descarga se comprueba con la suma SHA-256 que publica el autor antes de ree
 
 ## Copias del sistema
 
-Si una herramienta ya está instalada en el sistema (en el `PATH`), aparece como **Del sistema** y se usa. Si el yt-dlp o el Node.js del sistema está desactualizado (en Node.js, más viejo que la última LTS), ymd puede **Instalar copia actualizada**: la suya tendrá prioridad y el archivo del sistema no se toca.
+Si una herramienta ya está instalada en el sistema (en el `PATH`), aparece como **Del sistema** y se usa. Si el yt-dlp o el Node.js del sistema está desactualizado (en Node.js, anterior a la última LTS), ymd puede **Instalar copia actualizada**: la suya tendrá prioridad y el archivo del sistema no se toca.
 
 ## Entorno JavaScript
 
@@ -44,6 +44,6 @@ YouTube exige ejecutar JavaScript para entregar los formatos. yt-dlp usa el prim
 1. Node.js instalado por ymd.
 2. Node, Deno, Bun o QuickJS del sistema.
 
-ymd solo pasa a yt-dlp versiones que yt-dlp admite: Deno 2.3.0 o posterior, Node 22 o posterior, Bun entre 1.2.11 y 1.3.14, QuickJS 2023-12-09 o posterior (QuickJS-NG, cualquiera). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y cuáles más encontró. Si no hay ninguno, instala Node.js con un clic (**Instalar Node.js**).
+ymd solo pasa a yt-dlp los entornos en una versión que yt-dlp admite (en Node.js, la 22 o posterior). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y qué otros encontró. Si no hay ninguno, instala Node.js con un clic (**Instalar Node.js**).
 
-Antes ymd instalaba Deno. Desde que [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), su entorno solo recibe un año más de correcciones, así que ymd gestiona ahora Node.js LTS, que yt-dlp admite desde la versión 22. Un Deno instalado en el sistema se sigue detectando y usando.
+ymd gestiona Node.js LTS. Un Deno instalado en el sistema se sigue detectando y usando.

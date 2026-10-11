@@ -18,7 +18,7 @@ description: Which tests exist, where they live and what each workflow runs.
 
 ## CI (`ci.yml`)
 
-The gate for every change: nothing merges unless every job is green. A `changes` job decides which areas a change touches with path filters:
+`ci.yml` validates every change; merging requires every job to pass. A `changes` job decides which areas a change touches with path filters:
 
 | Filter      | Main paths                                                          | Jobs                                                     |
 | ----------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -40,9 +40,9 @@ Skipped jobs count as passing for branch protection.
 
 ## Caches
 
-GitHub gives each repository 10 GB of cache. Rust caches are saved from `main` only (PRs read them without overwriting) and there is one per purpose and OS: `debug` (the `rust` job), `build` (`build-check`) and `release-<os>` (installers).
+GitHub limits cache to 10 GB per repository. Rust caches are saved from `main` only (PRs read them without overwriting) and there is one per purpose and OS: `debug` (the `rust` job), `build` (`build-check`) and `release-<os>` (installers).
 
-A cache saved from a tag can only be read by that tag, so `release.yml` does not save its own: `warm-release-cache.yml` prepares it by building the same release binaries on `main` (same runners, targets and environment variables). Changing the matrix or environment of `release.yml` means changing that workflow the same way.
+A cache saved from a tag can only be read by that tag, so `release.yml` does not save its own: `warm-release-cache.yml` prepares it by building the same release binaries on `main` (same runners, targets and environment variables).
 
 ## Other workflows
 
@@ -50,7 +50,7 @@ A cache saved from a tag can only be read by that tag, so `release.yml` does not
 | ------------------------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `release.yml`            | `v*` tags                                                                  | Signed installers and a draft release (see [Releases](/ymd/en/desarrollo/releases/))                                   |
 | `docs.yml`               | pushes to `main` touching `website/**`, `CHANGELOG.md` or `docs/assets/**` | Publishes this site to GitHub Pages                                                                                    |
-| `nightly-smoke.yml`      | daily                                                                      | A real download with the nightly yt-dlp; opens an issue on failure (a YouTube "not a bot" check only leaves a warning) |
+| `nightly-smoke.yml`      | daily                                                                      | A real download with the nightly yt-dlp; opens an issue on failure (a YouTube “not a bot” check only leaves a warning) |
 | `supported-sites.yml`    | weekly                                                                     | Refreshes the supported-sites list and opens a PR when it changed                                                      |
 | `warm-release-cache.yml` | pushes to `main` touching `Cargo.lock` or `Cargo.toml`, weekly, manual     | Builds the release binaries without installers and saves the cache `release.yml` reads                                 |
 | `cache-cleanup.yml`      | when a PR closes; daily; manual                                            | Deletes the closed PR's caches; on `main` keeps only the newest cache of each key group                                |
