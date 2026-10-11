@@ -646,7 +646,8 @@
         "hook": "Hook or greeting"
       },
       "outputDir": "Preset folder",
-      "outputDirDefault": "Empty: uses the video or music folder.",
+      "outputDirDefaultVideo": "Empty: uses the video folder from Settings → Downloads.",
+      "outputDirDefaultAudio": "Empty: uses the music folder from Settings → Downloads.",
       "outputDirReset": "Use the general folder",
       "makeDefault": "Use as the default preset",
       "save": "Save preset"

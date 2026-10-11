@@ -36,7 +36,7 @@ In **Settings → Presets** you can create your own (**New preset**) or duplicat
 - **Embed thumbnail**, **Embed metadata** and **Embed subtitles**, with **Subtitle languages** (for example `es,en`).
 - **Remove segments with SponsorBlock**, choosing the categories (sponsor, intro, endcards, self-promotion…).
 - **Audio tidy-up**, on audio presets only (see below).
-- **Preset folder**: empty uses the general video or music folder.
+- **Preset folder**: empty uses the general video or music folder from **Settings → Downloads**; the field shows that folder as a hint.
 
 On a built-in preset only the embedding options, the audio tidy-up and the folder can be changed; the format is updated with ymd. **Use as the default preset** keeps it selected at the counter.
 

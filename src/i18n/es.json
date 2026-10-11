@@ -646,7 +646,8 @@
         "hook": "Gancho o saludo inicial"
       },
       "outputDir": "Carpeta del preajuste",
-      "outputDirDefault": "Vacía: usa la carpeta de videos o de música.",
+      "outputDirDefaultVideo": "Vacía: usa la carpeta de videos de Ajustes → Descargas.",
+      "outputDirDefaultAudio": "Vacía: usa la carpeta de música de Ajustes → Descargas.",
       "outputDirReset": "Usar la carpeta general",
       "makeDefault": "Usar como preajuste predeterminado",
       "save": "Guardar preajuste"
