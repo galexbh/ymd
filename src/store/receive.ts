@@ -6,6 +6,14 @@ import type { CommandError, EnqueueRequest, MediaKind, ProbeResult } from "../ip
 
 export type ProbeStatus = "idle" | "loading" | "ready" | "error";
 
+/** Several links pasted at once, waiting to be filed together. */
+export interface Batch {
+  links: string[];
+  invalid: string[];
+  /** valid links past the batch cap, left out */
+  overflow: number;
+}
+
 interface ReceiveState {
   url: string;
   kind: MediaKind;
@@ -22,6 +30,10 @@ interface ReceiveState {
   twofactor: string;
   enqueueing: boolean;
   enqueueError: CommandError | null;
+  /** the multi-link panel; null when the counter holds a single link */
+  batch: Batch | null;
+  /** batch option: playlist links file every entry instead of only the linked video */
+  wholePlaylists: boolean;
   setUrl: (url: string) => void;
   setKind: (kind: MediaKind) => void;
   setPreset: (kind: MediaKind, id: string) => void;
@@ -35,6 +47,11 @@ interface ReceiveState {
   /** build the request for the current card; null when nothing is ready */
   request: (presetId: string, outputDir: string | null) => EnqueueRequest | null;
   setEnqueueing: (on: boolean, error?: CommandError | null) => void;
+  /** open the multi-link panel, clearing whatever the counter held */
+  openBatch: (batch: Batch) => void;
+  setWholePlaylists: (on: boolean) => void;
+  /** the requests for every link of the batch; empty when there is no batch */
+  batchRequests: (presetId: string, outputDir: string | null) => EnqueueRequest[];
 }
 
 let probeToken = 0;
@@ -50,6 +67,8 @@ const blank = {
   twofactor: "",
   enqueueing: false,
   enqueueError: null,
+  batch: null as Batch | null,
+  wholePlaylists: false,
 };
 
 export const looksLikeUrl = (s: string) => /^https?:\/\/\S+\.\S+/i.test(s.trim());
@@ -75,7 +94,16 @@ export const useReceive = create<ReceiveState>((set, get) => ({
     const url = (input ?? get().url).trim();
     if (!url) return null;
     const token = ++probeToken;
-    set({ url, status: "loading", probe: null, probeError: null, selected: [], anchor: null });
+    // a single link being checked takes over from a pending batch
+    set({
+      url,
+      status: "loading",
+      probe: null,
+      probeError: null,
+      selected: [],
+      anchor: null,
+      batch: null,
+    });
     try {
       const probe = await api.probe(url);
       if (token !== probeToken) return null;
@@ -144,6 +172,29 @@ export const useReceive = create<ReceiveState>((set, get) => ({
   },
 
   setEnqueueing: (on, error = null) => set({ enqueueing: on, enqueueError: error }),
+
+  openBatch: (batch) => {
+    probeToken++;
+    set({ ...blank, batch });
+  },
+
+  setWholePlaylists: (on) => set({ wholePlaylists: on }),
+
+  batchRequests: (presetId, outputDir) => {
+    const { batch, wholePlaylists } = get();
+    if (!batch) return [];
+    // no probe per link: titles and thumbnails arrive with the job's metadata
+    return batch.links.map((url) => ({
+      url,
+      presetId,
+      playlistItems: wholePlaylists ? [] : null,
+      outputDir,
+      videoPassword: null,
+      twofactor: null,
+      title: null,
+      thumbnail: null,
+    }));
+  },
 }));
 
 export function resetReceiveStore() {

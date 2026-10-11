@@ -49,6 +49,18 @@ Cuando el enlace es una lista, la ficha muestra una cuadrícula de miniaturas co
 
 Cada entrada elegida entra al registro como una descarga propia («Entrada 3 de 12»).
 
+## Varios enlaces a la vez
+
+Si pegas en el campo **Enlace** un texto con dos o más enlaces (uno por línea o separados por espacios), el campo no cambia y aparece el panel **Varios enlaces**:
+
+- El título dice cuántos enlaces se encolarán («3 enlaces») y la lista los muestra en el orden en que los pegaste. Los repetidos se cuentan una sola vez.
+- Lo que no es un enlace descargable aparece tachado y marcado **Excluido**, con una nota que dice cuántos se dejan fuera. Caben hasta 200 enlaces por vez; los que sobran también se avisan.
+- Todos usan el **Video** o **Audio** y el **Preajuste** elegidos en el mostrador, y van al mismo **Estante**. Con **Preguntar la carpeta en cada descarga**, la carpeta se pregunta una sola vez para todos.
+- **Playlists completas**: apagado, un enlace de lista descarga solo el video enlazado; encendido, cada enlace de lista descarga la lista entera.
+- **Encolar 3** (o <kbd>Enter</kbd>) los pasa todos a la cola; **Cancelar** (o <kbd>Esc</kbd>) los descarta. Un aviso resume cuántos entraron.
+
+Los enlaces del panel no se revisan antes de encolarlos: el título y la miniatura de cada uno aparecen en el registro cuando yt-dlp empieza a descargarlo. Si pegas un solo enlace, el mostrador funciona como siempre.
+
 ## La cola
 
 Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descargas → Descargas a la vez** (entre 1 y 8); más descargas a la vez reparten la misma conexión. En la misma sección:

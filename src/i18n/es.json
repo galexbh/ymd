@@ -291,6 +291,30 @@
     "browser": {
       "filled": "Enlace de {{provider}} enviado desde el navegador",
       "suggest": "¿Usar el enlace de {{provider}} enviado desde el navegador?"
+    },
+    "batch": {
+      "label": "Varios enlaces",
+      "title_one": "{{count}} enlace",
+      "title_other": "{{count}} enlaces",
+      "listLabel": "Enlaces pegados",
+      "excluded": "Excluido",
+      "invalidNote_one": "{{count}} texto pegado no es un enlace descargable y se deja fuera.",
+      "invalidNote_other": "{{count}} textos pegados no son enlaces descargables y se dejan fuera.",
+      "overflowNote_one": "Se deja fuera {{count}} enlace más: el límite es {{max}} por vez.",
+      "overflowNote_other": "Se dejan fuera {{count}} enlaces más: el límite es {{max}} por vez.",
+      "askOnce": "Se pregunta una vez para todos",
+      "wholePlaylists": "Playlists completas",
+      "wholePlaylistsHint": "Si está apagado, de un enlace de lista solo se descarga el video enlazado.",
+      "enterKey": "Intro",
+      "enterHint": "encola",
+      "escHint": "cancela",
+      "cancel": "Cancelar",
+      "enqueue_one": "Encolar {{count}}",
+      "enqueue_other": "Encolar {{count}}",
+      "filed_one": "{{count}} enlace en cola",
+      "filed_other": "{{count}} enlaces en cola",
+      "failed_one": "{{count}} enlace no se pudo encolar.",
+      "failed_other": "{{count}} enlaces no se pudieron encolar."
     }
   },
   "ledger": {

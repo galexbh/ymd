@@ -2,7 +2,8 @@
 # Catches site / yt-dlp changes that would break ymd before users hit them. On failure an
 # issue labelled `smoke-failure` is opened (or the open one gets a new comment).
 #
-# The clip defaults to "Big Buck Bunny" (Blender Foundation, CC BY 3.0). Override with the
+# A "confirm you're not a bot" answer from YouTube (runner IP flagged) is a warning, not a
+# failure. The clip defaults to "Big Buck Bunny" (Blender Foundation, CC BY 3.0). Override with the
 # workflow_dispatch input or the repository variable SMOKE_URL.
 name: Nightly smoke
 
@@ -79,16 +80,26 @@ jobs:
           ffmpeg -hide_banner -version | head -1
           deno --version | head -1
 
+      # YouTube sometimes asks GitHub's runner IPs to "confirm you're not a bot". That says
+      # nothing about ymd or yt-dlp, so it is reported as a warning and the remaining download
+      # checks are skipped instead of failing the run and opening the smoke-failure issue.
       - name: Download as video (ymd core flags)
         id: video
         run: |
           mkdir -p "$RUNNER_TEMP/out"
           set -o pipefail
-          yt-dlp --newline --progress --no-playlist \
+          if ! yt-dlp --newline --progress --no-playlist \
             --ffmpeg-location "$SMOKE_FFMPEG_DIR" \
             -f "bv*[height<=360]+ba/b[height<=360]" --merge-output-format mp4 \
             -P "$RUNNER_TEMP/out" -o "video.%(ext)s" \
-            "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/video.log" | tail -n 40
+            "$SMOKE_URL" 2>&1 | tee "$RUNNER_TEMP/video.log" | tail -n 40; then
+            if grep -qiE "confirm you.re not a bot" "$RUNNER_TEMP/video.log"; then
+              echo "::warning title=Nightly smoke::YouTube asked this runner to confirm it is not a bot; download checks skipped (not an ymd failure)."
+              echo "blocked=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            exit 1
+          fi
           test -s "$RUNNER_TEMP/out/video.mp4"
           ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$RUNNER_TEMP/out/video.mp4" | sort -u | tee streams.txt
           grep -qx video streams.txt
@@ -96,6 +107,7 @@ jobs:
 
       - name: Download as MP3 (ymd core flags)
         id: audio
+        if: steps.video.outputs.blocked != 'true'
         run: |
           set -o pipefail
           yt-dlp --newline --progress --no-playlist \

@@ -46,11 +46,11 @@ Una caché guardada desde un tag solo la puede leer ese tag, así que `release.y
 
 ## Otros workflows
 
-| Workflow                 | Cuándo                                                                  | Qué hace                                                                                           |
-| ------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `release.yml`            | tags `v*`                                                               | Instaladores firmados y release en borrador (ver [Releases](/ymd/desarrollo/releases/))            |
-| `docs.yml`               | push a `main` que toca `website/**`, `CHANGELOG.md` o `docs/assets/**`  | Publica este sitio en GitHub Pages                                                                 |
-| `nightly-smoke.yml`      | cada día                                                                | Descarga real con el yt-dlp nightly; abre un issue si falla                                        |
-| `supported-sites.yml`    | cada semana                                                             | Actualiza la lista de sitios compatibles y abre un PR si cambió                                    |
-| `warm-release-cache.yml` | push a `main` que toca `Cargo.lock` o `Cargo.toml`, cada semana, a mano | Compila los binarios de release sin instaladores y guarda la caché que lee `release.yml`           |
-| `cache-cleanup.yml`      | al cerrar un PR; cada día; a mano                                       | Borra las cachés del PR cerrado; en `main` deja solo la caché más reciente de cada grupo de claves |
+| Workflow                 | Cuándo                                                                  | Qué hace                                                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `release.yml`            | tags `v*`                                                               | Instaladores firmados y release en borrador (ver [Releases](/ymd/desarrollo/releases/))                                      |
+| `docs.yml`               | push a `main` que toca `website/**`, `CHANGELOG.md` o `docs/assets/**`  | Publica este sitio en GitHub Pages                                                                                           |
+| `nightly-smoke.yml`      | cada día                                                                | Descarga real con el yt-dlp nightly; abre un issue si falla (si YouTube pide confirmar que no es un bot, solo deja un aviso) |
+| `supported-sites.yml`    | cada semana                                                             | Actualiza la lista de sitios compatibles y abre un PR si cambió                                                              |
+| `warm-release-cache.yml` | push a `main` que toca `Cargo.lock` o `Cargo.toml`, cada semana, a mano | Compila los binarios de release sin instaladores y guarda la caché que lee `release.yml`                                     |
+| `cache-cleanup.yml`      | al cerrar un PR; cada día; a mano                                       | Borra las cachés del PR cerrado; en `main` deja solo la caché más reciente de cada grupo de claves                           |

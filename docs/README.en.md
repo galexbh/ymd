@@ -1,30 +1,30 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/ymd-isotype-dark.svg">
-  <img src="docs/assets/ymd-isotype-light.svg" alt="ymd" width="96">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/ymd-isotype-dark.svg">
+  <img src="assets/ymd-isotype-light.svg" alt="ymd" width="96">
 </picture>
 
 <p><strong>A desktop app to download video and audio with yt-dlp.</strong></p>
 
 [![CI](https://github.com/galexbh/ymd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/galexbh/ymd/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/galexbh/ymd?display_name=tag&sort=semver)](https://github.com/galexbh/ymd/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
 [![Documentation](https://img.shields.io/badge/docs-galexbh.github.io%2Fymd-5b3fc4)](https://galexbh.github.io/ymd/en/)
 
 [Download](https://github.com/galexbh/ymd/releases/latest) ·
 [**Documentation**](https://galexbh.github.io/ymd/en/) ·
-[Changelog](CHANGELOG.md) ·
-[Contributing](CONTRIBUTING.md) ·
-[Español](README.md)
+[Changelog](../CHANGELOG.md) ·
+[Contributing](../.github/CONTRIBUTING.md) ·
+[Español](../README.md)
 
 </div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-receive-dark.png">
-  <img src="docs/assets/screenshot-receive-light.png" alt="ymd's Receive screen with a video card and the download ledger">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshot-receive-dark.png">
+  <img src="assets/screenshot-receive-light.png" alt="ymd's Receive screen with a video card and the download ledger">
 </picture>
 
 ## Features
@@ -47,14 +47,14 @@
   <tr>
     <td width="50%">
       <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-catalog-dark.png">
-        <img src="docs/assets/screenshot-catalog-light.png" alt="Download catalog">
+        <source media="(prefers-color-scheme: dark)" srcset="assets/screenshot-catalog-dark.png">
+        <img src="assets/screenshot-catalog-light.png" alt="Download catalog">
       </picture>
     </td>
     <td width="50%">
       <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-appearance-dark.png">
-        <img src="docs/assets/screenshot-appearance-light.png" alt="Appearance settings">
+        <source media="(prefers-color-scheme: dark)" srcset="assets/screenshot-appearance-dark.png">
+        <img src="assets/screenshot-appearance-light.png" alt="Appearance settings">
       </picture>
     </td>
   </tr>
@@ -91,7 +91,7 @@ For videos that need a session: the ymd Cookies extension for Brave, Chrome and 
 
 Requirements: Node 24+, stable Rust and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` runs the app; `pnpm dev:mock` runs the UI only, against a simulated backend.
 
-Guide, architecture, tests and releases in [Development](https://galexbh.github.io/ymd/en/desarrollo/contribuir/) and in [CONTRIBUTING.md](CONTRIBUTING.md).
+Guide, architecture, tests and releases in [Development](https://galexbh.github.io/ymd/en/desarrollo/contribuir/) and in [CONTRIBUTING.md](../.github/CONTRIBUTING.md).
 
 | Path         | Contents                                                                  |
 | ------------ | ------------------------------------------------------------------------- |
@@ -103,7 +103,7 @@ Guide, architecture, tests and releases in [Development](https://galexbh.github.
 
 ## License
 
-ymd is released under the [MIT License](LICENSE).
+ymd is released under the [MIT License](../LICENSE).
 
 The **ymd** name and logo identify the official project and are not covered by the license; derived projects must use their own name and logo.
 

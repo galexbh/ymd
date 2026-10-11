@@ -291,6 +291,30 @@
     "browser": {
       "filled": "{{provider}} link sent from the browser",
       "suggest": "Use the {{provider}} link sent from the browser?"
+    },
+    "batch": {
+      "label": "Several links",
+      "title_one": "{{count}} link",
+      "title_other": "{{count}} links",
+      "listLabel": "Pasted links",
+      "excluded": "Excluded",
+      "invalidNote_one": "{{count}} pasted item is not a downloadable link and is left out.",
+      "invalidNote_other": "{{count}} pasted items are not downloadable links and are left out.",
+      "overflowNote_one": "{{count}} more link is left out: the limit is {{max}} at a time.",
+      "overflowNote_other": "{{count}} more links are left out: the limit is {{max}} at a time.",
+      "askOnce": "Asked once for all of them",
+      "wholePlaylists": "Whole playlists",
+      "wholePlaylistsHint": "When off, a playlist link downloads only the linked video.",
+      "enterKey": "Enter",
+      "enterHint": "queues",
+      "escHint": "cancels",
+      "cancel": "Cancel",
+      "enqueue_one": "Queue {{count}}",
+      "enqueue_other": "Queue {{count}}",
+      "filed_one": "{{count}} link queued",
+      "filed_other": "{{count}} links queued",
+      "failed_one": "{{count}} link could not be queued.",
+      "failed_other": "{{count}} links could not be queued."
     }
   },
   "ledger": {

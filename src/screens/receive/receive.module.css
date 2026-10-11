@@ -215,6 +215,81 @@
   border-radius: var(--radius-md);
 }
 
+/* ───────── multi-link panel ───────── */
+.batchBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.batchBody .cardTitle {
+  margin-top: 0;
+}
+.batchList {
+  display: flex;
+  flex-direction: column;
+  max-height: 14rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border-block: 1px solid var(--rule-ledger);
+}
+.batchItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-1);
+  font-size: var(--text-sm);
+}
+.batchItem + .batchItem {
+  border-top: 1px solid var(--rule-ledger);
+}
+.batchNo {
+  flex: none;
+  min-width: 2.5ch;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+.batchUrl {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.batchItem[data-excluded] .batchUrl {
+  color: var(--text-faint);
+}
+.batchNotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--warning);
+}
+.batchActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+.batchKeys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-end: auto;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
 /* ───────── playlist picker ───────── */
 .picker {
   display: flex;
@@ -353,5 +428,15 @@
   }
   .options {
     margin-top: 0;
+  }
+  .batchBody {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+  .batchList {
+    max-height: 8.5rem;
+  }
+  .batchActions {
+    padding-top: var(--space-2);
   }
 }

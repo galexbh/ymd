@@ -49,6 +49,18 @@ When the link is a playlist, the card shows a thumbnail grid with every entry:
 
 Each selected entry goes into the ledger as its own download ("Entry 3 of 12").
 
+## Several links at once
+
+If you paste text with two or more links into the **Link** field (one per line or separated by spaces), the field stays as it is and the **Several links** panel opens:
+
+- The title says how many links will be queued ("3 links") and the list shows them in the order you pasted them. Repeated links count once.
+- Anything that isn't a downloadable link is struck through and marked **Excluded**, with a note saying how many are left out. Up to 200 links fit at a time; any extra ones are reported too.
+- They all use the **Video** or **Audio** choice and the **Preset** picked at the counter, and go to the same **Shelf**. With **Ask for the folder on every download**, the folder is asked once for all of them.
+- **Whole playlists**: when off, a playlist link downloads only the linked video; when on, each playlist link downloads the whole playlist.
+- **Queue 3** (or <kbd>Enter</kbd>) sends them all to the queue; **Cancel** (or <kbd>Esc</kbd>) drops them. A notice sums up how many went in.
+
+The panel's links aren't checked before queueing: each one's title and thumbnail show up in the ledger once yt-dlp starts downloading it. Paste a single link and the counter works as usual.
+
 ## The queue
 
 Several downloads run at once. Change the number in **Settings → Downloads → Downloads at once** (between 1 and 8); more at once share the same connection. In the same section:

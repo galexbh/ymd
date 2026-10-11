@@ -11,6 +11,7 @@ import { ScreenHeader } from "../shared/ScreenHeader";
 import { useErrorFixes } from "../shared/errorFixes";
 import screen from "../shared/screen.module.css";
 import { AccessionCard } from "./AccessionCard";
+import { BatchPanel } from "./BatchPanel";
 import { CounterStrip } from "./CounterStrip";
 import s from "./receive.module.css";
 
@@ -21,6 +22,7 @@ export function ReceiveScreen() {
   const probe = useReceive((st) => st.probe);
   const probeError = useReceive((st) => st.probeError);
   const enqueueError = useReceive((st) => st.enqueueError);
+  const batch = useReceive((st) => st.batch);
   const jobsMap = useJobs((st) => st.jobs);
   const jobs = sortedJobs(jobsMap);
   const hasFinished = jobs.some(
@@ -57,6 +59,7 @@ export function ReceiveScreen() {
           />
         )}
         {status === "ready" && probe && <AccessionCard probe={probe} />}
+        {batch && <BatchPanel batch={batch} />}
         {enqueueError && (
           <ErrorNotice
             code={enqueueError.code}
