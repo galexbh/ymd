@@ -119,17 +119,17 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
     expect(await screen.findByTestId("extension-opened")).toHaveTextContent("brave://extensions");
   });
 
-  it("a sync without a version (an extension older than the field) is outdated too", async () => {
+  it("a sync without a valid version shows a dash and no reload notice", async () => {
     await renderApp({ ...accounts, extension: { lastSync: { ...SYNC, extensionVersion: null } } });
     await stamp();
-    expect(screen.getByTestId("extension-version")).toHaveTextContent("Anterior a esta función");
-    expect(await screen.findByTestId("extension-outdated")).toHaveTextContent("(1.4.1)");
+    expect(screen.getByTestId("extension-version")).toHaveTextContent("—");
+    expect(screen.queryByTestId("extension-outdated")).toBeNull();
   });
 
   it("no reload notice without a bundled folder (dev build) or with a newer extension", async () => {
     await renderApp({
       ...accounts,
-      extension: { extensionDir: false, lastSync: { ...SYNC, extensionVersion: null } },
+      extension: { extensionDir: false, lastSync: { ...SYNC, extensionVersion: "1.4.0" } },
     });
     await stamp();
     expect(screen.queryByTestId("extension-outdated")).toBeNull();
@@ -493,7 +493,7 @@ describe("extension helpers", () => {
     expect(olderVersion("x", "0.1")).toBe(true);
   });
 
-  it("extensionOutdated needs a bundled version and a sync", () => {
+  it("extensionOutdated needs a bundled version and a synced one", () => {
     const bundled = { ...status, bundledVersion: "1.4.1" };
     expect(extensionOutdated(bundled)).toBe(false);
     expect(extensionOutdated({ ...bundled, lastSync: SYNC })).toBe(false);
@@ -501,9 +501,9 @@ describe("extension helpers", () => {
       extensionOutdated({ ...bundled, lastSync: { ...SYNC, extensionVersion: "1.4.0" } }),
     ).toBe(true);
     expect(extensionOutdated({ ...bundled, lastSync: { ...SYNC, extensionVersion: null } })).toBe(
-      true,
+      false,
     );
-    expect(extensionOutdated({ ...status, lastSync: { ...SYNC, extensionVersion: null } })).toBe(
+    expect(extensionOutdated({ ...status, lastSync: { ...SYNC, extensionVersion: "1.4.0" } })).toBe(
       false,
     );
   });

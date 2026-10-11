@@ -21,15 +21,6 @@ pub fn parse_sums_file(text: &str, asset: &str) -> Option<String> {
     })
 }
 
-/// Digest from a single-asset sidecar. Accepts `sha256sum` output (`<hex>  <name>`), a bare
-/// hex digest, and PowerShell `Get-FileHash | Format-List` output (`Hash : <HEX>`), which is
-/// what Deno publishes for its Windows assets.
-pub fn parse_sidecar(text: &str) -> Option<String> {
-    text.split(|c: char| c.is_whitespace() || c == ':')
-        .find(|tok| is_sha256_hex(tok))
-        .map(str::to_ascii_lowercase)
-}
-
 /// Lowercase hex SHA-256 of a file (streamed).
 pub fn sha256_file(path: &Path) -> anyhow::Result<String> {
     let mut f = std::fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
@@ -60,10 +51,6 @@ mod tests {
 
     const YTDLP_SUMS: &str = include_str!("../../tests/fixtures/deps/SHA2-256SUMS");
     const FFMPEG_SUMS: &str = include_str!("../../tests/fixtures/deps/checksums.sha256");
-    const DENO_WIN: &str =
-        include_str!("../../tests/fixtures/deps/deno-x86_64-pc-windows-msvc.zip.sha256sum");
-    const DENO_LINUX: &str =
-        include_str!("../../tests/fixtures/deps/deno-x86_64-unknown-linux-gnu.zip.sha256sum");
 
     #[test]
     fn ytdlp_sums() {
@@ -104,19 +91,6 @@ mod tests {
             Some("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789")
         );
         assert_eq!(parse_sums_file("nothex  foo.zip", "foo.zip"), None);
-    }
-
-    #[test]
-    fn deno_sidecars() {
-        assert_eq!(
-            parse_sidecar(DENO_WIN).as_deref(),
-            Some("a0c3101b4158d1dfb7d6a78a7bf0f3de80c96bb423c152beec8beb22786f2238")
-        );
-        assert_eq!(
-            parse_sidecar(DENO_LINUX).as_deref(),
-            Some("c6527f24f4b16031d3ae4fa9f658d5f11534c8d84ce7dc8502420280919c3490")
-        );
-        assert_eq!(parse_sidecar("no digest here"), None);
     }
 
     #[test]

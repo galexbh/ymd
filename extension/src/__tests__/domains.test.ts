@@ -6,7 +6,6 @@ import {
   originPattern,
   presetDomains,
   sanitizeAllowlist,
-  RETIRED_DEFAULTS,
 } from "../lib/domains";
 
 describe("normalizeDomain", () => {
@@ -56,10 +55,6 @@ describe("cookieDomainAllowed (the domain filter)", () => {
 });
 
 describe("allowlist helpers", () => {
-  it("google.com is the retired default (no site is preset any more)", () => {
-    expect(RETIRED_DEFAULTS).toEqual(["google.com"]);
-  });
-
   it("builds the host match pattern", () => {
     expect(originPattern("vimeo.com")).toBe("*://*.vimeo.com/*");
   });

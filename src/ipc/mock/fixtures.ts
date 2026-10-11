@@ -662,12 +662,9 @@ const PRESET_IDS: Record<string, string> = {
   "Original audio": "audio-original",
 };
 
-/** Rows from before history schema v2 carry no accession number or preset id. */
-export const LEGACY_HISTORY_ROWS = 3;
-
 /**
  * ~25 realistic history rows, newest first, some with `exists: false` (file moved/deleted).
- * Accession numbers run 1..N oldest to newest; the oldest few are legacy rows without one.
+ * Accession numbers run 1..N oldest to newest.
  */
 export function seedHistory(now: number, platform: MockPlatform): HistoryItem[] {
   const p = platformPaths(platform);
@@ -690,11 +687,10 @@ export function seedHistory(now: number, platform: MockPlatform): HistoryItem[] 
         ? Math.floor(3_000_000 + r() * 120_000_000)
         : Math.floor(25_000_000 + r() * 900_000_000);
     const n = HISTORY_SEED.length - i;
-    const legacy = n <= LEGACY_HISTORY_ROWS;
     return {
       id: n,
-      seq: legacy ? null : n,
-      presetId: legacy ? null : (PRESET_IDS[s.preset] ?? null),
+      seq: n,
+      presetId: PRESET_IDS[s.preset] ?? null,
       url,
       title: s.title,
       filepath: joinPath(p.sep, dir, `${safeFileName(s.title)} [${videoIdFor(s.title)}].${ext}`),

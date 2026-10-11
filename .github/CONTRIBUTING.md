@@ -144,7 +144,6 @@ tema claro y oscuro. Respeta `prefers-reduced-motion` y el foco visible.
 - ymd se actualiza sola con `tauri-plugin-updater`. Lee `releases/latest/download/latest.json` de GitHub, y cada instalador va firmado (minisign). La clave pública vive en `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`).
 - La clave privada **nunca** entra al repo:
   - En CI está en los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
-  - En la máquina del mantenedor está en `~/.tauri/ymd-updater.key`, con su contraseña aparte.
   - Si se pierde, las copias instaladas ya no aceptarán actualizaciones: habría que publicar una versión nueva con otra clave e instalarla a mano.
 - Para publicar:
   1. Subir la versión en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.

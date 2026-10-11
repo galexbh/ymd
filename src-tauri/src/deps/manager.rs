@@ -204,38 +204,6 @@ fn emit(
     });
 }
 
-/// Manifest key of the Deno that older ymd versions managed (replaced by Node.js).
-const LEGACY_DENO_KEY: &str = "deno";
-
-/// Older ymd versions installed Deno as the JS runtime. Remove that managed copy (only the
-/// files its manifest entry lists) and the entry, so Node.js takes over. A Deno the user put
-/// in the bin dir by hand (no manifest entry) is left alone. Best effort; never fails startup.
-pub fn migrate_legacy_deno(bin_dir: &Path) {
-    let manifest = Manifest::load(bin_dir);
-    let Some(entry) = manifest.deps.get(LEGACY_DENO_KEY) else {
-        return;
-    };
-    for file in &entry.files {
-        // Manifest data is ours, but never let a name escape the bin dir.
-        let Some(name) = Path::new(file).file_name() else {
-            continue;
-        };
-        let path = bin_dir.join(name);
-        if let Err(e) = remove_managed(&path) {
-            log::warn!("could not remove legacy Deno {}: {e}", path.display());
-        }
-    }
-    match manifest::update(bin_dir, |m| {
-        m.deps.remove(LEGACY_DENO_KEY);
-    }) {
-        Ok(()) => log::info!(
-            "removed the managed Deno from {} (ymd now manages Node.js)",
-            bin_dir.display()
-        ),
-        Err(e) => log::warn!("could not update the deps manifest: {e:#}"),
-    }
-}
-
 pub struct DepsManager {
     pub paths: AppPaths,
     pub channel: UpdateChannel,
@@ -270,7 +238,6 @@ impl DepsManager {
             .build()
             .unwrap_or_default();
         clean_old_files(&paths.bin_dir);
-        migrate_legacy_deno(&paths.bin_dir);
         Self {
             paths,
             channel,
@@ -511,18 +478,13 @@ impl DepsManager {
         asset: &Asset,
         source: &Source,
     ) -> anyhow::Result<(Option<String>, bool)> {
-        let (sums_asset, sidecar) = match &source.checksum {
-            Checksum::SumsFile { asset } => (asset, false),
-            Checksum::Sidecar { asset } => (asset, true),
+        let sums_asset = match &source.checksum {
+            Checksum::SumsFile { asset } => asset,
             Checksum::None => return Ok((asset.sha256().map(str::to_string), false)),
         };
         let sums = release.asset(sums_asset)?;
         let text = github::fetch_text(&self.http, &sums.browser_download_url).await?;
-        let hex = if sidecar {
-            verify::parse_sidecar(&text)
-        } else {
-            verify::parse_sums_file(&text, &asset.name)
-        };
+        let hex = verify::parse_sums_file(&text, &asset.name);
         let hex = hex.ok_or_else(|| anyhow!("{} has no checksum for {}", sums.name, asset.name))?;
         Ok((Some(hex), true))
     }
@@ -750,69 +712,6 @@ mod tests {
         let _m = DepsManager::new(paths, UpdateChannel::Stable);
         assert!(!bin.join("yt-dlp.old").exists());
         assert!(bin.join("keep").exists());
-    }
-
-    fn legacy_entry(files: &[&str]) -> manifest::Entry {
-        manifest::Entry {
-            tag: "v2.9.7".into(),
-            revision: "v2.9.7".into(),
-            asset: "deno-x86_64-pc-windows-msvc.zip".into(),
-            verified: true,
-            installed_at: "2026-10-09T00:00:00Z".into(),
-            files: files.iter().map(|f| f.to_string()).collect(),
-        }
-    }
-
-    #[test]
-    fn legacy_managed_deno_is_removed_on_construct() {
-        let dir = tempfile::tempdir().unwrap();
-        let bin = dir.path().join("bin");
-        std::fs::create_dir_all(&bin).unwrap();
-        let deno = exe_name("deno");
-        std::fs::write(bin.join(&deno), b"deno").unwrap();
-        std::fs::write(bin.join("keep"), b"x").unwrap();
-        manifest::update(&bin, |m| {
-            m.deps.insert("deno".into(), legacy_entry(&[&deno]));
-            m.deps
-                .insert("ytdlp".into(), legacy_entry(&[&exe_name("yt-dlp")]));
-        })
-        .unwrap();
-        // Old manifests (and their `deno` key) still load.
-        assert!(Manifest::load(&bin).deps.contains_key("deno"));
-
-        let paths = AppPaths::new(
-            dir.path().into(),
-            dir.path().into(),
-            Some(bin.to_str().unwrap()),
-        );
-        let _m = DepsManager::new(paths, UpdateChannel::Stable);
-        assert!(!bin.join(&deno).exists());
-        assert!(bin.join("keep").exists());
-        let m = Manifest::load(&bin);
-        assert!(!m.deps.contains_key("deno"));
-        assert!(m.deps.contains_key("ytdlp"));
-
-        // Idempotent; a hand-placed deno (no manifest entry) is left alone.
-        std::fs::write(bin.join(&deno), b"mine").unwrap();
-        migrate_legacy_deno(&bin);
-        assert!(bin.join(&deno).exists());
-    }
-
-    #[test]
-    fn legacy_migration_never_leaves_the_bin_dir() {
-        let dir = tempfile::tempdir().unwrap();
-        let bin = dir.path().join("bin");
-        std::fs::create_dir_all(&bin).unwrap();
-        let outside = dir.path().join("outside");
-        std::fs::write(&outside, b"x").unwrap();
-        manifest::update(&bin, |m| {
-            m.deps
-                .insert("deno".into(), legacy_entry(&["../outside", ""]));
-        })
-        .unwrap();
-        migrate_legacy_deno(&bin);
-        assert!(outside.exists());
-        assert!(!Manifest::load(&bin).deps.contains_key("deno"));
     }
 
     #[test]

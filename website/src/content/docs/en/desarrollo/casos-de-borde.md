@@ -9,8 +9,8 @@ Real failures found while developing ymd, their cause and where the fix lives. E
 
 - **Symptom:** when reading Edge's cookies, ymd asked to close it even though no window was open.
 - **Cause:** Edge's Startup boost keeps the browser running in the background, and the cookie database stays locked meanwhile.
-- **Fix:** since version 0.4.0, ymd doesn't read Chromium browsers directly: it uses the extension. On update, anyone who had one selected moves to **Extension** in **Cookie source**.
-- **Where it lives:** `src/screens/settings/AccountsSettings.tsx`, migration in `sanitize` in `src-tauri/src/settings.rs`.
+- **Fix:** ymd doesn't read Chromium browsers directly: their cookies come through the extension (**Extension** in **Cookie source**).
+- **Where it lives:** `src/screens/settings/AccountsSettings.tsx`.
 
 ## yt-dlp can't decrypt Chrome cookies on Windows
 

@@ -97,7 +97,13 @@ fn store_info_clear() {
     let p = paths(dir.path());
     assert!(cookies::info(&p).is_none());
 
-    let info = cookies::store(&p, &read("cookies_no_header_crlf.txt"), "extension:brave").unwrap();
+    let info = cookies::store_from_extension(
+        &p,
+        &read("cookies_no_header_crlf.txt"),
+        "extension:brave",
+        Some("1.4.3"),
+    )
+    .unwrap();
     assert_eq!(info.origin, "extension:brave");
     assert_eq!(info.cookie_count, 2);
     assert_eq!(info.domains, ["example.org", "youtube.com"]);
@@ -108,7 +114,13 @@ fn store_info_clear() {
     assert_eq!(again.origin, "extension:brave");
 
     // A new sync replaces the copy atomically.
-    let info = cookies::store(&p, &read("cookies_valid.txt"), "extension:brave").unwrap();
+    let info = cookies::store_from_extension(
+        &p,
+        &read("cookies_valid.txt"),
+        "extension:brave",
+        Some("1.4.3"),
+    )
+    .unwrap();
     assert_eq!(info.cookie_count, 5);
 
     // No stray temp files are left in the auth dir.
@@ -129,10 +141,17 @@ fn store_info_clear() {
 fn store_rejects_bad_jars_and_keeps_previous() {
     let dir = tempfile::tempdir().unwrap();
     let p = paths(dir.path());
-    cookies::store(&p, &read("cookies_valid.txt"), "extension:brave").unwrap();
+    cookies::store_from_extension(
+        &p,
+        &read("cookies_valid.txt"),
+        "extension:brave",
+        Some("1.4.3"),
+    )
+    .unwrap();
     for bad in ["cookies_malformed.txt", "cookies_json.txt"] {
         assert!(
-            cookies::store(&p, &read(bad), "extension:brave").is_err(),
+            cookies::store_from_extension(&p, &read(bad), "extension:brave", Some("1.4.3"))
+                .is_err(),
             "{bad}"
         );
     }
@@ -150,37 +169,19 @@ fn info_without_meta_falls_back() {
     assert_eq!(info.cookie_count, 5);
 }
 
-/// Manual cookies.txt imports are gone: a copy an older version imported is deleted on
-/// start, and one the extension wrote is kept.
-#[test]
-fn a_manually_imported_copy_is_removed_and_an_extension_copy_kept() {
-    let dir = tempfile::tempdir().unwrap();
-    let p = paths(dir.path());
-    assert!(!cookies::remove_manual_import(&p)); // nothing there
-
-    cookies::store(&p, &read("cookies_valid.txt"), "extension:brave").unwrap();
-    assert!(!cookies::remove_manual_import(&p));
-    assert_eq!(cookies::info(&p).unwrap().origin, "extension:brave");
-
-    cookies::store(
-        &p,
-        &read("cookies_valid.txt"),
-        cookies::MANUAL_IMPORT_ORIGIN,
-    )
-    .unwrap();
-    assert!(cookies::remove_manual_import(&p));
-    assert!(cookies::info(&p).is_none());
-    assert!(!p.cookies_file().exists());
-    assert!(!p.auth_dir().join("cookies.meta.json").exists());
-}
-
 #[cfg(unix)]
 #[test]
 fn store_sets_owner_only_permissions() {
     use std::os::unix::fs::PermissionsExt;
     let dir = tempfile::tempdir().unwrap();
     let p = paths(dir.path());
-    cookies::store(&p, &read("cookies_valid.txt"), "extension:brave").unwrap();
+    cookies::store_from_extension(
+        &p,
+        &read("cookies_valid.txt"),
+        "extension:brave",
+        Some("1.4.3"),
+    )
+    .unwrap();
     let mode = |f: &Path| std::fs::metadata(f).unwrap().permissions().mode() & 0o777;
     assert_eq!(mode(&p.cookies_file()), 0o600);
     assert_eq!(mode(&p.auth_dir().join("cookies.meta.json")), 0o600);

@@ -13,8 +13,7 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 .DS_Store
 *.suo
@@ -35,8 +34,6 @@ test-results
 /yt-dlp*
 /ffmpeg*
 /ffprobe*
-/deno
-/deno.exe
 /node
 /node.exe
 /cookies*.txt

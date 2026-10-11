@@ -108,4 +108,4 @@ The first sync arrives when a cookie changes or when you click **Send now** in t
 Brave shows this warning for any extension loaded in developer mode; it doesn't indicate a problem.
 
 **“A new version of the extension is available”.**
-ymd includes a newer version of the extension than the one you have loaded. On the browser's extensions page, click the reload button on **ymd Cookies**. If **Extension version** on the card reads **Older than this feature**, the loaded extension predates this feature: reload it anyway.
+ymd includes a newer version of the extension than the one you have loaded. On the browser's extensions page, click the reload button on **ymd Cookies**.

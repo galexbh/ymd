@@ -224,7 +224,7 @@ mod tests {
     fn missing_binary_is_an_error() {
         let dir = tempfile::tempdir().unwrap();
         let zip = dir.path().join("a.zip");
-        make_zip(&zip, &[("deno", b"d")]);
+        make_zip(&zip, &[("tool", b"d")]);
         let err = extract(
             &zip,
             &ArchiveKind::Zip,

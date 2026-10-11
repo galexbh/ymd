@@ -36,25 +36,24 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 ## Mensajes (extensión → host)
 
 - `{"type":"hello","version":1}`
-  → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1,"features":["cookies","open"]}`
-  - `features` lista los mensajes que entiende este ymd; un ymd anterior no lo envía.
+  → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1}`
 - `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","extension":"1.4.1","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
-  - `extension` es opcional: la versión del manifiesto de la extensión (`chrome.runtime.getManifest().version`). Solo se aceptan dígitos y puntos, de 16 caracteres como máximo; otro valor se ignora y el envío sigue. Una extensión anterior no lo envía.
+  - `extension` es obligatorio: la versión del manifiesto de la extensión (`chrome.runtime.getManifest().version`). Solo se guardan dígitos y puntos, de 16 caracteres como máximo; otro valor no se guarda y el envío sigue.
   - `Cookie` refleja `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Los campos extra se ignoran.
   - Un `browser` desconocido se registra como `other`.
   - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, con caracteres de control en la ruta, el nombre o el valor, con un dominio que no sea un nombre de host válido, con una ruta que no empiece por `/`, o de más de 4096 bytes (nombre más valor). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
   - Más de 10.000 cookies en un mensaje es un error.
 - `{"type":"open","version":1,"url":"https://…"}` → `{"ok":true}` («Descargar con ymd»)
   - Solo enlaces web: `http` o `https`, de 2048 caracteres como máximo, sin espacios ni caracteres de control, sin usuario ni contraseña y con un host con punto que no sea una IP. Otro enlace → `{"ok":false,"code":"unsupported_url"}`.
-- `version` es opcional; un valor mayor que `1` se rechaza.
+- `version` es obligatorio en todos los mensajes; un valor mayor que `1` se rechaza.
 - Cualquier fallo → `{"ok":false,"code":"<ErrorCode en snake_case>","detail":"…"}`. El detalle nunca contiene valores de cookies.
 
 ## Efectos
 
 - El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
-- Escribe `cookies.meta.json` con `origin: "extension:<browser>"` y, si llegó, `extensionVersion`.
-- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, o no llegó, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza automáticamente.
+- Escribe `cookies.meta.json` con `origin: "extension:<browser>"` y, si es válida, `extensionVersion`.
+- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza automáticamente.
 - La app lee ambos con `cookies_info` y `extension_status`.
 - `open` lanza `ymd --open-url <url>` y responde enseguida. Si ymd ya está abierto, esa segunda instancia le pasa el enlace y se cierra, y ymd pasa al frente; si no, ymd arranca con él. El enlace aparece en **Recibir** con su ficha. Nunca se descarga nada sin tu clic.
 

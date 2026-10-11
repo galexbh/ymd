@@ -135,10 +135,6 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     if swept > 0 {
         log::info!("removed {swept} left-over cookie copies");
     }
-    // Manual cookies.txt imports are gone; a copy one left behind is deleted, not kept.
-    if auth::cookies::remove_manual_import(&paths) {
-        log::info!("removed a manually imported cookies.txt");
-    }
 
     let history = Arc::new(History::open(&paths.history_db())?);
     // Job dirs survive only for downloads that can still be resumed (nothing auto-starts:

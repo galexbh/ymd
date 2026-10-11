@@ -1,7 +1,7 @@
 // chrome.storage.local keys and typed accessors. Shared by the service worker and the popup.
 
 import { type ChromeApi } from "./chrome-api";
-import { presetDomains, RETIRED_DEFAULTS, sanitizeAllowlist } from "./domains";
+import { presetDomains, sanitizeAllowlist } from "./domains";
 import { parseStatus, type Status } from "./status";
 
 export const KEYS = {
@@ -9,11 +9,7 @@ export const KEYS = {
   status: "status",
   /** SHA-256 of the last jar ymd accepted. The only trace of cookie content we keep. */
   lastHash: "lastHash",
-  /** Schema of the stored allowlist; 2 = google.com is no longer a default (extension 1.1.0). */
-  allowlistVersion: "allowlistVersion",
 } as const;
-
-export const ALLOWLIST_VERSION = 2;
 
 type Api = Pick<ChromeApi, "storage">;
 
@@ -29,22 +25,13 @@ export async function writeAllowlist(api: Api, domains: readonly string[]): Prom
 /**
  * Starts the list on first install with the preset sites (the manifest's required host
  * permissions: youtube.com in the build ymd ships, none in the store build), without touching
- * an existing one. On the
- * first run after an update it drops the retired defaults once; a site the person adds again
- * afterwards stays.
+ * an existing one.
  */
 export async function ensureAllowlist(api: Pick<ChromeApi, "storage" | "runtime">): Promise<void> {
-  const got = await api.storage.local.get([KEYS.allowlist, KEYS.allowlistVersion]);
+  const got = await api.storage.local.get(KEYS.allowlist);
   if (!(KEYS.allowlist in got)) {
     await writeAllowlist(api, presetDomains(api.runtime.getManifest().host_permissions));
-  } else if (got[KEYS.allowlistVersion] !== ALLOWLIST_VERSION) {
-    const list = sanitizeAllowlist(got[KEYS.allowlist]);
-    await writeAllowlist(
-      api,
-      list.filter((d) => !RETIRED_DEFAULTS.includes(d)),
-    );
   }
-  await api.storage.local.set({ [KEYS.allowlistVersion]: ALLOWLIST_VERSION });
 }
 
 export async function readStatus(api: Api): Promise<Status> {

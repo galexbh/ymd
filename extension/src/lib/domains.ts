@@ -4,9 +4,6 @@
 // front (granted on load, no prompt); the Chrome Web Store build asks for none, and the person
 // adds the sites they sign in to, each one asking the browser for its own permission.
 
-/** Defaults earlier versions seeded and later dropped: removed once from stored lists. */
-export const RETIRED_DEFAULTS: readonly string[] = ["google.com"];
-
 const LABEL = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
 const TLD = /^(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
 

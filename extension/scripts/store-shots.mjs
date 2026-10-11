@@ -83,7 +83,6 @@ async function popupShot(locale, scheme) {
     const now = Date.now();
     await worker.evaluate((state) => globalThis.chrome.storage.local.set(state), {
       allowlist: ["youtube.com", "vimeo.com"],
-      allowlistVersion: 2,
       status: {
         lastSyncAt: now - 4 * 60_000,
         checkedAt: now - 4 * 60_000,

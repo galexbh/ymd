@@ -124,13 +124,6 @@ mod tests {
     }
 
     #[test]
-    fn legacy_deno_id_reads_as_node() {
-        let id: DepId = serde_json::from_str("\"deno\"").unwrap();
-        assert_eq!(id, DepId::Node);
-        assert_eq!(serde_json::to_value(DepId::Node).unwrap(), "node");
-    }
-
-    #[test]
     fn keys_match_ipc_tags() {
         for id in DepId::ALL {
             assert_eq!(serde_json::to_value(id).unwrap(), key(id));

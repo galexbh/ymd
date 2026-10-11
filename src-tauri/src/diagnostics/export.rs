@@ -315,7 +315,7 @@ mod tests {
 
     fn seed_logs(dir: &Path, now: SystemTime) {
         std::fs::create_dir_all(dir).unwrap();
-        // raw lines as an older ymd (or a bug) might have written them: unredacted secrets
+        // raw lines as a bug might have written them: unredacted secrets
         let today = [
             r#"{"timestamp":"2026-10-10T10:00:00Z","level":"INFO","fields":{"message":"spawn","argv":"[\"--video-password\", \"hunter2\", \"--twofactor\", \"2fa-424242\", \"--cookies\", \"C:\\\\Users\\\\ana\\\\jar.txt\"]"},"target":"ymd_lib::jobs"}"#,
             r#"{"timestamp":"2026-10-10T10:00:01Z","level":"WARN","fields":{"message":"ERROR: https://www.youtube.com/watch?v=x&token=tok-abc Cookie: SID=SyntheticSidValue"},"target":"ymd_lib::jobs"}"#,

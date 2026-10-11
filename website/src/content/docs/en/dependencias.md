@@ -46,4 +46,4 @@ YouTube requires running JavaScript to hand out formats. yt-dlp uses the first r
 
 ymd only hands yt-dlp runtimes in a version yt-dlp supports (for Node.js, 22 or later). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Node.js in one click (**Install Node.js**).
 
-ymd manages Node.js LTS. Earlier versions of ymd installed Deno; on update, ymd deletes that Deno from the tools folder. A Deno installed on the system is still detected and used.
+ymd manages Node.js LTS. A Deno installed on the system is still detected and used.

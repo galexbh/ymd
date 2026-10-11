@@ -46,4 +46,4 @@ YouTube exige ejecutar JavaScript para entregar los formatos. yt-dlp usa el prim
 
 ymd solo pasa a yt-dlp los entornos en una versión que yt-dlp admite (en Node.js, la 22 o posterior). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y qué otros encontró. Si no hay ninguno, instala Node.js con un clic (**Instalar Node.js**).
 
-ymd gestiona Node.js LTS. Las versiones anteriores de ymd instalaban Deno; al actualizar, ymd borra ese Deno de la carpeta de herramientas. Un Deno instalado en el sistema se sigue detectando y usando.
+ymd gestiona Node.js LTS. Un Deno instalado en el sistema se sigue detectando y usando.

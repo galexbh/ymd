@@ -8,8 +8,7 @@
 //! for any program running as the user.
 //!
 //! When the keychain is unavailable (e.g. Linux without a Secret Service) the jar falls back to a
-//! plain owner-only file and says so in the log. Plain files written by older versions are
-//! still read, and sealed on the next write.
+//! plain owner-only file and says so in the log; such plain files are read as they are.
 //!
 //! File format: `YMDJAR1\n` ‖ 12-byte nonce ‖ ciphertext+tag, with a fixed associated-data label.
 
@@ -72,7 +71,7 @@ pub fn open(key: &JarKey, data: &[u8]) -> anyhow::Result<Vec<u8>> {
         })
 }
 
-/// Plain text of a jar file's bytes: sealed jars need `key`; legacy plain files pass through.
+/// Plain text of a jar file's bytes: sealed jars need `key`; plain (no-keychain) files pass through.
 pub fn decode(data: &[u8], key: Option<&JarKey>) -> anyhow::Result<Vec<u8>> {
     if !is_sealed(data) {
         return Ok(data.to_vec());
@@ -191,7 +190,7 @@ mod tests {
 
     #[test]
     fn decode_and_encode_with_and_without_a_key() {
-        // legacy plain files pass through
+        // plain (no-keychain) files pass through
         assert_eq!(decode(TEXT, Some(&K)).unwrap(), TEXT);
         assert_eq!(decode(TEXT, None).unwrap(), TEXT);
         // sealed needs the key

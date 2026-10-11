@@ -281,9 +281,7 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
           </div>
           <div>
             <dt>{t("extension.fact.version")}</dt>
-            <dd data-testid="extension-version">
-              {sync.extensionVersion ?? t("extension.versionUnknown")}
-            </dd>
+            <dd data-testid="extension-version">{sync.extensionVersion ?? "—"}</dd>
           </div>
         </dl>
       )}
