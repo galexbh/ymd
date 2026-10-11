@@ -372,8 +372,7 @@
       "today": "The queue starts at {{time}}",
       "tomorrow": "The queue starts tomorrow at {{time}}",
       "body": "Queued downloads wait until then; running ones carry on. Quitting ymd forgets the time.",
-      "startNow": "Start now",
-      "remove": "Remove"
+      "startNow": "Start now"
     }
   },
   "catalog": {

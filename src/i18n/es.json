@@ -372,8 +372,7 @@
       "today": "La cola empieza a las {{time}}",
       "tomorrow": "La cola empieza mañana a las {{time}}",
       "body": "Lo que esté en cola espera hasta esa hora; lo que ya se descarga sigue. Si cierras ymd, la hora se olvida.",
-      "startNow": "Empezar ahora",
-      "remove": "Quitar"
+      "startNow": "Empezar ahora"
     }
   },
   "catalog": {

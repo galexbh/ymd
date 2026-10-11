@@ -75,7 +75,7 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 
 Para dejar descargas en cola y que empiecen más tarde (por ejemplo, de noche), escribe una hora en la pantalla **Registro**, junto a **Programar inicio**, y pulsa el botón. Si esa hora ya pasó hoy, la cola empieza mañana a esa hora.
 
-Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** arranca la cola de inmediato y **Quitar** cancela la hora programada (lo que esté en cola también empieza). La hora solo vive mientras ymd está abierto: si sales de ymd, se olvida.
+Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** quita la hora programada y arranca la cola de inmediato. La hora solo vive mientras ymd está abierto: si sales de ymd, se olvida.
 
 ## Al cerrar la ventana
 
