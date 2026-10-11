@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Proyecto
+
+- El release compila con `--locked`: usa exactamente las versiones de `Cargo.lock`, igual que la CI.
+
 ## [0.7.0] - 2026-10-11
 
 ### Novedades

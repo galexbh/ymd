@@ -108,7 +108,9 @@ jobs:
           releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          # `-- --locked` goes to cargo: the release builds exactly Cargo.lock, like CI and
+          # warm-release-cache.yml.
+          args: ${{ matrix.args }} -- --locked
           # Signed updater artifacts + latest.json for tauri-plugin-updater. The app reads
           # releases/latest/download/latest.json, so a release must be published (not draft)
           # before installed copies see it.
