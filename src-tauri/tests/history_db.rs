@@ -29,6 +29,7 @@ fn job(n: u64, title: Option<&str>, filepath: Option<&str>, kind: MediaKind) -> 
         created_at: "2024-01-01T00:00:00Z".into(),
         // Distinct, increasing completion times.
         finished_at: Some(format!("2024-01-01T00:{:02}:00Z", n % 60)),
+        clip: None,
     }
 }
 
@@ -450,6 +451,7 @@ fn pending(id: &str, seq: u64) -> PendingJob {
         kind: MediaKind::Video,
         created_at: "2026-10-01T10:00:00Z".into(),
         needs_secret: false,
+        clip: None,
     }
 }
 
@@ -545,4 +547,55 @@ fn next_number_also_counts_pending_jobs() {
     assert_eq!(h.max_seq_hint(), 70);
     h.pending_delete("a").unwrap();
     assert_eq!(h.max_seq_hint(), 70);
+}
+
+#[test]
+fn pending_rows_keep_the_clip() {
+    let h = History::open_in_memory().unwrap();
+    let mut c = pending("c", 5);
+    c.clip = Some(Clip {
+        start: 90.5,
+        end: 165.25,
+    });
+    h.pending_save(&c).unwrap();
+    h.pending_save(&pending("d", 6)).unwrap();
+    assert_eq!(h.pending_list().unwrap(), vec![c, pending("d", 6)]);
+}
+
+#[test]
+fn migrates_a_v3_database_and_keeps_its_pending_rows() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("history.sqlite3");
+    {
+        // The v3 schema as ymd 0.7 left it, with one unfinished download.
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, title TEXT NOT NULL,
+                filepath TEXT NOT NULL, kind TEXT NOT NULL, preset_name TEXT NOT NULL,
+                size INTEGER, thumbnail TEXT, extractor TEXT, completed_at TEXT NOT NULL,
+                haystack TEXT NOT NULL DEFAULT '', seq INTEGER, preset_id TEXT);
+            CREATE TABLE pending_jobs (
+                id TEXT PRIMARY KEY, seq INTEGER NOT NULL, url TEXT NOT NULL,
+                preset_id TEXT NOT NULL, playlist_items TEXT, output_dir TEXT NOT NULL,
+                title TEXT, thumbnail TEXT, kind TEXT NOT NULL, created_at TEXT NOT NULL,
+                needs_secret INTEGER NOT NULL DEFAULT 0);
+            INSERT INTO pending_jobs (id, seq, url, preset_id, output_dir, title, kind, created_at)
+                VALUES ('old', 4, 'https://example.com/old', 'best', '/out', 'Title old',
+                        'video', '2026-10-01T10:00:00Z');
+            PRAGMA user_version = 3;",
+        )
+        .unwrap();
+    }
+    let h = History::open(&path).unwrap();
+    assert_eq!(SCHEMA_VERSION, 4);
+    assert_eq!(h.schema_version().unwrap(), 4);
+    assert_eq!(h.pending_list().unwrap(), vec![pending("old", 4)]);
+    let mut clipped = pending("new", 5);
+    clipped.clip = Some(Clip {
+        start: 0.0,
+        end: 7.0,
+    });
+    h.pending_save(&clipped).unwrap();
+    assert_eq!(h.pending_list().unwrap()[1].clip, clipped.clip);
 }

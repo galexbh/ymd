@@ -7,6 +7,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 ### Novedades
 
 - **Ajustes del audio en los preajustes.** Los preajustes de audio suman tres opciones, apagadas de inicio: **Separar artista y título** (un título «Artista - Canción» se guarda en las etiquetas de artista y de título), **Carátula cuadrada** (recorta la miniatura incrustada por el centro) e **Igualar volumen** (normaliza a -14 LUFS al convertir; no disponible con el formato **Original**). Están en **Ajustes → Preajustes**.
+- **Descargar solo un tramo de un video.** La ficha de **Recibir** tiene el bloque **Tramo** con **Desde** y **Hasta** (`90`, `1:30` o `1:02:03`). ffmpeg vuelve a codificar alrededor de los cortes para que el archivo empiece y termine justo ahí; el nombre lleva el tramo al final (`[1.30-2.45]`) y la fila del registro lo muestra. No se ofrece para listas.
 
 ### Proyecto
 

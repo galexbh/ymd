@@ -1,0 +1,4 @@
+YMD_META|Me at the zoo
+YMD_ITEM|NA|NA
+YMD|{"filename": "C:\\Users\\user\\AppData\\Roaming\\com.ymd.app\\tmp\\job-1\\Me at the zoo [jNQXAC9IVRw] [0.03-0.10].mp4", "status": "finished", "elapsed": 0.4160332679748535, "downloaded_bytes": 273040, "total_bytes": 273040, "speed": 656293.669323828, "_speed_str": "640.91KiB/s", "_total_bytes_str": " 266.64KiB", "_elapsed_str": "00:00:00", "_percent": 100.0, "_percent_str": "100.0%", "_default_template": "100% of  266.64KiB in 00:00:00 at 640.91KiB/s"}
+YMD_FILE|C:\Users\user\Videos\Me at the zoo [jNQXAC9IVRw] [0.03-0.10].mp4

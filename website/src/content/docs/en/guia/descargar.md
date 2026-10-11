@@ -60,6 +60,20 @@ When the link is a playlist, the card shows a thumbnail grid with every entry:
 
 Each selected entry goes into the ledger as its own download (“Entry 3 of 12”).
 
+## Download only a section
+
+A video's card (not a playlist's) includes the **Section** block, with two fields: **From** and **To**. They take seconds (`90`), `m:ss` (`1:30`) or `h:mm:ss` (`1:02:03`):
+
+- With both fields empty, the whole video is downloaded.
+- An empty **From** starts at `0:00`; an empty **To** runs to the end of the video.
+- If a time isn't in a valid format, **To** doesn't come after **From**, or the section goes past the end of the video, the field says so and **File it** stays disabled until it's fixed.
+
+The file name ends with the section, using dots instead of colons so it's valid on every system: `My video [abc123] [1.30-2.45].mp4`. In the ledger, the row shows the section next to the title (“1:30–2:45”).
+
+So the file starts and ends exactly where you asked, ffmpeg re-encodes the video around the cuts, which takes longer than a full download of the same size. While a section downloads, the progress shows no percentage. aria2c isn't used for these downloads even when it's turned on.
+
+Sections aren't available for playlists or in the **Several links** panel. An unfinished download keeps its section when resumed.
+
 ## Several links at once
 
 If you paste text with two or more links into the **Link** field (one per line or separated by spaces), the field stays as it is and the **Several links** panel opens:

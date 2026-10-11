@@ -105,7 +105,32 @@ pub fn pending_of(job: &Job, req: &EnqueueRequest) -> PendingJob {
         kind: job.kind,
         created_at: job.created_at.clone(),
         needs_secret: has_secret(req),
+        clip: req.clip,
     }
+}
+
+/// Checks a requested time range: finite, `0 <= start < end`, and a single video only.
+pub fn validate_clip(req: &EnqueueRequest) -> Result<(), CommandError> {
+    let Some(clip) = req.clip else {
+        return Ok(());
+    };
+    if req.playlist_items.is_some() {
+        return Err(CommandError::new(
+            ErrorCode::Unknown,
+            "a time range can only be downloaded from a single video, not a playlist",
+        ));
+    }
+    let ok = clip.start.is_finite() && clip.end.is_finite() && clip.start >= 0.0;
+    if !ok || clip.start >= clip.end {
+        return Err(CommandError::new(
+            ErrorCode::Unknown,
+            format!(
+                "invalid time range {}-{}: start must be at least 0 and before the end",
+                clip.start, clip.end
+            ),
+        ));
+    }
+    Ok(())
 }
 
 /// A job id as `enqueue` makes them: a UUID in its canonical lowercase, hyphenated form.
@@ -301,6 +326,7 @@ impl JobManager {
         if req.url.is_empty() {
             return Err(cmd_err(ErrorCode::UnsupportedUrl, "empty URL"));
         }
+        validate_clip(&req)?;
         let settings = self.env.settings();
         let preset = settings
             .presets
@@ -365,6 +391,7 @@ impl JobManager {
                 playlist_count: None,
                 created_at,
                 finished_at: None,
+                clip: req.clip,
             };
             let pending = pending_of(&job, &req);
             g.jobs.insert(
@@ -424,6 +451,7 @@ impl JobManager {
                 twofactor: None,
                 title: p.title.clone(),
                 thumbnail: p.thumbnail.clone(),
+                clip: p.clip,
             };
             out.push(self.insert(req, p.kind, p.output_dir.clone(), Some(&p)));
         }
@@ -635,6 +663,7 @@ impl JobManager {
             archive_file,
             use_aria2c: settings.use_aria2c,
             limit_rate_mbps: settings.limit_rate_mbps,
+            clip: req.clip,
             auth_args,
         });
         drop(req);
@@ -1229,6 +1258,7 @@ mod tests {
             twofactor: None,
             title: None,
             thumbnail: None,
+            clip: None,
         }
     }
 

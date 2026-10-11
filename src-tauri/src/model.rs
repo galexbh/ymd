@@ -393,6 +393,15 @@ fn default_true() -> bool {
 
 pub type JobId = String;
 
+/// A time range of a single video to download (`--download-sections`), in seconds from the
+/// start. Valid when both are finite and `0 <= start < end`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Clip {
+    pub start: f64,
+    pub end: f64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnqueueRequest {
@@ -407,6 +416,10 @@ pub struct EnqueueRequest {
     /// Display metadata from the probe, so the row is meaningful before yt-dlp reports.
     pub title: Option<String>,
     pub thumbnail: Option<String>,
+    /// Only this time range of a single video; `None` = the whole video. Not allowed with
+    /// `playlist_items`.
+    #[serde(default)]
+    pub clip: Option<Clip>,
 }
 
 /// Payload of `EVT_QUEUE_SCHEDULE`: when the queue starts (RFC 3339, UTC), or `None` when it
@@ -492,6 +505,9 @@ pub struct Job {
     /// RFC3339
     pub created_at: String,
     pub finished_at: Option<String>,
+    /// The time range being downloaded (display only); `None` = the whole video.
+    #[serde(default)]
+    pub clip: Option<Clip>,
 }
 
 /// A download that was queued or running when ymd closed (table `pending_jobs`). It keeps the
@@ -513,6 +529,9 @@ pub struct PendingJob {
     /// RFC3339
     pub created_at: String,
     pub needs_secret: bool,
+    /// The time range of the download, kept so a resumed job cuts the same section.
+    #[serde(default)]
+    pub clip: Option<Clip>,
 }
 
 // ───────────────────────────── History ─────────────────────────────

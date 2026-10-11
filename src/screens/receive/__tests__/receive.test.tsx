@@ -130,6 +130,67 @@ describe("Recibir", () => {
     );
   });
 
+  it("«Tramo»: a bad range blocks Ingresar; a valid one files only that section", async () => {
+    const { be, user, tick } = await renderApp();
+    pasteLink(VIDEO);
+    await tick(0);
+    const card = await screen.findByTestId("accession-card");
+    const group = within(card).getByRole("group", { name: "Tramo" });
+    const from = within(group).getByRole("textbox", { name: "Desde" });
+    const to = within(group).getByRole("textbox", { name: "Hasta" });
+    expect(from).toHaveAttribute("placeholder", "0:00");
+    expect(to.getAttribute("placeholder")).toMatch(/^\d+:\d\d$/);
+    const ingresar = screen.getByRole("button", { name: "Ingresar" });
+
+    await user.type(from, "1:30");
+    await user.type(to, "1:00");
+    expect(within(group).getByText("«Hasta» tiene que ir después de «Desde».")).toBeVisible();
+    expect(to).toHaveAttribute("aria-invalid", "true");
+    expect(ingresar).toBeDisabled();
+
+    await user.clear(to);
+    await user.type(to, "1:6x");
+    expect(within(group).getByText("Escribe segundos, m:ss o h:mm:ss.")).toBeVisible();
+    await user.clear(to);
+    await user.type(to, "9:59:00");
+    expect(within(group).getByText(/^El video dura \d+:\d\d\.$/)).toBeVisible();
+    expect(ingresar).toBeDisabled();
+
+    await user.clear(to);
+    await user.type(to, "1:45");
+    expect(to).not.toHaveAttribute("aria-invalid");
+    expect(ingresar).toBeEnabled();
+    await user.click(ingresar);
+    await tick(0);
+    const req = calls(be, "enqueue")[0].args!.req as EnqueueRequest;
+    expect(req.clip).toEqual({ start: 90, end: 105 });
+    const [row] = jobRows();
+    expect(within(row).getByTestId("job-clip")).toHaveTextContent("1:30–1:45");
+    expect(within(row).getByTestId("job-clip")).toHaveAttribute("title", "Tramo 1:30–1:45");
+  });
+
+  it("«Tramo» empty files the whole video, resets per link and is not offered for playlists", async () => {
+    const { be, user, tick } = await renderApp();
+    pasteLink(VIDEO);
+    await tick(0);
+    await screen.findByTestId("accession-card");
+    await user.type(screen.getByRole("textbox", { name: "Desde" }), "5");
+    // a new link starts with empty fields
+    pasteLink("https://www.youtube.com/watch?v=zyxwvut9876");
+    await tick(0);
+    await screen.findByTestId("accession-card");
+    expect(screen.getByRole("textbox", { name: "Desde" })).toHaveValue("");
+    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await tick(0);
+    expect((calls(be, "enqueue")[0].args!.req as EnqueueRequest).clip).toBeNull();
+    expect(screen.queryByTestId("job-clip")).toBeNull();
+
+    pasteLink(PLAYLIST);
+    await tick(0);
+    await screen.findByRole("region", { name: "Entradas de la lista" });
+    expect(screen.queryByTestId("clip-fields")).toBeNull();
+  });
+
   it("asks for a folder when settings.askEachTime is on", async () => {
     const { be, user, tick } = await renderApp({ settings: { language: "es", askEachTime: true } });
     pasteLink(VIDEO);

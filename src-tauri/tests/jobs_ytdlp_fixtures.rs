@@ -79,6 +79,24 @@ fn real_video_download() {
         .all(|e| *e == Event::Stage(JobStage::Postprocessing)));
 }
 
+/// `--download-sections "*3-10" --force-keyframes-at-cuts` (captured with yt-dlp 2026.10.10 on
+/// Windows from "Me at the zoo"): ffmpeg downloads the section in one go, so there is a single
+/// "finished" progress line; the file keeps the ` [0.03-0.10]` suffix.
+#[test]
+fn real_clip_download() {
+    let (out, err, n) = events("download_clip_mp4");
+    assert_eq!(n, 1);
+    assert_eq!(out[0], Event::Title("Me at the zoo".into()));
+    assert_eq!(fractions(&out), [1.0]);
+    assert!(
+        matches!(out.last(), Some(Event::File(p)) if p.ends_with("Me at the zoo [jNQXAC9IVRw] [0.03-0.10].mp4"))
+    );
+    assert_eq!(err.len(), 3, "Metadata, EmbedThumbnail, MoveFiles");
+    assert!(err
+        .iter()
+        .all(|e| *e == Event::Stage(JobStage::Postprocessing)));
+}
+
 #[test]
 fn real_audio_extraction() {
     let (out, err, n) = events("download_audio_mp3");

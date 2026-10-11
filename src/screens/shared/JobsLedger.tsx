@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Job, JobId } from "../../ipc/types";
+import type { Clip, Job, JobId } from "../../ipc/types";
 import {
   BytesFigure,
   EmptyState,
@@ -40,6 +40,7 @@ import { isActive, isTerminal, useJobs } from "../../store/jobs";
 import { useSettings } from "../../store/settings";
 import { openFile, showInFolder } from "../../app/native";
 import { useErrorFixes } from "./errorFixes";
+import { formatClock } from "../receive/clip";
 import { formatCode } from "./labels";
 import { SeqFigure } from "./SeqFigure";
 import s from "./jobs.module.css";
@@ -110,6 +111,17 @@ export const JobsLedger = memo(function JobsLedger({
 
 const COLS = 9;
 
+/** «1:30–2:45»: the row downloads only that section of the video. */
+function ClipTag({ clip }: { clip: Clip }) {
+  const { t } = useTranslation();
+  const range = `${formatClock(clip.start)}–${formatClock(clip.end)}`;
+  return (
+    <Tag mono className={s.clip} title={t("ledger.clip", { range })} data-testid="job-clip">
+      {range}
+    </Tag>
+  );
+}
+
 /** One ledger row; subscribes to its own job only, so other jobs' progress never reaches it. */
 const JobRow = memo(function JobRow({ id }: { id: JobId }) {
   const job = useJobs((st) => st.jobs[id]);
@@ -162,6 +174,7 @@ function JobRowView({ job }: { job: Job }) {
               })}
             />
           )}
+          {job.clip && <ClipTag clip={job.clip} />}
         </LedgerCell>
         <LedgerCell className={s.cFormat}>
           <Tag mono>{formatCode(t, preset)}</Tag>

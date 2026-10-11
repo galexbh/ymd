@@ -5,7 +5,9 @@
 //! filepath) is written on insert and matched with `LIKE ... ESCAPE '\'` against the
 //! lowercased, escaped query, so `%` and `_` in user input are literal.
 
-use crate::model::{HistoryItem, HistoryPage, HistoryQuery, Job, MediaKind, PendingJob, Preset};
+use crate::model::{
+    Clip, HistoryItem, HistoryPage, HistoryQuery, Job, MediaKind, PendingJob, Preset,
+};
 use anyhow::{bail, Context};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
@@ -54,6 +56,9 @@ const MIGRATIONS: &[&str] = &[
         created_at     TEXT NOT NULL,
         needs_secret   INTEGER NOT NULL DEFAULT 0
     );",
+    // v4: the time range (seconds) of a download that cuts a section of the video.
+    "ALTER TABLE pending_jobs ADD COLUMN clip_start REAL;
+    ALTER TABLE pending_jobs ADD COLUMN clip_end REAL;",
 ];
 
 pub const SCHEMA_VERSION: i64 = MIGRATIONS.len() as i64;
@@ -148,8 +153,8 @@ impl History {
             .transpose()?;
         self.conn().execute(
             "INSERT OR REPLACE INTO pending_jobs
-                (id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+                (id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret, clip_start, clip_end)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
             params![
                 p.id,
                 p.seq as i64,
@@ -162,6 +167,8 @@ impl History {
                 kind_str(p.kind),
                 p.created_at,
                 p.needs_secret as i64,
+                p.clip.map(|c| c.start),
+                p.clip.map(|c| c.end),
             ],
         )?;
         Ok(())
@@ -200,7 +207,7 @@ impl History {
     pub fn pending_list(&self) -> anyhow::Result<Vec<PendingJob>> {
         let conn = self.conn();
         let mut stmt = conn.prepare(
-            "SELECT id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret
+            "SELECT id, seq, url, preset_id, playlist_items, output_dir, title, thumbnail, kind, created_at, needs_secret, clip_start, clip_end
              FROM pending_jobs ORDER BY seq ASC, id ASC",
         )?;
         let rows = stmt.query_map([], |r| {
@@ -208,6 +215,8 @@ impl History {
             let items: Option<String> = r.get(4)?;
             let kind: String = r.get(8)?;
             let needs: i64 = r.get(10)?;
+            let clip_start: Option<f64> = r.get(11)?;
+            let clip_end: Option<f64> = r.get(12)?;
             Ok(PendingJob {
                 id: r.get(0)?,
                 seq: u64::try_from(seq).unwrap_or(0),
@@ -221,6 +230,10 @@ impl History {
                 kind: parse_kind(&kind),
                 created_at: r.get(9)?,
                 needs_secret: needs != 0,
+                // Half a range (a hand-edited row) means the whole video.
+                clip: clip_start
+                    .zip(clip_end)
+                    .map(|(start, end)| Clip { start, end }),
             })
         })?;
         Ok(rows.collect::<Result<Vec<_>, _>>()?)

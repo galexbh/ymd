@@ -93,6 +93,7 @@ async fn downloads_log_stages_and_outcomes_without_secrets() {
         twofactor: None,
         title: None,
         thumbnail: None,
+        clip: None,
     };
     let ok = jobs.enqueue(req("fake://success")).await.unwrap();
     let bad = jobs.enqueue(req("fake://error-bot")).await.unwrap();

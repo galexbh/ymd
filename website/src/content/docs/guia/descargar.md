@@ -60,6 +60,20 @@ Cuando el enlace es una lista, la ficha muestra una cuadrícula de miniaturas co
 
 Cada entrada elegida entra al registro como una descarga propia («Entrada 3 de 12»).
 
+## Descargar solo un tramo
+
+La ficha de un video (no la de una lista) incluye el bloque **Tramo**, con dos campos: **Desde** y **Hasta**. Acepta segundos (`90`), `m:ss` (`1:30`) o `h:mm:ss` (`1:02:03`):
+
+- Con los dos campos vacíos se descarga el video completo.
+- **Desde** vacío empieza en `0:00`; **Hasta** vacío llega hasta el final del video.
+- Si la hora no tiene un formato válido, **Hasta** no va después de **Desde** o el tramo pasa del final del video, el campo lo indica e **Ingresar** queda desactivado hasta corregirlo.
+
+El archivo lleva el tramo al final del nombre, con puntos en lugar de dos puntos para que sea válido en cualquier sistema: `Mi video [abc123] [1.30-2.45].mp4`. En el registro, la fila muestra el tramo junto al título («1:30–2:45»).
+
+Para que el archivo empiece y termine justo donde se pidió, ffmpeg vuelve a codificar el video alrededor de los cortes, así que tarda más que una descarga completa del mismo tamaño. Mientras se descarga el tramo, el avance no muestra porcentaje. aria2c no se usa en estas descargas aunque esté activado.
+
+El tramo no está disponible para listas ni en el panel **Varios enlaces**. Una descarga sin terminar conserva su tramo al reanudarla.
+
 ## Varios enlaces a la vez
 
 Si pegas en el campo **Enlace** un texto con dos o más enlaces (uno por línea o separados por espacios), el campo no cambia y aparece el panel **Varios enlaces**:

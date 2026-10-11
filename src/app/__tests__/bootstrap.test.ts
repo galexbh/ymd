@@ -31,6 +31,7 @@ const job = (stage: Job["stage"]): Job => ({
   playlistCount: null,
   createdAt: "",
   finishedAt: null,
+  clip: null,
 });
 
 beforeEach(() => {

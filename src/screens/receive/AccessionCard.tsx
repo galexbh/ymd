@@ -5,9 +5,10 @@ import { ChevronRight } from "lucide-react";
 import { Accession, DurationFigure, Figure, Icon, Tag, TextField, Thumb } from "../../ui";
 import { api } from "../../ipc/commands";
 import { useJobs } from "../../store/jobs";
-import { useReceive } from "../../store/receive";
+import { clipAvailable, useReceive } from "../../store/receive";
 import { useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
+import { formatClock, validateClip } from "./clip";
 import { activePreset, destinationFor } from "./ingest";
 import { PlaylistPicker } from "./PlaylistPicker";
 import s from "./receive.module.css";
@@ -101,6 +102,7 @@ export const AccessionCard = memo(function AccessionCard({ probe }: { probe: Pro
               </dd>
             </div>
           </dl>
+          {clipAvailable(probe) && <ClipFields duration={probe.duration!} />}
           <OneOffOptions />
         </div>
       </div>
@@ -108,6 +110,51 @@ export const AccessionCard = memo(function AccessionCard({ probe }: { probe: Pro
     </article>
   );
 });
+
+/** «Tramo»: download only a time range of the video (empty = the whole video). */
+function ClipFields({ duration }: { duration: number }) {
+  const { t } = useTranslation();
+  const legendId = useId();
+  const clipStart = useReceive((st) => st.clipStart);
+  const clipEnd = useReceive((st) => st.clipEnd);
+  const check = validateClip(clipStart, clipEnd, duration);
+  const setClip = useReceive((st) => st.setClip);
+  const error = check.error ? t(check.error, { duration: formatClock(duration) }) : null;
+  return (
+    <div role="group" aria-labelledby={legendId} className={s.clip} data-testid="clip-fields">
+      <span id={legendId} className={s.clipLabel}>
+        {t("receive.clip.title")}
+      </span>
+      <div className={s.clipFields}>
+        <TextField
+          label={t("receive.clip.start")}
+          mono
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="0:00"
+          value={clipStart}
+          error={check.field === "start" ? error : undefined}
+          onChange={(e) => setClip("clipStart", e.target.value)}
+          data-testid="clip-start"
+        />
+        <TextField
+          label={t("receive.clip.end")}
+          mono
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder={formatClock(duration)}
+          value={clipEnd}
+          error={check.field === "end" ? error : undefined}
+          onChange={(e) => setClip("clipEnd", e.target.value)}
+          data-testid="clip-end"
+        />
+      </div>
+      <p className={s.clipHint}>{t("receive.clip.hint")}</p>
+    </div>
+  );
+}
 
 function OneOffOptions() {
   const { t } = useTranslation();

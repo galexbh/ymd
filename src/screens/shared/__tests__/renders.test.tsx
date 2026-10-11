@@ -46,6 +46,7 @@ const req = (url: string): EnqueueRequest => ({
   outputDir: null,
   videoPassword: null,
   twofactor: null,
+  clip: null,
   title: null,
   thumbnail: null,
 });

@@ -25,6 +25,7 @@ function job(id: string, stage: JobStage, over: Partial<Job> = {}): Job {
     playlistCount: null,
     createdAt: "2026-10-01T00:00:00Z",
     finishedAt: null,
+    clip: null,
     ...over,
   };
 }
