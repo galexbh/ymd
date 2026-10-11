@@ -11,7 +11,7 @@
     "repository": {
       "url": "git@github.com:galexbh/ymd.git",
       "link_mode": "local-only",
-      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+      "revision": "219842f9f6fd568577e69a598fd235dabca93f69"
     },
     "legend": {
       "mode": "auto",
@@ -40,14 +40,14 @@
       "sources": [
         {
           "path": "extension/src/lib/sync.ts",
-          "line": 111,
-          "end_line": 145,
+          "line": 138,
+          "end_line": 174,
           "label": "runSync"
         },
         {
           "path": "extension/src/lib/sync.ts",
-          "line": 183,
-          "end_line": 197,
+          "line": 213,
+          "end_line": 220,
           "label": "debounce 3 s"
         }
       ]
@@ -66,14 +66,14 @@
       "sources": [
         {
           "path": "src-tauri/src/lib.rs",
-          "line": 34,
-          "end_line": 52,
+          "line": 36,
+          "end_line": 57,
           "label": "maybe_run_native_host"
         },
         {
           "path": "src-tauri/src/auth/native_host.rs",
-          "line": 250,
-          "end_line": 279,
+          "line": 359,
+          "end_line": 386,
           "label": "host_main"
         }
       ]
@@ -86,13 +86,13 @@
       "sources": [
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 157,
-          "end_line": 176,
-          "label": "store / write_meta"
+          "line": 49,
+          "end_line": 79,
+          "label": "store_from_extension / write_meta"
         },
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 542,
+          "line": 570,
           "label": "write_private"
         }
       ]
@@ -105,14 +105,14 @@
       "sources": [
         {
           "path": "src-tauri/src/commands/auth.rs",
-          "line": 88,
+          "line": 73,
           "label": "extension_status"
         },
         {
           "path": "src-tauri/src/jobs.rs",
           "line": 284,
           "end_line": 295,
-          "label": "copia por trabajo"
+          "label": "per-job copy"
         }
       ]
     },
@@ -124,8 +124,8 @@
       "sources": [
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 181,
-          "end_line": 220,
+          "line": 152,
+          "end_line": 165,
           "label": "ephemeral_args"
         }
       ]
@@ -205,9 +205,9 @@
       "from": "host",
       "to": "store",
       "y": 402,
-      "label": "atomic Netscape, owner-only",
+      "label": "atomic Netscape, encrypted",
       "variant": "emphasis",
-      "note": "Writes cookies.txt and cookies.meta.json with origin extension:<browser>."
+      "note": "Writes cookies.txt (encrypted, owner-only) and cookies.meta.json with origin extension:<browser> and the extension's version."
     },
     {
       "id": "reply",
@@ -248,7 +248,7 @@
       "y": 574,
       "label": "--cookies with a per-run copy",
       "variant": "default",
-      "note": "yt-dlp rewrites its jar on exit; the copy keeps it from clobbering freshly synced cookies."
+      "note": "The only plain-text copy, deleted when the download ends. yt-dlp rewrites its jar on exit, so it never clobbers freshly synced cookies."
     }
   ],
   "activations": [
@@ -283,7 +283,7 @@
       "title": "Security",
       "items": [
         "Native Messaging: no network ports, no server",
-        "Only the fixed extension ID is accepted as origin",
+        "Only ymd's two extension IDs (unpacked and Chrome Web Store) are accepted as origin",
         "Neither the log nor the stored status keeps cookie values"
       ]
     },

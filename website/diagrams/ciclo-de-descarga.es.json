@@ -9,7 +9,7 @@
     "repository": {
       "url": "git@github.com:galexbh/ymd.git",
       "link_mode": "local-only",
-      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+      "revision": "219842f9f6fd568577e69a598fd235dabca93f69"
     },
     "translations": {
       "page.title": "{title} · Diagrama",
@@ -568,7 +568,7 @@
         {
           "path": "src-tauri/src/jobs.rs",
           "line": 493,
-          "end_line": 518,
+          "end_line": 502,
           "label": "cancel"
         }
       ]
