@@ -15,12 +15,14 @@ use crate::model::{
 };
 use crate::paths::AppPaths;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 const HEADER: &str = "# Netscape HTTP Cookie File";
 const TEST_TIMEOUT: Duration = Duration::from_secs(90);
+/// How long stderr may stay open after yt-dlp exited.
+const PIPE_GRACE: Duration = Duration::from_secs(5);
 /// Public, long-lived video used by "Test cookies".
 pub const TEST_URL: &str = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
 
@@ -38,6 +40,67 @@ fn meta_file(paths: &AppPaths) -> PathBuf {
     paths.auth_dir().join("cookies.meta.json")
 }
 
+/// Advisory lock file guarding the jar + meta pair: two browsers can sync at once (each
+/// through its own native-host process), and their writes must not interleave.
+fn lock_file(paths: &AppPaths) -> PathBuf {
+    paths.auth_dir().join(".cookies.lock")
+}
+
+/// Holds the exclusive lock on [`lock_file`] until dropped.
+struct JarLock(#[allow(dead_code)] std::fs::File);
+
+/// Exclusive lock on the jar (waits for another writer). `try_only`: give up at once (`None`)
+/// when another process holds it.
+fn lock_jar(paths: &AppPaths, try_only: bool) -> CmdResult<Option<JarLock>> {
+    let path = lock_file(paths);
+    let file = std::fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(&path)
+        .map_err(|e| io_err(&path, e))?;
+    if try_only {
+        return match file.try_lock() {
+            Ok(()) => Ok(Some(JarLock(file))),
+            Err(std::fs::TryLockError::WouldBlock) => Ok(None),
+            Err(std::fs::TryLockError::Error(e)) => Err(io_err(&path, e)),
+        };
+    }
+    file.lock().map_err(|e| io_err(&path, e))?;
+    Ok(Some(JarLock(file)))
+}
+
+/// Whether `name` is a temp file of [`write_private`] (`.<file>.<32 hex>.tmp`).
+fn is_write_temp_name(name: &str) -> bool {
+    name.strip_prefix('.')
+        .and_then(|rest| rest.strip_suffix(".tmp"))
+        .and_then(|rest| rest.rsplit_once('.'))
+        .is_some_and(|(file, id)| {
+            !file.is_empty() && id.len() == 32 && id.bytes().all(|b| b.is_ascii_hexdigit())
+        })
+}
+
+/// Deletes temp files an interrupted atomic write left in the auth dir (they may hold a plain
+/// or sealed jar). Skipped while a native host holds the jar lock. Returns how many went.
+pub fn sweep_auth_temps(paths: &AppPaths) -> usize {
+    let dir = paths.auth_dir();
+    if !dir.is_dir() {
+        return 0;
+    }
+    let Ok(Some(_lock)) = lock_jar(paths, true) else {
+        return 0;
+    };
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return 0;
+    };
+    entries
+        .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_file()))
+        .filter(|e| is_write_temp_name(&e.file_name().to_string_lossy()))
+        .filter(|e| std::fs::remove_file(e.path()).is_ok())
+        .count()
+}
+
 /// Write `text` (a Netscape jar) as ymd's cookies.txt plus its meta, both owner-only and
 /// atomic, after validating it, recording the manifest version of the extension that sent the
 /// jar. Used by the native-messaging host (`origin = "extension:<browser>"`).
@@ -49,6 +112,8 @@ pub fn store_from_extension(
 ) -> CmdResult<CookieFileInfo> {
     parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     ensure_private_dir(&paths.auth_dir())?;
+    // Jar, meta and the summary read back belong to the same sync.
+    let _lock = lock_jar(paths, false)?;
     write_jar(paths, &normalize_for_ytdlp(text))?;
     write_meta(paths, origin, extension_version)?;
     info(paths).ok_or_else(|| CommandError::unknown("cookies written but unreadable"))
@@ -96,6 +161,28 @@ fn is_ephemeral_name(name: &str) -> bool {
 /// Deletes per-run plain copies left in `tmp_dir` (and its job folders) by a crash or a forced
 /// quit. Run at start-up, before any job can own one. Returns how many were removed.
 pub fn sweep_stale_copies(tmp_dir: &Path) -> usize {
+    sweep_stale_copies_while_running(tmp_dir, Duration::ZERO, &HashSet::new())
+}
+
+/// Copies older than any probe or cookie test can run: the periodic sweep removes only these.
+pub const STALE_COPY_AGE: Duration = Duration::from_secs(30 * 60);
+
+/// [`sweep_stale_copies`] for a running app: the job folders named in `skip` (running jobs,
+/// whose yt-dlp still uses its copy) are left alone, and elsewhere only copies last written at
+/// least `min_age` ago go (a probe or a cookie test may still be using a newer one).
+pub fn sweep_stale_copies_while_running(
+    tmp_dir: &Path,
+    min_age: Duration,
+    skip: &HashSet<String>,
+) -> usize {
+    let old_enough = |path: &Path| {
+        min_age.is_zero()
+            || std::fs::metadata(path)
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.elapsed().ok())
+                .is_some_and(|age| age >= min_age)
+    };
     let mut removed = 0;
     let mut dirs = vec![tmp_dir.to_path_buf()];
     let mut depth = 0;
@@ -111,9 +198,12 @@ pub fn sweep_stale_copies(tmp_dir: &Path) -> usize {
                     continue;
                 };
                 if kind.is_dir() {
-                    next.push(path);
+                    if depth > 0 || !skip.contains(&*entry.file_name().to_string_lossy()) {
+                        next.push(path);
+                    }
                 } else if kind.is_file()
                     && is_ephemeral_name(&entry.file_name().to_string_lossy())
+                    && old_enough(&path)
                     && std::fs::remove_file(&path).is_ok()
                 {
                     removed += 1;
@@ -137,9 +227,17 @@ impl EphemeralJar {
 }
 
 impl Drop for EphemeralJar {
+    /// Windows can hold the file a moment after yt-dlp exits: retry briefly, then leave it to
+    /// the periodic / start-up sweep (`sweep_stale_copies*`).
     fn drop(&mut self) {
-        if let Some(p) = &self.0 {
-            let _ = std::fs::remove_file(p);
+        let Some(p) = &self.0 else { return };
+        for attempt in 0..5 {
+            match std::fs::remove_file(p) {
+                Ok(()) => return,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => return,
+                Err(_) if attempt < 4 => std::thread::sleep(Duration::from_millis(40)),
+                Err(e) => log::warn!("cookie copy not deleted yet ({e}); the sweep will retry"),
+            }
         }
     }
 }
@@ -480,7 +578,11 @@ async fn run_ytdlp(exe: &Path, args: &[String], timeout: Duration) -> CmdResult<
     match tokio::time::timeout(timeout, child.wait()).await {
         Ok(status) => {
             let status = status.map_err(CommandError::unknown)?;
-            let stderr = reader.await.unwrap_or_default();
+            // A child yt-dlp left behind may keep stderr open: don't wait for it forever.
+            let stderr = match tokio::time::timeout(PIPE_GRACE, reader).await {
+                Ok(text) => text.unwrap_or_default(),
+                Err(_) => String::new(),
+            };
             Ok(RunOutput {
                 success: status.success(),
                 stderr,
@@ -708,6 +810,109 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         // A trailing `--cookies` without a value is left alone.
         let dangling = s(&["--cookies"]);
         assert_eq!(ephemeral_args(&dangling, &tmp).unwrap().0, dangling);
+    }
+
+    #[test]
+    fn auth_temp_files_are_swept_unless_a_host_writes() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = AppPaths {
+            bin_dir: dir.path().join("bin"),
+            data_dir: dir.path().join("data"),
+            config_dir: dir.path().join("config"),
+        };
+        assert_eq!(sweep_auth_temps(&p), 0, "no auth dir yet");
+        let auth = p.auth_dir();
+        std::fs::create_dir_all(&auth).unwrap();
+        let id = uuid::Uuid::new_v4().simple().to_string();
+        let stale = [
+            auth.join(format!(".cookies.txt.{id}.tmp")),
+            auth.join(format!(".cookies.meta.json.{id}.tmp")),
+        ];
+        let keep = [
+            auth.join("cookies.txt"),
+            auth.join("accounts.json"),
+            auth.join(".cookies.txt.nothex.tmp"),
+            auth.join(format!("cookies.txt.{id}.tmp")),
+        ];
+        for f in stale.iter().chain(&keep) {
+            std::fs::write(f, "x").unwrap();
+        }
+        // A native host in the middle of a write holds the lock: nothing is touched.
+        let held = lock_jar(&p, false).unwrap();
+        assert!(lock_jar(&p, true).unwrap().is_none());
+        assert_eq!(sweep_auth_temps(&p), 0);
+        drop(held);
+        assert_eq!(sweep_auth_temps(&p), 2);
+        assert!(stale.iter().all(|f| !f.exists()));
+        assert!(keep.iter().all(|f| f.exists()));
+    }
+
+    #[test]
+    fn concurrent_syncs_keep_jar_and_meta_together() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = std::sync::Arc::new(AppPaths {
+            bin_dir: dir.path().join("bin"),
+            data_dir: dir.path().join("data"),
+            config_dir: dir.path().join("config"),
+        });
+        let jar = |browser: &str, n: usize| {
+            (0..n)
+                .map(|i| format!(".{browser}.com\tTRUE\t/\tTRUE\t0\tc{i}\tv\n"))
+                .collect::<String>()
+        };
+        let threads: Vec<_> = [("brave", 3usize), ("edge", 5usize)]
+            .into_iter()
+            .map(|(browser, n)| {
+                let p = p.clone();
+                let text = jar(browser, n);
+                std::thread::spawn(move || {
+                    for _ in 0..20 {
+                        store_from_extension(&p, &text, &format!("extension:{browser}"), None)
+                            .unwrap();
+                    }
+                })
+            })
+            .collect();
+        for t in threads {
+            t.join().unwrap();
+        }
+        let info = info(&p).unwrap();
+        let expected = match info.origin.as_str() {
+            "extension:brave" => 3,
+            "extension:edge" => 5,
+            other => panic!("{other}"),
+        };
+        assert_eq!(info.cookie_count, expected, "meta matches the jar");
+        let leftovers: Vec<_> = std::fs::read_dir(p.auth_dir())
+            .unwrap()
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".tmp"))
+            .collect();
+        assert!(leftovers.is_empty(), "{leftovers:?}");
+    }
+
+    #[test]
+    fn periodic_sweep_spares_fresh_copies() {
+        let tmp = tempfile::tempdir().unwrap();
+        let src = tmp.path().join("src.txt");
+        std::fs::write(&src, "x").unwrap();
+        let none = HashSet::new();
+        let fresh = ephemeral_copy(&src, tmp.path()).unwrap();
+        let running: String = "0b5c5e5a-1d8e-4a52-9a43-6f4f1c6f0e01".into();
+        let in_job = ephemeral_copy(&src, &tmp.path().join(&running)).unwrap();
+        let in_done_job = ephemeral_copy(&src, &tmp.path().join("other")).unwrap();
+        let tiny = Duration::from_nanos(1);
+        std::thread::sleep(Duration::from_millis(20));
+        assert_eq!(
+            sweep_stale_copies_while_running(tmp.path(), STALE_COPY_AGE, &none),
+            0
+        );
+        assert!(fresh.exists());
+        let skip: HashSet<String> = [running].into_iter().collect();
+        assert_eq!(sweep_stale_copies_while_running(tmp.path(), tiny, &skip), 2);
+        assert!(!fresh.exists() && !in_done_job.exists());
+        assert!(in_job.exists(), "a running job keeps its copy");
     }
 
     #[test]

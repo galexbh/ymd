@@ -30,6 +30,9 @@ pub async fn settings_set(state: State<'_>, settings: Settings) -> CmdResult<Set
         );
         *state.paths.write().expect("paths lock") = paths.clone();
         *state.deps.write().await = Arc::new(DepsManager::new(paths, new.ytdlp_channel));
+    } else {
+        // Saving settings is also the user's way to make ymd look at the tools again.
+        state.deps.read().await.invalidate_tools().await;
     }
     if new.language != old.language {
         crate::tray::relabel(&state.app, new.language);

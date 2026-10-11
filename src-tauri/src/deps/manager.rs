@@ -17,7 +17,9 @@ use super::github::{self, Asset, Release};
 use super::manifest::{self, Manifest};
 use super::version::{self, Probe, Tool};
 use super::{archive, jsruntime, nodejs, verify, Tools};
-use crate::model::{DepId, DepPhase, DepProgress, DepState, DepStatus, DepsReport, UpdateChannel};
+use crate::model::{
+    DepId, DepPhase, DepProgress, DepState, DepStatus, DepsReport, JsRuntimeInfo, UpdateChannel,
+};
 use crate::paths::{exe_name, AppPaths};
 use anyhow::{anyhow, bail, Context};
 use futures_util::StreamExt;
@@ -175,15 +177,56 @@ fn remove_managed(path: &Path) -> std::io::Result<()> {
     }
 }
 
-/// Best-effort removal of `*.old` leftovers from previous swaps.
+/// Whether any install or remove holds a lock on `bin_dir` right now.
+fn any_install_running(bin_dir: &Path) -> bool {
+    let map = INSTALL_LOCKS.lock().unwrap_or_else(|p| p.into_inner());
+    map.iter()
+        .any(|((dir, _), l)| dir == bin_dir && l.try_lock().is_err())
+}
+
+/// Best-effort removal of `*.old` leftovers from previous swaps and, when no install is
+/// running, of `*.part` downloads and `.ymd-work-*` dirs an interrupted install left behind.
 fn clean_old_files(bin_dir: &Path) {
     let Ok(entries) = std::fs::read_dir(bin_dir) else {
         return;
     };
+    let installing = any_install_running(bin_dir);
     for e in entries.flatten() {
-        if e.file_name().to_string_lossy().ends_with(".old") {
+        let name = e.file_name().to_string_lossy().into_owned();
+        let is_dir = e.file_type().is_ok_and(|t| t.is_dir());
+        if name.ends_with(".old") && !is_dir {
+            let _ = std::fs::remove_file(e.path());
+        } else if installing {
+            continue;
+        } else if name.starts_with(".ymd-work-") && is_dir {
+            let _ = std::fs::remove_dir_all(e.path());
+        } else if name.ends_with(".part") && !is_dir {
             let _ = std::fs::remove_file(e.path());
         }
+    }
+}
+
+/// How long a JS runtime detection is reused: each one starts up to five `--version`
+/// processes, and every job, probe and cookie test needs the runtime.
+pub const RUNTIME_CACHE_TTL: Duration = Duration::from_secs(10 * 60);
+
+/// The last JS runtime detection and when it ran.
+#[derive(Default)]
+struct RuntimeCache {
+    at: Option<Instant>,
+    runtimes: Vec<JsRuntimeInfo>,
+}
+
+impl RuntimeCache {
+    /// The cached list while younger than `ttl`.
+    fn fresh(&self, now: Instant, ttl: Duration) -> Option<Vec<JsRuntimeInfo>> {
+        let at = self.at?;
+        (now.saturating_duration_since(at) < ttl).then(|| self.runtimes.clone())
+    }
+
+    fn store(&mut self, now: Instant, runtimes: Vec<JsRuntimeInfo>) {
+        self.at = Some(now);
+        self.runtimes = runtimes;
     }
 }
 
@@ -212,6 +255,9 @@ pub struct DepsManager {
     /// Base URL of the Node.js downloads (overridable for tests): `https://nodejs.org/dist`.
     pub node_dist: String,
     pub http: reqwest::Client,
+    /// JS runtimes found last time (see [`RUNTIME_CACHE_TTL`]). A new `DepsManager` (bin dir
+    /// or channel changed) starts empty; install / remove / `invalidate_tools` clear it.
+    runtimes: tokio::sync::Mutex<RuntimeCache>,
 }
 
 impl DepsManager {
@@ -244,7 +290,24 @@ impl DepsManager {
             api_base,
             node_dist,
             http,
+            runtimes: tokio::sync::Mutex::new(RuntimeCache::default()),
         }
+    }
+
+    /// Forgets the cached JS runtime detection (something on disk or in the settings changed).
+    pub async fn invalidate_tools(&self) {
+        *self.runtimes.lock().await = RuntimeCache::default();
+    }
+
+    /// JS runtimes, from the cache while it is fresh, else detected now (and cached).
+    async fn js_runtimes(&self) -> Vec<JsRuntimeInfo> {
+        let mut cache = self.runtimes.lock().await;
+        if let Some(found) = cache.fresh(Instant::now(), RUNTIME_CACHE_TTL) {
+            return found;
+        }
+        let found = jsruntime::detect(&self.paths.bin_dir).await;
+        cache.store(Instant::now(), found.clone());
+        found
     }
 
     fn spec(&self, id: DepId) -> DepSpec {
@@ -285,7 +348,16 @@ impl DepsManager {
         let statuses = futures_util::future::join_all(
             DepId::ALL.map(|id| self.status(id, &manifest, check_latest)),
         );
-        let (deps, js) = tokio::join!(statuses, jsruntime::detect(&self.paths.bin_dir));
+        // A report always looks again (the user asked), and refreshes the cache for `tools`.
+        let detect = async {
+            let found = jsruntime::detect(&self.paths.bin_dir).await;
+            self.runtimes
+                .lock()
+                .await
+                .store(Instant::now(), found.clone());
+            found
+        };
+        let (deps, js) = tokio::join!(statuses, detect);
         Ok(DepsReport {
             bin_dir: self.paths.bin_dir.to_string_lossy().into_owned(),
             deps,
@@ -381,7 +453,9 @@ impl DepsManager {
         let result = async {
             let lock = install_lock(&self.paths.bin_dir, id);
             let _guard = lock.lock().await;
-            self.install_locked(id, &progress).await
+            let result = self.install_locked(id, &progress).await;
+            self.invalidate_tools().await;
+            result
         }
         .instrument(span.clone())
         .await;
@@ -618,6 +692,7 @@ impl DepsManager {
             remove_managed(&p).with_context(|| format!("could not remove {}", p.display()))?;
             let _ = std::fs::remove_file(with_suffix(&p, ".part"));
         }
+        self.invalidate_tools().await;
         if manifest::path(&self.paths.bin_dir).exists() {
             manifest::update(&self.paths.bin_dir, |m| {
                 m.deps.remove(manifest::key(id));
@@ -627,8 +702,9 @@ impl DepsManager {
     }
 
     /// Paths handed to yt-dlp. Managed copies win over system ones.
+    /// The JS runtime comes from a short-lived cache (see [`RUNTIME_CACHE_TTL`]).
     pub async fn tools(&self) -> Tools {
-        let js = jsruntime::detect(&self.paths.bin_dir).await;
+        let js = self.js_runtimes().await;
         let ffmpeg_dir = if self.paths.bin("ffmpeg").is_file() {
             Some(self.paths.bin_dir.clone())
         } else {
@@ -695,6 +771,81 @@ mod tests {
         // Staged file missing: the rename fails and the old binary comes back.
         assert!(swap_into_place(&staged, &final_).is_err());
         assert_eq!(std::fs::read(&final_).unwrap(), b"v1");
+    }
+
+    fn rt(path: &str) -> JsRuntimeInfo {
+        JsRuntimeInfo {
+            name: crate::model::JsRuntimeName::Node,
+            path: path.into(),
+            version: Some("24.0.0".into()),
+            managed: false,
+        }
+    }
+
+    #[test]
+    fn runtime_cache_expires_after_the_ttl() {
+        let ttl = Duration::from_secs(600);
+        let t0 = Instant::now();
+        let mut c = RuntimeCache::default();
+        assert!(c.fresh(t0, ttl).is_none(), "empty");
+        c.store(t0, vec![rt("node")]);
+        assert_eq!(
+            c.fresh(t0 + Duration::from_secs(599), ttl).unwrap().len(),
+            1
+        );
+        assert!(c.fresh(t0 + ttl, ttl).is_none(), "expired");
+        // An empty detection is cached too (no runtime installed).
+        c.store(t0, vec![]);
+        assert!(c.fresh(t0, ttl).is_some_and(|v| v.is_empty()));
+    }
+
+    #[tokio::test]
+    async fn tools_reuse_the_detection_until_invalidated() {
+        let dir = tempfile::tempdir().unwrap();
+        let paths = AppPaths::new(dir.path().into(), dir.path().into(), None);
+        let m = DepsManager::new(paths, UpdateChannel::Stable);
+        // Seed the cache with a runtime no detection would find: `tools` must reuse it.
+        m.runtimes
+            .lock()
+            .await
+            .store(Instant::now(), vec![rt("cached-node")]);
+        let first = m.tools().await.js_runtime.map(|r| r.path);
+        assert_eq!(first.as_deref(), Some("cached-node"));
+        m.invalidate_tools().await;
+        let again = m.tools().await.js_runtime.map(|r| r.path);
+        assert_ne!(again.as_deref(), Some("cached-node"), "detected afresh");
+        // A report refreshes the cache as well.
+        m.runtimes
+            .lock()
+            .await
+            .store(Instant::now(), vec![rt("cached-node")]);
+        let report = m.report(false).await.unwrap();
+        assert!(report
+            .js_runtimes_found
+            .iter()
+            .all(|r| r.path != "cached-node"));
+        let after = m.tools().await.js_runtime.map(|r| r.path);
+        assert_ne!(after.as_deref(), Some("cached-node"));
+    }
+
+    #[test]
+    fn interrupted_install_leftovers_are_cleaned_when_idle() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = dir.path().join("bin");
+        let work = bin.join(".ymd-work-ytdlp-0123456789abcdef0123456789abcdef");
+        std::fs::create_dir_all(work.join("extract")).unwrap();
+        std::fs::write(bin.join("yt-dlp.exe.part"), b"x").unwrap();
+        std::fs::write(bin.join("yt-dlp.exe"), b"x").unwrap();
+        // While an install runs nothing of it is touched.
+        let lock = install_lock(&bin, DepId::Ffmpeg);
+        let guard = lock.try_lock().unwrap();
+        clean_old_files(&bin);
+        assert!(work.exists() && bin.join("yt-dlp.exe.part").exists());
+        drop(guard);
+        clean_old_files(&bin);
+        assert!(!work.exists());
+        assert!(!bin.join("yt-dlp.exe.part").exists());
+        assert!(bin.join("yt-dlp.exe").exists());
     }
 
     #[test]

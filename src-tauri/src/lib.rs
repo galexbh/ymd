@@ -10,6 +10,7 @@ pub mod paths;
 pub mod process;
 pub mod settings;
 pub mod state;
+pub mod timers;
 pub mod tray;
 pub mod ytdlp;
 
@@ -111,6 +112,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         diagnostics::retention::LOG_MAX_BYTES,
     );
     if let Some(guard) = diagnostics::logging::init_app(&logs_dir) {
+        // Flushed on `RunEvent::Exit` (Tauri never drops managed state).
         app.manage(guard);
     }
     tracing::info!(
@@ -135,8 +137,29 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     if swept > 0 {
         log::info!("removed {swept} left-over cookie copies");
     }
+    // Temp files of an interrupted cookie sync (a native host killed mid-write).
+    let swept = auth::cookies::sweep_auth_temps(&paths);
+    if swept > 0 {
+        log::info!("removed {swept} left-over cookie temp files");
+    }
 
     let history = Arc::new(History::open(&paths.history_db())?);
+    // Downloads nobody resumed for weeks: forget the row and delete the partial files.
+    let cutoff = chrono::Utc::now() - chrono::Duration::days(history::PENDING_MAX_AGE_DAYS);
+    match history.pending_expire(cutoff) {
+        Ok(expired) => {
+            for id in &expired {
+                jobs::discard_tmp(&paths.tmp_dir(), id);
+            }
+            if !expired.is_empty() {
+                log::info!(
+                    "forgot {} unfinished downloads older than 14 days",
+                    expired.len()
+                );
+            }
+        }
+        Err(e) => log::warn!("pending jobs: cannot expire old ones: {e:#}"),
+    }
     // Job dirs survive only for downloads that can still be resumed (nothing auto-starts:
     // the Cola screen offers them). Any other `tmp/<uuid>` is left over from a crash.
     let keep: std::collections::HashSet<_> = match history.pending_list() {
@@ -193,10 +216,10 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => log::warn!("cookie bridge: cannot resolve the executable: {e}"),
     });
 
-    // Log retention: daily (startup already pruned).
-    tauri::async_runtime::spawn(async move {
-        loop {
-            tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+    // Log retention: daily, by the wall clock (startup already pruned).
+    timers::spawn_periodic(timers::DAY, timers::DAILY_TICK, false, move || {
+        let logs_dir = logs_dir.clone();
+        async move {
             let removed = diagnostics::retention::prune_logs(
                 &logs_dir,
                 std::time::SystemTime::now(),
@@ -207,14 +230,52 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // yt-dlp auto-update: on startup, then every 24h.
-    tauri::async_runtime::spawn(async move {
-        loop {
-            commands::deps::auto_update(handle.clone(), state.clone()).await;
-            tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+    // yt-dlp auto-update: on startup, then once a day by the wall clock.
+    let update_state = state.clone();
+    timers::spawn_periodic(timers::DAY, timers::DAILY_TICK, true, move || {
+        commands::deps::auto_update(handle.clone(), update_state.clone())
+    });
+
+    // Temporary files (job dirs a Windows handle kept, crash leftovers, cookie copies): a tray
+    // session can last for weeks, so they are swept every 30 minutes too.
+    timers::spawn_periodic(timers::SWEEP_PERIOD, timers::SWEEP_TICK, false, move || {
+        let state = state.clone();
+        async move {
+            let result = tokio::task::spawn_blocking(move || sweep_temporaries(&state)).await;
+            if let Ok((dirs, copies)) = result {
+                if dirs + copies > 0 {
+                    log::info!(
+                        "periodic sweep: removed {dirs} job folders, {copies} cookie copies"
+                    );
+                }
+            }
         }
     });
     Ok(())
+}
+
+/// One periodic clean-up of `tmp/`: job dirs of no active or resumable job, and cookie copies
+/// no probe, cookie test or running job can still be using.
+fn sweep_temporaries(state: &AppState) -> (usize, usize) {
+    let tmp = state.paths().tmp_dir();
+    let history = state.history.clone();
+    let dirs = state.jobs.sweep_tmp(move || match history.pending_list() {
+        Ok(rows) => rows.into_iter().map(|p| p.id).collect(),
+        // Unknown rows: keep every job dir this time.
+        Err(_) => std::fs::read_dir(&tmp)
+            .map(|it| {
+                it.flatten()
+                    .map(|e| e.file_name().to_string_lossy().into_owned())
+                    .collect()
+            })
+            .unwrap_or_default(),
+    });
+    let copies = auth::cookies::sweep_stale_copies_while_running(
+        &state.paths().tmp_dir(),
+        auth::cookies::STALE_COPY_AGE,
+        &state.jobs.active_ids(),
+    );
+    (dirs, copies)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -285,6 +346,12 @@ pub fn run() {
                     if let Some(state) = app.try_state::<Arc<AppState>>() {
                         let jobs = state.jobs.clone();
                         tauri::async_runtime::block_on(async move { jobs.shutdown().await });
+                    }
+                    if matches!(event, tauri::RunEvent::Exit) {
+                        tracing::info!("ymd exiting");
+                        if let Some(guard) = app.try_state::<diagnostics::logging::LogGuard>() {
+                            guard.flush();
+                        }
                     }
                 }
                 // macOS: clicking the Dock icon brings back a window hidden to the menu bar.

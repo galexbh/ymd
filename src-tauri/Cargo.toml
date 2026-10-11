@@ -6,7 +6,8 @@ authors = ["galexbh"]
 license = "MIT"
 repository = "https://github.com/galexbh/ymd"
 edition = "2021"
-rust-version = "1.80"
+# Tauri 2 already needs 1.90; ymd itself uses `std::fs::File::lock` (1.89).
+rust-version = "1.90"
 
 [lib]
 # The `_lib` suffix keeps the lib name distinct from the bin on Windows (cargo#8519).

@@ -29,6 +29,8 @@ struct FakeEnv {
     schedules: Mutex<Vec<Option<String>>>,
     /// Real history database (on disk) holding the pending rows.
     history: Arc<History>,
+    /// Ids reported through `JobEnv::removed` (evicted finished jobs).
+    removed: Mutex<Vec<JobId>>,
 }
 
 impl JobEnv for FakeEnv {
@@ -39,6 +41,8 @@ impl JobEnv for FakeEnv {
         Box::pin(async move { self.tools.clone() })
     }
     fn auth_args(&self, req: &EnqueueRequest) -> Vec<String> {
+        // Lets a test crash the job runner mid-job (panic safety).
+        assert!(req.url != "fake://panic", "fake env panics on purpose");
         let mut args: Vec<String> = match &req.video_password {
             Some(p) => vec!["--video-password".into(), p.clone()],
             None => vec![],
@@ -81,6 +85,9 @@ impl JobEnv for FakeEnv {
     }
     fn pending_delete(&self, id: &JobId) {
         self.history.pending_delete(id).unwrap();
+    }
+    fn removed(&self, id: &JobId) {
+        self.removed.lock().unwrap().push(id.clone());
     }
 }
 
@@ -142,6 +149,7 @@ fn harness_with(concurrency: u32, ytdlp: Option<PathBuf>) -> Harness {
         cookies: Mutex::new(None),
         schedules: Mutex::new(vec![]),
         history: Arc::new(History::open(&root.join("history.sqlite3")).unwrap()),
+        removed: Mutex::new(vec![]),
     });
     let jobs = JobManager::new(env.clone());
     Harness {
@@ -541,9 +549,21 @@ async fn missing_binary_and_unknown_preset() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn retry_remove_and_clear() {
     let h = harness(2);
+    // A job given a video password forgets it when it ends: retrying it asks for the link again.
     let mut r = req("fake://error/network", "mp4-1080");
     r.video_password = Some("s3cret".into());
-    let failed = h.jobs.enqueue(r).await.unwrap();
+    let secret = h.jobs.enqueue(r).await.unwrap();
+    assert_eq!(h.wait_terminal(&secret.id).await.stage, JobStage::Error);
+    let err = h.jobs.retry(&secret.id).await.unwrap_err();
+    let ce: CommandError = err.downcast().unwrap();
+    assert_eq!(ce.code, ErrorCode::LoginRequired);
+    h.jobs.remove(&secret.id).await.unwrap();
+
+    let failed = h
+        .jobs
+        .enqueue(req("fake://error/network", "mp4-1080"))
+        .await
+        .unwrap();
     assert_eq!(h.wait_terminal(&failed.id).await.stage, JobStage::Error);
 
     let retried = h.jobs.retry(&failed.id).await.unwrap();
@@ -1036,4 +1056,113 @@ fn orphan_tmp_dirs_are_swept_and_discard_only_takes_job_ids() {
     assert!(!jobs::discard_tmp(&tmp, &kept.to_uppercase()));
     assert!(jobs::discard_tmp(&tmp, kept));
     assert!(!tmp.join(kept).exists());
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn only_the_newest_finished_jobs_are_kept() {
+    let h = harness(1);
+    let active = h
+        .jobs
+        .enqueue(req("fake://hang", "mp4-1080"))
+        .await
+        .unwrap();
+    h.wait("running", |jobs| {
+        jobs.iter()
+            .any(|j| j.id == active.id && j.stage == JobStage::Downloading)
+    })
+    .await;
+    // Hold the queue so the rest stay queued, then end them (cancel) one by one.
+    h.jobs.set_start_at(Some(in_ms(60 * 60 * 1000)));
+    let extra = 5;
+    let mut ended = Vec::new();
+    for _ in 0..jobs::MAX_FINISHED_JOBS + extra {
+        let j = h
+            .jobs
+            .enqueue(req("fake://success", "mp4-1080"))
+            .await
+            .unwrap();
+        h.jobs.cancel(&j.id).await.unwrap();
+        ended.push(j.id);
+    }
+    let still_queued = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+
+    let removed = h.env.removed.lock().unwrap().clone();
+    assert_eq!(removed, ended[..extra].to_vec(), "oldest finished first");
+    let listed: Vec<JobId> = h.jobs.list().await.into_iter().map(|j| j.id).collect();
+    assert_eq!(listed.len(), jobs::MAX_FINISHED_JOBS + 2);
+    assert!(
+        listed.contains(&active.id),
+        "a running job is never evicted"
+    );
+    assert!(
+        listed.contains(&still_queued.id),
+        "a queued job is never evicted"
+    );
+    assert!(!listed.contains(&ended[0]));
+    assert!(listed.contains(&ended[extra]));
+
+    h.jobs.set_start_at(None);
+    h.jobs.cancel(&active.id).await.unwrap();
+    h.jobs.cancel(&still_queued.id).await.unwrap();
+    h.wait_terminal(&active.id).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_panic_in_a_job_fails_it_and_frees_the_slot() {
+    let h = harness(1);
+    let crashed = h
+        .jobs
+        .enqueue(req("fake://panic", "mp4-1080"))
+        .await
+        .unwrap();
+    let next = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    let job = h.wait_terminal(&crashed.id).await;
+    assert_eq!(job.stage, JobStage::Error);
+    let err = job.error.unwrap();
+    assert_eq!(err.code, ErrorCode::Unknown);
+    assert!(err.detail.starts_with("internal error"), "{}", err.detail);
+    // The slot was released (concurrency 1): the next job runs to the end.
+    assert_eq!(h.wait_terminal(&next.id).await.stage, JobStage::Done);
+    wait_no_pending(&h.env.history).await;
+    assert!(!h.root.join("tmp").join(&crashed.id).exists());
+    assert_eq!(h.jobs.active_count().await, 0);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn periodic_tmp_sweep_keeps_active_and_pending_dirs() {
+    let h = harness(1);
+    let running = h
+        .jobs
+        .enqueue(req("fake://hang", "mp4-1080"))
+        .await
+        .unwrap();
+    let tmp = h.root.join("tmp");
+    hang_pids(&tmp.join(&running.id)).await;
+    let orphan = tmp.join(uuid::Uuid::new_v4().to_string());
+    let resumable = uuid::Uuid::new_v4().to_string();
+    for d in [&orphan, &tmp.join(&resumable)] {
+        std::fs::create_dir_all(d).unwrap();
+        std::fs::write(d.join("a.part"), b"x").unwrap();
+    }
+    let removed = h
+        .jobs
+        .sweep_tmp(|| [resumable.clone()].into_iter().collect());
+    assert_eq!(removed, 1);
+    assert!(!orphan.exists());
+    assert!(tmp.join(&resumable).exists());
+    assert!(
+        tmp.join(&running.id).exists(),
+        "a running job keeps its dir"
+    );
+    assert!(h.jobs.leftover_dirs().is_empty());
+    h.jobs.cancel(&running.id).await.unwrap();
+    h.wait_terminal(&running.id).await;
 }

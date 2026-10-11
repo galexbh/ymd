@@ -10,6 +10,8 @@ use std::process::Stdio;
 use std::time::Duration;
 
 pub const PROBE_TIMEOUT: Duration = Duration::from_secs(60);
+/// How long the output pipes may stay open after yt-dlp exited (a stray child holding them).
+const PIPE_GRACE: Duration = Duration::from_secs(5);
 
 /// Run yt-dlp and parse. Errors are classified with `errors::classify`.
 pub async fn probe(url: &str, tools: &Tools, auth_args: &[String]) -> CmdResult<ProbeResult> {
@@ -32,7 +34,7 @@ pub async fn probe_with_timeout(
             "yt-dlp is not installed",
         ));
     };
-    let child = crate::process::command(ytdlp)
+    let mut child = crate::process::command(ytdlp)
         .args(args::probe_args(url, tools, auth_args))
         .envs(args::child_env(tools))
         .stdin(Stdio::null())
@@ -51,28 +53,52 @@ pub async fn probe_with_timeout(
             _ => CommandError::unknown(e),
         })?;
 
-    // On timeout the future (and the child, `kill_on_drop`) is dropped, which kills yt-dlp.
-    let output = match tokio::time::timeout(timeout, child.wait_with_output()).await {
-        Ok(Ok(out)) => out,
+    let read_all = |pipe: Option<Box<dyn tokio::io::AsyncRead + Send + Unpin>>| {
+        tokio::spawn(async move {
+            use tokio::io::AsyncReadExt;
+            let mut buf = Vec::new();
+            if let Some(mut p) = pipe {
+                let _ = p.read_to_end(&mut buf).await;
+            }
+            buf
+        })
+    };
+    let out_reader = read_all(child.stdout.take().map(|p| Box::new(p) as _));
+    let err_reader = read_all(child.stderr.take().map(|p| Box::new(p) as _));
+    let status = match tokio::time::timeout(timeout, child.wait()).await {
+        Ok(Ok(status)) => status,
         Ok(Err(e)) => return Err(CommandError::unknown(e)),
         Err(_) => {
+            // Take down yt-dlp and whatever it started (a dropped handle alone would leave
+            // its children running).
+            crate::process::kill_tree(&mut child).await;
+            out_reader.abort();
+            err_reader.abort();
             return Err(CommandError::new(
                 ErrorCode::Network,
                 format!("yt-dlp did not answer within {}s", timeout.as_secs()),
-            ))
+            ));
         }
     };
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    if !output.status.success() {
+    // The process is gone; a grandchild holding the pipes open must not stall the probe.
+    let collect = |reader: tokio::task::JoinHandle<Vec<u8>>| async move {
+        match tokio::time::timeout(PIPE_GRACE, reader).await {
+            Ok(Ok(buf)) => buf,
+            _ => Vec::new(),
+        }
+    };
+    let (stdout, stderr) = tokio::join!(collect(out_reader), collect(err_reader));
+    let stderr = String::from_utf8_lossy(&stderr);
+    if !status.success() {
         let e = errors::to_job_error(&stderr);
         let detail = if e.detail.is_empty() {
-            format!("yt-dlp exited with {}", output.status)
+            format!("yt-dlp exited with {status}")
         } else {
             e.detail
         };
         return Err(CommandError::new(e.code, detail));
     }
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout = String::from_utf8_lossy(&stdout);
     // `-J` prints one JSON document; be lenient about stray lines around it.
     let json: Value = serde_json::from_str(stdout.trim())
         .or_else(|_| {

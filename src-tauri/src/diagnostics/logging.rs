@@ -18,7 +18,23 @@ pub const LOG_PREFIX: &str = "ymd";
 pub const LOG_SUFFIX: &str = "jsonl";
 
 /// Keeps the background writer alive (dropping it flushes and stops it). Managed state.
-pub struct LogGuard(#[allow(dead_code)] tracing_appender::non_blocking::WorkerGuard);
+///
+/// Tauri ends the process without dropping managed state, so the app calls [`LogGuard::flush`]
+/// on `RunEvent::Exit`; otherwise the last records ("ymd exiting", the jobs killed on quit)
+/// could still be queued for the writer thread and get lost.
+pub struct LogGuard(std::sync::Mutex<Option<tracing_appender::non_blocking::WorkerGuard>>);
+
+impl LogGuard {
+    pub fn new(guard: tracing_appender::non_blocking::WorkerGuard) -> Self {
+        Self(std::sync::Mutex::new(Some(guard)))
+    }
+
+    /// Writes out everything queued and stops the writer (later records are dropped).
+    pub fn flush(&self) {
+        let guard = self.0.lock().unwrap_or_else(|p| p.into_inner()).take();
+        drop(guard);
+    }
+}
 
 /// Writer that buffers one formatted record and writes it redacted when dropped / flushed.
 pub struct RedactingWriter<W: Write> {
@@ -125,7 +141,7 @@ pub fn init_app(dir: &Path) -> Option<LogGuard> {
         }
     };
     let (writer, guard) = tracing_appender::non_blocking(file);
-    install(json_layer(writer)).then_some(LogGuard(guard))
+    install(json_layer(writer)).then(|| LogGuard::new(guard))
 }
 
 /// The cookie-bridge host: file only and synchronous (the process exits right after
@@ -186,6 +202,34 @@ mod tests {
         assert_eq!(v["span"]["name"], "job");
         assert_eq!(v["span"]["id"], "3f2a8d5e-1b2c-4d3e-8f9a-0b1c2d3e4f5a");
         assert!(!out.contains("hunter2") && !out.contains("abc"));
+    }
+
+    /// A writer slow enough that records pile up in the non-blocking queue.
+    #[derive(Clone, Default)]
+    struct SlowSink(Arc<Mutex<Vec<u8>>>);
+    impl Write for SlowSink {
+        fn write(&mut self, b: &[u8]) -> io::Result<usize> {
+            std::thread::sleep(std::time::Duration::from_millis(2));
+            self.0.lock().unwrap().extend_from_slice(b);
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn flushing_the_guard_writes_every_queued_record() {
+        let sink = SlowSink::default();
+        let (mut writer, guard) = tracing_appender::non_blocking(sink.clone());
+        let guard = LogGuard::new(guard);
+        for i in 0..100 {
+            writer.write_all(format!("line {i}\n").as_bytes()).unwrap();
+        }
+        guard.flush();
+        let out = String::from_utf8(sink.0.lock().unwrap().clone()).unwrap();
+        assert_eq!(out.lines().count(), 100, "{out}");
+        guard.flush(); // a second exit event is harmless
     }
 
     #[test]

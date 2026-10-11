@@ -430,16 +430,19 @@ fn firefox_profile_path(root: &Path, p: &FirefoxProfile) -> PathBuf {
 
 /// Best-effort set of running process names (lower-case, basename). Empty on any failure.
 fn running_processes() -> HashSet<String> {
-    let output = if cfg!(windows) {
+    let mut cmd = if cfg!(windows) {
         sync_command("tasklist")
-            .args(["/FO", "CSV", "/NH"])
-            .output()
     } else {
-        sync_command("ps").args(["-A", "-o", "comm="]).output()
+        sync_command("ps")
     };
-    match output {
-        Ok(o) if o.status.success() => parse_process_list(&String::from_utf8_lossy(&o.stdout)),
-        _ => HashSet::new(),
+    if cfg!(windows) {
+        cmd.args(["/FO", "CSV", "/NH"]);
+    } else {
+        cmd.args(["-A", "-o", "comm="]);
+    }
+    match crate::process::stdout_within(cmd, crate::process::QUERY_TIMEOUT) {
+        Some(out) => parse_process_list(&String::from_utf8_lossy(&out)),
+        None => HashSet::new(),
     }
 }
 

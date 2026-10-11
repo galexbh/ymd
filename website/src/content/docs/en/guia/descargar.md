@@ -106,11 +106,16 @@ If ymd closes with downloads running or queued (with **Quit**, when the computer
 
 Downloads don't resume automatically. Those that used a **Video password** or a **Verification code (2FA)** are listed separately, because ymd never stores that data: paste their link again in **Receive** and enter that data again.
 
+An unfinished download nobody resumes within 14 days is forgotten when ymd starts, along with its partial files.
+
 ## The ledger
 
 The **Ledger** screen lists every download in the session, newest first, with its number (**No.**), title, format, size, exact progress in bytes, speed, time left and status. You can filter by status (**Running**, **Queued**, **Archived**, **Failed**) and **Clear finished**. The **Receive** screen shows this session's ledger under the counter.
 
 Each row has its actions: **Cancel**, **Retry**, **Open file**, **Show in folder** and **Remove from ledger**.
+
+- **Retry** doesn't work for a download that used a **Video password** or a **Verification code (2FA)**: ymd forgets them as soon as the download ends. Paste the link again in **Receive** and enter them again.
+- ymd can stay in the system tray for days: the ledger keeps the 200 most recent finished downloads and removes older ones by itself. Running and queued downloads are never removed.
 
 ## Stamps
 

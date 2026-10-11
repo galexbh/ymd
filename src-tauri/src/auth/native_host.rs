@@ -382,19 +382,46 @@ fn store_cookies(
 /// Run the host. `args[0]` is the caller origin; the rest (`--parent-window=N`) is ignored.
 /// Returns the process exit code: 0 after a reply (even an error reply), 1 when the origin is
 /// not allowed (nothing is read or written) or the reply cannot be written.
-pub fn host_main<R: Read, W: Write>(
+pub fn host_main<R: Read, W: Write>(args: &[String], data_dir: &Path, stdin: R, stdout: W) -> i32 {
+    host_main_with(args, data_dir, stdin, stdout, handle, HANDLE_TIMEOUT)
+}
+
+/// Longest a message may take to handle (e.g. a keychain prompt nobody answers) before the
+/// host gives up with `{ok:false, code:"host_failed", detail:"timeout"}`: the browser would
+/// otherwise wait on a host process that never exits.
+pub const HANDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
+
+/// [`host_main`] with the request handler and its time limit injected (tests).
+pub fn host_main_with<R, W, H>(
     args: &[String],
     data_dir: &Path,
     mut stdin: R,
     mut stdout: W,
-) -> i32 {
+    handler: H,
+    timeout: std::time::Duration,
+) -> i32
+where
+    R: Read,
+    W: Write,
+    H: FnOnce(Request, &Path) -> Result<Value, CommandError> + Send + 'static,
+{
     if !args.first().is_some_and(|o| is_allowed_origin(o)) {
         log::warn!("cookie bridge: rejected origin {:?}", args.first());
         return 1;
     }
     let (reply, code) = match read_message(&mut stdin) {
-        Ok(body) => match parse_request(&body).and_then(|r| handle(r, data_dir)) {
-            Ok(v) => (v, 0),
+        Ok(body) => match parse_request(&body) {
+            Ok(req) => match run_with_watchdog(req, data_dir, handler, timeout) {
+                Some(Ok(v)) => (v, 0),
+                Some(Err(e)) => (error_reply(&e), 0),
+                None => {
+                    log::warn!("cookie bridge: request timed out");
+                    (
+                        json!({"ok": false, "code": "host_failed", "detail": "timeout"}),
+                        0,
+                    )
+                }
+            },
             Err(e) => (error_reply(&e), 0),
         },
         Err(e) => (
@@ -405,6 +432,32 @@ pub fn host_main<R: Read, W: Write>(
     match write_message(&mut stdout, &reply) {
         Ok(()) => code,
         Err(_) => 1,
+    }
+}
+
+/// Runs `handler` on a worker thread; `None` when it did not finish within `timeout` (the
+/// worker is left behind: the host process exits right after replying).
+fn run_with_watchdog<H>(
+    req: Request,
+    data_dir: &Path,
+    handler: H,
+    timeout: std::time::Duration,
+) -> Option<Result<Value, CommandError>>
+where
+    H: FnOnce(Request, &Path) -> Result<Value, CommandError> + Send + 'static,
+{
+    let (tx, rx) = std::sync::mpsc::channel();
+    let dir = data_dir.to_path_buf();
+    std::thread::spawn(move || {
+        let _ = tx.send(handler(req, &dir));
+    });
+    match rx.recv_timeout(timeout) {
+        Ok(result) => Some(result),
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => None,
+        // The handler panicked.
+        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => Some(Err(CommandError::unknown(
+            "the request could not be handled",
+        ))),
     }
 }
 
@@ -770,6 +823,47 @@ mod tests {
         );
         let reply = read_message(&mut out.as_slice()).unwrap();
         (code, serde_json::from_slice(&reply).unwrap())
+    }
+
+    #[test]
+    fn a_stuck_handler_gets_a_timeout_reply() {
+        let dir = tempfile::tempdir().unwrap();
+        let input = frame(br#"{"type":"hello","version":1}"#);
+        let mut out = Vec::new();
+        let started = std::time::Instant::now();
+        let code = host_main_with(
+            &[allowed_origin()],
+            dir.path(),
+            &input[..],
+            &mut out,
+            |_, _| {
+                std::thread::sleep(std::time::Duration::from_secs(5));
+                Ok(json!({"ok": true}))
+            },
+            std::time::Duration::from_millis(100),
+        );
+        assert!(started.elapsed() < std::time::Duration::from_secs(4));
+        assert_eq!(code, 0);
+        let v: Value = serde_json::from_slice(&read_message(&mut out.as_slice()).unwrap()).unwrap();
+        assert_eq!(
+            v,
+            json!({"ok": false, "code": "host_failed", "detail": "timeout"})
+        );
+
+        // A panicking handler still gets a reply.
+        let mut out = Vec::new();
+        let code = host_main_with(
+            &[allowed_origin()],
+            dir.path(),
+            &input[..],
+            &mut out,
+            |_, _| panic!("handler crashed"),
+            std::time::Duration::from_secs(5),
+        );
+        assert_eq!(code, 0);
+        let v: Value = serde_json::from_slice(&read_message(&mut out.as_slice()).unwrap()).unwrap();
+        assert_eq!(v["ok"], false);
+        assert_eq!(v["code"], "unknown");
     }
 
     #[test]

@@ -203,19 +203,48 @@ pub fn to_job_error(stderr: &str) -> JobError {
 }
 
 pub fn last_error_line(stderr: &str) -> String {
-    stderr
-        .lines()
-        .rev()
-        .find(|l| l.contains("ERROR"))
-        .or_else(|| stderr.lines().rev().find(|l| !l.trim().is_empty()))
-        .unwrap_or("")
-        .trim()
-        .to_string()
+    cap_detail(
+        stderr
+            .lines()
+            .rev()
+            .find(|l| l.contains("ERROR"))
+            .or_else(|| stderr.lines().rev().find(|l| !l.trim().is_empty()))
+            .unwrap_or("")
+            .trim(),
+    )
+}
+
+/// Longest error detail kept (a job can stay in the list for days).
+pub const MAX_DETAIL_BYTES: usize = 2 * 1024;
+
+/// `detail` cut to at most [`MAX_DETAIL_BYTES`] (on a character boundary, with `…`).
+pub fn cap_detail(detail: &str) -> String {
+    if detail.len() <= MAX_DETAIL_BYTES {
+        return detail.to_string();
+    }
+    let mut end = MAX_DETAIL_BYTES - '…'.len_utf8();
+    while !detail.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!("{}…", &detail[..end])
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn details_are_capped() {
+        assert_eq!(cap_detail("short"), "short");
+        let exact = "x".repeat(MAX_DETAIL_BYTES);
+        assert_eq!(cap_detail(&exact), exact);
+        let long = format!("ERROR: {}", "ñ".repeat(MAX_DETAIL_BYTES));
+        let capped = cap_detail(&long);
+        assert!(capped.len() <= MAX_DETAIL_BYTES, "{}", capped.len());
+        assert!(capped.starts_with("ERROR: ñ") && capped.ends_with('…'));
+        let line = last_error_line(&format!("noise\n{long}\n"));
+        assert_eq!(line, capped);
+    }
 
     #[test]
     fn errors_win_over_warnings() {

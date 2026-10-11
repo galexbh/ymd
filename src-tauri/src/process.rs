@@ -23,6 +23,52 @@ pub fn command(program: impl AsRef<OsStr>) -> Command {
     cmd
 }
 
+/// Time limit for the small system queries ymd runs synchronously (`tasklist`, `ps`,
+/// `defaults`, `xdg-settings`): a stuck one must not stall the screen that asked.
+pub const QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Runs a blocking `cmd` (stdin null, stdout piped, stderr discarded) and returns its stdout
+/// when it exits successfully within `timeout`. On timeout the process is killed and `None`
+/// comes back.
+pub fn stdout_within(
+    mut cmd: std::process::Command,
+    timeout: std::time::Duration,
+) -> Option<Vec<u8>> {
+    use std::io::Read;
+    let mut child = cmd
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .ok()?;
+    let mut out = child.stdout.take()?;
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = out.read_to_end(&mut buf);
+        let _ = tx.send(buf);
+    });
+    let deadline = std::time::Instant::now() + timeout;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) if std::time::Instant::now() < deadline => {
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            _ => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return None;
+            }
+        }
+    };
+    let left = deadline.saturating_duration_since(std::time::Instant::now());
+    let stdout = rx
+        .recv_timeout(left.max(std::time::Duration::from_millis(500)))
+        .ok()?;
+    status.success().then_some(stdout)
+}
+
 /// Kill a child and every process it spawned (yt-dlp → ffmpeg / aria2c).
 pub async fn kill_tree(child: &mut Child) {
     let Some(pid) = child.id() else {

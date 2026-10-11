@@ -504,6 +504,36 @@ fn pending_rows_round_trip_replace_and_delete() {
 }
 
 #[test]
+fn old_pending_rows_expire() {
+    let h = History::open_in_memory().unwrap();
+    let mut old = pending("old", 1);
+    old.created_at = "2026-09-01T10:00:00Z".into();
+    let mut offset = pending("offset", 2);
+    offset.created_at = "2026-09-14T23:00:00-06:00".into(); // 2026-09-15T05:00Z
+    let mut recent = pending("recent", 3);
+    recent.created_at = "2026-10-01T10:00:00.123456+00:00".into();
+    let mut odd = pending("odd", 4);
+    odd.created_at = "not a date".into();
+    for p in [&old, &offset, &recent, &odd] {
+        h.pending_save(p).unwrap();
+    }
+    let cutoff = chrono::DateTime::parse_from_rfc3339("2026-09-16T00:00:00Z")
+        .unwrap()
+        .with_timezone(&chrono::Utc);
+    let mut expired = h.pending_expire(cutoff).unwrap();
+    expired.sort();
+    assert_eq!(expired, ["offset", "old"]);
+    let left: Vec<_> = h
+        .pending_list()
+        .unwrap()
+        .into_iter()
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(left, ["recent", "odd"]);
+    assert!(h.pending_expire(cutoff).unwrap().is_empty());
+}
+
+#[test]
 fn next_number_also_counts_pending_jobs() {
     let h = History::open_in_memory().unwrap();
     assert_eq!(h.max_seq_hint(), 0);

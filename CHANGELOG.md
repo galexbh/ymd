@@ -10,6 +10,18 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **Ventana de la extensión más limpia.** El campo para escribir un sitio queda plegado tras **+ Otro sitio…**: los sitios conocidos se agregan con **Sitios sugeridos** o **Usar mi sesión de …**. Extensión 1.4.2.
 - El interruptor «Actualizar yt-dlp solo» se llama ahora **Actualizar yt-dlp automáticamente** (**Ajustes → Avanzado → yt-dlp**).
 
+### Correcciones
+
+- **ymd en la bandeja ya no acumula descargas terminadas ni archivos temporales.** El **Registro** guarda las 200 descargas terminadas más recientes y quita solas las más antiguas; cada 30 minutos se borran las carpetas temporales y las copias de cookies que nadie usa, y al abrir ymd también los restos de una sincronización o una instalación interrumpidas. Las descargas sin terminar que nadie reanuda en 14 días se olvidan con sus archivos parciales.
+- La contraseña del video y el código 2FA se olvidan en cuanto termina la descarga: **Reintentar** pide volver a pegar el enlace en **Recibir**.
+- La limpieza de registros y la actualización diaria de yt-dlp siguen el reloj real: ya no se atrasan días cuando el equipo duerme.
+- Una línea de progreso sin fin de yt-dlp o ffmpeg ya no hace crecer la memoria, y el detalle de un error se recorta a 2 KB.
+- Un análisis de enlace que no responde en 60 s cierra yt-dlp y los procesos que haya abierto. Las consultas al sistema (navegador predeterminado, procesos abiertos) tienen un límite de 5 s.
+- Un fallo interno durante una descarga la marca como fallida y libera su lugar en la cola, en vez de bloquearla.
+- Dos navegadores que sincronizan cookies a la vez ya no mezclan el archivo de cookies con los datos de otro envío, y el puente responde con un error si una petición tarda más de 20 s.
+- ymd busca entornos JavaScript una vez cada 10 minutos (o al instalar o quitar uno), no en cada descarga.
+- Las últimas líneas del registro local se escriben antes de salir.
+
 ### Proyecto
 
 - Se eliminó el código de migración de versiones anteriores (ajustes, cookies, extensión y protocolo del puente); el protocolo exige ahora `version` y `extension`. Extensión 1.4.3.

@@ -22,6 +22,27 @@ fn version_flag() {
     assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "2025.01.01");
 }
 
+/// `process::stdout_within` (used for `tasklist`, `ps`, `defaults`, `xdg-settings`).
+#[test]
+fn system_queries_are_bounded() {
+    use std::time::{Duration, Instant};
+    use ymd_lib::process::stdout_within;
+    let mut v = fake();
+    v.arg("--version").env("FAKE_YTDLP_VERSION", "2025.02.02");
+    let out = stdout_within(v, Duration::from_secs(20)).expect("answers in time");
+    assert_eq!(String::from_utf8_lossy(&out).trim(), "2025.02.02");
+
+    let mut stuck = fake();
+    stuck.arg("https://x").env("FAKE_YTDLP_SCENARIO", "sleep");
+    let started = Instant::now();
+    assert!(stdout_within(stuck, Duration::from_millis(300)).is_none());
+    assert!(started.elapsed() < Duration::from_secs(10));
+
+    let mut failing = fake();
+    failing.arg("fake://error/network");
+    assert!(stdout_within(failing, Duration::from_secs(20)).is_none());
+}
+
 #[test]
 fn success_scenario_writes_the_file_into_dash_p() {
     let dir = tempfile::tempdir().unwrap();
