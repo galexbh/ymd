@@ -78,13 +78,14 @@ jobs:
               - pnpm-lock.yaml
               - vite.config.ts
               - tsconfig*.json
-              - eslint.config.js
+              - .oxlintrc.json
               - playwright.config.ts
               - src-tauri/tauri.conf.json
               - src-tauri/capabilities/**
             extension:
               - *ci
               - extension/**
+              - .oxlintrc.json
               # The provider list the popup shares with the app.
               - src/shared/**
               - src/styles/**

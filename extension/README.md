@@ -67,7 +67,7 @@ manifiesto). Un sitio que perdió el permiso muestra «Permitir».
 ```sh
 corepack pnpm ext:build   # extension/dist
 corepack pnpm ext:test    # Vitest con un chrome.* falso (src/test/chrome-fake.ts)
-corepack pnpm ext:lint    # ESLint + tsc
+corepack pnpm ext:lint    # Oxlint + tsc
 corepack pnpm ext:zip     # extension/ymd-cookies-extension.zip (ignorado por git)
 corepack pnpm ext:e2e     # Playwright: Chromium real + host nativo falso (requiere ext:build)
 ```

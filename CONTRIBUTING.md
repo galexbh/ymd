@@ -50,8 +50,8 @@ fallan con el error correspondiente; `notfound` y `offline` fallan en el anális
 
 | Comando                             | Qué hace                                                         |
 | ----------------------------------- | ---------------------------------------------------------------- |
-| `pnpm lint` / `pnpm lint:fix`       | ESLint (typescript-eslint, react-hooks, react-refresh)           |
-| `pnpm format` / `pnpm format:check` | Prettier                                                         |
+| `pnpm lint` / `pnpm lint:fix`       | Oxlint (reglas de TypeScript, hooks de React y React Compiler)   |
+| `pnpm format` / `pnpm format:check` | oxfmt                                                            |
 | `pnpm typecheck`                    | `tsc` de la app y de la configuración (Vite, Playwright, e2e)    |
 | `pnpm test` / `pnpm test:watch`     | Vitest (jsdom)                                                   |
 | `pnpm test:coverage`                | Vitest con cobertura v8 (umbral 80 % en módulos puros)           |

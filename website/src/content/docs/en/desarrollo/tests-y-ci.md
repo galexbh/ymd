@@ -23,13 +23,13 @@ The gate for every change: nothing merges unless every job is green. A `changes`
 | Filter      | Main paths                                                          | Jobs                                                     |
 | ----------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
 | `rust`      | `src-tauri/**`                                                      | `rust` (fmt, clippy, tests on Windows, macOS and Linux)  |
-| `frontend`  | `src/**`, `e2e/**`, `public/**`, Vite, TypeScript and ESLint config | `frontend` (lint, types, unit with coverage, build, e2e) |
+| `frontend`  | `src/**`, `e2e/**`, `public/**`, Vite, TypeScript and Oxlint config | `frontend` (lint, types, unit with coverage, build, e2e) |
 | `extension` | `extension/**`, `src/styles/**`                                     | `extension` (lint, unit, build, zip, e2e)                |
 | `deps`      | `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `Cargo.lock`        | `audit` (pnpm audit and cargo audit)                     |
 | `website`   | `website/**`, `CHANGELOG.md`, `docs/assets/**`                      | `docs` (builds the site and validates links)             |
 
 - A change to `ci.yml` turns on every filter.
-- `format` (Prettier) always runs, since it covers the documentation too.
+- `format` (oxfmt) always runs, since it covers the documentation too.
 - `build-check` builds the real app (frontend, extension and Tauri) on Linux for PRs that touch the app.
 - **On `main` everything runs**, regardless of paths: all three OSes in `build-check` and the Rust coverage report. Same for manual runs (`workflow_dispatch`).
 

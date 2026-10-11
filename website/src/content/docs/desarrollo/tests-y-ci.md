@@ -23,13 +23,13 @@ Es la puerta de cada cambio: nada se fusiona sin todos los jobs en verde. Un job
 | Filtro      | Rutas principales                                                           | Jobs                                                          |
 | ----------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `rust`      | `src-tauri/**`                                                              | `rust` (fmt, clippy, tests en Windows, macOS y Linux)         |
-| `frontend`  | `src/**`, `e2e/**`, `public/**`, configuración de Vite, TypeScript y ESLint | `frontend` (lint, tipos, unitarios con cobertura, build, e2e) |
+| `frontend`  | `src/**`, `e2e/**`, `public/**`, configuración de Vite, TypeScript y Oxlint | `frontend` (lint, tipos, unitarios con cobertura, build, e2e) |
 | `extension` | `extension/**`, `src/styles/**`                                             | `extension` (lint, unitarios, build, zip, e2e)                |
 | `deps`      | `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `Cargo.lock`                | `audit` (pnpm audit y cargo audit)                            |
 | `website`   | `website/**`, `CHANGELOG.md`, `docs/assets/**`                              | `docs` (compila el sitio y valida enlaces)                    |
 
 - Un cambio en `ci.yml` activa todos los filtros.
-- `format` (Prettier) corre siempre, porque cubre también la documentación.
+- `format` (oxfmt) corre siempre, porque cubre también la documentación.
 - `build-check` compila la app real (frontend, extensión y Tauri) en Linux en los PR que tocan la app.
 - **En `main` corre todo**, sin importar las rutas: los tres sistemas en `build-check` y el informe de cobertura de Rust. Lo mismo al lanzarlo a mano (`workflow_dispatch`).
 
