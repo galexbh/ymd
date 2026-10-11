@@ -18,11 +18,11 @@ Pasos, una sola vez:
 3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
 4. Se abre la página de bienvenida de la extensión. Sigue su paso **Fija la extensión en la barra**: pulsa el icono de extensiones (la pieza de rompecabezas) y luego la chincheta junto a **ymd Cookies**. La página confirma cuando queda fijada. YouTube ya viene agregado en la extensión que trae ymd, así que basta con iniciar sesión en YouTube en ese navegador: ymd recibirá las cookies solo.
 
-Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización y el número de cookies, y el origen de las cookies cambia a **Extensión**. Si **Sesión de YouTube** dice **Sin agregar**, la extensión todavía no envía YouTube: agrégalo desde la extensión.
+Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización, el número de cookies y la **Versión de la extensión**, y el origen de las cookies cambia a **Extensión**. Si **Sesión de YouTube** dice **Sin agregar**, la extensión todavía no envía YouTube: agrégalo desde la extensión.
 
 El **ID de la extensión** es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Compruébalo en la página de extensiones. La versión de la Chrome Web Store, cuando esté publicada, tiene su propio ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`; ymd solo acepta mensajes de esos dos.
 
-Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta.
+Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta, pero el navegador sigue usando la que cargó: una extensión descomprimida no se actualiza sola. Si ymd trae una versión más nueva que la que sincroniza, la tarjeta lo avisa: «Hay una versión nueva de la extensión». Pulsa **Abrir [navegador] y copiar la dirección**, pega la dirección y pulsa el botón de recargar de **ymd Cookies**. El aviso desaparece con la siguiente sincronización.
 
 ### Navegadores compatibles
 
@@ -69,7 +69,7 @@ El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube e
 ## Qué envía y adónde
 
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd), por Native Messaging. El navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No hay red, servidor ni telemetría.
-- **Qué:** las cookies de los dominios de la lista, con los campos de `chrome.cookies.Cookie` (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), y el nombre del navegador.
+- **Qué:** las cookies de los dominios de la lista, con los campos de `chrome.cookies.Cookie` (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), el nombre del navegador y la versión de la extensión.
 - **Cuándo:** 3 s después de que cambie una cookie de la lista, cada 30 min como sincronización completa, y al pulsar **Enviar ahora**. Solo se envía si el contenido cambió (se compara un hash SHA-256).
 - **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, cifrado con una clave del llavero del sistema y con permisos solo para tu usuario, y lo usa con yt-dlp.
 
@@ -98,6 +98,9 @@ La primera sincronización llega cuando cambia una cookie o al pulsar **Enviar a
 
 **Brave avisa de extensiones en modo desarrollador al iniciar.**
 Es esperado: la extensión se carga descomprimida porque aún no está publicada en una tienda.
+
+**«Hay una versión nueva de la extensión».**
+ymd trae una versión de la extensión más nueva que la que tienes cargada. En la página de extensiones del navegador, pulsa el botón de recargar de **ymd Cookies**. Si la tarjeta dice **Anterior a esta función** en **Versión de la extensión**, la extensión cargada es anterior a esta función: recárgala igual.
 
 **«Esta compilación no incluye la carpeta de la extensión».**
 Solo ocurre en modo desarrollo. Compila la extensión con `pnpm ext:build` y cárgala desde `extension/dist`.

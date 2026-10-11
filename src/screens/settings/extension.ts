@@ -18,6 +18,33 @@ export const STAMP: Record<BridgeState, JobStage> = {
   noBridge: "error",
 };
 
+/**
+ * Whether version `a` is older than `b` ("1.4.0" < "1.4.1" < "1.10"), comparing dot-separated
+ * numbers; missing parts count as 0 and non-numeric parts as 0.
+ */
+export function olderVersion(a: string, b: string): boolean {
+  const pa = a.split(".").map((n) => Number.parseInt(n, 10) || 0);
+  const pb = b.split(".").map((n) => Number.parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] ?? 0;
+    const y = pb[i] ?? 0;
+    if (x !== y) return x < y;
+  }
+  return false;
+}
+
+/**
+ * The bundled extension is newer than the one that synced (an unpacked extension doesn't
+ * update itself: the user reloads it). A sync without a version came from an extension older
+ * than the version field, so it is outdated too.
+ */
+export function extensionOutdated(st: ExtensionStatus): boolean {
+  const bundled = st.bundledVersion;
+  const sync = st.lastSync;
+  if (!bundled || !sync) return false;
+  return !sync.extensionVersion || olderVersion(sync.extensionVersion, bundled);
+}
+
 /** Display name for the browser string the extension reports ("brave", "other", ...). */
 export function syncBrowserName(browser: string): string {
   if (browser in BROWSER_NAMES) return BROWSER_NAMES[browser as Browser];

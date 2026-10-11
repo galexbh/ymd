@@ -138,6 +138,10 @@ pub enum Request {
         version: Option<u32>,
         browser: String,
         cookies: Vec<ChromeCookie>,
+        /// Manifest version of the sending extension (`chrome.runtime.getManifest().version`).
+        /// Older extensions don't send it; a malformed one is ignored ([`valid_extension_version`]).
+        #[serde(default)]
+        extension: Option<String>,
     },
     /// «Descargar con ymd»: open `url` in ymd's Recibir (never downloads by itself).
     Open {
@@ -180,6 +184,29 @@ pub fn parse_request(body: &[u8]) -> Result<Request, CommandError> {
         }
     }
     Ok(req)
+}
+
+/// Longest extension version accepted (Chromium allows four dot-separated integers).
+const MAX_VERSION_LEN: usize = 16;
+
+/// An extension manifest version as ymd stores it: digits and dots only, starting and ending
+/// with a digit, at most [`MAX_VERSION_LEN`] bytes. Anything else is `None` (ignored).
+pub fn valid_extension_version(raw: &str) -> Option<String> {
+    let ok = !raw.is_empty()
+        && raw.len() <= MAX_VERSION_LEN
+        && raw.bytes().all(|b| b.is_ascii_digit() || b == b'.')
+        && !raw.starts_with('.')
+        && !raw.ends_with('.')
+        && !raw.contains("..");
+    ok.then(|| raw.to_string())
+}
+
+/// The `version` of the extension bundled in `dir` (`<dir>/manifest.json`), when it is there
+/// and well formed.
+pub fn manifest_version(dir: &Path) -> Option<String> {
+    let bytes = std::fs::read(dir.join("manifest.json")).ok()?;
+    let manifest: Value = serde_json::from_slice(&bytes).ok()?;
+    valid_extension_version(manifest.get("version")?.as_str()?)
 }
 
 fn error_reply(e: &CommandError) -> Value {
@@ -295,7 +322,10 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
             Ok(json!({"ok": true}))
         }
         Request::Cookies {
-            browser, cookies, ..
+            browser,
+            cookies,
+            extension,
+            ..
         } => {
             let browser = browser_name(&browser);
             if cookies.len() > MAX_COOKIES {
@@ -310,7 +340,13 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
                 data_dir: data_dir.to_path_buf(),
                 config_dir: data_dir.to_path_buf(),
             };
-            let info = crate::auth::cookies::store(&paths, &text, &format!("extension:{browser}"))?;
+            let extension = extension.as_deref().and_then(valid_extension_version);
+            let info = crate::auth::cookies::store_from_extension(
+                &paths,
+                &text,
+                &format!("extension:{browser}"),
+                extension.as_deref(),
+            )?;
             log::info!(
                 "cookie bridge: stored {} cookies from {browser}",
                 info.cookie_count
@@ -449,6 +485,90 @@ mod tests {
     }
 
     #[test]
+    fn extension_versions_are_validated() {
+        for ok in ["1", "1.4.1", "0.10.200.3", "1234567890.12345"] {
+            assert_eq!(valid_extension_version(ok).as_deref(), Some(ok));
+        }
+        for bad in [
+            "",
+            ".1",
+            "1.",
+            "1..2",
+            "1.4.1-beta",
+            "v1.4",
+            " 1.4",
+            "1.4\n",
+            "12345678901234567",
+            "../../x",
+        ] {
+            assert_eq!(valid_extension_version(bad), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn cookies_message_version_is_optional() {
+        let body =
+            br#"{"type":"cookies","version":1,"browser":"brave","extension":"1.4.1","cookies":[]}"#;
+        let Request::Cookies { extension, .. } = parse_request(body).unwrap() else {
+            panic!("not cookies")
+        };
+        assert_eq!(extension.as_deref(), Some("1.4.1"));
+        let body = br#"{"type":"cookies","browser":"brave","cookies":[]}"#;
+        let Request::Cookies { extension, .. } = parse_request(body).unwrap() else {
+            panic!("not cookies")
+        };
+        assert_eq!(extension, None);
+    }
+
+    #[test]
+    fn host_stores_the_extension_version() {
+        let dir = tempfile::tempdir().unwrap();
+        let paths = AppPaths {
+            bin_dir: dir.path().join("bin"),
+            data_dir: dir.path().to_path_buf(),
+            config_dir: dir.path().to_path_buf(),
+        };
+        let msg = |ext: &str| {
+            format!(
+                r#"{{"type":"cookies","version":1,"browser":"brave",{ext}"cookies":[
+                {{"domain":".youtube.com","name":"SID","value":"v"}}]}}"#
+            )
+        };
+        let (_, v) = run(msg(r#""extension":"1.4.1","#).as_bytes(), dir.path());
+        assert_eq!(v["ok"], true);
+        assert_eq!(
+            crate::auth::cookies::extension_version(&paths).as_deref(),
+            Some("1.4.1")
+        );
+        // Malformed: stored without a version, the sync still succeeds.
+        let (_, v) = run(msg(r#""extension":"1.4<script>","#).as_bytes(), dir.path());
+        assert_eq!(v["ok"], true);
+        assert_eq!(crate::auth::cookies::extension_version(&paths), None);
+        // An older extension without the field keeps working.
+        let (_, v) = run(msg("").as_bytes(), dir.path());
+        assert_eq!(
+            v,
+            json!({"ok": true, "count": 1, "domains": ["youtube.com"]})
+        );
+        assert_eq!(crate::auth::cookies::extension_version(&paths), None);
+    }
+
+    #[test]
+    fn bundled_manifest_version() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(manifest_version(dir.path()), None);
+        let write = |s: &str| std::fs::write(dir.path().join("manifest.json"), s).unwrap();
+        write(r#"{"manifest_version":3,"name":"ymd Cookies","version":"1.4.1"}"#);
+        assert_eq!(manifest_version(dir.path()).as_deref(), Some("1.4.1"));
+        write(r#"{"version":"1.4.1 beta"}"#);
+        assert_eq!(manifest_version(dir.path()), None);
+        write(r#"{"version":3}"#);
+        assert_eq!(manifest_version(dir.path()), None);
+        write("not json");
+        assert_eq!(manifest_version(dir.path()), None);
+    }
+
+    #[test]
     fn browser_names_are_closed() {
         assert_eq!(browser_name("Brave"), "brave");
         assert_eq!(browser_name("edge"), "edge");
@@ -537,6 +657,7 @@ mod tests {
             version: Some(1),
             browser: "brave".into(),
             cookies: vec![cookie(".youtube.com", false, "n", "v"); MAX_COOKIES + 1],
+            extension: None,
         };
         let e = handle(req, dir.path()).unwrap_err();
         assert!(e.detail.contains("too many cookies"), "{}", e.detail);

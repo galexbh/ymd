@@ -11,7 +11,7 @@ export interface OpenOptions {
   /** Brave closed → cookie snapshot/test succeed. */
   braveClosed?: boolean;
   /** Cookie bridge: `none` = registered, nothing synced (default); `synced`; `nobridge`. */
-  ext?: "none" | "synced" | "nobridge";
+  ext?: "none" | "synced" | "outdated" | "nobridge";
 }
 
 /** Open the app in mock mode with a given backend scenario. */

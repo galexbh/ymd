@@ -575,6 +575,10 @@ pub struct ExtensionSync {
     /// Sites with a signed-in session in the synced jar ("youtube.com").
     #[serde(default)]
     pub signed_in: Vec<String>,
+    /// Manifest version of the extension that synced ("1.4.1"); `None` for extensions older
+    /// than this field.
+    #[serde(default)]
+    pub extension_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -583,6 +587,10 @@ pub struct ExtensionStatus {
     pub extension_id: String,
     /// Folder to "Load unpacked" from (bundled resources); `None` in dev builds without it.
     pub extension_dir: Option<String>,
+    /// Version of the bundled extension (`manifest.json`), `None` when there is no folder.
+    /// Newer than [`ExtensionSync::extension_version`]: the user must reload the extension.
+    #[serde(default)]
+    pub bundled_version: Option<String>,
     /// Path of the host manifest JSON ymd maintains.
     pub host_manifest: Option<String>,
     pub targets: Vec<BridgeTarget>,

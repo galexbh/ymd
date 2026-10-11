@@ -29,6 +29,9 @@ pub const TEST_URL: &str = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
 struct Meta {
     created_at: String,
     origin: String,
+    /// Manifest version of the extension that wrote the jar (absent for older extensions).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    extension_version: Option<String>,
 }
 
 fn meta_file(paths: &AppPaths) -> PathBuf {
@@ -39,18 +42,33 @@ fn meta_file(paths: &AppPaths) -> PathBuf {
 /// atomic, after validating it. Used by the native-messaging host
 /// (`origin = "extension:<browser>"`).
 pub fn store(paths: &AppPaths, text: &str, origin: &str) -> CmdResult<CookieFileInfo> {
+    store_from_extension(paths, text, origin, None)
+}
+
+/// [`store`], also recording the manifest version of the extension that sent the jar.
+pub fn store_from_extension(
+    paths: &AppPaths,
+    text: &str,
+    origin: &str,
+    extension_version: Option<&str>,
+) -> CmdResult<CookieFileInfo> {
     parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     ensure_private_dir(&paths.auth_dir())?;
     write_jar(paths, &normalize_for_ytdlp(text))?;
-    write_meta(paths, origin)?;
+    write_meta(paths, origin, extension_version)?;
     info(paths).ok_or_else(|| CommandError::unknown("cookies written but unreadable"))
 }
 
 /// Record when and where the current cookies.txt came from.
-pub(crate) fn write_meta(paths: &AppPaths, origin: &str) -> CmdResult<()> {
+pub(crate) fn write_meta(
+    paths: &AppPaths,
+    origin: &str,
+    extension_version: Option<&str>,
+) -> CmdResult<()> {
     let meta = Meta {
         created_at: chrono::Utc::now().to_rfc3339(),
         origin: origin.to_string(),
+        extension_version: extension_version.map(str::to_string),
     };
     write_private(
         &meta_file(paths),
@@ -205,9 +223,7 @@ pub fn info(paths: &AppPaths) -> Option<CookieFileInfo> {
             return None;
         }
     };
-    let meta = std::fs::read(meta_file(paths))
-        .ok()
-        .and_then(|b| serde_json::from_slice::<Meta>(&b).ok());
+    let meta = read_meta(paths);
     let (created_at, origin) = match meta {
         Some(m) => (m.created_at, m.origin),
         None => {
@@ -225,6 +241,18 @@ pub fn info(paths: &AppPaths) -> Option<CookieFileInfo> {
         domains,
         signed_in: signed_in(&text),
     })
+}
+
+fn read_meta(paths: &AppPaths) -> Option<Meta> {
+    std::fs::read(meta_file(paths))
+        .ok()
+        .and_then(|b| serde_json::from_slice::<Meta>(&b).ok())
+}
+
+/// Manifest version of the extension that wrote the current jar. `None` without a jar meta or
+/// when an extension older than this field wrote it.
+pub fn extension_version(paths: &AppPaths) -> Option<String> {
+    read_meta(paths)?.extension_version
 }
 
 pub fn clear(paths: &AppPaths) -> CmdResult<()> {
@@ -249,10 +277,7 @@ pub const MANUAL_IMPORT_ORIGIN: &str = "import";
 /// Deletes a cookie copy that came from a manual cookies.txt import (no longer supported).
 /// Copies written by the extension are left alone. True when one was removed.
 pub fn remove_manual_import(paths: &AppPaths) -> bool {
-    let manual = std::fs::read(meta_file(paths))
-        .ok()
-        .and_then(|b| serde_json::from_slice::<Meta>(&b).ok())
-        .is_some_and(|m| m.origin == MANUAL_IMPORT_ORIGIN);
+    let manual = read_meta(paths).is_some_and(|m| m.origin == MANUAL_IMPORT_ORIGIN);
     manual && clear(paths).is_ok()
 }
 
@@ -722,6 +747,31 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         let info = store(&p, VALID, "extension:brave").unwrap();
         assert_eq!(info.origin, "extension:brave");
         assert_eq!(info.cookie_count, 3);
+        assert_eq!(extension_version(&p), None);
+        let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
+        assert!(!meta.contains("extensionVersion"), "{meta}");
+
+        let edge = store_from_extension(&p, VALID, "extension:edge", Some("1.4.1")).unwrap();
+        assert_eq!(edge.origin, "extension:edge");
+        assert_eq!(extension_version(&p).as_deref(), Some("1.4.1"));
+        let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
+        assert!(meta.contains(r#""extensionVersion":"1.4.1""#), "{meta}");
+
+        // A later sync from an older extension forgets the version.
+        store(&p, VALID, "extension:edge").unwrap();
+        assert_eq!(extension_version(&p), None);
+        clear(&p).unwrap();
+        assert_eq!(extension_version(&p), None);
+    }
+
+    #[test]
+    fn meta_without_version_still_reads() {
+        let m: Meta = serde_json::from_str(
+            r#"{"createdAt":"2026-01-01T00:00:00Z","origin":"extension:brave"}"#,
+        )
+        .unwrap();
+        assert_eq!(m.extension_version, None);
+        assert_eq!(m.origin, "extension:brave");
     }
 
     #[test]

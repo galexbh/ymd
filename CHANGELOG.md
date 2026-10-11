@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Novedades
+
+- **Versión de la extensión.** La tarjeta de la extensión en **Ajustes → Cuentas** muestra qué versión de «ymd Cookies» sincroniza y avisa cuando ymd trae una más nueva: una extensión descomprimida no se actualiza sola, así que basta con pulsar recargar en la página de extensiones del navegador.
+
 ## [0.5.0] - 2026-10-10
 
 ### Novedades
