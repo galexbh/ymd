@@ -684,6 +684,26 @@ async fn speed_limit_setting_reaches_the_download() {
     assert_eq!(done.stage, JobStage::Done, "{:?}", done.error);
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn network_settings_reach_the_download() {
+    let h = harness(1);
+    h.env.settings.lock().unwrap().network = ymd_lib::model::NetworkSettings {
+        proxy: Some("socks5h://127.0.0.1:1080".into()),
+        ip_version: ymd_lib::model::IpVersion::V6,
+        socket_timeout_s: Some(20),
+        retries: Some(3),
+    };
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    // The fake takes `--proxy`, `--socket-timeout`, `--retries` and `--fragment-retries` as
+    // flags with a value: the URL after `--` still drives it.
+    let done = h.wait_terminal(&job.id).await;
+    assert_eq!(done.stage, JobStage::Done, "{:?}", done.error);
+}
+
 fn in_ms(ms: i64) -> chrono::DateTime<chrono::Utc> {
     chrono::Utc::now() + chrono::Duration::milliseconds(ms)
 }

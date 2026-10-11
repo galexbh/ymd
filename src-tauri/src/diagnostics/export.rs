@@ -100,7 +100,8 @@ pub fn info_text(i: &InfoInput) -> String {
     }
     let _ = writeln!(out);
     let _ = writeln!(out, "Settings (summary)");
-    let rows: [(&str, String); 17] = [
+    let or_default = |v: Option<u32>| v.map_or_else(|| "default".to_string(), |n| n.to_string());
+    let rows: [(&str, String); 21] = [
         ("theme", wire_name(&s.theme.mode)),
         ("concurrency", s.concurrency.to_string()),
         (
@@ -108,6 +109,19 @@ pub fn info_text(i: &InfoInput) -> String {
             s.limit_rate_mbps
                 .map_or_else(|| "none".to_string(), |n| n.to_string()),
         ),
+        // Whether a proxy is set, never its address.
+        (
+            "proxy",
+            if s.network.proxy.is_some() {
+                "set"
+            } else {
+                "none"
+            }
+            .to_string(),
+        ),
+        ("ip version", wire_name(&s.network.ip_version)),
+        ("socket timeout (s)", or_default(s.network.socket_timeout_s)),
+        ("retries", or_default(s.network.retries)),
         ("yt-dlp channel", wire_name(&s.ytdlp_channel)),
         ("auto update", s.auto_update.to_string()),
         ("download archive", s.use_download_archive.to_string()),
@@ -273,6 +287,46 @@ mod tests {
             .unwrap()
             .and_utc();
         assert_eq!(default_file_name(&t), "ymd-diagnostico-20261009-0705.zip");
+    }
+
+    #[test]
+    fn info_network_summary_never_shows_the_proxy() {
+        let text = info();
+        for want in [
+            "proxy                 none",
+            "ip version            auto",
+            "socket timeout (s)    default",
+            "retries               default",
+        ] {
+            assert!(text.contains(want), "missing {want:?} in\n{text}");
+        }
+        let mut s = settings();
+        s.network = crate::model::NetworkSettings {
+            proxy: Some("socks5h://proxy.corp-ana.example:1080".into()),
+            ip_version: crate::model::IpVersion::V6,
+            socket_timeout_s: Some(30),
+            retries: Some(10),
+        };
+        let text = info_text(&InfoInput {
+            app_version: "9.9.9",
+            os: "windows",
+            os_version: "11".into(),
+            arch: "x86_64",
+            locale: None,
+            settings: &s,
+            deps: None,
+        });
+        for want in [
+            "proxy                 set",
+            "ip version            v6",
+            "socket timeout (s)    30",
+            "retries               10",
+        ] {
+            assert!(text.contains(want), "missing {want:?} in\n{text}");
+        }
+        for bad in ["socks5h", "corp-ana", "1080", "example"] {
+            assert!(!text.contains(bad), "leaked {bad:?} in\n{text}");
+        }
     }
 
     #[test]

@@ -82,6 +82,20 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(tidy).toHaveScreenshot(`ajustes-preajuste-audio-${colorScheme}.png`);
   });
 
+  test(`ajustes — red — ${colorScheme}`, async ({ page, app }) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+    await page.clock.install({ time: T0 });
+    await app.open({ scenario: "ready", speed: 1 });
+    await page.clock.runFor(500);
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-tab-network").click();
+    // an address with credentials shows the field's error state
+    await page.getByTestId("settings-proxy").fill("http://u:p@host:8080");
+    await page.getByRole("radio", { name: "Solo IPv4" }).click();
+    await page.clock.runFor(500);
+    await expect(page).toHaveScreenshot(`ajustes-red-${colorScheme}.png`);
+  });
+
   test(`ajustes — cuentas — ${colorScheme}`, async ({ page, app }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await page.clock.install({ time: T0 });

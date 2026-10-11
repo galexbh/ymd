@@ -89,7 +89,7 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 `network`. The connection dropped or the server didn't answer.
 
-**Fix:** check your internet connection and try again.
+**Fix:** check your internet connection and try again. If you use a proxy in [**Settings → Network**](/ymd/en/guia/red/), check that it is running and that the address is right; a proxy that doesn't answer causes this same error.
 
 ## Disk and folders
 

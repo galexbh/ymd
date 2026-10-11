@@ -95,8 +95,9 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 - **Nombre de archivo**: la **Plantilla** usa los campos de yt-dlp, como `%(title)s`, `%(id)s`, `%(uploader)s` o `%(ext)s`. Debe incluir `%(ext)s`.
 - **Saltar lo ya descargado**: yt-dlp anota cada video en un archivo de registro y no lo repite.
 - **Usar aria2c**: descarga cada archivo por varias conexiones (requiere instalar aria2c en Dependencias).
-- **Límite de velocidad**: **Sin límite** (lo predeterminado), 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir un número entero entre 1 y 1000. Cada descarga respeta ese tope por separado, y con aria2c también se aplica a aria2c. El límite se aplica a las descargas que empiecen después de guardarlo; las que ya están en curso mantienen la velocidad con la que empezaron.
 - **Avisar cuando termine una descarga**: ver [Avisos](#avisos).
+
+El **Límite de velocidad**, el proxy y las demás opciones de conexión están en [**Ajustes → Red**](/ymd/guia/red/).
 
 ### Programar el inicio
 

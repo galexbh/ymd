@@ -3,7 +3,8 @@
 use super::{args, errors};
 use crate::deps::Tools;
 use crate::model::{
-    CmdResult, CommandError, ErrorCode, FormatInfo, PlaylistEntry, ProbeKind, ProbeResult,
+    CmdResult, CommandError, ErrorCode, FormatInfo, NetworkSettings, PlaylistEntry, ProbeKind,
+    ProbeResult,
 };
 use serde_json::Value;
 use std::process::Stdio;
@@ -14,13 +15,19 @@ pub const PROBE_TIMEOUT: Duration = Duration::from_secs(60);
 const PIPE_GRACE: Duration = Duration::from_secs(5);
 
 /// Run yt-dlp and parse. Errors are classified with `errors::classify`.
-pub async fn probe(url: &str, tools: &Tools, auth_args: &[String]) -> CmdResult<ProbeResult> {
-    probe_with_timeout(url, tools, auth_args, PROBE_TIMEOUT).await
+pub async fn probe(
+    url: &str,
+    tools: &Tools,
+    network: &NetworkSettings,
+    auth_args: &[String],
+) -> CmdResult<ProbeResult> {
+    probe_with_timeout(url, tools, network, auth_args, PROBE_TIMEOUT).await
 }
 
 pub async fn probe_with_timeout(
     url: &str,
     tools: &Tools,
+    network: &NetworkSettings,
     auth_args: &[String],
     timeout: Duration,
 ) -> CmdResult<ProbeResult> {
@@ -35,7 +42,7 @@ pub async fn probe_with_timeout(
         ));
     };
     let mut child = crate::process::command(ytdlp)
-        .args(args::probe_args(url, tools, auth_args))
+        .args(args::probe_args(url, tools, network, auth_args))
         .envs(args::child_env(tools))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -300,15 +307,22 @@ mod tests {
 
     #[tokio::test]
     async fn missing_binary() {
-        let e = probe("https://x", &Tools::default(), &[])
-            .await
-            .unwrap_err();
+        let e = probe(
+            "https://x",
+            &Tools::default(),
+            &NetworkSettings::default(),
+            &[],
+        )
+        .await
+        .unwrap_err();
         assert_eq!(e.code, ErrorCode::BinaryMissing);
         let tools = Tools {
             ytdlp: Some(std::env::temp_dir().join("ymd-definitely-missing-yt-dlp.exe")),
             ..Tools::default()
         };
-        let e = probe("https://x", &tools, &[]).await.unwrap_err();
+        let e = probe("https://x", &tools, &NetworkSettings::default(), &[])
+            .await
+            .unwrap_err();
         assert_eq!(e.code, ErrorCode::BinaryMissing);
     }
 }

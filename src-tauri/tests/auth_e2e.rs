@@ -100,7 +100,11 @@ fn cookie_test_with_stored_jar() {
         p.cookies_file().to_string_lossy().into_owned(),
     ];
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let r = rt.block_on(cookies::test(&tools, &args));
+    let r = rt.block_on(cookies::test(
+        &tools,
+        &ymd_lib::model::NetworkSettings::default(),
+        &args,
+    ));
     eprintln!("cookie test: ok={} error={:?}", r.ok, r.error);
     // The file must still be a valid jar after yt-dlp wrote it back.
     assert!(cookies::info(&p).is_some());

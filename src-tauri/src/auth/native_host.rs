@@ -866,6 +866,39 @@ mod tests {
         assert_eq!(v["code"], "unknown");
     }
 
+    /// The bridge only speaks hello / open / cookies: a message that tries to change settings
+    /// (a proxy, for instance) is rejected and `settings.json` is never touched.
+    #[test]
+    fn settings_like_messages_are_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let settings = dir.path().join("settings.json");
+        let original = r#"{"network":{"proxy":null}}"#;
+        std::fs::write(&settings, original).unwrap();
+        for body in [
+            &br#"{"type":"settings","version":1,"network":{"proxy":"http://evil.example:8080"}}"#[..],
+            br#"{"type":"set_settings","version":1,"proxy":"socks5://evil.example:1080"}"#,
+            br#"{"type":"network","version":1,"proxy":"http://evil.example:8080"}"#,
+            br#"{"type":"Hello","version":1}"#,
+            br#"{"version":1,"proxy":"http://evil.example:8080"}"#,
+        ] {
+            assert!(
+                parse_request(body).is_err(),
+                "{}",
+                String::from_utf8_lossy(body)
+            );
+            let (code, v) = run(body, dir.path());
+            assert_eq!(code, 0);
+            assert_eq!(v["ok"], false, "{v}");
+            assert!(!v.to_string().contains("evil"), "{v}");
+        }
+        assert_eq!(std::fs::read_to_string(&settings).unwrap(), original);
+        let names: Vec<String> = std::fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(names, ["settings.json"], "nothing else written");
+    }
+
     #[test]
     fn host_main_replies() {
         let dir = tempfile::tempdir().unwrap();

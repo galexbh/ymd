@@ -14,7 +14,8 @@ pub async fn probe(state: State<'_>, url: String) -> CmdResult<ProbeResult> {
         let auth = state.auth_args(None);
         // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
         let (auth, _jar) = crate::auth::cookies::ephemeral_args(&auth, &state.paths().tmp_dir())?;
-        crate::ytdlp::probe::probe(url.trim(), &tools, &auth).await
+        let network = state.settings().network;
+        crate::ytdlp::probe::probe(url.trim(), &tools, &network, &auth).await
     }
     .instrument(tracing::info_span!("probe"))
     .await;

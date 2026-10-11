@@ -1,0 +1,13 @@
+---
+source: src/ytdlp/args.rs
+expression: args
+---
+- "--proxy"
+- "socks5h://127.0.0.1:1080"
+- "-4"
+- "--socket-timeout"
+- "30"
+- "--retries"
+- "10"
+- "--fragment-retries"
+- "10"

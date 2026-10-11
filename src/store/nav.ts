@@ -8,6 +8,7 @@ export const SETTINGS_SECTIONS = [
   "downloads",
   "presets",
   "accounts",
+  "network",
   "appearance",
   "language",
   "advanced",

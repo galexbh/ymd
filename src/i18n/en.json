@@ -106,7 +106,7 @@
     },
     "network": {
       "title": "The connection dropped",
-      "action": "Check your internet connection and try again."
+      "action": "Check your internet connection and, if you use a proxy in Settings → Network, that it is running. Then try again."
     },
     "cookies_locked": {
       "title": "The browser is locking its cookies",
@@ -541,6 +541,7 @@
       "downloads": "Downloads",
       "presets": "Presets",
       "accounts": "Accounts",
+      "network": "Network",
       "appearance": "Appearance",
       "language": "Language",
       "advanced": "Advanced"
@@ -571,13 +572,6 @@
       "aria2c": "Use aria2c",
       "aria2cHint": "Downloads each file over several connections.",
       "aria2cMissing": "Install aria2c in Dependencies to turn this on.",
-      "limitRate": "Speed limit",
-      "limitRateHint": "Applies to downloads that start from now on.",
-      "limitRateNone": "No limit",
-      "limitRateValue": "{{n}} MB/s",
-      "limitRateOther": "Other…",
-      "limitRateCustom": "Limit in MB/s",
-      "limitRateInvalid": "Enter a whole number between 1 and 1000.",
       "notify": "Notify me when a download ends",
       "notifyHint": "Only while ymd is in the background. Downloads that end together arrive as one notification.",
       "clipboard": "Clipboard",
@@ -593,6 +587,36 @@
         "any": "Known sites are pasted for you; any other link is suggested and waits for you to accept it."
       },
       "clipboardPrivacy": "ymd reads the clipboard only when you return to the window, ignores anything that isn't a link and never saves it."
+    },
+    "network": {
+      "intro": "Applies to downloads, link analysis and the cookie test.",
+      "proxyTitle": "Proxy",
+      "proxy": "Proxy address",
+      "proxyHint": "The proxy sees which sites you connect to: use one you trust. No user name or password.",
+      "proxyInvalid": "Enter an address like socks5://127.0.0.1:1080 (http, https, socks4, socks4a, socks5 or socks5h), without a path.",
+      "proxyCredentials": "ymd doesn't store a proxy user name or password: remove them from the address.",
+      "connection": "Connection",
+      "ipVersion": "IP version",
+      "ipModes": {
+        "auto": "Automatic",
+        "v4": "IPv4 only",
+        "v6": "IPv6 only"
+      },
+      "ipHint": "IPv4 only helps when the IPv6 connection fails or a site blocks it.",
+      "default": "yt-dlp default",
+      "timeout": "Timeout",
+      "timeoutHint": "How long to wait for the server to answer before giving the connection up.",
+      "timeoutValue": "{{n}} s",
+      "retries": "Retries",
+      "retriesHint": "How many times to retry a download or fragment that fails.",
+      "speed": "Speed",
+      "limitRate": "Speed limit",
+      "limitRateHint": "Applies to downloads that start from now on.",
+      "limitRateNone": "No limit",
+      "limitRateValue": "{{n}} MB/s",
+      "limitRateOther": "Other…",
+      "limitRateCustom": "Limit in MB/s",
+      "limitRateInvalid": "Enter a whole number between 1 and 1000."
     },
     "presets": {
       "description": "A preset sets the format, quality and what gets embedded. Built-in ones keep their format; duplicate them to make your own.",

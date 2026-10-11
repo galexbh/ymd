@@ -232,6 +232,7 @@ export function defaultSettings(platform: MockPlatform): Settings {
     trayHintShown: false,
     limitRateMbps: null,
     notifyDownloads: true,
+    network: { proxy: null, ipVersion: "auto", socketTimeoutS: null, retries: null },
   };
 }
 

@@ -383,6 +383,34 @@ pub struct Settings {
     /// Default on.
     #[serde(default = "default_true")]
     pub notify_downloads: bool,
+    /// Proxy, IP version, timeout and retries for every yt-dlp run (downloads, link analysis,
+    /// cookie test). Missing in older files = all defaults.
+    #[serde(default)]
+    pub network: NetworkSettings,
+}
+
+/// Which IP family yt-dlp connects over (`-4` / `-6`); `Auto` passes nothing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum IpVersion {
+    #[default]
+    Auto,
+    V4,
+    V6,
+}
+
+/// Network options passed to yt-dlp. `None` = yt-dlp's own default.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct NetworkSettings {
+    /// Normalized `scheme://host[:port]` (http, https, socks4, socks4a, socks5, socks5h).
+    /// Never carries credentials: `settings::sanitize` drops a URL with user or password.
+    pub proxy: Option<String>,
+    pub ip_version: IpVersion,
+    /// `--socket-timeout` in seconds (1..=300).
+    pub socket_timeout_s: Option<u32>,
+    /// `--retries` and `--fragment-retries` (0..=50).
+    pub retries: Option<u32>,
 }
 
 fn default_true() -> bool {

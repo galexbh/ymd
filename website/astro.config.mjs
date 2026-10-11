@@ -48,6 +48,7 @@ export default defineConfig({
             "guia/descargar",
             "guia/catalogo",
             "guia/portapapeles",
+            "guia/red",
             "guia/apariencia-e-idioma",
             "guia/actualizaciones",
           ],

@@ -11,6 +11,7 @@ import { AdvancedSettings } from "./AdvancedSettings";
 import { AppearanceSettings } from "./AppearanceSettings";
 import { DownloadsSettings } from "./DownloadsSettings";
 import { LanguageSettings } from "./LanguageSettings";
+import { NetworkSettings } from "./NetworkSettings";
 import { PresetsSettings } from "./PresetsSettings";
 import s from "./settings.module.css";
 
@@ -18,6 +19,7 @@ const SECTION: Record<SettingsSection, () => ReactElement> = {
   downloads: DownloadsSettings,
   presets: PresetsSettings,
   accounts: AccountsSettings,
+  network: NetworkSettings,
   appearance: AppearanceSettings,
   language: LanguageSettings,
   advanced: AdvancedSettings,

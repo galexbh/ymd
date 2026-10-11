@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **Ajustes → Red.** Nueva sección con **Proxy** (`http`, `https`, `socks4`, `socks4a`, `socks5` o `socks5h`; sin usuario ni contraseña), **Versión de IP** (**Automática**, **Solo IPv4**, **Solo IPv6**), **Tiempo de espera** y **Reintentos**. Se aplican a las descargas, al análisis de enlaces y a **Probar cookies**. El **Límite de velocidad** pasa de **Ajustes → Descargas** a esta sección, sin cambios.
+
 ### Cambios
 
 - **Tramo** se pliega como **Opciones de esta descarga**: está cerrado de inicio, muestra el tramo elegido junto al título («Tramo · 1:30–2:45») y queda abierto mientras el tramo no sea válido.

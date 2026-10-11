@@ -95,8 +95,9 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 - **File name**: the **Template** uses yt-dlp fields such as `%(title)s`, `%(id)s`, `%(uploader)s` or `%(ext)s`. It must include `%(ext)s`.
 - **Skip what's already downloaded**: yt-dlp notes every video in an archive file and never repeats it.
 - **Use aria2c**: downloads each file over several connections (install aria2c in Dependencies first).
-- **Speed limit**: **No limit** (the default), 1, 2, 5, 10, 20 or 50 MB/s, or **Other…** to type a whole number between 1 and 1000. Each download applies that cap separately, and with aria2c the cap applies to aria2c too. The limit applies to downloads that start after you save it; running ones keep the speed they started with.
 - **Notify me when a download ends**: see [Notifications](#notifications).
+
+The **Speed limit**, the proxy and the other connection options are in [**Settings → Network**](/ymd/en/guia/red/).
 
 ### Scheduling the start
 

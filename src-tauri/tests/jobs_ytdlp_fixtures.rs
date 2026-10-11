@@ -171,6 +171,17 @@ fn every_error_code_has_a_classified_fixture() {
     }
 }
 
+/// Captured from yt-dlp 2026.10.10 nightly (Windows, Spanish locale) with ymd's network flags
+/// `--proxy http://127.0.0.1:9 -4 --socket-timeout 5` and nothing listening on the proxy port.
+#[test]
+fn unreachable_proxy_is_a_network_error() {
+    let text = fixture("stderr/network_proxy.txt");
+    assert_eq!(errors::classify(&text), ErrorCode::Network);
+    let e = errors::to_job_error(&text);
+    assert_eq!(e.code, ErrorCode::Network);
+    assert!(e.detail.starts_with("ERROR:"), "{}", e.detail);
+}
+
 #[test]
 fn real_probe_video() {
     let json: serde_json::Value = serde_json::from_str(&fixture("ytdlp/probe_video.json")).unwrap();
