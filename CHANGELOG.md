@@ -14,6 +14,15 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Menos trabajo con muchas descargas o con ymd en la bandeja.** La interfaz ya no se vuelve a dibujar entera con cada avance de descarga: solo cambia la fila de esa descarga, y la cuadrícula de una playlist en **Recibir** no se toca. Con la ventana oculta, el avance se aplica cada 2 s (los finales y errores siguen llegando al instante, igual que los avisos), la tarjeta de la extensión deja de consultar su estado y el **Catálogo** se actualiza al abrirlo en lugar de una vez por descarga terminada.
 - ymd ya no acumula memoria con el tiempo: libera la actualización encontrada al volver a buscar, los errores de filas ya quitadas y los temporizadores de avisos cerrados antes de tiempo.
+- **ymd en la bandeja ya no acumula descargas terminadas ni archivos temporales.** El **Registro** guarda las 200 descargas terminadas más recientes y quita solas las más antiguas; cada 30 minutos se borran las carpetas temporales y las copias de cookies que nadie usa, y al abrir ymd también los restos de una sincronización o una instalación interrumpidas. Las descargas sin terminar que nadie reanuda en 14 días se olvidan con sus archivos parciales.
+- La contraseña del video y el código 2FA se olvidan en cuanto termina la descarga: **Reintentar** pide volver a pegar el enlace en **Recibir**.
+- La limpieza de registros y la actualización diaria de yt-dlp siguen el reloj real: ya no se atrasan días cuando el equipo duerme.
+- Una línea de progreso sin fin de yt-dlp o ffmpeg ya no hace crecer la memoria, y el detalle de un error se recorta a 2 KB.
+- Un análisis de enlace que no responde en 60 s cierra yt-dlp y los procesos que haya abierto. Las consultas al sistema (navegador predeterminado, procesos abiertos) tienen un límite de 5 s.
+- Un fallo interno durante una descarga la marca como fallida y libera su lugar en la cola, en vez de bloquearla.
+- Dos navegadores que sincronizan cookies a la vez ya no mezclan el archivo de cookies con los datos de otro envío, y el puente responde con un error si una petición tarda más de 20 s.
+- ymd busca entornos JavaScript una vez cada 10 minutos (o al instalar o quitar uno), no en cada descarga.
+- Las últimas líneas del registro local se escriben antes de salir.
 - **Extensión: sin reenvíos en bucle tras un error.** Si un envío falla, la extensión ya no reenvía las cookies con cada cambio: reintenta con la sincronización de cada 30 min, con espera creciente (30 min, 1 h, 2 h… hasta 6 h) si ymd rechazó el envío o no respondió. **Enviar ahora** sigue intentándolo en el momento. Extensión 1.4.4.
 - **Extensión: un ymd que no responde ya no bloquea los envíos.** Cada mensaje al puente espera 30 s como máximo, y solo queda en cola un envío pendiente.
 - **Extensión: más de 10.000 cookies se avisa sin enviar.** La ventana explica el motivo y el icono muestra **!** en rojo, igual que cuando ymd no pudo guardar las cookies.

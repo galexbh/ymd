@@ -6,8 +6,8 @@ use crate::deps::Tools;
 use crate::history::History;
 use crate::jobs::{JobEnv, JobManager};
 use crate::model::{
-    EnqueueRequest, Job, JobId, PendingJob, Preset, QueueSchedule, Settings, EVT_JOB_UPDATE,
-    EVT_QUEUE_SCHEDULE,
+    EnqueueRequest, Job, JobId, PendingJob, Preset, QueueSchedule, Settings, EVT_JOB_REMOVED,
+    EVT_JOB_UPDATE, EVT_QUEUE_SCHEDULE,
 };
 use crate::paths::AppPaths;
 use std::path::PathBuf;
@@ -111,5 +111,9 @@ impl JobEnv for TauriJobEnv {
         if let Err(e) = self.state().history.pending_delete(id) {
             log::warn!("pending job delete failed: {e:#}");
         }
+    }
+    /// An old finished job was evicted from the list: the UI drops its row too.
+    fn removed(&self, id: &JobId) {
+        let _ = self.app.emit(EVT_JOB_REMOVED, id);
     }
 }

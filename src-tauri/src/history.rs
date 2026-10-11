@@ -13,6 +13,10 @@ use std::sync::{Mutex, MutexGuard};
 
 pub const LIMIT_MIN: u32 = 1;
 pub const LIMIT_MAX: u32 = 500;
+/// Largest size (bytes) the WAL file is truncated back to after a checkpoint.
+pub const JOURNAL_SIZE_LIMIT: i64 = 4 * 1024 * 1024;
+/// Unfinished downloads older than this are forgotten at start-up (row and partial files).
+pub const PENDING_MAX_AGE_DAYS: i64 = 14;
 
 /// Ordered migrations; index `i` upgrades `user_version` from `i` to `i + 1`.
 const MIGRATIONS: &[&str] = &[
@@ -69,6 +73,12 @@ impl History {
         if !mode.eq_ignore_ascii_case("wal") {
             log::warn!("history: journal_mode is {mode}, WAL unavailable");
         }
+        // ymd may run for weeks: keep the WAL file from growing past this after checkpoints.
+        let _: i64 = conn.query_row(
+            &format!("PRAGMA journal_size_limit = {JOURNAL_SIZE_LIMIT}"),
+            [],
+            |r| r.get(0),
+        )?;
         Self::init(conn)
     }
 
@@ -162,6 +172,28 @@ impl History {
         self.conn()
             .execute("DELETE FROM pending_jobs WHERE id = ?1", [id])?;
         Ok(())
+    }
+
+    /// Forgets unfinished downloads created before `cutoff` (nobody resumed them for weeks)
+    /// and returns their ids, so the caller can delete their partial files too. Rows whose
+    /// date can't be read are kept.
+    pub fn pending_expire(
+        &self,
+        cutoff: chrono::DateTime<chrono::Utc>,
+    ) -> anyhow::Result<Vec<String>> {
+        let expired: Vec<String> = self
+            .pending_list()?
+            .into_iter()
+            .filter(|p| {
+                chrono::DateTime::parse_from_rfc3339(&p.created_at)
+                    .is_ok_and(|t| t.with_timezone(&chrono::Utc) < cutoff)
+            })
+            .map(|p| p.id)
+            .collect();
+        for id in &expired {
+            self.pending_delete(id)?;
+        }
+        Ok(expired)
     }
 
     /// Downloads left unfinished, oldest number first.
@@ -385,6 +417,17 @@ fn normalize_time(t: Option<&str>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn wal_size_is_capped() {
+        let dir = tempfile::tempdir().unwrap();
+        let h = History::open(&dir.path().join("h.sqlite3")).unwrap();
+        let limit: i64 = h
+            .conn()
+            .query_row("PRAGMA journal_size_limit", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(limit, JOURNAL_SIZE_LIMIT);
+    }
 
     #[test]
     fn escape_like_escapes_wildcards() {

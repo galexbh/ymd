@@ -109,14 +109,17 @@ fn windows_progid() -> Option<String> {
     None
 }
 
+/// stdout of `program args` when it succeeds within [`crate::process::QUERY_TIMEOUT`].
 fn run(program: &str, args: &[&str]) -> Option<String> {
-    let out = std::process::Command::new(program)
-        .args(args)
-        .output()
-        .ok()?;
-    out.status
-        .success()
-        .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
+    let mut cmd = std::process::Command::new(program);
+    cmd.args(args);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    }
+    crate::process::stdout_within(cmd, crate::process::QUERY_TIMEOUT)
+        .map(|out| String::from_utf8_lossy(&out).into_owned())
 }
 
 /// The default browser as the extension card needs it: a display name, whether it is a

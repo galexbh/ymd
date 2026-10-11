@@ -53,6 +53,23 @@ fn same_file(a: &Path, b: &Path) -> bool {
     }
 }
 
+/// Logs `msg` the first time this process sees it: detection runs again and again, a skipped
+/// runtime is worth one line (a new path or version is a new line). Returns whether it logged.
+fn log_once(msg: String) -> bool {
+    static SEEN: std::sync::LazyLock<std::sync::Mutex<std::collections::HashSet<String>>> =
+        std::sync::LazyLock::new(Default::default);
+    let mut seen = SEEN.lock().unwrap_or_else(|p| p.into_inner());
+    if seen.len() >= 256 {
+        seen.clear();
+    }
+    let new = !seen.contains(&msg);
+    if new {
+        log::info!("{msg}");
+        seen.insert(msg);
+    }
+    new
+}
+
 /// All runtimes found, highest priority first.
 pub async fn detect(bin_dir: &Path) -> Vec<JsRuntimeInfo> {
     let mut candidates = Vec::new();
@@ -95,16 +112,16 @@ pub async fn detect(bin_dir: &Path) -> Vec<JsRuntimeInfo> {
             let version = match probe {
                 Probe::Version(v) => v,
                 Probe::Failed(e) => {
-                    log::info!("skipping JS runtime {}: {e}", c.path.display());
+                    log_once(format!("skipping JS runtime {}: {e}", c.path.display()));
                     return None;
                 }
             };
             if !supported(c.name, version.as_deref()) {
-                log::info!(
+                log_once(format!(
                     "skipping JS runtime {} {:?}: version not supported by yt-dlp",
                     c.path.display(),
                     version
-                );
+                ));
                 return None;
             }
             Some(JsRuntimeInfo {
@@ -150,6 +167,14 @@ mod tests {
         assert!(!supported(Quickjs, Some("2021-03-27")));
         assert!(supported(Quickjs, Some("ng-0.5.0")));
         assert!(supported(Node, None));
+    }
+
+    #[test]
+    fn skipped_runtimes_are_logged_once() {
+        let msg = format!("skipping JS runtime test-{}", uuid::Uuid::new_v4());
+        assert!(log_once(msg.clone()));
+        assert!(!log_once(msg.clone()));
+        assert!(log_once(format!("{msg} 2")), "a change logs again");
     }
 
     #[test]

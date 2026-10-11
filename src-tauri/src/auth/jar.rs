@@ -95,6 +95,13 @@ fn parse_hex_key(hex_key: &str) -> Option<JarKey> {
     bytes.try_into().ok()
 }
 
+/// The key to use after writing `written`: the one the keychain holds now when it reads back
+/// as a valid key (another process may have stored its own meanwhile), else `written`.
+#[cfg_attr(any(test, feature = "test-support"), allow(dead_code))]
+fn settle_key(written: JarKey, read_back: Option<&str>) -> JarKey {
+    read_back.and_then(parse_hex_key).unwrap_or(written)
+}
+
 #[cfg_attr(any(test, feature = "test-support"), allow(dead_code))]
 fn new_key() -> anyhow::Result<JarKey> {
     let mut k = [0u8; 32];
@@ -125,7 +132,9 @@ fn keychain_key() -> Option<JarKey> {
     }
     let key = new_key().ok()?;
     match entry.set_password(&hex::encode(key)) {
-        Ok(()) => Some(key),
+        // Two first runs (the app and a native host, or two hosts) can race to create the key:
+        // whichever write landed last is the key everyone uses, so read it back.
+        Ok(()) => Some(settle_key(key, entry.get_password().ok().as_deref())),
         Err(e) => {
             log::warn!(
                 "cookie jar: cannot save a key in the keychain, storing cookies unencrypted: {e}"
@@ -199,6 +208,16 @@ mod tests {
         assert!(decode(&sealed, None).is_err());
         // no key: stored plain
         assert_eq!(encode(TEXT, None).unwrap(), TEXT);
+    }
+
+    #[test]
+    fn first_run_race_uses_the_stored_key() {
+        let mine = [1u8; 32];
+        let theirs = [2u8; 32];
+        assert_eq!(settle_key(mine, Some(&hex::encode(theirs))), theirs);
+        assert_eq!(settle_key(mine, Some(&hex::encode(mine))), mine);
+        assert_eq!(settle_key(mine, Some("garbage")), mine);
+        assert_eq!(settle_key(mine, None), mine);
     }
 
     #[test]

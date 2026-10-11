@@ -121,12 +121,17 @@ fn cookies_are_stored() {
     .unwrap();
     assert_eq!(meta["origin"], "extension:brave");
     assert!(meta["createdAt"].as_str().is_some());
-    // No temp files left behind.
-    let names: Vec<String> = std::fs::read_dir(dir.path().join("auth"))
+    // No temp files left behind (the jar lock file stays, empty).
+    let mut names: Vec<String> = std::fs::read_dir(dir.path().join("auth"))
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
-    assert_eq!(names.len(), 2, "{names:?}");
+    names.sort();
+    assert_eq!(
+        names,
+        [".cookies.lock", "cookies.meta.json", "cookies.txt"],
+        "{names:?}"
+    );
 
     // The sync is logged to the local log file: counts only, never names or values.
     let logs: Vec<std::path::PathBuf> = std::fs::read_dir(dir.path().join("logs"))

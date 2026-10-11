@@ -47,11 +47,13 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
   - Web links only: `http` or `https`, at most 2048 characters, no spaces or control characters, no username or password, and a host with a dot that isn't an IP. Anything else → `{"ok":false,"code":"unsupported_url"}`.
 - `version` is required in every message; a value above `1` is rejected.
 - Any failure → `{"ok":false,"code":"<ErrorCode snake_case>","detail":"…"}`. The detail never contains cookie values.
+- If handling a message takes longer than 20 s (for example, a keychain prompt nobody answers), the host replies `{"ok":false,"code":"host_failed","detail":"timeout"}` and exits.
 
 ## Effects
 
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
 - It writes `cookies.meta.json` with `origin: "extension:<browser>"` and, when valid, `extensionVersion`.
+- Two browsers can sync at once (one host process each): the host holds an exclusive lock on `auth/.cookies.lock` while it writes `cookies.txt` and `cookies.meta.json`, so both files always come from the same sync.
 - `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). When the synced one is older, the card asks to reload the extension: an unpacked extension doesn't update automatically.
 - The app reads both through `cookies_info` / `extension_status`.
 - `open` launches `ymd --open-url <url>` and replies right away. If ymd is already open, that second instance hands it the link and exits, and ymd comes to the front; otherwise ymd starts with it. The link shows up in **Receive** with its card. Nothing is ever downloaded without your click.

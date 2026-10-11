@@ -106,11 +106,16 @@ Si ymd se cierra con descargas en curso o en cola (con **Salir**, al apagar el e
 
 Las descargas no se reanudan automáticamente. Las que usaron una **Contraseña del video** o un **Código de verificación (2FA)** aparecen aparte, porque ymd nunca guarda esos datos: vuelve a pegar su enlace en **Recibir** y escribe esos datos otra vez.
 
+Una descarga sin terminar que nadie reanuda en 14 días se olvida al abrir ymd, junto con sus archivos parciales.
+
 ## El registro
 
 La pantalla **Registro** lista todas las descargas de la sesión, de la más reciente a la más antigua, con su número (**N.º**), título, formato, tamaño, avance exacto en bytes, velocidad, tiempo restante y estado. Se puede filtrar por estado (**En curso**, **En cola**, **Archivadas**, **Fallidas**) y **Limpiar terminados**. La pantalla **Recibir** muestra el registro de la sesión debajo del mostrador.
 
 Cada fila tiene sus acciones: **Cancelar**, **Reintentar**, **Abrir archivo**, **Mostrar en la carpeta** y **Quitar del registro**.
+
+- **Reintentar** no sirve para una descarga que usó una **Contraseña del video** o un **Código de verificación (2FA)**: ymd olvida esos datos en cuanto la descarga termina. Vuelve a pegar el enlace en **Recibir** y escríbelos otra vez.
+- ymd puede quedarse días en la bandeja del sistema: el registro guarda las 200 descargas terminadas más recientes y quita solas las más antiguas. Las que están en curso o en cola nunca se quitan.
 
 ## Los sellos
 

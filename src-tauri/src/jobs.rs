@@ -14,7 +14,13 @@
 //!   yt-dlp keeps `*.part` / `*.ytdl` files because of `-P temp:`);
 //! - retry re-enqueues a terminal job with the same request (new id and seq);
 //! - transient secrets in `EnqueueRequest` (video password / 2FA) stay in this in-memory map
-//!   only; they are never copied into `Job`, emitted, persisted or logged;
+//!   only while the job is queued or running; they are never copied into `Job`, emitted,
+//!   persisted or logged, and they are dropped when the job ends (so a retry of such a job
+//!   fails with `LoginRequired`: the link has to be added again with the secret);
+//! - ymd can stay in the tray for days: only the newest [`MAX_FINISHED_JOBS`] finished jobs
+//!   are kept in the list, older ones are evicted (`JobEnv::removed`). Output lines are capped
+//!   at [`MAX_LINE_BYTES`] and error details at [`errors::MAX_DETAIL_BYTES`];
+//! - a panic while a job runs still ends it as `Error` and frees its slot (`RunGuard`);
 //! - every queued job is also saved as a `PendingJob` (`JobEnv::pending_save`) and forgotten
 //!   when it ends. When ymd exits (`shutdown`), running jobs are killed but keep their row and
 //!   their `tmp/<id>` dir, so `resume` can start them again with the same id and yt-dlp
@@ -32,13 +38,15 @@ use crate::model::{
 use crate::process;
 use crate::ytdlp::progress::{self, Event};
 use crate::ytdlp::{args, errors};
+use futures_util::FutureExt;
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::panic::AssertUnwindSafe;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::time::{Duration, Instant};
-use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
+use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::sync::{mpsc, Notify};
 use tracing::Instrument;
 
@@ -46,6 +54,10 @@ use tracing::Instrument;
 pub const EMIT_INTERVAL: Duration = Duration::from_millis(250);
 /// stderr lines kept for the error detail / classification.
 pub const STDERR_TAIL: usize = 50;
+/// Finished (done, canceled, failed) jobs kept in the list; older ones are evicted.
+pub const MAX_FINISHED_JOBS: usize = 200;
+/// Longest output line kept from yt-dlp / ffmpeg / aria2c; the rest of a longer line is dropped.
+pub const MAX_LINE_BYTES: usize = 8 * 1024;
 
 /// Everything a job needs from the outside world; faked in tests.
 pub trait JobEnv: Send + Sync + 'static {
@@ -70,11 +82,17 @@ pub trait JobEnv: Send + Sync + 'static {
     fn pending_save(&self, _pending: &PendingJob) {}
     /// A job ended (or was removed): forget it.
     fn pending_delete(&self, _id: &JobId) {}
+    /// A finished job left the list on its own (evicted beyond [`MAX_FINISHED_JOBS`]).
+    fn removed(&self, _id: &JobId) {}
 }
 
 /// The row that lets `job` be resumed later. Secrets are never copied, only flagged.
-pub fn pending_of(job: &Job, req: &EnqueueRequest) -> PendingJob {
+fn has_secret(req: &EnqueueRequest) -> bool {
     let given = |s: &Option<String>| s.as_deref().is_some_and(|v| !v.is_empty());
+    given(&req.video_password) || given(&req.twofactor)
+}
+
+pub fn pending_of(job: &Job, req: &EnqueueRequest) -> PendingJob {
     PendingJob {
         id: job.id.clone(),
         seq: job.seq,
@@ -86,7 +104,7 @@ pub fn pending_of(job: &Job, req: &EnqueueRequest) -> PendingJob {
         thumbnail: job.thumbnail.clone(),
         kind: job.kind,
         created_at: job.created_at.clone(),
-        needs_secret: given(&req.video_password) || given(&req.twofactor),
+        needs_secret: has_secret(req),
     }
 }
 
@@ -142,6 +160,22 @@ struct Entry {
     /// When the job left the queue and when its current stage began (for the logs).
     started: Option<Instant>,
     stage_since: Option<Instant>,
+    /// Order in which jobs reached a terminal state (eviction drops the lowest first).
+    finished_tick: u64,
+    /// A video password / 2FA code was given and dropped when the job ended.
+    secret_dropped: bool,
+}
+
+impl Entry {
+    /// The job reached a terminal state: forget its transient secrets.
+    fn ended(&mut self, tick: u64) {
+        self.finished_tick = tick;
+        if has_secret(&self.req) {
+            self.secret_dropped = true;
+        }
+        self.req.video_password = None;
+        self.req.twofactor = None;
+    }
 }
 
 #[derive(Default)]
@@ -156,6 +190,44 @@ struct Inner {
     start_at: Option<chrono::DateTime<chrono::Utc>>,
     /// Bumped on every `set_start_at`; a timer whose generation is stale does nothing.
     schedule_gen: u64,
+    /// Bumped each time a job ends (see `Entry::finished_tick`).
+    finish_counter: u64,
+    /// Job tmp dirs that could not be deleted yet (Windows handles); retried by `sweep_tmp`.
+    leftovers: Vec<PathBuf>,
+}
+
+impl Inner {
+    /// Marks `id` as ended now (order for eviction) and drops its secrets.
+    fn end(&mut self, id: &JobId) {
+        self.finish_counter += 1;
+        let tick = self.finish_counter;
+        if let Some(e) = self.jobs.get_mut(id) {
+            e.ended(tick);
+        }
+    }
+
+    /// Drops the oldest finished jobs beyond [`MAX_FINISHED_JOBS`]; active ones are never
+    /// touched. Returns the evicted ids.
+    fn evict_finished(&mut self) -> Vec<JobId> {
+        let mut done: Vec<(u64, JobId)> = self
+            .jobs
+            .values()
+            .filter(|e| e.job.stage.is_terminal())
+            .map(|e| (e.finished_tick, e.job.id.clone()))
+            .collect();
+        if done.len() <= MAX_FINISHED_JOBS {
+            return Vec::new();
+        }
+        done.sort();
+        let extra = done.len() - MAX_FINISHED_JOBS;
+        done.into_iter()
+            .take(extra)
+            .map(|(_, id)| {
+                self.jobs.remove(&id);
+                id
+            })
+            .collect()
+    }
 }
 
 enum Outcome {
@@ -261,7 +333,7 @@ impl JobManager {
     ) -> Job {
         let first_seq = self.env.first_seq();
         let concurrency = self.env.settings().concurrency;
-        let job = {
+        let (job, pending) = {
             let mut g = self.lock();
             if g.limit.is_none() {
                 g.limit = Some(concurrency.max(1) as usize);
@@ -294,7 +366,7 @@ impl JobManager {
                 created_at,
                 finished_at: None,
             };
-            self.env.pending_save(&pending_of(&job, &req));
+            let pending = pending_of(&job, &req);
             g.jobs.insert(
                 job.id.clone(),
                 Entry {
@@ -305,12 +377,31 @@ impl JobManager {
                     last_emit: None,
                     started: None,
                     stage_since: None,
+                    finished_tick: 0,
+                    secret_dropped: false,
                 },
             );
-            g.queue.push_back(job.id.clone());
-            job
+            (job, pending)
         };
-        self.env.emit(&job);
+        // SQLite I/O outside the jobs lock; the job only becomes startable once its row exists.
+        self.env.pending_save(&pending);
+        let queued = {
+            let mut g = self.lock();
+            let queued = g
+                .jobs
+                .get(&job.id)
+                .is_some_and(|e| e.job.stage == JobStage::Queued);
+            if queued {
+                g.queue.push_back(job.id.clone());
+            }
+            queued
+        };
+        if queued {
+            self.env.emit(&job);
+        } else {
+            // Canceled while its row was being written: forget the row again.
+            self.env.pending_delete(&job.id);
+        }
         job
     }
 
@@ -343,6 +434,42 @@ impl JobManager {
     /// Ids of jobs in this session's list (resumed rows must not be discarded under them).
     pub async fn ids(&self) -> HashSet<JobId> {
         self.lock().jobs.keys().cloned().collect()
+    }
+
+    /// Ids of jobs queued or running.
+    pub fn active_ids(&self) -> HashSet<JobId> {
+        self.lock()
+            .jobs
+            .values()
+            .filter(|e| !e.job.stage.is_terminal())
+            .map(|e| e.job.id.clone())
+            .collect()
+    }
+
+    /// Periodic clean-up of `tmp_dir`: retries the job dirs that could not be deleted when
+    /// their job ended, then removes every job dir that belongs neither to an active job nor
+    /// to a resumable download (`pending`, read after the active ids so a job queued
+    /// meanwhile is covered by its row). Returns how many dirs went.
+    pub fn sweep_tmp(&self, pending: impl FnOnce() -> HashSet<JobId>) -> usize {
+        let leftovers = std::mem::take(&mut self.lock().leftovers);
+        let mut removed = 0;
+        let mut still = Vec::new();
+        for dir in leftovers {
+            match std::fs::remove_dir_all(&dir) {
+                Ok(()) => removed += 1,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                Err(_) => still.push(dir),
+            }
+        }
+        self.lock().leftovers.extend(still);
+        let mut keep = self.active_ids();
+        keep.extend(pending());
+        removed + sweep_orphan_tmp(&self.env.tmp_dir(), &keep)
+    }
+
+    /// Job tmp dirs waiting for a retry of their deletion.
+    pub fn leftover_dirs(&self) -> Vec<PathBuf> {
+        self.lock().leftovers.clone()
     }
 
     /// ymd is quitting: start nothing more and kill the running downloads, keeping their tmp
@@ -417,19 +544,29 @@ impl JobManager {
             tracing::info_span!("job", id = %id, preset = %preset, kind = kind)
         };
         async move {
+            // Frees the slot (and fails the job) even if something below panics.
+            let _guard = RunGuard {
+                mgr: self.clone(),
+                id: id.clone(),
+            };
             tracing::info!("job started");
-            let outcome = self.execute(&id).await;
+            let outcome = AssertUnwindSafe(self.execute(&id))
+                .catch_unwind()
+                .await
+                .unwrap_or_else(|panic| Outcome::Failed(panic_error(panic.as_ref())));
             // Interrupted by ymd quitting: keep `tmp/<id>` (the `.part` files) and the pending row.
             let keep = self.is_exiting() && !matches!(outcome, Outcome::Done(_));
             if !keep {
-                remove_dir_retrying(&self.env.tmp_dir().join(&id)).await;
+                let dir = self.env.tmp_dir().join(&id);
+                if !remove_dir_retrying(&dir).await {
+                    self.lock().leftovers.push(dir);
+                }
             }
-            self.finish(&id, outcome, keep);
+            if let Err(panic) =
+                std::panic::catch_unwind(AssertUnwindSafe(|| self.finish(&id, outcome, keep)))
             {
-                let mut g = self.lock();
-                g.running = g.running.saturating_sub(1);
+                tracing::error!(detail = %panic_error(panic.as_ref()).detail, "job finish failed");
             }
-            self.pump();
         }
         .instrument(span)
         .await
@@ -502,12 +639,7 @@ impl JobManager {
         });
         drop(req);
 
-        if self
-            .lock()
-            .jobs
-            .get(id)
-            .map_or(true, |e| e.cancel_requested)
-        {
+        if self.lock().jobs.get(id).is_none_or(|e| e.cancel_requested) {
             return Outcome::Canceled;
         }
         let mut child = match process::command(&ytdlp)
@@ -645,7 +777,7 @@ impl JobManager {
                 let since = e.stage_since.replace(Instant::now());
                 stage_ended = Some((before, since.map_or(0, elapsed_ms)));
             }
-            let due = e.last_emit.map_or(true, |t| t.elapsed() >= EMIT_INTERVAL);
+            let due = e.last_emit.is_none_or(|t| t.elapsed() >= EMIT_INTERVAL);
             if force || due {
                 e.last_emit = Some(Instant::now());
                 Some(e.job.clone())
@@ -687,14 +819,17 @@ impl JobManager {
                     job.stage = JobStage::Canceled;
                     None
                 }
-                Outcome::Failed(err) => {
+                Outcome::Failed(mut err) => {
                     job.stage = JobStage::Error;
+                    err.detail = errors::cap_detail(&err.detail);
                     job.error = Some(err);
                     None
                 }
             };
             e.last_emit = Some(Instant::now());
-            (e.job.clone(), preset, last_stage, stage_ms, total_ms)
+            let snapshot = (e.job.clone(), preset, last_stage, stage_ms, total_ms);
+            g.end(id);
+            snapshot
         };
         let outcome = stage_name(job.stage);
         tracing::info!(
@@ -724,6 +859,15 @@ impl JobManager {
         if !keep_pending {
             self.env.pending_delete(id);
         }
+        self.evict();
+    }
+
+    /// Evicts the oldest finished jobs beyond [`MAX_FINISHED_JOBS`] and tells the UI.
+    fn evict(&self) {
+        let evicted = self.lock().evict_finished();
+        for id in &evicted {
+            self.env.removed(id);
+        }
     }
 
     pub async fn cancel(&self, id: &JobId) -> anyhow::Result<()> {
@@ -740,7 +884,9 @@ impl JobManager {
                 queue.retain(|q| q != id);
                 e.job.stage = JobStage::Canceled;
                 e.job.finished_at = Some(now());
-                Some(e.job.clone())
+                let job = e.job.clone();
+                g.end(id);
+                Some(job)
             } else {
                 e.cancel_requested = true;
                 e.cancel.notify_one();
@@ -750,6 +896,7 @@ impl JobManager {
         if let Some(job) = queued {
             self.env.pending_delete(id);
             self.env.emit(&job);
+            self.evict();
         }
         Ok(())
     }
@@ -763,6 +910,13 @@ impl JobManager {
                 .ok_or_else(|| cmd_err(ErrorCode::Unknown, format!("unknown job: {id}")))?;
             if !e.job.stage.is_terminal() {
                 return Err(cmd_err(ErrorCode::Unknown, "job is still active"));
+            }
+            if e.secret_dropped {
+                // Like a pending row with `needs_secret`: the secret is gone, ask for it again.
+                return Err(cmd_err(
+                    ErrorCode::LoginRequired,
+                    "the video password or 2FA code is not kept after a download ends; add the link again",
+                ));
             }
             e.req.clone()
         };
@@ -894,41 +1048,142 @@ fn truncate(s: &str, max: usize) -> String {
     }
 }
 
-/// Forwards lines (lossy UTF-8, without `\r\n`) to the job loop until EOF.
+/// Splits a byte stream into lines on `\n` **and** `\r` (yt-dlp, ffmpeg and aria2c redraw
+/// progress with a bare `\r`), keeping at most [`MAX_LINE_BYTES`] of each line: the rest of
+/// an over-long line is dropped, so a stream without separators can't grow memory. Empty
+/// lines are skipped.
+#[derive(Default)]
+struct LineSplitter {
+    buf: Vec<u8>,
+    /// The current line already reached the cap: drop bytes until its end.
+    overflow: bool,
+}
+
+impl LineSplitter {
+    fn push(&mut self, bytes: &[u8], out: &mut impl FnMut(String)) {
+        for &b in bytes {
+            if b == b'\n' || b == b'\r' {
+                self.flush(out);
+            } else if self.buf.len() < MAX_LINE_BYTES {
+                self.buf.push(b);
+            } else {
+                self.overflow = true;
+            }
+        }
+    }
+
+    /// Ends the current line (at a separator or EOF).
+    fn flush(&mut self, out: &mut impl FnMut(String)) {
+        if !self.buf.is_empty() {
+            out(String::from_utf8_lossy(&self.buf).into_owned());
+        }
+        self.buf.clear();
+        self.overflow = false;
+    }
+}
+
+/// Forwards lines (lossy UTF-8, see [`LineSplitter`]) to the job loop until EOF.
 fn read_lines<R>(stream: R, is_stderr: bool, tx: mpsc::UnboundedSender<(bool, String)>)
 where
     R: AsyncRead + Unpin + Send + 'static,
 {
-    tokio::spawn(async move {
-        let mut reader = BufReader::new(stream);
-        let mut buf = Vec::with_capacity(1024);
-        loop {
-            buf.clear();
-            match reader.read_until(b'\n', &mut buf).await {
-                Ok(0) | Err(_) => break,
-                Ok(_) => {
-                    let line = String::from_utf8_lossy(&buf)
-                        .trim_end_matches(['\r', '\n'])
-                        .to_string();
-                    if tx.send((is_stderr, line)).is_err() {
-                        break;
-                    }
-                }
-            }
+    tokio::spawn(forward_lines(stream, is_stderr, tx));
+}
+
+async fn forward_lines<R>(mut stream: R, is_stderr: bool, tx: mpsc::UnboundedSender<(bool, String)>)
+where
+    R: AsyncRead + Unpin,
+{
+    let mut splitter = LineSplitter::default();
+    let mut chunk = vec![0u8; 8 * 1024];
+    let mut open = true;
+    let mut send = |line: String| {
+        if open && tx.send((is_stderr, line)).is_err() {
+            open = false;
         }
-    });
+    };
+    loop {
+        match stream.read(&mut chunk).await {
+            Ok(0) | Err(_) => break,
+            Ok(n) => splitter.push(&chunk[..n], &mut send),
+        }
+    }
+    splitter.flush(&mut send);
+}
+
+/// A panic payload as a job error (the message only; it never holds a secret).
+fn panic_error(panic: &(dyn std::any::Any + Send)) -> JobError {
+    let msg = panic
+        .downcast_ref::<&str>()
+        .map(|s| s.to_string())
+        .or_else(|| panic.downcast_ref::<String>().cloned())
+        .unwrap_or_else(|| "unknown panic".into());
+    JobError {
+        code: ErrorCode::Unknown,
+        detail: errors::cap_detail(&format!("internal error: {msg}")),
+    }
+}
+
+/// Held by a running job: when it goes (normally or while unwinding from a panic) the slot is
+/// freed and, if the job never reached a terminal state, it is failed and its row forgotten.
+struct RunGuard {
+    mgr: Arc<JobManager>,
+    id: JobId,
+}
+
+impl Drop for RunGuard {
+    fn drop(&mut self) {
+        let mgr = &self.mgr;
+        let failed = {
+            let mut g = mgr.lock();
+            g.running = g.running.saturating_sub(1);
+            let job = g.jobs.get_mut(&self.id).and_then(|e| {
+                if e.job.stage.is_terminal() {
+                    return None;
+                }
+                e.job.stage = JobStage::Error;
+                e.job.speed = None;
+                e.job.eta = None;
+                e.job.finished_at = Some(now());
+                e.job.error = Some(JobError {
+                    code: ErrorCode::Unknown,
+                    detail: "internal error: the download stopped unexpectedly".into(),
+                });
+                Some(e.job.clone())
+            });
+            if job.is_some() {
+                g.end(&self.id);
+            }
+            job
+        };
+        // Nothing here may panic again (a panic while unwinding aborts the process).
+        let _ = std::panic::catch_unwind(AssertUnwindSafe(|| {
+            if let Some(job) = failed {
+                mgr.env.emit(&job);
+                if !mgr.is_exiting() {
+                    mgr.env.pending_delete(&self.id);
+                }
+                mgr.evict();
+            }
+            if tokio::runtime::Handle::try_current().is_ok() {
+                mgr.pump();
+            }
+        }));
+    }
 }
 
 /// Removes a job's tmp dir. Windows may keep handles open briefly after a kill, so retry.
-async fn remove_dir_retrying(dir: &Path) {
+/// `false` when the dir is still there (the caller remembers it for `sweep_tmp`).
+async fn remove_dir_retrying(dir: &Path) -> bool {
     for _ in 0..20 {
         match std::fs::remove_dir_all(dir) {
-            Ok(()) => return,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return,
+            Ok(()) => return true,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return true,
             Err(_) => tokio::time::sleep(Duration::from_millis(100)).await,
         }
     }
-    log::warn!("could not remove {}", dir.display());
+    log::warn!("could not remove {}; will retry later", dir.display());
+    false
 }
 
 #[cfg(test)]
@@ -972,6 +1227,83 @@ mod tests {
             title: None,
             thumbnail: None,
         }
+    }
+
+    fn split(chunks: &[&[u8]]) -> Vec<String> {
+        let mut lines = Vec::new();
+        let mut s = LineSplitter::default();
+        for c in chunks {
+            s.push(c, &mut |l| lines.push(l));
+        }
+        s.flush(&mut |l| lines.push(l));
+        lines
+    }
+
+    #[test]
+    fn lines_split_on_cr_and_lf() {
+        assert_eq!(
+            split(&[b"a\r\nb\rc\n\n\rd"]),
+            vec!["a", "b", "c", "d"],
+            "\\r, \\n and \\r\\n end lines; empty ones are skipped; EOF ends the last"
+        );
+        // A line split across reads is joined.
+        assert_eq!(split(&[b"YMD|{\"a\"", b":1}\r"]), vec!["YMD|{\"a\":1}"]);
+        assert!(split(&[b""]).is_empty());
+    }
+
+    #[test]
+    fn over_long_lines_are_capped() {
+        let long = vec![b'x'; MAX_LINE_BYTES * 3 + 5];
+        let lines = split(&[&long[..1000], &long[1000..], b"\rnext\n"]);
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0].len(), MAX_LINE_BYTES);
+        assert_eq!(lines[1], "next");
+        // Without any separator memory stays bounded and EOF delivers the capped line.
+        let lines = split(&[&long]);
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0].len(), MAX_LINE_BYTES);
+    }
+
+    #[tokio::test]
+    async fn forwarded_cr_frames_parse_as_progress() {
+        let frame = |p: u32| {
+            format!(
+                "YMD|{{\"status\":\"downloading\",\"downloaded_bytes\":{p},\"total_bytes\":100}}\r"
+            )
+        };
+        let mut stream = format!("{}{}", frame(10), frame(60)).into_bytes();
+        stream.extend(vec![b'z'; MAX_LINE_BYTES * 2]);
+        stream.extend_from_slice(b"\r\n");
+        stream.extend_from_slice(frame(90).as_bytes());
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        forward_lines(&stream[..], true, tx).await;
+        let mut lines = Vec::new();
+        while let Some((is_stderr, l)) = rx.recv().await {
+            assert!(is_stderr);
+            lines.push(l);
+        }
+        assert_eq!(lines.len(), 4);
+        assert_eq!(lines[2].len(), MAX_LINE_BYTES);
+        let fractions: Vec<_> = [&lines[0], &lines[1], &lines[3]]
+            .iter()
+            .map(|l| match progress::parse_line(l) {
+                Some(Event::Progress { fraction, .. }) => fraction,
+                other => panic!("{l}: {other:?}"),
+            })
+            .collect();
+        assert_eq!(fractions, vec![Some(0.1), Some(0.6), Some(0.9)]);
+    }
+
+    #[test]
+    fn panic_payloads_become_job_errors() {
+        let e = panic_error(&"boom");
+        assert_eq!(e.code, ErrorCode::Unknown);
+        assert_eq!(e.detail, "internal error: boom");
+        assert_eq!(
+            panic_error(&String::from("bang")).detail,
+            "internal error: bang"
+        );
+        assert_eq!(panic_error(&42u8).detail, "internal error: unknown panic");
     }
 
     #[test]

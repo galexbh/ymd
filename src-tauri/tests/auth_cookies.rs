@@ -123,13 +123,17 @@ fn store_info_clear() {
     .unwrap();
     assert_eq!(info.cookie_count, 5);
 
-    // No stray temp files are left in the auth dir.
+    // No stray temp files are left in the auth dir (just the jar lock file).
     let mut names: Vec<String> = std::fs::read_dir(p.auth_dir())
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
     names.sort();
-    assert_eq!(names, ["cookies.meta.json", "cookies.txt"], "{names:?}");
+    assert_eq!(
+        names,
+        [".cookies.lock", "cookies.meta.json", "cookies.txt"],
+        "{names:?}"
+    );
 
     cookies::clear(&p).unwrap();
     assert!(cookies::info(&p).is_none());
