@@ -4,6 +4,11 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **Límite de velocidad.** **Ajustes → Descargas → Límite de velocidad** pone un tope por descarga: **Sin límite**, 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir de 1 a 1000. Se aplica a las descargas que empiecen a partir de ese momento (yt-dlp `--limit-rate`, y también aria2c cuando está activado).
+- **Programar el inicio de la cola.** En **Registro**, **Programar inicio** deja lo que esté en cola esperando hasta una hora (hoy, o mañana si ya pasó). Un aviso muestra «La cola empieza a las HH:MM» con **Empezar ahora** y **Quitar**. La hora no se guarda al salir de ymd.
+
 ### Proyecto
 
 - Oxlint y oxfmt reemplazan a ESLint y Prettier: mismas reglas (incluidas las de hooks y React Compiler) y el mismo estilo, con `pnpm lint` y `pnpm format:check` varias veces más rápidos. La configuración vive en `.oxlintrc.json` y `.oxfmtrc.json`; en VS Code se recomienda la extensión Oxc.

@@ -1,5 +1,7 @@
 use super::State;
-use crate::model::{CmdResult, EnqueueRequest, Job, JobId, ProbeResult, EVT_JOB_REMOVED};
+use crate::model::{
+    CmdResult, CommandError, EnqueueRequest, Job, JobId, ProbeResult, EVT_JOB_REMOVED,
+};
 use tauri::{AppHandle, Emitter};
 
 #[tauri::command]
@@ -45,6 +47,35 @@ pub async fn jobs_clear_finished(app: AppHandle, state: State<'_>) -> CmdResult<
         let _ = app.emit(EVT_JOB_REMOVED, id);
     }
     Ok(ids)
+}
+
+/// Holds queued jobs until `at` (RFC 3339) or, with `None`, clears the schedule and starts
+/// them now. Returns the stored schedule (`None` when `at` already passed).
+#[tauri::command]
+pub async fn queue_schedule(state: State<'_>, at: Option<String>) -> CmdResult<Option<String>> {
+    let at = match at.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        None => None,
+        Some(s) => Some(
+            chrono::DateTime::parse_from_rfc3339(s)
+                .map_err(|e| CommandError::unknown(format!("invalid time {s:?}: {e}")))?
+                .with_timezone(&chrono::Utc),
+        ),
+    };
+    state.jobs.set_start_at(at);
+    Ok(schedule_string(&state))
+}
+
+/// Current scheduled queue start (RFC 3339, UTC), if any.
+#[tauri::command]
+pub async fn queue_schedule_get(state: State<'_>) -> CmdResult<Option<String>> {
+    Ok(schedule_string(&state))
+}
+
+fn schedule_string(state: &State<'_>) -> Option<String> {
+    state
+        .jobs
+        .start_at()
+        .map(|t| t.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
 }
 
 /// Accession number the next enqueued job will receive (shown on the intake card).

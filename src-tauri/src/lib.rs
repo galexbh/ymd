@@ -201,6 +201,8 @@ pub fn run() {
             commands::jobs::job_remove,
             commands::jobs::jobs_clear_finished,
             commands::jobs::jobs_next_seq,
+            commands::jobs::queue_schedule,
+            commands::jobs::queue_schedule_get,
             commands::history::history_query,
             commands::history::history_delete,
             commands::history::history_clear,

@@ -268,3 +268,65 @@ describe("mock backend — probe", () => {
     expect((await api.probe(VIDEO)).kind).toBe("video");
   });
 });
+
+describe("mock backend — speed limit and scheduled start", () => {
+  it("limitRateMbps caps the simulated speed and is sanitized to 1..=1000", async () => {
+    const t = setup({ settings: { limitRateMbps: 1 } });
+    await t.listen();
+    await api.enqueue(req(VIDEO));
+    await t.clock.advanceAsync(5_000, 250);
+    const speeds = t.updates.map((u) => u.speed).filter((v): v is number => v !== null);
+    expect(speeds.length).toBeGreaterThan(4);
+    for (const v of speeds) expect(v).toBeLessThanOrEqual(1024 * 1024);
+
+    const s = await api.settingsGet();
+    for (const [raw, want] of [
+      [20, 20],
+      [0, null],
+      [1001, null],
+      [2.5, null],
+      [null, null],
+    ] as const) {
+      const saved = await api.settingsSet({ ...s, limitRateMbps: raw });
+      expect(saved.limitRateMbps).toBe(want);
+    }
+  });
+
+  it("holds queued jobs until the scheduled instant, then starts them", async () => {
+    const t = setup();
+    await t.listen();
+    const schedules: (string | null)[] = [];
+    await events.onQueueSchedule((s) => schedules.push(s.startAt));
+    const at = new Date(t.clock.now() + 60_000).toISOString();
+    const stored = await api.queueSchedule(at);
+    expect(stored).toBe(at.replace(/\.\d{3}Z$/, "Z"));
+    expect(await api.queueScheduleGet()).toBe(stored);
+    expect(t.be.snapshot().queueStartAt).toBe(stored);
+
+    const job = await api.enqueue(req(VIDEO));
+    await t.clock.advanceAsync(59_000, 1_000);
+    expect((await api.jobsList())[0].stage).toBe("queued");
+
+    await t.clock.advanceAsync(1_000);
+    expect((await api.jobsList())[0].stage).toBe("downloading");
+    expect(await api.queueScheduleGet()).toBeNull();
+    expect(schedules).toEqual([stored, null]);
+    expect(t.updates.some((u) => u.id === job.id && u.stage === "downloading")).toBe(true);
+  });
+
+  it("clearing starts now, replacing supersedes the timer, past or bad times", async () => {
+    const t = setup();
+    await api.queueSchedule(new Date(t.clock.now() + 10_000).toISOString());
+    await api.enqueue(req(VIDEO));
+    // replaced by a later time: the first timer must not start the queue
+    await api.queueSchedule(new Date(t.clock.now() + 3_600_000).toISOString());
+    await t.clock.advanceAsync(20_000, 1_000);
+    expect((await api.jobsList())[0].stage).toBe("queued");
+    // «Empezar ahora»
+    expect(await api.queueSchedule(null)).toBeNull();
+    expect((await api.jobsList())[0].stage).toBe("downloading");
+    // a time that already passed is «now»
+    expect(await api.queueSchedule(new Date(t.clock.now() - 1_000).toISOString())).toBeNull();
+    await expect(api.queueSchedule("tonight")).rejects.toMatchObject({ code: "unknown" });
+  });
+});

@@ -216,6 +216,8 @@ const WITH_VALUE: &[&str] = &[
     "--encoding",
     "-N",
     "--concurrent-fragments",
+    "-r",
+    "--limit-rate",
     "--ffmpeg-location",
     "--js-runtimes",
     "--download-archive",

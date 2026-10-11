@@ -2,6 +2,9 @@
 //!
 //! - bounded concurrency: a FIFO queue plus a scheduler (`pump`) that starts jobs while fewer
 //!   than `limit` are running; `set_concurrency` resizes the limit and starts queued jobs;
+//! - scheduled start (`set_start_at`, in memory only): `pump` starts nothing before that
+//!   instant; a timer clears it then and pumps. A newer schedule (or a clear) supersedes the
+//!   running timer through a generation counter;
 //! - one yt-dlp child per job; stdout **and** stderr are parsed with `ytdlp::progress` (yt-dlp
 //!   writes postprocessor progress to stderr in quiet mode), the last non-marker stderr lines are
 //!   kept for error classification;
@@ -51,6 +54,16 @@ pub trait JobEnv: Send + Sync + 'static {
     fn first_seq(&self) -> u64 {
         1
     }
+    /// The scheduled queue start changed (RFC 3339, UTC; `None` = the queue runs freely).
+    fn schedule_changed(&self, _start_at: Option<&str>) {}
+}
+
+/// Longest single sleep of the schedule timer: the wall clock is re-read after each one, so a
+/// computer that slept through the scheduled time still starts the queue promptly.
+const SCHEDULE_TICK: Duration = Duration::from_secs(30);
+
+fn rfc3339(t: chrono::DateTime<chrono::Utc>) -> String {
+    t.to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
 }
 
 struct Entry {
@@ -69,6 +82,10 @@ struct Inner {
     /// Read lazily from settings: `JobManager::new` runs before the app state exists.
     limit: Option<usize>,
     next_seq: Option<u64>,
+    /// Queued jobs wait until this instant (`None` = start as soon as a slot is free).
+    start_at: Option<chrono::DateTime<chrono::Utc>>,
+    /// Bumped on every `set_start_at`; a timer whose generation is stale does nothing.
+    schedule_gen: u64,
 }
 
 enum Outcome {
@@ -204,6 +221,9 @@ impl JobManager {
         let mut started = Vec::new();
         {
             let mut g = self.lock();
+            if g.start_at.is_some_and(|t| chrono::Utc::now() < t) {
+                return;
+            }
             let limit = g.limit.unwrap_or(1).max(1);
             while g.running < limit {
                 let Some(id) = g.queue.pop_front() else { break };
@@ -303,6 +323,7 @@ impl JobManager {
             playlist_items: req.playlist_items.as_deref(),
             archive_file,
             use_aria2c: settings.use_aria2c,
+            limit_rate_mbps: settings.limit_rate_mbps,
             auth_args,
         });
         drop(req);
@@ -589,6 +610,60 @@ impl JobManager {
     /// Apply a new concurrency limit to queued jobs.
     pub async fn set_concurrency(&self, n: u32) {
         self.lock().limit = Some(n.max(1) as usize);
+        self.pump();
+    }
+
+    /// When the queue starts (`None` = no schedule).
+    pub fn start_at(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+        self.lock().start_at
+    }
+
+    /// Holds queued jobs until `at` (running jobs are untouched), or clears the schedule and
+    /// starts queued jobs now with `None`. An instant that already passed counts as `None`.
+    /// Replaces any previous schedule and its timer.
+    pub fn set_start_at(&self, at: Option<chrono::DateTime<chrono::Utc>>) {
+        let at = at.filter(|t| *t > chrono::Utc::now());
+        let gen = {
+            let mut g = self.lock();
+            g.schedule_gen += 1;
+            g.start_at = at;
+            g.schedule_gen
+        };
+        self.env.schedule_changed(at.map(rfc3339).as_deref());
+        match at {
+            None => self.pump(),
+            Some(t) => {
+                let me = self.me.clone();
+                tokio::spawn(async move {
+                    loop {
+                        let left = (t - chrono::Utc::now()).to_std().unwrap_or_default();
+                        if left.is_zero() {
+                            break;
+                        }
+                        tokio::time::sleep(left.min(SCHEDULE_TICK)).await;
+                        match me.upgrade() {
+                            Some(m) if m.lock().schedule_gen == gen => {}
+                            _ => return,
+                        }
+                    }
+                    if let Some(m) = me.upgrade() {
+                        m.schedule_reached(gen);
+                    }
+                });
+            }
+        }
+    }
+
+    /// Timer of generation `gen` fired: clear the schedule (unless superseded) and start jobs.
+    fn schedule_reached(&self, gen: u64) {
+        {
+            let mut g = self.lock();
+            if g.schedule_gen != gen {
+                return;
+            }
+            g.start_at = None;
+        }
+        self.env.schedule_changed(None);
         self.pump();
     }
 }

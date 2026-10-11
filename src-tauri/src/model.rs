@@ -365,6 +365,10 @@ pub struct Settings {
     /// The one-time «ymd sigue en la bandeja» notice was shown. Set by the backend.
     #[serde(default)]
     pub tray_hint_shown: bool,
+    /// Download speed cap in MB/s for jobs that start afterwards (1..=1000). `None` =
+    /// unlimited. Absent in older files.
+    #[serde(default)]
+    pub limit_rate_mbps: Option<u32>,
 }
 
 fn default_true() -> bool {
@@ -389,6 +393,14 @@ pub struct EnqueueRequest {
     /// Display metadata from the probe, so the row is meaningful before yt-dlp reports.
     pub title: Option<String>,
     pub thumbnail: Option<String>,
+}
+
+/// Payload of `EVT_QUEUE_SCHEDULE`: when the queue starts (RFC 3339, UTC), or `None` when it
+/// runs freely. Not persisted: a restart clears it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueueSchedule {
+    pub start_at: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -653,6 +665,9 @@ pub type CmdResult<T> = Result<T, CommandError>;
 
 pub const EVT_JOB_UPDATE: &str = "job://update";
 pub const EVT_JOB_REMOVED: &str = "job://removed";
+/// The scheduled queue start changed (set, replaced, cleared or reached); payload
+/// `QueueSchedule`.
+pub const EVT_QUEUE_SCHEDULE: &str = "queue://schedule";
 pub const EVT_DEPS_PROGRESS: &str = "deps://progress";
 pub const EVT_DEPS_CHANGED: &str = "deps://changed";
 /// A link from the browser is waiting (`take_pending_url`); no payload.

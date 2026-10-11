@@ -177,10 +177,17 @@ export interface Settings {
   closeToTray: boolean;
   /** the one-time tray notice was shown (written by the backend) */
   trayHintShown: boolean;
+  /** download speed cap in MB/s (1..=1000) for jobs that start afterwards; null = unlimited */
+  limitRateMbps: number | null;
 }
 
 // ───────────── Jobs ─────────────
 export type JobId = string;
+
+/** Payload of `EVT_QUEUE_SCHEDULE`: RFC 3339 (UTC) start of the queue, or null. In memory only. */
+export interface QueueSchedule {
+  startAt: string | null;
+}
 
 export interface EnqueueRequest {
   url: string;
@@ -363,6 +370,8 @@ export interface CommandError {
 
 export const EVT_JOB_UPDATE = "job://update";
 export const EVT_JOB_REMOVED = "job://removed";
+/** the scheduled queue start changed; payload `QueueSchedule` */
+export const EVT_QUEUE_SCHEDULE = "queue://schedule";
 export const EVT_DEPS_PROGRESS = "deps://progress";
 export const EVT_DEPS_CHANGED = "deps://changed";
 /** A link from the browser is waiting (`take_pending_url`); no payload. */

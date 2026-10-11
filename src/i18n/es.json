@@ -340,7 +340,17 @@
       "failed": "Fallidas"
     },
     "totals": "Totales del registro",
-    "speed": "Velocidad total"
+    "speed": "Velocidad total",
+    "schedule": {
+      "time": "Hora de inicio",
+      "action": "Programar inicio",
+      "invalid": "Escribe una hora válida, como 23:30.",
+      "today": "La cola empieza a las {{time}}",
+      "tomorrow": "La cola empieza mañana a las {{time}}",
+      "body": "Lo que esté en cola espera hasta esa hora; lo que ya se descarga sigue. Si cierras ymd, la hora se olvida.",
+      "startNow": "Empezar ahora",
+      "remove": "Quitar"
+    }
   },
   "catalog": {
     "description": "Todo lo que ymd ha archivado. Busca por título, enlace, ruta o número de ingreso.",
@@ -512,6 +522,13 @@
       "aria2c": "Usar aria2c",
       "aria2cHint": "Descarga cada archivo por varias conexiones.",
       "aria2cMissing": "Instala aria2c en Dependencias para activarlo.",
+      "limitRate": "Límite de velocidad",
+      "limitRateHint": "Se aplica a las descargas que empiecen a partir de ahora.",
+      "limitRateNone": "Sin límite",
+      "limitRateValue": "{{n}} MB/s",
+      "limitRateOther": "Otro…",
+      "limitRateCustom": "Límite en MB/s",
+      "limitRateInvalid": "Escribe un número entero entre 1 y 1000.",
       "clipboard": "Portapapeles",
       "clipboardWatch": "Detectar enlaces copiados",
       "clipboardModes": {

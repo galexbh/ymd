@@ -5,7 +5,9 @@ use crate::deps::manager::DepsManager;
 use crate::deps::Tools;
 use crate::history::History;
 use crate::jobs::{JobEnv, JobManager};
-use crate::model::{EnqueueRequest, Job, Preset, Settings, EVT_JOB_UPDATE};
+use crate::model::{
+    EnqueueRequest, Job, Preset, QueueSchedule, Settings, EVT_JOB_UPDATE, EVT_QUEUE_SCHEDULE,
+};
 use crate::paths::AppPaths;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -81,6 +83,12 @@ impl JobEnv for TauriJobEnv {
     }
     fn emit(&self, job: &Job) {
         let _ = self.app.emit(EVT_JOB_UPDATE, job);
+    }
+    fn schedule_changed(&self, start_at: Option<&str>) {
+        let payload = QueueSchedule {
+            start_at: start_at.map(String::from),
+        };
+        let _ = self.app.emit(EVT_QUEUE_SCHEDULE, &payload);
     }
     fn first_seq(&self) -> u64 {
         // Accession numbers continue after the last archived download.

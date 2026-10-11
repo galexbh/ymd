@@ -210,6 +210,7 @@ export function defaultSettings(platform: MockPlatform): Settings {
     clipboardWatch: "known",
     closeToTray: true,
     trayHintShown: false,
+    limitRateMbps: null,
   };
 }
 

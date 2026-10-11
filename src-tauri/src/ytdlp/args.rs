@@ -53,6 +53,9 @@ pub struct DownloadSpec<'a> {
     /// `--download-archive <path>` when enabled.
     pub archive_file: Option<PathBuf>,
     pub use_aria2c: bool,
+    /// Download speed cap in MB/s (`--limit-rate <n>M`, and aria2c's overall limit when it is
+    /// the downloader). `None` = unlimited.
+    pub limit_rate_mbps: Option<u32>,
     /// Already-built auth args from `auth::args_for` (cookies / netrc-cmd / video password / 2FA).
     pub auth_args: Vec<String>,
 }
@@ -121,6 +124,10 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
     if let Some(archive) = &spec.archive_file {
         a.extend([s("--download-archive"), p(archive)]);
     }
+    let rate = spec.limit_rate_mbps.filter(|n| *n > 0);
+    if let Some(n) = rate {
+        a.extend([s("--limit-rate"), format!("{n}M")]);
+    }
 
     a.extend(tool_args(spec.tools));
     if spec.use_aria2c {
@@ -129,7 +136,7 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
                 s("--downloader"),
                 p(aria),
                 s("--downloader-args"),
-                s(ARIA2C_ARGS),
+                aria2c_args(rate),
             ]);
         }
     }
@@ -142,6 +149,16 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
     a.push(s("--"));
     a.push(spec.url.to_string());
     a
+}
+
+/// `--downloader-args` value for aria2c. With a speed cap it is handed to aria2c explicitly, so
+/// the cap holds whichever downloader runs (the value equals `--limit-rate`'s, so a duplicate
+/// forwarded by yt-dlp is harmless).
+pub fn aria2c_args(limit_rate_mbps: Option<u32>) -> String {
+    match limit_rate_mbps {
+        Some(n) => format!("{ARIA2C_ARGS} --max-overall-download-limit={n}M"),
+        None => ARIA2C_ARGS.to_string(),
+    }
 }
 
 /// `-f` / `-S` / merge or audio extraction for a preset.
@@ -445,6 +462,7 @@ mod tests {
             playlist_items: playlist,
             archive_file: archive.then(|| paths.archive.into()),
             use_aria2c: aria2c,
+            limit_rate_mbps: None,
             auth_args: auth,
         }
     }
@@ -497,6 +515,13 @@ mod tests {
                 spec(mp3, &w, Some(items), true, true, auth),
             ),
         ];
+        let mut rate = spec(mp4, &w, None, false, false, vec![]);
+        rate.limit_rate_mbps = Some(5);
+        let mut rate_aria = spec(mp4, &w, None, false, true, vec![]);
+        rate_aria.limit_rate_mbps = Some(20);
+        let cases = cases
+            .into_iter()
+            .chain([("rate_on", rate), ("rate_aria2c", rate_aria)]);
         for (name, s) in cases {
             insta::assert_yaml_snapshot!(format!("download_combo_{name}"), download_args(&s));
         }
@@ -574,6 +599,29 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn limit_rate_flags() {
+        let w = windows();
+        let preset = video("best", None, VideoContainer::Any);
+        let mut s = spec(&preset, &w, None, false, false, vec![]);
+        assert!(!download_args(&s).iter().any(|x| x == "--limit-rate"));
+        s.limit_rate_mbps = Some(0);
+        assert!(!download_args(&s).iter().any(|x| x == "--limit-rate"));
+        s.limit_rate_mbps = Some(7);
+        let args = download_args(&s);
+        let i = args.iter().position(|x| x == "--limit-rate").unwrap();
+        assert_eq!(args[i + 1], "7M");
+        assert!(!args.iter().any(|x| x.contains("max-overall")));
+        s.use_aria2c = true;
+        let args = download_args(&s);
+        let i = args.iter().position(|x| x == "--downloader-args").unwrap();
+        assert_eq!(
+            args[i + 1],
+            "aria2c:-x 8 -s 8 -k 1M --max-overall-download-limit=7M"
+        );
+        assert_eq!(aria2c_args(None), ARIA2C_ARGS);
     }
 
     #[test]

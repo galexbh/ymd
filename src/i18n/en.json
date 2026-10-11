@@ -340,7 +340,17 @@
       "failed": "Failed"
     },
     "totals": "Ledger totals",
-    "speed": "Total speed"
+    "speed": "Total speed",
+    "schedule": {
+      "time": "Start time",
+      "action": "Schedule start",
+      "invalid": "Enter a valid time, such as 23:30.",
+      "today": "The queue starts at {{time}}",
+      "tomorrow": "The queue starts tomorrow at {{time}}",
+      "body": "Queued downloads wait until then; running ones carry on. Quitting ymd forgets the time.",
+      "startNow": "Start now",
+      "remove": "Remove"
+    }
   },
   "catalog": {
     "description": "Everything ymd has archived. Search by title, link, path or accession number.",
@@ -512,6 +522,13 @@
       "aria2c": "Use aria2c",
       "aria2cHint": "Downloads each file over several connections.",
       "aria2cMissing": "Install aria2c in Dependencies to turn this on.",
+      "limitRate": "Speed limit",
+      "limitRateHint": "Applies to downloads that start from now on.",
+      "limitRateNone": "No limit",
+      "limitRateValue": "{{n}} MB/s",
+      "limitRateOther": "Other…",
+      "limitRateCustom": "Limit in MB/s",
+      "limitRateInvalid": "Enter a whole number between 1 and 1000.",
       "clipboard": "Clipboard",
       "clipboardWatch": "Detect copied links",
       "clipboardModes": {

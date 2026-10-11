@@ -57,6 +57,13 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 - **File name**: the **Template** uses yt-dlp fields such as `%(title)s`, `%(id)s`, `%(uploader)s` or `%(ext)s`. It must include `%(ext)s`.
 - **Skip what's already downloaded**: yt-dlp notes every video in an archive file and never repeats it.
 - **Use aria2c**: downloads each file over several connections (install aria2c in Dependencies first).
+- **Speed limit**: **No limit** (the default), 1, 2, 5, 10, 20 or 50 MB/s, or **Other…** to type a whole number between 1 and 1000. Each download keeps to that cap on its own, and with aria2c the cap applies to aria2c too. It applies to downloads that start from now on: running ones keep the speed they started with.
+
+### Scheduling the start
+
+To leave downloads queued and have them start later (at night, say), type a time on the **Ledger** screen next to **Schedule start** and press the button. If that time already passed today, the queue starts tomorrow at that time.
+
+Meanwhile a notice reads "The queue starts at 23:30" (or "tomorrow at …"): queued downloads wait and running ones carry on. **Start now** starts the queue right away and **Remove** drops the scheduled time (queued downloads start too). The time only lives while ymd is open: quitting ymd forgets it.
 
 ## When closing the window
 
