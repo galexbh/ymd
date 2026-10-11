@@ -35,9 +35,20 @@ In **Settings → Presets** you can create your own (**New preset**) or duplicat
 - **Audio format** (MP3, M4A, Opus, FLAC or original) and **Quality** for audio.
 - **Embed thumbnail**, **Embed metadata** and **Embed subtitles**, with **Subtitle languages** (for example `es,en`).
 - **Remove segments with SponsorBlock**, choosing the categories (sponsor, intro, endcards, self-promotion…).
+- **Audio tidy-up**, on audio presets only (see below).
 - **Preset folder**: empty uses the general video or music folder.
 
-On a built-in preset only the embedding options and the folder can be changed; the format is updated with ymd. **Use as the default preset** keeps it selected at the counter.
+On a built-in preset only the embedding options, the audio tidy-up and the folder can be changed; the format is updated with ymd. **Use as the default preset** keeps it selected at the counter.
+
+### Audio tidy-up
+
+Three options to keep a music library in order. They start off and apply once the download finishes:
+
+- **Split artist and title**: if the video title reads “Artist - Song” (a hyphen, en dash or em dash between spaces), “Artist” goes into the artist tag and “Song” into the title tag. Titles shaped differently stay as they are. The file name does not change. Requires **Embed metadata**.
+- **Square cover**: crops the thumbnail around its center to its shorter side, so a 1280×720 16:9 image becomes 720×720. Requires **Embed thumbnail**.
+- **Even out volume**: normalizes loudness to -14 LUFS (EBU R128) so every song plays at a similar level. The audio is re-encoded with the preset's quality, at 48 kHz.
+
+**Even out volume** is not available with the **Original (no conversion)** format, which keeps the audio as it arrives, without re-encoding it. It is also skipped when the site already serves a file in the chosen format (for example, an `.m4a` for **M4A**): yt-dlp leaves it unconverted and the volume stays the same.
 
 ## Playlists
 

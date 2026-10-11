@@ -42,7 +42,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true
@@ -64,7 +67,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true
@@ -86,7 +92,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true
@@ -108,7 +117,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true
@@ -130,7 +142,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true
@@ -152,7 +167,10 @@ expression: defs()
         "embedMetadata": true,
         "embedSubs": false,
         "subLangs": "",
-        "sponsorblockRemove": []
+        "sponsorblockRemove": [],
+        "splitArtistTitle": false,
+        "squareCover": false,
+        "normalizeVolume": false
       },
       "outputDir": null,
       "builtin": true

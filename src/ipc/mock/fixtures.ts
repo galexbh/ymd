@@ -141,6 +141,9 @@ const DEFAULT_POSTPROCESS = {
   embedSubs: false,
   subLangs: "es,en",
   sponsorblockRemove: [] as string[],
+  splitArtistTitle: false,
+  squareCover: false,
+  normalizeVolume: false,
 };
 
 function preset(p: Pick<Preset, "id" | "name" | "kind"> & Partial<Preset>): Preset {

@@ -46,6 +46,9 @@ function blankPreset(id: string, name: string): Preset {
       embedSubs: false,
       subLangs: "es,en",
       sponsorblockRemove: [],
+      splitArtistTitle: false,
+      squareCover: false,
+      normalizeVolume: false,
     },
     outputDir: null,
     builtin: false,
@@ -370,6 +373,48 @@ function PresetEditor({
           value={pp.subLangs}
           onChange={(e) => setPP({ subLangs: e.target.value })}
         />
+      )}
+
+      {draft.kind === "audio" && (
+        <fieldset className={s.fieldset} data-testid="preset-audio-tidy">
+          <legend className={s.fieldLabel}>{t("settings.presets.audioTidy")}</legend>
+          <p className={s.fieldHint}>{t("settings.presets.audioTidyHint")}</p>
+          <div className={s.checks}>
+            <Checkbox
+              checked={pp.splitArtistTitle}
+              disabled={!pp.embedMetadata}
+              onCheckedChange={(splitArtistTitle) => setPP({ splitArtistTitle })}
+              label={t("settings.presets.splitArtistTitle")}
+              description={
+                pp.embedMetadata
+                  ? t("settings.presets.splitArtistTitleHint")
+                  : t("settings.presets.splitArtistTitleNeedsMetadata")
+              }
+            />
+            <Checkbox
+              checked={pp.squareCover}
+              disabled={!pp.embedThumbnail}
+              onCheckedChange={(squareCover) => setPP({ squareCover })}
+              label={t("settings.presets.squareCover")}
+              description={
+                pp.embedThumbnail
+                  ? t("settings.presets.squareCoverHint")
+                  : t("settings.presets.squareCoverNeedsThumbnail")
+              }
+            />
+            <Checkbox
+              checked={pp.normalizeVolume}
+              disabled={draft.audio.format === "best"}
+              onCheckedChange={(normalizeVolume) => setPP({ normalizeVolume })}
+              label={t("settings.presets.normalizeVolume")}
+              description={
+                draft.audio.format === "best"
+                  ? t("settings.presets.normalizeVolumeNeedsReencode")
+                  : t("settings.presets.normalizeVolumeHint")
+              }
+            />
+          </div>
+        </fieldset>
       )}
 
       <fieldset className={s.fieldset}>

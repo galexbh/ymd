@@ -509,6 +509,39 @@ describe("mock backend — clipboard plugin", () => {
     expect(sanitizeSettings(old as Settings, s).clipboardWatch).toBe("known");
   });
 
+  it("presets carry the audio tidy-up flags (off by default, missing ones load as off)", async () => {
+    installMockBackend({ clock: "manual" });
+    const s = await api.settingsGet();
+    for (const p of s.presets) {
+      expect(p.postprocess).toMatchObject({
+        splitArtistTitle: false,
+        squareCover: false,
+        normalizeVolume: false,
+      });
+    }
+    const presets = s.presets.map((p) =>
+      p.id === "mp3-320"
+        ? { ...p, postprocess: { ...p.postprocess, squareCover: true, normalizeVolume: true } }
+        : p,
+    );
+    const saved = await api.settingsSet({ ...s, presets });
+    expect(saved.presets.find((p) => p.id === "mp3-320")!.postprocess).toMatchObject({
+      splitArtistTitle: false,
+      squareCover: true,
+      normalizeVolume: true,
+    });
+    const old = structuredClone(s);
+    const pp: Partial<Settings["presets"][number]["postprocess"]> = old.presets[3].postprocess;
+    delete pp.splitArtistTitle;
+    delete pp.squareCover;
+    delete pp.normalizeVolume;
+    expect(sanitizeSettings(old, s).presets[3].postprocess).toMatchObject({
+      splitArtistTitle: false,
+      squareCover: false,
+      normalizeVolume: false,
+    });
+  });
+
   it("settings carry closeToTray (default on) and a sticky trayHintShown", async () => {
     const be = installMockBackend({ clock: "manual" });
     const s = await api.settingsGet();

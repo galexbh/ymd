@@ -106,6 +106,12 @@ export interface PostProcess {
   embedSubs: boolean;
   subLangs: string;
   sponsorblockRemove: string[];
+  /** Audio only: split an "Artist - Title" video title into tags (needs `embedMetadata`). */
+  splitArtistTitle: boolean;
+  /** Audio only: center-crop the embedded cover to a square (needs `embedThumbnail`). */
+  squareCover: boolean;
+  /** Audio only: loudness normalization while re-encoding (ignored with format `best`). */
+  normalizeVolume: boolean;
 }
 
 export interface Preset {

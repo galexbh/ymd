@@ -226,6 +226,16 @@ pub struct PostProcess {
     pub sub_langs: String,
     /// SponsorBlock categories to remove; empty = disabled.
     pub sponsorblock_remove: Vec<String>,
+    /// Audio only: split an "Artist - Title" video title into the artist and title tags
+    /// (needs `embed_metadata`).
+    #[serde(default)]
+    pub split_artist_title: bool,
+    /// Audio only: center-crop the embedded cover to a square (needs `embed_thumbnail`).
+    #[serde(default)]
+    pub square_cover: bool,
+    /// Audio only: EBU R128 loudness normalization while re-encoding (not with `AudioFormat::Best`).
+    #[serde(default)]
+    pub normalize_volume: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
