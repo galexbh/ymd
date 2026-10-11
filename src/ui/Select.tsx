@@ -24,7 +24,11 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   "data-demo-state"?: string;
 }
 
-/** Native select with the field styling; the OS list stays the OS list. */
+/**
+ * Native select with the field styling. Where the engine supports customizable select (Chromium,
+ * so WebView2 on Windows) its open list takes the app's tokens (Field.module.css); elsewhere
+ * (WebKit) the OS list stays.
+ */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
   {
     id: idProp,

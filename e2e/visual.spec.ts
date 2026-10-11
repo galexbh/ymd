@@ -40,6 +40,22 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(page).toHaveScreenshot(`recibir-busy-${colorScheme}.png`);
   });
 
+  // Customizable select: in Chromium (WebView2 on Windows) the open list takes the app tokens.
+  test(`recibir — lista de preajustes abierta — ${colorScheme}`, async ({ page, app }) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+    await page.clock.install({ time: T0 });
+    await app.open({ scenario: "ready", speed: 1 });
+    await page.clock.runFor(500);
+    const select = page.getByRole("combobox", { name: "Preajuste" });
+    await select.click();
+    await page.keyboard.press("ArrowDown");
+    const box = await select.boundingBox();
+    if (!box) throw new Error("preset select not visible");
+    await expect(page).toHaveScreenshot(`recibir-preajustes-${colorScheme}.png`, {
+      clip: { x: box.x - 16, y: box.y - 16, width: box.width + 32, height: box.height + 200 },
+    });
+  });
+
   test(`ajustes — apariencia — ${colorScheme}`, async ({ page, app }) => {
     await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await page.clock.install({ time: T0 });

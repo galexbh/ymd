@@ -147,6 +147,102 @@
   background: var(--surface-raised);
   color: var(--text);
 }
+
+/* Customizable select (Chromium, so WebView2 on Windows): the open list takes the app's tokens,
+   the same look as the Combobox list. Engines without it (WebKit) keep the OS list. */
+@supports (appearance: base-select) {
+  .select,
+  .select::picker(select) {
+    appearance: base-select;
+  }
+  .select {
+    /* the closed field stays as before: .control draws the frame, .chevron the arrow. The
+       select covers the whole control (through its padding and border) so the text sits
+       centred and the open list lines up with the field's edges. */
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    height: auto;
+    margin-block: -1px;
+    margin-inline: calc(-1 * var(--space-3) - 1px);
+    padding-inline: calc(var(--space-3) + 1px) var(--space-6);
+    border: 0;
+    background: transparent;
+  }
+  .select::picker-icon {
+    display: none;
+  }
+  .select::picker(select) {
+    /* both ways: the list opens upward when there is no room below */
+    margin-block: var(--space-1);
+    min-width: anchor-size(width);
+    max-height: min(20rem, 50vh);
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: var(--shadow-overlay);
+  }
+  .select option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--row-h);
+    padding: var(--space-1) var(--space-3);
+    border-bottom: 1px solid var(--rule-ledger);
+    font: inherit;
+    font-size: var(--text-md);
+    cursor: pointer;
+  }
+  .select option:last-of-type {
+    border-bottom: 0;
+  }
+  .select option:hover {
+    background: var(--surface-hover);
+  }
+  .select option:focus-visible {
+    background: var(--surface-hover);
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+  .select option:checked {
+    background: var(--surface-selected);
+  }
+  .select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--accent);
+  }
+  .select option:disabled {
+    color: var(--text-disabled);
+    cursor: not-allowed;
+  }
+  .mono .select option {
+    font-family: var(--font-mono);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .select::picker(select) {
+      transition:
+        opacity var(--dur-fast) var(--ease-out),
+        translate var(--dur-fast) var(--ease-out),
+        overlay var(--dur-fast) allow-discrete,
+        display var(--dur-fast) allow-discrete;
+    }
+    .select::picker(select):not(:popover-open) {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+    @starting-style {
+      .select::picker(select):popover-open {
+        opacity: 0;
+        translate: 0 -4px;
+      }
+    }
+  }
+}
 .chevron {
   position: absolute;
   inset-inline-end: var(--space-3);
