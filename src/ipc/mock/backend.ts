@@ -254,6 +254,10 @@ function isTerminal(stage: Job["stage"]): boolean {
 const HEX = /^#[0-9a-f]{6}$/i;
 const CLIPBOARD_WATCH: readonly ClipboardWatch[] = ["off", "known", "any"];
 
+/** Finished jobs kept in the session list (mirrors `jobs::MAX_FINISHED_JOBS`); older ones
+ * are evicted with `job://removed`. */
+export const MAX_FINISHED_JOBS = 200;
+
 /** Mirrors `settings::sanitize` (concurrency 1..=8, fontScale clamp, accent hex, presets). */
 export function sanitizeSettings(input: Settings, fallback: Settings): Settings {
   const s = clone(input);
@@ -1175,7 +1179,19 @@ export class MockBackend {
       });
     }
     this.emitJob(sim);
+    this.evictFinished();
     this.pump();
+  }
+
+  /** Like `JobManager`: keep only the newest MAX_FINISHED_JOBS finished rows in memory. */
+  private evictFinished(): void {
+    const finished = [...this.jobs.values()]
+      .filter((s) => isTerminal(s.job.stage))
+      .sort((a, b) => b.job.seq - a.job.seq);
+    for (const sim of finished.slice(MAX_FINISHED_JOBS)) {
+      this.jobs.delete(sim.job.id);
+      this.emit(EVT_JOB_REMOVED, sim.job.id);
+    }
   }
 
   private getJob(id: JobId): SimJob {

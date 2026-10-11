@@ -13,6 +13,7 @@ function fakeUpdate(version: string) {
   return {
     version,
     body: "  Notas de la versión  ",
+    close: vi.fn(async () => {}),
     downloadAndInstall: vi.fn(async (cb: (e: unknown) => void) => {
       cb({ event: "Started", data: { contentLength: 100 } });
       cb({ event: "Progress", data: { chunkLength: 60 } });
@@ -40,6 +41,26 @@ describe("app update store", () => {
     expect(s.version).toBe("0.3.0");
     expect(s.current).toBe("0.2.0");
     expect(s.notes).toBe("Notas de la versión");
+  });
+
+  it("closes the previous Update resource when a re-check replaces or clears it", async () => {
+    const first = fakeUpdate("0.3.0");
+    const second = fakeUpdate("0.3.1");
+    checkMock.mockResolvedValueOnce(first);
+    await useAppUpdate.getState().check();
+    expect(first.close).not.toHaveBeenCalled();
+
+    checkMock.mockResolvedValueOnce(second);
+    await useAppUpdate.getState().check();
+    expect(first.close).toHaveBeenCalledTimes(1);
+    expect(useAppUpdate.getState().version).toBe("0.3.1");
+
+    // a failing close() must not turn the check into an error
+    second.close.mockRejectedValueOnce(new Error("resource gone"));
+    checkMock.mockResolvedValueOnce(null);
+    await expect(useAppUpdate.getState().check()).resolves.toBe(false);
+    expect(second.close).toHaveBeenCalledTimes(1);
+    expect(useAppUpdate.getState().status).toBe("upToDate");
   });
 
   it("is up to date when the server has nothing newer", async () => {
