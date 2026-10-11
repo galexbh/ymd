@@ -36,7 +36,7 @@ En **Ajustes → Preajustes** puedes crear los tuyos (**Nuevo preajuste**) o dup
 - **Incrustar miniatura**, **Incrustar metadatos** e **Incrustar subtítulos**, con sus **Idiomas de subtítulos** (por ejemplo `es,en`).
 - **Quitar segmentos con SponsorBlock**, eligiendo las categorías (patrocinio, intro, cierre, autopromoción…).
 - **Ajustes del audio**, solo en preajustes de audio (ver abajo).
-- **Carpeta del preajuste**: vacía usa la carpeta general de videos o de música.
+- **Carpeta del preajuste**: vacía usa la carpeta general de videos o de música de **Ajustes → Descargas**; el campo muestra esa carpeta como ejemplo.
 
 En un preajuste incluido solo se pueden cambiar las opciones de incrustación, los ajustes del audio y la carpeta; el formato se actualiza con ymd. **Usar como preajuste predeterminado** lo deja elegido en el mostrador.
 

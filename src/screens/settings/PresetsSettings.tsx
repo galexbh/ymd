@@ -244,6 +244,11 @@ function PresetEditor({
   const { t } = useTranslation();
   const locked = draft.builtin;
   const pp = draft.postprocess;
+  // the general folder this preset falls back to when its own is empty (the person's own
+  // Videos / Music folder, or whatever they set in Descargas)
+  const generalDir = useSettings((st) =>
+    draft.kind === "audio" ? st.settings?.audioDir : st.settings?.videoDir,
+  );
   const setPP = (patch: Partial<Preset["postprocess"]>) =>
     onChange({ ...draft, postprocess: { ...pp, ...patch } });
 
@@ -442,7 +447,17 @@ function PresetEditor({
       <FolderField
         label={t("settings.presets.outputDir")}
         value={draft.outputDir ?? ""}
-        hint={draft.outputDir ? undefined : t("settings.presets.outputDirDefault")}
+        placeholder={generalDir || undefined}
+        hint={
+          draft.outputDir
+            ? undefined
+            : t(
+                draft.kind === "audio"
+                  ? "settings.presets.outputDirDefaultAudio"
+                  : "settings.presets.outputDirDefaultVideo",
+              )
+        }
+        testId="preset-output-dir"
         onPick={(outputDir) => onChange({ ...draft, outputDir })}
       />
       {draft.outputDir && (

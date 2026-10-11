@@ -15,12 +15,15 @@ export function FolderField({
   value,
   onPick,
   hint,
+  placeholder,
   testId,
 }: {
   label: string;
   value: string;
   onPick: (dir: string) => void;
   hint?: string;
+  /** shown while empty, e.g. the folder that applies instead */
+  placeholder?: string;
   testId?: string;
 }) {
   const { t } = useTranslation();
@@ -31,6 +34,7 @@ export function FolderField({
         mono
         readOnly
         value={value}
+        placeholder={placeholder}
         hint={hint}
         data-testid={testId}
         fieldClassName={s.grow}

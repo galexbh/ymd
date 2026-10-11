@@ -358,6 +358,30 @@ describe("Ajustes → Descargas", () => {
 });
 
 describe("Ajustes → Preajustes", () => {
+  it("an empty preset folder shows, as its placeholder, the person's own general folder for the kind", async () => {
+    const videoDir = String.raw`C:\Users\ana\Videos`;
+    const audioDir = String.raw`C:\Users\ana\Music`;
+    const { user } = await renderApp({
+      route: "settings",
+      section: "presets",
+      settings: { language: "es", videoDir, audioDir },
+    });
+    await user.click(screen.getByRole("button", { name: "Nuevo preajuste" }));
+    const editor = screen.getByTestId("preset-editor");
+    const field = within(editor).getByTestId("preset-output-dir");
+    expect(field).toHaveValue("");
+    expect(field).toHaveAttribute("placeholder", videoDir);
+    expect(
+      within(editor).getByText("Vacía: usa la carpeta de videos de Ajustes → Descargas."),
+    ).toBeInTheDocument();
+
+    await user.click(within(editor).getByRole("radio", { name: "Audio" }));
+    expect(field).toHaveAttribute("placeholder", audioDir);
+    expect(
+      within(editor).getByText("Vacía: usa la carpeta de música de Ajustes → Descargas."),
+    ).toBeInTheDocument();
+  });
+
   it("builtin presets only allow postprocess and folder changes; custom ones can be created and deleted", async () => {
     const { be, user, tick } = await renderApp({ route: "settings", section: "presets" });
     await user.click(screen.getByRole("button", { name: "Editar MP4 1080p" }));

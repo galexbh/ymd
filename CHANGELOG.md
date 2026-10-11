@@ -8,6 +8,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Ajustes del audio en los preajustes.** Los preajustes de audio suman tres opciones, apagadas de inicio: **Separar artista y título** (un título «Artista - Canción» se guarda en las etiquetas de artista y de título), **Carátula cuadrada** (recorta la miniatura incrustada por el centro) e **Igualar volumen** (normaliza a -14 LUFS al convertir; no disponible con el formato **Original**). Están en **Ajustes → Preajustes**.
 
+### Cambios
+
+- **Carpeta del preajuste** vacía muestra la carpeta que se usará en su lugar (la de videos o de música de **Ajustes → Descargas**, según el tipo).
+
 ### Proyecto
 
 - El release compila con `--locked`: usa exactamente las versiones de `Cargo.lock`, igual que la CI.
