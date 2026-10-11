@@ -223,12 +223,14 @@ mod tests {
         let sink = SlowSink::default();
         let (mut writer, guard) = tracing_appender::non_blocking(sink.clone());
         let guard = LogGuard::new(guard);
-        for i in 0..100 {
+        // Dropping a WorkerGuard waits at most ~1 s for the queue: keep the backlog (~40 ms of
+        // slow writes) far below that, so a busy CI runner can't turn it into a timing flake.
+        for i in 0..20 {
             writer.write_all(format!("line {i}\n").as_bytes()).unwrap();
         }
         guard.flush();
         let out = String::from_utf8(sink.0.lock().unwrap().clone()).unwrap();
-        assert_eq!(out.lines().count(), 100, "{out}");
+        assert_eq!(out.lines().count(), 20, "{out}");
         guard.flush(); // a second exit event is harmless
     }
 

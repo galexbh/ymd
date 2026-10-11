@@ -4,6 +4,8 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-11
+
 ### Novedades
 
 - **Ajustes del audio en los preajustes.** Los preajustes de audio suman tres opciones, apagadas de inicio: **Separar artista y título** (un título «Artista - Canción» se guarda en las etiquetas de artista y de título), **Carátula cuadrada** (recorta la miniatura incrustada por el centro) e **Igualar volumen** (normaliza a -14 LUFS al convertir; no disponible con el formato **Original**). Están en **Ajustes → Preajustes**.
@@ -16,6 +18,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 ### Proyecto
 
 - El release compila con `--locked`: usa exactamente las versiones de `Cargo.lock`, igual que la CI.
+- El test que vacía los registros al salir ya no depende de la velocidad del runner (fallaba a veces en macOS).
 
 ## [0.7.0] - 2026-10-11
 
@@ -224,7 +227,8 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/galexbh/ymd/releases/tag/v0.8.0
 [0.7.0]: https://github.com/galexbh/ymd/releases/tag/v0.7.0
 [0.6.0]: https://github.com/galexbh/ymd/releases/tag/v0.6.0
 [0.5.1]: https://github.com/galexbh/ymd/releases/tag/v0.5.1
