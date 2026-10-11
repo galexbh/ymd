@@ -756,12 +756,12 @@
     },
     "source": {
       "label": "Cookie source",
-      "none": "None",
+      "none": "No session",
       "extension": "Extension",
       "browser": "Firefox",
       "browserMac": "Firefox or Safari",
       "hint": {
-        "none": "Downloads without being signed in.",
+        "none": "ymd downloads as if you weren't signed in. Use it for public videos or when you'd rather not use your account.",
         "extension": "For Brave, Chrome, Edge and other Chromium browsers: the ymd extension sends your cookies whenever they change.",
         "browser": "ymd reads Firefox's cookies on every download, even while it's open.",
         "browserMac": "ymd reads Firefox's or Safari's cookies on every download."

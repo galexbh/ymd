@@ -21,7 +21,7 @@ yt-dlp doesn't have your session on its own. ymd can give it one in several ways
 
 In **Settings → Accounts → Browser cookies**, **Cookie source** has three values:
 
-- **None**: downloads without being signed in.
+- **No session**: ymd downloads as if you weren't signed in. Use it for public videos or when you'd rather not use your account: with many downloads, YouTube may flag or limit an account used with yt-dlp.
 - **Extension**: for Brave, Chrome, Edge and other Chromium browsers. The ymd extension sends your cookies whenever they change.
 - **Firefox**: ymd reads Firefox's cookies on every download, even while it's open. On macOS it's called **Firefox or Safari**.
   ymd doesn't import hand-exported `cookies.txt` files: such a file holds all your sessions in plain text, outside the browser's protection. The extension hands the cookies over directly, and ymd stores them encrypted.

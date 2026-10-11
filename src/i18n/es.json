@@ -756,12 +756,12 @@
     },
     "source": {
       "label": "Origen de las cookies",
-      "none": "Ninguno",
+      "none": "Sin sesión",
       "extension": "Extensión",
       "browser": "Firefox",
       "browserMac": "Firefox o Safari",
       "hint": {
-        "none": "Descarga sin sesión iniciada.",
+        "none": "ymd descarga como si no hubieras iniciado sesión. Úsalo para videos públicos o si no quieres usar tu cuenta.",
         "extension": "Para Brave, Chrome, Edge y otros navegadores Chromium: la extensión de ymd envía tus cookies cada vez que cambian.",
         "browser": "ymd lee las cookies de Firefox en cada descarga, aunque esté abierto.",
         "browserMac": "ymd lee las cookies de Firefox o Safari en cada descarga."

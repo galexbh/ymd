@@ -14,6 +14,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **Exportar diagnóstico.** En **Ajustes → Avanzado**, **Exportar diagnóstico** guarda un zip para adjuntar a un issue: versiones de ymd y de las herramientas, sistema, un resumen de los ajustes sin carpetas, los registros de los últimos 14 días y cuánto tardó cada etapa de las últimas descargas. No incluye cookies, contraseñas, el historial ni el archivo de ajustes. Al guardarlo, el aviso trae **Mostrar en la carpeta**.
 - **Registros locales.** ymd anota en su carpeta de datos (`logs`, un archivo por día) cuánto tarda cada etapa de una descarga, cómo termina y su código de error, las actualizaciones de herramientas y las sincronizaciones de la extensión (solo cuántas cookies). Antes de escribir, borra enlaces con parámetros, rutas de tu carpeta personal, contraseñas y tokens; los archivos se borran solos a los 14 días y nunca salen de tu computadora.
 
+### Cambios
+
+- **«Ninguno» ahora se llama «Sin sesión»** en **Origen de las cookies**, con una pista que explica para qué sirve: descargar como si no hubieras iniciado sesión.
+
 ### Correcciones
 
 - **Abrir carpeta de datos** abre la carpeta donde ymd guarda de verdad sus datos (en Windows, `%APPDATA%\com.ymd.app`), no una carpeta vacía en `%LOCALAPPDATA%`.

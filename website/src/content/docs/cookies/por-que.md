@@ -21,7 +21,7 @@ yt-dlp no tiene tu sesión por sí mismo. ymd se la puede dar de varias formas, 
 
 En **Ajustes → Cuentas → Cookies del navegador**, **Origen de las cookies** tiene tres valores:
 
-- **Ninguno**: descarga sin sesión iniciada.
+- **Sin sesión**: ymd descarga como si no hubieras iniciado sesión. Úsalo para videos públicos o si no quieres usar tu cuenta: con muchas descargas, YouTube puede marcar o limitar una cuenta usada con yt-dlp.
 - **Extensión**: para Brave, Chrome, Edge y otros navegadores Chromium. La extensión de ymd envía tus cookies cada vez que cambian.
 - **Firefox**: ymd lee las cookies de Firefox en cada descarga, aunque esté abierto. En macOS se llama **Firefox o Safari**.
   ymd no importa archivos `cookies.txt` exportados a mano: un archivo así guarda todas tus sesiones en texto plano, fuera de la protección del navegador. La extensión entrega las cookies directamente, y ymd las guarda cifradas.

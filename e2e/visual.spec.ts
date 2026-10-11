@@ -58,7 +58,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     await page.clock.runFor(500);
     await page.getByTestId("nav-settings").click();
     await page.getByTestId("settings-tab-accounts").click();
-    await expect(page.getByRole("radio", { name: "Ninguno" })).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Sin sesión" })).toBeVisible();
     await page.clock.runFor(500);
     await expect(page).toHaveScreenshot(`ajustes-cuentas-${colorScheme}.png`);
   });
