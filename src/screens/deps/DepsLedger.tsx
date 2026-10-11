@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Copy, Download, RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { DepPhase, DepStatus } from "../../ipc/types";
@@ -59,6 +59,9 @@ export function DepsLedger({ deps, compact, caption }: DepsLedgerProps) {
   );
 }
 
+/** How long «Copiado» stays on the manual-install button. */
+export const COPIED_MS = 1500;
+
 function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; cols: number }) {
   const { t } = useTranslation();
   const busy = useDeps((st) => st.busy[dep.id]);
@@ -70,6 +73,13 @@ function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; col
     return x.active + x.queued;
   });
   const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
   const { install, remove } = useDeps.getState();
 
   // "install everything" runs server-side: live progress events are the signal
@@ -270,7 +280,8 @@ function DepRow({ dep, compact, cols }: { dep: DepStatus; compact?: boolean; col
                 leadingIcon={Copy}
                 onClick={async () => {
                   setCopied(await copyText(dep.manualHint!));
-                  setTimeout(() => setCopied(false), 1500);
+                  if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                  copiedTimer.current = setTimeout(() => setCopied(false), COPIED_MS);
                 }}
               >
                 {copied ? t("common.copied") : t("common.copy")}

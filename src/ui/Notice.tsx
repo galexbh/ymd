@@ -136,18 +136,48 @@ interface ToastState {
 }
 
 let nextId = 1;
+/** At most this many toasts on screen; older ones are evicted. */
+export const MAX_TOASTS = 4;
+/** auto-dismiss timers, per toast id; cleared when a toast leaves early */
+const toastTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+const forgetTimer = (id: number) => {
+  const timer = toastTimers.get(id);
+  if (timer === undefined) return;
+  clearTimeout(timer);
+  toastTimers.delete(id);
+};
 
 export const useToasts = create<ToastState>((set, get) => ({
   toasts: [],
   push: (toast) => {
     const id = nextId++;
-    set({ toasts: [...get().toasts, { ...toast, id }].slice(-4) });
+    const all = [...get().toasts, { ...toast, id }];
+    const kept = all.slice(-MAX_TOASTS);
+    for (const gone of all.slice(0, all.length - kept.length)) forgetTimer(gone.id);
+    set({ toasts: kept });
     const timeout = toast.timeout ?? (toast.tone === "error" ? 0 : 5000);
-    if (timeout > 0) setTimeout(() => get().dismiss(id), timeout);
+    if (timeout > 0) {
+      toastTimers.set(
+        id,
+        setTimeout(() => {
+          toastTimers.delete(id);
+          get().dismiss(id);
+        }, timeout),
+      );
+    }
     return id;
   },
-  dismiss: (id) => set({ toasts: get().toasts.filter((x) => x.id !== id) }),
+  dismiss: (id) => {
+    forgetTimer(id);
+    set({ toasts: get().toasts.filter((x) => x.id !== id) });
+  },
 }));
+
+/** Pending auto-dismiss timers (tests). */
+export function pendingToastTimers(): number {
+  return toastTimers.size;
+}
 
 /** Mount once near the app root. */
 export function ToastRegion() {

@@ -10,7 +10,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **Ventana de la extensión más limpia.** El campo para escribir un sitio queda plegado tras **+ Otro sitio…**: los sitios conocidos se agregan con **Sitios sugeridos** o **Usar mi sesión de …**. Extensión 1.4.2.
 - El interruptor «Actualizar yt-dlp solo» se llama ahora **Actualizar yt-dlp automáticamente** (**Ajustes → Avanzado → yt-dlp**).
 
-### Proyecto
+### Correcciones
+
+- **Menos trabajo con muchas descargas o con ymd en la bandeja.** La interfaz ya no se vuelve a dibujar entera con cada avance de descarga: solo cambia la fila de esa descarga, y la cuadrícula de una playlist en **Recibir** no se toca. Con la ventana oculta, el avance se aplica cada 2 s (los finales y errores siguen llegando al instante, igual que los avisos), la tarjeta de la extensión deja de consultar su estado y el **Catálogo** se actualiza al abrirlo en lugar de una vez por descarga terminada.
+- ymd ya no acumula memoria con el tiempo: libera la actualización encontrada al volver a buscar, los errores de filas ya quitadas y los temporizadores de avisos cerrados antes de tiempo.
 
 - Se eliminó el código de migración de versiones anteriores (ajustes, cookies, extensión y protocolo del puente); el protocolo exige ahora `version` y `extension`. Extensión 1.4.3.
 - Documentación revisada: tono profesional y sin notas internas.

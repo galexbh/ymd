@@ -295,6 +295,29 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
 });
 
 describe("Ajustes → Cuentas: extensión de ymd — sondeo", () => {
+  it("does not poll while the window is hidden; refreshes when it shows again", async () => {
+    const { be, tick } = await renderApp(accounts);
+    await stamp();
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    try {
+      const before = calls(be, "extension_status").length;
+      await poll(tick);
+      await poll(tick);
+      expect(calls(be, "extension_status")).toHaveLength(before);
+
+      visibility.mockReturnValue("visible");
+      act(() => {
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+      await tick(0);
+      expect(calls(be, "extension_status")).toHaveLength(before + 1);
+      await poll(tick);
+      expect(calls(be, "extension_status")).toHaveLength(before + 2);
+    } finally {
+      visibility.mockRestore();
+    }
+  });
+
   it("picks up the first sync and says so quietly", async () => {
     const { be, tick } = await renderApp(accounts);
     expect(await stamp()).toHaveTextContent("Pendiente");

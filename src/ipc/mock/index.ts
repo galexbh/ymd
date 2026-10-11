@@ -6,7 +6,13 @@ import type { InvokeArgs } from "@tauri-apps/api/core";
 import { MockBackend, type MockBackendOptions } from "./backend";
 import type { MockPlatform } from "./fixtures";
 
-export { MockBackend, sanitizeSettings, FAILURE_RULES, PROBE_FAILURE_RULES } from "./backend";
+export {
+  MockBackend,
+  sanitizeSettings,
+  FAILURE_RULES,
+  MAX_FINISHED_JOBS,
+  PROBE_FAILURE_RULES,
+} from "./backend";
 export type {
   DepsScenario,
   MockBackendOptions,

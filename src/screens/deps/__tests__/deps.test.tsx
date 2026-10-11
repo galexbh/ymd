@@ -1,6 +1,7 @@
-import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { calls, renderApp } from "../../../app/__tests__/harness";
+import { COPIED_MS } from "../DepsLedger";
 
 describe("Dependencias", () => {
   it("lists every tool with level, state and verification", async () => {
@@ -96,6 +97,21 @@ describe("Dependencias", () => {
     await renderApp({ platform: "linux", route: "deps" });
     expect(screen.getByText("sudo apt install aria2")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copiar" })).toBeInTheDocument();
+  });
+
+  it("the «Copiado» timer is cleared when the screen goes away", async () => {
+    const { user, tick } = await renderApp({ platform: "linux", route: "deps" });
+    const set = vi.spyOn(globalThis, "setTimeout");
+    const clear = vi.spyOn(globalThis, "clearTimeout");
+    await user.click(screen.getByRole("button", { name: "Copiar" }));
+    await tick(0);
+    const i = set.mock.calls.findIndex(([, ms]) => ms === COPIED_MS);
+    expect(i).toBeGreaterThanOrEqual(0);
+    const timer = set.mock.results[i].value as unknown;
+    cleanup();
+    expect(clear).toHaveBeenCalledWith(timer);
+    set.mockRestore();
+    clear.mockRestore();
   });
 
   it("the rail flags Dependencias when something required is missing", async () => {
