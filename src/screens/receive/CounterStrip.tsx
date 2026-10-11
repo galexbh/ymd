@@ -2,7 +2,7 @@ import { AudioLines, Video } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { MediaKind } from "../../ipc/types";
 import { Button, SegmentedControl, Select, UrlField } from "../../ui";
-import { looksLikeUrl, useReceive } from "../../store/receive";
+import { clipCheck, looksLikeUrl, useReceive } from "../../store/receive";
 import { presetsOfKind, useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
 import { parseLinks } from "../../app/clipboardLink";
@@ -22,6 +22,8 @@ export function CounterStrip() {
   const selected = useReceive((st) => st.selected.length);
   const enqueueing = useReceive((st) => st.enqueueing);
   const batchOpen = useReceive((st) => st.batch !== null);
+  // a «Tramo» the card cannot file (bad clock time, end before start, past the end)
+  const badClip = useReceive((st) => st.status === "ready" && clipCheck(st).error !== null);
   const { setUrl, setKind, setPreset, runProbe, reset, openBatch } = useReceive.getState();
 
   const presets = presetsOfKind(settings, kind);
@@ -82,7 +84,7 @@ export function CounterStrip() {
           variant="primary"
           size="lg"
           loading={enqueueing && !batchOpen}
-          disabled={!url.trim() || emptyPlaylist || !settings}
+          disabled={!url.trim() || emptyPlaylist || badClip || !settings}
           data-testid="home-ingest"
         >
           {t("receive.ingest")}

@@ -26,6 +26,7 @@ const req = (url: string) => ({
   outputDir: null,
   videoPassword: null,
   twofactor: null,
+  clip: null,
   title: null,
   thumbnail: null,
 });

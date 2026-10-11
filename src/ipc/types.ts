@@ -197,6 +197,12 @@ export interface QueueSchedule {
   startAt: string | null;
 }
 
+/** A time range of a single video, in seconds from the start (`0 <= start < end`). */
+export interface Clip {
+  start: number;
+  end: number;
+}
+
 export interface EnqueueRequest {
   url: string;
   presetId: string;
@@ -207,6 +213,8 @@ export interface EnqueueRequest {
   twofactor: string | null;
   title: string | null;
   thumbnail: string | null;
+  /** only this time range (`--download-sections`); null = the whole video. Not with playlists. */
+  clip: Clip | null;
 }
 
 export type JobStage =
@@ -268,6 +276,8 @@ export interface Job {
   playlistCount: number | null;
   createdAt: string;
   finishedAt: string | null;
+  /** the time range being downloaded; null = the whole video */
+  clip: Clip | null;
 }
 
 /**
@@ -287,6 +297,8 @@ export interface PendingJob {
   kind: MediaKind;
   createdAt: string;
   needsSecret: boolean;
+  /** time range kept for the resumed download */
+  clip: Clip | null;
 }
 
 // ───────────── History ─────────────

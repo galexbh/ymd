@@ -114,6 +114,7 @@ mod tests {
             twofactor: tfa.map(Into::into),
             title: None,
             thumbnail: None,
+            clip: None,
         }
     }
 

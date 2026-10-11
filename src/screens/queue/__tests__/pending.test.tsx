@@ -12,6 +12,7 @@ const req = (url: string, extra: Partial<EnqueueRequest> = {}): EnqueueRequest =
   outputDir: null,
   videoPassword: null,
   twofactor: null,
+  clip: null,
   title: null,
   thumbnail: null,
   ...extra,

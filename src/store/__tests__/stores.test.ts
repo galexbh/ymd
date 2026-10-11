@@ -35,6 +35,7 @@ const job = (p: Partial<Job>): Job => ({
   playlistCount: null,
   createdAt: "",
   finishedAt: null,
+  clip: null,
   ...p,
 });
 

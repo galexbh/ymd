@@ -18,6 +18,7 @@ const req: EnqueueRequest = {
   outputDir: null,
   videoPassword: null,
   twofactor: null,
+  clip: null,
   title: null,
   thumbnail: null,
 };
@@ -43,6 +44,7 @@ const job = (p: Partial<Job>): Job => ({
   playlistCount: null,
   createdAt: "",
   finishedAt: null,
+  clip: null,
   ...p,
 });
 

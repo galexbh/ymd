@@ -75,6 +75,7 @@ export default defineConfig(() => ({
         "src/theme/**": PURE,
         "src/store/**": PURE,
         "src/ipc/**": PURE,
+        "src/screens/receive/clip.ts": PURE,
       },
     },
   },

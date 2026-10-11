@@ -19,6 +19,7 @@ function req(
     outputDir: null,
     videoPassword: null,
     twofactor: null,
+    clip: null,
     title: null,
     thumbnail: null,
     ...extra,
@@ -403,5 +404,47 @@ describe("mock backend — resume after restart", () => {
     expect(list).toHaveLength(MAX_FINISHED_JOBS + 1);
     expect(list.some((j) => j.id === live.id)).toBe(true);
     expect(list.some((j) => j.id === ids[0])).toBe(false);
+  });
+});
+
+describe("mock backend — time range (clip)", () => {
+  it("validates the range like the backend", async () => {
+    setup();
+    const bad: Partial<EnqueueRequest>[] = [
+      { clip: { start: 10, end: 3 } },
+      { clip: { start: 5, end: 5 } },
+      { clip: { start: -1, end: 5 } },
+      { clip: { start: Number.NaN, end: 5 } },
+    ];
+    for (const extra of bad) {
+      await expect(api.enqueue(req(VIDEO, "mp4-1080", extra))).rejects.toMatchObject({
+        code: "unknown",
+        detail: expect.stringContaining("invalid time range"),
+      });
+    }
+    await expect(
+      api.enqueue(req(PLAYLIST, "mp4-1080", { clip: { start: 0, end: 5 }, playlistItems: [] })),
+    ).rejects.toMatchObject({ detail: expect.stringContaining("playlist") });
+    expect(await api.jobsList()).toEqual([]);
+  });
+
+  it("keeps the clip on the job, in the file name and through a restart", async () => {
+    const t = setup({ settings: { concurrency: 1 } });
+    const clip = { start: 90, end: 165.5 };
+    const done = await api.enqueue(req(VIDEO, "mp4-1080", { clip }));
+    expect(done.clip).toEqual(clip);
+    await t.clock.advanceAsync(60_000, 250);
+    const finished = (await api.jobsList()).find((j) => j.id === done.id)!;
+    expect(finished.stage).toBe("done");
+    expect(finished.filepath).toMatch(/ \[1\.30-2\.45\]\.mp4$/);
+
+    const later = await api.enqueue(req(VIDEO, "mp3-320", { clip: { start: 3725, end: 3730 } }));
+    const [row] = t.be.simulateRestart();
+    expect(row).toMatchObject({ id: later.id, clip: { start: 3725, end: 3730 } });
+    const [resumed] = await api.jobsResume([later.id]);
+    expect(resumed.clip).toEqual({ start: 3725, end: 3730 });
+    await t.clock.advanceAsync(60_000, 250);
+    const file = (await api.jobsList()).find((j) => j.id === later.id)!.filepath;
+    expect(file).toMatch(/ \[1\.02\.05-1\.02\.10\]\.mp3$/);
   });
 });

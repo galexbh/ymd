@@ -267,6 +267,15 @@
       "shelf": "Shelf",
       "askEachTime": "Asked when filing"
     },
+    "clip": {
+      "title": "Section",
+      "start": "From",
+      "end": "To",
+      "hint": "Leave empty to download the whole video. Type seconds, m:ss or h:mm:ss, for example 1:30.",
+      "errorFormat": "Type seconds, m:ss or h:mm:ss.",
+      "errorOrder": "“To” must come after “From”.",
+      "errorBeyond": "The video is {{duration}} long."
+    },
     "options": {
       "title": "Options for this download",
       "hint": "Only for protected videos. Not saved: used for this download and then forgotten.",
@@ -323,6 +332,7 @@
     }
   },
   "ledger": {
+    "clip": "Section {{range}}",
     "col": {
       "seq": "No.",
       "title": "Title",

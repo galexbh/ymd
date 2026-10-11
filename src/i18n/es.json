@@ -267,6 +267,15 @@
       "shelf": "Estante",
       "askEachTime": "Se pregunta al ingresar"
     },
+    "clip": {
+      "title": "Tramo",
+      "start": "Desde",
+      "end": "Hasta",
+      "hint": "Déjalo vacío para descargar el video completo. Escribe segundos, m:ss o h:mm:ss, por ejemplo 1:30.",
+      "errorFormat": "Escribe segundos, m:ss o h:mm:ss.",
+      "errorOrder": "«Hasta» tiene que ir después de «Desde».",
+      "errorBeyond": "El video dura {{duration}}."
+    },
     "options": {
       "title": "Opciones de esta descarga",
       "hint": "Solo para videos protegidos. No se guardan: se usan en esta descarga y se olvidan.",
@@ -323,6 +332,7 @@
     }
   },
   "ledger": {
+    "clip": "Tramo {{range}}",
     "col": {
       "seq": "N.º",
       "title": "Título",

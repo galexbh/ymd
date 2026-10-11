@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { api, toCommandError } from "../ipc/commands";
 import type { CommandError, EnqueueRequest, MediaKind, ProbeResult } from "../ipc/types";
+import { validateClip, type ClipCheck } from "../screens/receive/clip";
 
 export type ProbeStatus = "idle" | "loading" | "ready" | "error";
 
@@ -28,6 +29,9 @@ interface ReceiveState {
   anchor: number | null;
   videoPassword: string;
   twofactor: string;
+  /** «Tramo» fields as typed (clock times); both empty = the whole video */
+  clipStart: string;
+  clipEnd: string;
   enqueueing: boolean;
   enqueueError: CommandError | null;
   /** the multi-link panel; null when the counter holds a single link */
@@ -43,6 +47,7 @@ interface ReceiveState {
   selectNone: () => void;
   selectRange: (from: number, to: number) => void;
   setSecret: (field: "videoPassword" | "twofactor", value: string) => void;
+  setClip: (field: "clipStart" | "clipEnd", value: string) => void;
   reset: () => void;
   /** build the request for the current card; null when nothing is ready */
   request: (presetId: string, outputDir: string | null) => EnqueueRequest | null;
@@ -65,6 +70,8 @@ const blank = {
   anchor: null,
   videoPassword: "",
   twofactor: "",
+  clipStart: "",
+  clipEnd: "",
   enqueueing: false,
   enqueueError: null,
   batch: null as Batch | null,
@@ -103,6 +110,8 @@ export const useReceive = create<ReceiveState>((set, get) => ({
       selected: [],
       anchor: null,
       batch: null,
+      clipStart: "",
+      clipEnd: "",
     });
     try {
       const probe = await api.probe(url);
@@ -145,6 +154,11 @@ export const useReceive = create<ReceiveState>((set, get) => ({
   },
 
   setSecret: (field, value) => set({ [field]: value } as Pick<ReceiveState, typeof field>),
+  setClip: (field, value) =>
+    set({ [field]: value, enqueueError: null } as Pick<
+      ReceiveState,
+      typeof field | "enqueueError"
+    >),
 
   reset: () => {
     probeToken++;
@@ -159,6 +173,8 @@ export const useReceive = create<ReceiveState>((set, get) => ({
       if (selected.length === 0) return null;
       playlistItems = selected.length === probe.entries.length ? [] : [...selected];
     }
+    const range = clipCheck(get());
+    if (range.error) return null;
     return {
       url: probe.url,
       presetId,
@@ -168,6 +184,7 @@ export const useReceive = create<ReceiveState>((set, get) => ({
       twofactor: twofactor || null,
       title: probe.title,
       thumbnail: probe.thumbnail,
+      clip: range.clip,
     };
   },
 
@@ -193,6 +210,7 @@ export const useReceive = create<ReceiveState>((set, get) => ({
       twofactor: null,
       title: null,
       thumbnail: null,
+      clip: null,
     }));
   },
 }));
@@ -200,6 +218,17 @@ export const useReceive = create<ReceiveState>((set, get) => ({
 export function resetReceiveStore() {
   probeToken++;
   useReceive.setState({ ...blank, kind: "video", presetByKind: {} });
+}
+
+/** Whether the card offers «Tramo»: a single video whose duration is known. */
+export function clipAvailable(probe: ProbeResult | null): boolean {
+  return probe?.kind === "video" && probe.duration !== null && probe.duration > 0;
+}
+
+/** The «Tramo» fields checked against the probed video; no range when it is not offered. */
+export function clipCheck(st: Pick<ReceiveState, "probe" | "clipStart" | "clipEnd">): ClipCheck {
+  if (!clipAvailable(st.probe)) return { clip: null, error: null, field: null };
+  return validateClip(st.clipStart, st.clipEnd, st.probe!.duration);
 }
 
 /** Total seconds of the selected playlist entries. */

@@ -10,7 +10,8 @@ use ymd_lib::deps::Tools;
 use ymd_lib::history::History;
 use ymd_lib::jobs::{self, JobEnv, JobManager, EMIT_INTERVAL};
 use ymd_lib::model::{
-    CommandError, EnqueueRequest, ErrorCode, Job, JobId, JobStage, PendingJob, Preset, Settings,
+    Clip, CommandError, EnqueueRequest, ErrorCode, Job, JobId, JobStage, PendingJob, Preset,
+    Settings,
 };
 
 const FAKE: &str = env!("CARGO_BIN_EXE_fake-ytdlp");
@@ -174,6 +175,7 @@ fn req(url: &str, preset: &str) -> EnqueueRequest {
         twofactor: None,
         title: None,
         thumbnail: None,
+        clip: None,
     }
 }
 
@@ -1015,6 +1017,7 @@ async fn resumed_number_moves_the_counter_forward_only() {
         kind: ymd_lib::model::MediaKind::Video,
         created_at: "2026-01-01T00:00:00Z".into(),
         needs_secret: false,
+        clip: None,
     };
     let a = "6f1c9a52-1f0e-4a8e-9c35-0b7a0f0c1a01";
     let b = "6f1c9a52-1f0e-4a8e-9c35-0b7a0f0c1a02";
@@ -1165,4 +1168,94 @@ async fn periodic_tmp_sweep_keeps_active_and_pending_dirs() {
     assert!(h.jobs.leftover_dirs().is_empty());
     h.jobs.cancel(&running.id).await.unwrap();
     h.wait_terminal(&running.id).await;
+}
+
+// ───────────── time range (clip) ─────────────
+
+fn clip(start: f64, end: f64) -> Option<Clip> {
+    Some(Clip { start, end })
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn clip_is_validated_at_enqueue() {
+    let h = harness(1);
+    let bad = [
+        (clip(10.0, 3.0), None),
+        (clip(5.0, 5.0), None),
+        (clip(-1.0, 5.0), None),
+        (clip(f64::NAN, 5.0), None),
+        (clip(0.0, f64::INFINITY), None),
+        (clip(0.0, 5.0), Some(vec![])),
+        (clip(0.0, 5.0), Some(vec![1, 2])),
+    ];
+    for (c, items) in bad {
+        let mut r = req("fake://success", "mp4-1080");
+        r.clip = c;
+        r.playlist_items = items.clone();
+        let err = h.jobs.enqueue(r).await.unwrap_err();
+        let ce: CommandError = err.downcast().unwrap();
+        assert_eq!(ce.code, ErrorCode::Unknown);
+        if items.is_some() {
+            assert!(ce.detail.contains("playlist"), "{}", ce.detail);
+        } else {
+            assert!(ce.detail.contains("invalid time range"), "{}", ce.detail);
+        }
+    }
+    assert!(h.jobs.list().await.is_empty());
+    assert!(h.env.history.pending_list().unwrap().is_empty());
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn clip_reaches_yt_dlp_and_the_file_name() {
+    let h = harness(2);
+    let mut v = req("fake://success", "mp4-1080");
+    v.clip = clip(3.0, 10.0);
+    let mut a = req("fake://success", "mp3-320");
+    a.clip = clip(90.0, 165.5);
+    let v = h.jobs.enqueue(v).await.unwrap();
+    let a = h.jobs.enqueue(a).await.unwrap();
+    assert_eq!(v.clip, clip(3.0, 10.0));
+    for (job, suffix) in [(v, " [0.03-0.10]."), (a, " [1.30-2.45].")] {
+        let done = h.wait_terminal(&job.id).await;
+        assert_eq!(done.stage, JobStage::Done, "{done:#?}");
+        assert_eq!(done.clip, job.clip);
+        let file = done.filepath.unwrap();
+        assert!(file.contains(suffix), "{file}");
+        assert!(Path::new(&file).exists());
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn resumed_job_keeps_its_clip() {
+    let h = harness(1);
+    let mut r = req("fake://hang", "mp4-1080");
+    r.clip = clip(1.5, 7.25);
+    let first = h.jobs.enqueue(r).await.unwrap();
+    let tmp = h.root.join("tmp").join(&first.id);
+    hang_pids(&tmp).await;
+    h.jobs.shutdown().await;
+
+    let mut rows = h.env.history.pending_list().unwrap();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].clip, clip(1.5, 7.25));
+    rows[0].url = "fake://success".into();
+    let fresh = JobManager::new(h.env.clone());
+    let resumed = fresh.resume(rows).await;
+    assert_eq!(resumed[0].clip, clip(1.5, 7.25));
+    let deadline = Instant::now() + Duration::from_secs(30);
+    loop {
+        let j = fresh
+            .list()
+            .await
+            .into_iter()
+            .find(|j| j.id == first.id)
+            .unwrap();
+        if j.stage.is_terminal() {
+            assert_eq!(j.stage, JobStage::Done, "{j:#?}");
+            assert!(j.filepath.unwrap().contains(" [0.01-0.07]."));
+            break;
+        }
+        assert!(Instant::now() < deadline);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
 }

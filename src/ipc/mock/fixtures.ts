@@ -129,6 +129,18 @@ export function joinPath(sep: string, ...parts: string[]): string {
 }
 
 /** Replace characters that are illegal in file names on any OS. */
+/** ` [1.30-2.45]`: the file name suffix of a section (`ytdlp::args::clip_suffix`). */
+export function clipNameSuffix(clip: { start: number; end: number }): string {
+  const clock = (seconds: number) => {
+    const t = Math.max(0, Math.floor(seconds));
+    const h = Math.floor(t / 3600);
+    const m = Math.floor((t % 3600) / 60);
+    const sec = String(t % 60).padStart(2, "0");
+    return h > 0 ? `${h}.${String(m).padStart(2, "0")}.${sec}` : `${m}.${sec}`;
+  };
+  return ` [${clock(clip.start)}-${clock(clip.end)}]`;
+}
+
 export function safeFileName(s: string): string {
   return s.replace(/[\\/:*?"<>|]/g, "_").trim();
 }

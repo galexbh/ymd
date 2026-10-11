@@ -60,6 +60,7 @@ import {
   probeVideo,
   rng,
   safeFileName,
+  clipNameSuffix,
   seedHistory,
   thumbnail,
   videoIdFor,
@@ -476,6 +477,7 @@ export class MockBackend {
           kind: j.kind,
           createdAt: j.createdAt,
           needsSecret: given(sim.req.videoPassword) || given(sim.req.twofactor),
+          clip: j.clip ? { ...j.clip } : null,
         };
         this.pending.set(row.id, row);
         added.push(clone(row));
@@ -965,6 +967,7 @@ export class MockBackend {
             twofactor: null,
             title: p.title,
             thumbnail: p.thumbnail,
+            clip: p.clip ?? null,
           },
           p,
         ),
@@ -978,6 +981,23 @@ export class MockBackend {
       throw commandError("unsupported_url", "empty URL");
     }
     const preset = this.findPreset(req.presetId);
+    const clip = req.clip ?? null;
+    if (clip) {
+      // same rules and messages as `jobs::validate_clip`
+      if (req.playlistItems) {
+        throw commandError(
+          "unknown",
+          "a time range can only be downloaded from a single video, not a playlist",
+        );
+      }
+      const finite = Number.isFinite(clip.start) && Number.isFinite(clip.end);
+      if (!finite || clip.start < 0 || clip.start >= clip.end) {
+        throw commandError(
+          "unknown",
+          `invalid time range ${clip.start}-${clip.end}: start must be at least 0 and before the end`,
+        );
+      }
+    }
     if (!this.ytdlpUsable()) {
       throw commandError("binary_missing", "yt-dlp is not installed");
     }
@@ -1032,6 +1052,7 @@ export class MockBackend {
       playlistCount: probed.kind === "playlist" ? items.length : null,
       createdAt: resumed?.createdAt ?? now,
       finishedAt: null,
+      clip: clip ? { ...clip } : null,
     };
     const lower = url.toLowerCase();
     const rule = FAILURE_RULES.find((r) => lower.includes(r.match));
@@ -1163,8 +1184,14 @@ export class MockBackend {
     if (stage === "done") {
       j.progress = 1;
       const ext = this.extFor(sim.preset);
+      // a section carries the ` [1.30-2.45]` suffix `ytdlp::args::clip_suffix` adds
+      const suffix = j.clip ? clipNameSuffix(j.clip) : "";
       const files = sim.items.map((it) =>
-        joinPath(this.paths.sep, j.outputDir, `${safeFileName(it.title)} [${it.id}].${ext}`),
+        joinPath(
+          this.paths.sep,
+          j.outputDir,
+          `${safeFileName(it.title)} [${it.id}]${suffix}.${ext}`,
+        ),
       );
       j.filepath = files[files.length - 1] ?? null;
       sim.items.forEach((it, i) => {

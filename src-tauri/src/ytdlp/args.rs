@@ -9,9 +9,12 @@
 //!   `video`), so no `--no-simulate` is needed; it is passed anyway to stay explicit.
 //! - Everything after `--` is a URL: `-- -notanoption` yields "'-notanoption' is not a valid URL".
 //! - `%(playlist_index)s` is zero-padded to the playlist size ("08", "10").
+//! - `--download-sections "*3-10"` downloads only that range through ffmpeg (yt-dlp's own
+//!   downloader, so aria2c is not used); `--force-keyframes-at-cuts` re-encodes around the cuts
+//!   so the file starts and ends where asked instead of on the nearest keyframe.
 
 use crate::deps::{jsruntime, Tools};
-use crate::model::{AudioFormat, AudioOptions, MediaKind, Preset, VideoContainer};
+use crate::model::{AudioFormat, AudioOptions, Clip, MediaKind, Preset, VideoContainer};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -56,6 +59,8 @@ pub struct DownloadSpec<'a> {
     /// Download speed cap in MB/s (`--limit-rate <n>M`, and aria2c's overall limit when it is
     /// the downloader). `None` = unlimited.
     pub limit_rate_mbps: Option<u32>,
+    /// Only this time range of the video (already validated); `None` = the whole video.
+    pub clip: Option<Clip>,
     /// Already-built auth args from `auth::args_for` (cookies / netrc-cmd / video password / 2FA).
     pub auth_args: Vec<String>,
 }
@@ -110,6 +115,10 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
         Some(_) => format!("{PLAYLIST_TEMPLATE_PREFIX}{template}"),
         None => template.to_string(),
     };
+    let template = match spec.clip {
+        Some(clip) => with_clip_suffix(&template, clip),
+        None => template,
+    };
     a.extend([
         s("-P"),
         format!("home:{}", p(&spec.output_dir)),
@@ -130,7 +139,8 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
     }
 
     a.extend(tool_args(spec.tools));
-    if spec.use_aria2c {
+    // A section is cut by ffmpeg while it downloads: aria2c cannot do that.
+    if spec.use_aria2c && spec.clip.is_none() {
         if let Some(aria) = &spec.tools.aria2c {
             a.extend([
                 s("--downloader"),
@@ -144,11 +154,67 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
     a.extend(format_args(spec.preset));
     a.extend(postprocess_args(spec.preset));
     a.extend(playlist_args(spec.playlist_items));
+    if let Some(clip) = spec.clip {
+        a.extend(clip_args(clip));
+    }
     a.extend(spec.auth_args.iter().cloned());
 
     a.push(s("--"));
     a.push(spec.url.to_string());
     a
+}
+
+/// `--download-sections *<start>-<end>` (seconds) and `--force-keyframes-at-cuts`.
+pub fn clip_args(clip: Clip) -> Vec<String> {
+    vec![
+        s("--download-sections"),
+        format!("*{}-{}", seconds_arg(clip.start), seconds_arg(clip.end)),
+        s("--force-keyframes-at-cuts"),
+    ]
+}
+
+/// Seconds for `--download-sections`: at most 3 decimals, no trailing zeros or dot
+/// (`3`, `90.5`, `1.235`).
+pub fn seconds_arg(secs: f64) -> String {
+    let fixed = format!("{:.3}", secs.max(0.0));
+    let trimmed = fixed.trim_end_matches('0').trim_end_matches('.');
+    if trimmed.is_empty() {
+        s("0")
+    } else {
+        trimmed.to_string()
+    }
+}
+
+/// Clock time for a file name, whole seconds, with `.` instead of `:` so it is valid on
+/// Windows: `1.30`, `0.05`, `1.02.03` (hours as `h.mm.ss`).
+fn clock_for_name(secs: f64) -> String {
+    let total = secs.max(0.0).floor() as u64;
+    let (h, m, sec) = (total / 3600, total / 60 % 60, total % 60);
+    if h > 0 {
+        format!("{h}.{m:02}.{sec:02}")
+    } else {
+        format!("{m}.{sec:02}")
+    }
+}
+
+/// Suffix that tells a section apart from the whole video in the file name: ` [1.30-2.45]`.
+pub fn clip_suffix(clip: Clip) -> String {
+    format!(
+        " [{}-{}]",
+        clock_for_name(clip.start),
+        clock_for_name(clip.end)
+    )
+}
+
+/// Puts [`clip_suffix`] right before the template's final `.%(ext)s`, or at the end when the
+/// template does not end with it. The user's template setting itself is never changed.
+pub fn with_clip_suffix(template: &str, clip: Clip) -> String {
+    const EXT: &str = ".%(ext)s";
+    let suffix = clip_suffix(clip);
+    match template.strip_suffix(EXT) {
+        Some(stem) => format!("{stem}{suffix}{EXT}"),
+        None => format!("{template}{suffix}"),
+    }
 }
 
 /// `--downloader-args` value for aria2c. With a speed cap it is handed to aria2c explicitly, so
@@ -556,6 +622,7 @@ mod tests {
             archive_file: archive.then(|| paths.archive.into()),
             use_aria2c: aria2c,
             limit_rate_mbps: None,
+            clip: None,
             auth_args: auth,
         }
     }
@@ -618,6 +685,85 @@ mod tests {
         for (name, s) in cases {
             insta::assert_yaml_snapshot!(format!("download_combo_{name}"), download_args(&s));
         }
+    }
+
+    #[test]
+    fn snapshot_clip() {
+        let w = windows();
+        let presets = presets();
+        let clip = Clip {
+            start: 3.0,
+            end: 10.0,
+        };
+        for preset in [&presets[1], &presets[3]] {
+            // aria2c is on in settings: a section never goes through it.
+            let mut s = spec(preset, &w, None, false, true, vec![]);
+            s.clip = Some(clip);
+            insta::assert_yaml_snapshot!(format!("download_clip_{}", preset.id), download_args(&s));
+        }
+    }
+
+    #[test]
+    fn snapshot_clip_suffix() {
+        let cases: Vec<(f64, f64)> = vec![
+            (0.0, 7.0),
+            (90.0, 165.0),
+            (3.999, 10.5),
+            (59.0, 600.0),
+            (3599.0, 3723.0),
+            (36000.0, 36061.25),
+        ];
+        let out: Vec<String> = cases
+            .into_iter()
+            .map(|(start, end)| {
+                let clip = Clip { start, end };
+                format!(
+                    "{start}-{end} => {:?} {}",
+                    clip_suffix(clip),
+                    clip_args(clip)[1]
+                )
+            })
+            .collect();
+        insta::assert_yaml_snapshot!("clip_suffix", out);
+    }
+
+    #[test]
+    fn clip_suffix_goes_before_the_extension() {
+        let clip = Clip {
+            start: 90.0,
+            end: 165.0,
+        };
+        assert_eq!(
+            with_clip_suffix(TEMPLATE, clip),
+            "%(title)s [%(id)s] [1.30-2.45].%(ext)s"
+        );
+        assert_eq!(
+            with_clip_suffix("%(uploader)s/%(title)s", clip),
+            "%(uploader)s/%(title)s [1.30-2.45]"
+        );
+        assert_eq!(
+            with_clip_suffix("%(title)s.%(ext)s.bak", clip),
+            "%(title)s.%(ext)s.bak [1.30-2.45]"
+        );
+        let w = windows();
+        let preset = video("best", None, VideoContainer::Any);
+        let mut s = spec(&preset, &w, None, false, false, vec![]);
+        s.filename_template = " ";
+        s.clip = Some(clip);
+        let args = download_args(&s);
+        let o = args.iter().position(|x| x == "-o").unwrap();
+        assert_eq!(args[o + 1], "%(title)s [%(id)s] [1.30-2.45].%(ext)s");
+        assert!(!clip_suffix(clip).contains(':'));
+    }
+
+    #[test]
+    fn seconds_arg_trims() {
+        assert_eq!(seconds_arg(0.0), "0");
+        assert_eq!(seconds_arg(3.0), "3");
+        assert_eq!(seconds_arg(90.5), "90.5");
+        assert_eq!(seconds_arg(1.23456), "1.235");
+        assert_eq!(seconds_arg(10.0004), "10");
+        assert_eq!(seconds_arg(-1.0), "0");
     }
 
     #[test]
