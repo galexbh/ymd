@@ -225,18 +225,20 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     .select::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
       transition:
         opacity var(--dur-fast) var(--ease-out),
         translate var(--dur-fast) var(--ease-out),
         overlay var(--dur-fast) allow-discrete,
         display var(--dur-fast) allow-discrete;
     }
-    .select::picker(select):not(:popover-open) {
-      opacity: 0;
-      translate: 0 -4px;
+    .select:open::picker(select) {
+      opacity: 1;
+      translate: 0 0;
     }
     @starting-style {
-      .select::picker(select):popover-open {
+      .select:open::picker(select) {
         opacity: 0;
         translate: 0 -4px;
       }
