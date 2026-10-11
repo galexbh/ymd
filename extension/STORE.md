@@ -110,8 +110,8 @@ application on the same computer.
   browser's Native Messaging channel. It is never sent over the network, never sent to the
   developer, and never shared with or sold to third parties.
 - **What is stored by the extension:** your list of sites, the time and size of the last
-  transfer, the last error message, and a one-way hash of the cookie set. Cookie values are not
-  stored by the extension.
+  transfer, the last error message, and one-way hashes of the cookie set (the last one sent and,
+  after a failure, the one that failed). Cookie values are not stored by the extension.
 - **What ymd stores:** ymd writes the cookies to a file in its own data folder, encrypted with a
   key from the system keychain and readable only by your user account, and uses it solely to run yt-dlp on your behalf. Removing a site from the
   list, uninstalling the extension or deleting ymd's data folder stops or removes this.

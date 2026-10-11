@@ -73,6 +73,12 @@ export interface ChromeApi {
       get(keys: string | string[] | null): Promise<Record<string, unknown>>;
       set(items: Record<string, unknown>): Promise<void>;
     };
+    /** In memory, cleared when the browser closes; survives the worker going to sleep. */
+    session: {
+      get(keys: string | string[] | null): Promise<Record<string, unknown>>;
+      set(items: Record<string, unknown>): Promise<void>;
+      remove(keys: string | string[]): Promise<void>;
+    };
     onChanged: ChromeEvent<(changes: Record<string, StorageChange>, areaName: string) => void>;
   };
   alarms: {
@@ -117,7 +123,8 @@ export interface ChromeApi {
     getUILanguage(): string;
   };
   contextMenus: {
-    create(properties: MenuProperties): unknown;
+    /** The callback is where `runtime.lastError` reports a failed create (e.g. a duplicate id). */
+    create(properties: MenuProperties, callback?: () => void): unknown;
     removeAll(): Promise<void>;
     onClicked: ChromeEvent<(info: MenuClickInfo, tab?: Tab) => void>;
   };

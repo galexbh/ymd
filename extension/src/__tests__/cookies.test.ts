@@ -105,6 +105,31 @@ describe("hashCookies", () => {
     }
   });
 
+  it("keeps the exact fingerprint of earlier versions, so no update forces a resend", async () => {
+    // Values computed with the 1.4.3 implementation (rows sorted by JSON.stringify inside the
+    // comparator); any change here would make every installed copy resend its jar once.
+    const fixture = [
+      toWire(cookie({ name: "SID", domain: ".google.com", value: "g" })),
+      toWire(cookie({ name: "PREF", value: 'pé"x', expirationDate: 1_800_000_000.5 })),
+      toWire(
+        cookie({
+          name: "a",
+          domain: "www.youtube.com",
+          hostOnly: true,
+          session: true,
+          expirationDate: undefined,
+        }),
+      ),
+      toWire(cookie({ name: "a", path: "/tv", value: "" })),
+    ];
+    const known = "fa84565a28f4765a053221b46961d26d55e775d3bc2159a457099edce7be2a96";
+    expect(await hashCookies(fixture)).toBe(known);
+    expect(await hashCookies([...fixture].reverse())).toBe(known);
+    expect(await hashCookies([])).toBe(
+      "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    );
+  });
+
   it("ignores flags outside the fingerprint", async () => {
     expect(await hashCookies([{ ...base[0], httpOnly: !base[0].httpOnly }, base[1]])).toBe(
       await hashCookies(base),

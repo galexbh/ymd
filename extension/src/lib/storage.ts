@@ -2,14 +2,31 @@
 
 import { type ChromeApi } from "./chrome-api";
 import { presetDomains, sanitizeAllowlist } from "./domains";
-import { parseStatus, type Status } from "./status";
+import { parseStatus, type Status, type StatusError } from "./status";
 
 export const KEYS = {
   allowlist: "allowlist",
   status: "status",
   /** SHA-256 of the last jar ymd accepted. The only trace of cookie content we keep. */
   lastHash: "lastHash",
+  /** Hash and error code of the last failed attempt (never cookie values), for the backoff. */
+  lastFailure: "lastFailure",
 } as const;
+
+/** chrome.storage.session: a debounced sync was waiting when the worker last ran. */
+export const SESSION_KEYS = {
+  pendingSince: "pendingSince",
+} as const;
+
+/** The last failed send: what was tried, why it failed and when to try on its own again. */
+export interface Failure {
+  hash: string;
+  code: StatusError["code"];
+  /** Consecutive failures with this same hash and code. */
+  attempts: number;
+  /** Epoch ms before which automatic syncs leave this jar alone. */
+  nextAt: number;
+}
 
 type Api = Pick<ChromeApi, "storage">;
 
@@ -68,4 +85,27 @@ export async function readHash(api: Api): Promise<string | null> {
 
 export async function writeHash(api: Api, hash: string | null): Promise<void> {
   await api.storage.local.set({ [KEYS.lastHash]: hash });
+}
+
+export async function readFailure(api: Api): Promise<Failure | null> {
+  const got = await api.storage.local.get(KEYS.lastFailure);
+  const v = got[KEYS.lastFailure] as Partial<Failure> | null | undefined;
+  if (!v || typeof v !== "object") return null;
+  const finite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
+  if (typeof v.hash !== "string" || typeof v.code !== "string") return null;
+  if (!finite(v.attempts) || !finite(v.nextAt)) return null;
+  return { hash: v.hash, code: v.code, attempts: v.attempts, nextAt: v.nextAt };
+}
+
+export async function writeFailure(api: Api, failure: Failure | null): Promise<void> {
+  // Field by field, like the status: only a hash, a code and two numbers are ever stored.
+  const clean = failure
+    ? {
+        hash: failure.hash,
+        code: failure.code,
+        attempts: failure.attempts,
+        nextAt: failure.nextAt,
+      }
+    : null;
+  await api.storage.local.set({ [KEYS.lastFailure]: clean });
 }

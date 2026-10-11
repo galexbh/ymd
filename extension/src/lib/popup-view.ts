@@ -28,6 +28,7 @@ const ERROR_KEYS: Record<StatusError["code"], [string, string]> = {
   host_forbidden: ["errorForbidden", "errorForbiddenHint"],
   host_failed: ["errorHostFailed", "errorHostFailedHint"],
   host_rejected: ["errorRejected", "errorRejectedHint"],
+  too_many_cookies: ["errorTooMany", "errorTooManyHint"],
   unknown: ["errorUnknown", "errorUnknownHint"],
 };
 

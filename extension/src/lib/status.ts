@@ -5,6 +5,7 @@ export type ErrorCode =
   | "host_forbidden" // the host manifest does not list this extension's origin
   | "host_failed" // the host crashed, exited early or spoke garbage
   | "host_rejected" // the host answered {ok:false}
+  | "too_many_cookies" // more cookies than ymd accepts in one message; nothing was sent
   | "unknown";
 
 export interface StatusError {

@@ -1,7 +1,7 @@
 // The toolbar icon's badge: quiet while all is well; "!" when YouTube is signed out (amber)
-// or the bridge failed (red). The tooltip says which.
+// or the last send failed (red). The tooltip says which.
 import { type ChromeApi } from "./chrome-api";
-import { type Status } from "./status";
+import { type Status, type StatusError } from "./status";
 
 /** ymd's --warning and --danger tokens (light theme), readable on the toolbar. */
 const WARNING = "#7a5300";
@@ -14,9 +14,15 @@ export interface Badge {
   titleKey: string | null;
 }
 
+/** Tooltip per error: ymd refused the jar, the jar is too big, or ymd did not answer. */
+const ERROR_TITLES: Partial<Record<StatusError["code"], string>> = {
+  host_rejected: "badgeRejected",
+  too_many_cookies: "badgeTooMany",
+};
+
 export function badgeFor(status: Status): Badge {
-  if (status.error && status.error.code !== "host_rejected") {
-    return { text: "!", color: DANGER, titleKey: "badgeError" };
+  if (status.error) {
+    return { text: "!", color: DANGER, titleKey: ERROR_TITLES[status.error.code] ?? "badgeError" };
   }
   if (status.sessions["youtube.com"] === false) {
     return { text: "!", color: WARNING, titleKey: "badgeSessionClosed" };

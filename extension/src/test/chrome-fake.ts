@@ -67,10 +67,9 @@ export function fakeEvent<T extends (...args: never[]) => unknown>(): FakeEvent<
 }
 
 /** What the fake native host does with a message: reply, or fail like the browser would. */
-export type NativeBehavior =
-  | { reply: unknown }
-  | { lastError: string }
-  | ((message: Record<string, unknown>) => { reply: unknown } | { lastError: string });
+export type NativeOutcome = { reply: unknown } | { lastError: string } | { hang: true };
+/** `{ hang: true }`: the host never answers (a stuck ymd); the callback is never called. */
+export type NativeBehavior = NativeOutcome | ((message: Record<string, unknown>) => NativeOutcome);
 
 export const HOST_NOT_FOUND = "Specified native messaging host not found.";
 
@@ -85,6 +84,8 @@ export interface FakeOptions {
   /** Answer of permissions.request (the user's click in the prompt). */
   grant?: boolean;
   storage?: Record<string, unknown>;
+  /** chrome.storage.session contents (what an earlier run of the worker left). */
+  session?: Record<string, unknown>;
   /** Sites already on the list, with their permission granted (as after adding them). */
   sites?: string[];
   /** Sites on the list whose permission is gone (revoked in the browser, or lost on an update). */
@@ -129,6 +130,7 @@ export function cookie(partial: Partial<ChromeCookie> & { name: string }): Chrom
 export function createChromeFake(options: FakeOptions = {}) {
   const jar: ChromeCookie[] = [...(options.cookies ?? [])];
   const store = new Map<string, unknown>(Object.entries(options.storage ?? {}));
+  const session = new Map<string, unknown>(Object.entries(options.session ?? {}));
   const alarms = new Map<string, Alarm>();
   const required = [...(options.hostPermissions ?? [])];
   const granted = new Set<string>(required);
@@ -183,6 +185,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       const msg = JSON.parse(JSON.stringify(message)) as Record<string, unknown>;
       record.native.push({ host, message: msg });
       const outcome = typeof native === "function" ? native(msg) : native;
+      if ("hang" in outcome) return;
       queueMicrotask(() => {
         if ("lastError" in outcome) {
           runtime.lastError = { message: outcome.lastError };
@@ -246,6 +249,31 @@ export function createChromeFake(options: FakeOptions = {}) {
           events.storageChanged.emit(changes, "local");
         },
       },
+      session: {
+        async get(keys) {
+          const list = keys === null ? [...session.keys()] : Array.isArray(keys) ? keys : [keys];
+          const out: Record<string, unknown> = {};
+          for (const k of list) if (session.has(k)) out[k] = structuredClone(session.get(k));
+          return out;
+        },
+        async set(items) {
+          const changes: Record<string, StorageChange> = {};
+          for (const [k, v] of Object.entries(items)) {
+            changes[k] = { oldValue: session.get(k), newValue: structuredClone(v) };
+            session.set(k, structuredClone(v));
+          }
+          events.storageChanged.emit(changes, "session");
+        },
+        async remove(keys) {
+          const changes: Record<string, StorageChange> = {};
+          for (const k of Array.isArray(keys) ? keys : [keys]) {
+            if (!session.has(k)) continue;
+            changes[k] = { oldValue: session.get(k) };
+            session.delete(k);
+          }
+          if (Object.keys(changes).length > 0) events.storageChanged.emit(changes, "session");
+        },
+      },
       onChanged: events.storageChanged,
     },
     alarms: {
@@ -263,8 +291,22 @@ export function createChromeFake(options: FakeOptions = {}) {
     },
     runtime,
     contextMenus: {
-      create(properties: MenuProperties) {
-        record.menus.push(structuredClone(properties));
+      create(properties: MenuProperties, callback?: () => void) {
+        const duplicate = record.menus.some((m) => m.id === properties.id);
+        if (!duplicate) record.menus.push(structuredClone(properties));
+        if (callback) {
+          queueMicrotask(() => {
+            if (duplicate)
+              runtime.lastError = {
+                message: `Cannot create item with duplicate id ${properties.id}`,
+              };
+            try {
+              callback();
+            } finally {
+              runtime.lastError = undefined;
+            }
+          });
+        }
         return properties.id;
       },
       async removeAll() {
@@ -330,6 +372,7 @@ export function createChromeFake(options: FakeOptions = {}) {
     events,
     record,
     store,
+    session,
     alarms,
     granted,
     jar,
