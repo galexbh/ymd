@@ -573,6 +573,48 @@ describe("mock backend — clipboard plugin", () => {
     expect(sanitizeSettings(old as Settings, s).notifyDownloads).toBe(true);
   });
 
+  it("settings carry network options sanitized like the backend (missing → defaults)", async () => {
+    installMockBackend({ clock: "manual" });
+    const s = await api.settingsGet();
+    const none = { proxy: null, ipVersion: "auto", socketTimeoutS: null, retries: null };
+    expect(s.network).toEqual(none);
+
+    const saved = await api.settingsSet({
+      ...s,
+      network: {
+        proxy: " SOCKS5://[::1]:1080 ",
+        ipVersion: "v6",
+        socketTimeoutS: 300,
+        retries: 0,
+      },
+    });
+    expect(saved.network).toEqual({
+      proxy: "socks5://[::1]:1080",
+      ipVersion: "v6",
+      socketTimeoutS: 300,
+      retries: 0,
+    });
+
+    // credentials, a path, out-of-range numbers and an unknown IP version all fall back
+    for (const proxy of ["http://u:p@host:8080", "http://host:8080/path?q", "-x", "ftp://h"]) {
+      const bad = await api.settingsSet({
+        ...s,
+        network: {
+          proxy,
+          ipVersion: "v5" as never,
+          socketTimeoutS: 301,
+          retries: 51,
+        },
+      });
+      expect(bad.network).toEqual(none);
+    }
+    expect(JSON.stringify(getMockBackend()!.snapshot().settings)).not.toContain("u:p@");
+
+    const old: Partial<Settings> = { ...s };
+    delete old.network;
+    expect(sanitizeSettings(old as Settings, s).network).toEqual(none);
+  });
+
   it("bootMock seeds the clipboard from ?clipboard= without remembering it", async () => {
     window.localStorage.clear();
     const link = "https://vimeo.com/123456";

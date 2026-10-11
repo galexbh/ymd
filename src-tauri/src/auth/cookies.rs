@@ -11,7 +11,7 @@
 
 use crate::deps::Tools;
 use crate::model::{
-    CmdResult, CommandError, CookieFileInfo, CookieTestResult, ErrorCode, JobError,
+    CmdResult, CommandError, CookieFileInfo, CookieTestResult, ErrorCode, JobError, NetworkSettings,
 };
 use crate::paths::AppPaths;
 use serde::{Deserialize, Serialize};
@@ -357,15 +357,46 @@ pub fn clear(paths: &AppPaths) -> CmdResult<()> {
 
 /// Run `--simulate` against a test URL with the given cookie args; classify failures
 /// (cookie DB locked while the browser is open, app-bound decryption failure, bot check).
-pub async fn test(tools: &Tools, cookie_args: &[String]) -> CookieTestResult {
-    test_url(tools, cookie_args, TEST_URL).await
+pub async fn test(
+    tools: &Tools,
+    network: &NetworkSettings,
+    cookie_args: &[String],
+) -> CookieTestResult {
+    test_url(tools, network, cookie_args, TEST_URL).await
 }
 
 /// [`test`] against an arbitrary URL.
-pub async fn test_url(tools: &Tools, cookie_args: &[String], url: &str) -> CookieTestResult {
+pub async fn test_url(
+    tools: &Tools,
+    network: &NetworkSettings,
+    cookie_args: &[String],
+    url: &str,
+) -> CookieTestResult {
     let Some(ytdlp) = tools.ytdlp.clone() else {
         return fail(ErrorCode::BinaryMissing, "yt-dlp is not installed");
     };
+    let args = test_argv(tools, network, cookie_args, url);
+    match run_ytdlp(&ytdlp, &args, TEST_TIMEOUT).await {
+        Ok(r) if r.success => CookieTestResult {
+            ok: true,
+            error: None,
+        },
+        Ok(r) => CookieTestResult {
+            ok: false,
+            error: Some(classify(&r.stderr)),
+        },
+        Err(e) => fail(e.code, &e.detail),
+    }
+}
+
+/// Pure argv (without the program) of the cookie test: the same network flags as downloads,
+/// then the cookie args, then `--` and the URL.
+pub fn test_argv(
+    tools: &Tools,
+    network: &NetworkSettings,
+    cookie_args: &[String],
+    url: &str,
+) -> Vec<String> {
     let mut args: Vec<String> = vec![
         "--ignore-config".into(),
         "--simulate".into(),
@@ -383,20 +414,11 @@ pub async fn test_url(tools: &Tools, cookie_args: &[String], url: &str) -> Cooki
         args.push("--js-runtimes".into());
         args.push(format!("{name}:{}", rt.path));
     }
+    args.extend(crate::ytdlp::args::network_args(network));
     args.extend(cookie_args.iter().cloned());
     args.push("--".into());
     args.push(url.into());
-    match run_ytdlp(&ytdlp, &args, TEST_TIMEOUT).await {
-        Ok(r) if r.success => CookieTestResult {
-            ok: true,
-            error: None,
-        },
-        Ok(r) => CookieTestResult {
-            ok: false,
-            error: Some(classify(&r.stderr)),
-        },
-        Err(e) => fail(e.code, &e.detail),
-    }
+    args
 }
 
 fn fail(code: ErrorCode, detail: &str) -> CookieTestResult {
@@ -669,6 +691,44 @@ mod tests {
 .example.com\tTRUE\t/\tTRUE\t2000000000\tSID\tsynthetic1\n\
 #HttpOnly_.Example.com\tTRUE\t/\tFALSE\t0\tHSID\tsynthetic2\n\
 sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
+
+    #[test]
+    fn test_argv_carries_network_flags_before_the_url() {
+        let cookies = vec!["--cookies".to_string(), "/tmp/jar.txt".to_string()];
+        let plain = test_argv(
+            &Tools::default(),
+            &NetworkSettings::default(),
+            &cookies,
+            TEST_URL,
+        );
+        assert!(!plain
+            .iter()
+            .any(|a| a == "--proxy" || a == "-4" || a == "-6" || a == "--retries"));
+        let net = NetworkSettings {
+            proxy: Some("socks5://[::1]:1080".into()),
+            ip_version: crate::model::IpVersion::V4,
+            socket_timeout_s: Some(10),
+            retries: Some(3),
+        };
+        let a = test_argv(&Tools::default(), &net, &cookies, TEST_URL);
+        let at = |f: &str| a.iter().position(|x| x == f).unwrap();
+        let dash = at("--");
+        assert_eq!(a[at("--proxy") + 1], "socks5://[::1]:1080");
+        assert_eq!(a[at("--socket-timeout") + 1], "10");
+        assert_eq!(a[at("--retries") + 1], "3");
+        assert_eq!(a[at("--fragment-retries") + 1], "3");
+        for f in [
+            "--proxy",
+            "-4",
+            "--socket-timeout",
+            "--retries",
+            "--cookies",
+        ] {
+            assert!(at(f) < dash, "{f} before --");
+        }
+        assert_eq!(&a[dash..], ["--", TEST_URL]);
+        assert_eq!(a.iter().filter(|x| *x == "--").count(), 1);
+    }
 
     #[test]
     fn signed_in_reads_names_only() {

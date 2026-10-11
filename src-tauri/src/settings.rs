@@ -17,8 +17,8 @@
 
 use crate::model::{
     AudioFormat, AudioOptions, ClipboardWatch, CookieSource, Density, Language, MediaKind,
-    PostProcess, Preset, Radius, Settings, ThemeMode, ThemeSettings, UpdateChannel, VideoContainer,
-    VideoOptions,
+    NetworkSettings, PostProcess, Preset, Radius, Settings, ThemeMode, ThemeSettings,
+    UpdateChannel, VideoContainer, VideoOptions,
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -35,6 +35,13 @@ pub const CONCURRENCY_MAX: u32 = 8;
 /// Speed cap bounds in MB/s; anything outside means unlimited.
 pub const LIMIT_RATE_MIN: u32 = 1;
 pub const LIMIT_RATE_MAX: u32 = 1000;
+/// `--socket-timeout` bounds in seconds; anything outside means yt-dlp's default.
+pub const SOCKET_TIMEOUT_MIN: u32 = 1;
+pub const SOCKET_TIMEOUT_MAX: u32 = 300;
+/// `--retries` / `--fragment-retries` upper bound; anything above means yt-dlp's default.
+pub const RETRIES_MAX: u32 = 50;
+/// Proxy schemes ymd accepts. `socks5h` / `socks4a` resolve host names on the proxy.
+pub const PROXY_SCHEMES: [&str; 6] = ["http", "https", "socks4", "socks4a", "socks5", "socks5h"];
 pub const FONT_SCALE_MIN: f64 = 0.875;
 pub const FONT_SCALE_MAX: f64 = 1.25;
 
@@ -69,6 +76,7 @@ pub fn defaults(video_dir: &Path, audio_dir: &Path) -> Settings {
         tray_hint_shown: false,
         limit_rate_mbps: None,
         notify_downloads: true,
+        network: NetworkSettings::default(),
     }
 }
 
@@ -224,6 +232,7 @@ pub fn sanitize(settings: Settings) -> Settings {
     s.limit_rate_mbps = s
         .limit_rate_mbps
         .filter(|n| (LIMIT_RATE_MIN..=LIMIT_RATE_MAX).contains(n));
+    s.network = sanitize_network(std::mem::take(&mut s.network));
 
     s.theme.font_scale = if s.theme.font_scale.is_finite() {
         s.theme.font_scale.clamp(FONT_SCALE_MIN, FONT_SCALE_MAX)
@@ -262,6 +271,64 @@ pub fn sanitize(settings: Settings) -> Settings {
 pub fn keep_backend_fields(old: &Settings, mut new: Settings) -> Settings {
     new.tray_hint_shown |= old.tray_hint_shown;
     new
+}
+
+/// Proxy normalized (or dropped); timeout and retries dropped when out of range.
+pub fn sanitize_network(mut n: NetworkSettings) -> NetworkSettings {
+    n.proxy = n.proxy.as_deref().and_then(normalize_proxy);
+    n.socket_timeout_s = n
+        .socket_timeout_s
+        .filter(|t| (SOCKET_TIMEOUT_MIN..=SOCKET_TIMEOUT_MAX).contains(t));
+    n.retries = n.retries.filter(|r| *r <= RETRIES_MAX);
+    n
+}
+
+/// `scheme://host[:port]` for a proxy URL ymd accepts, or `None`.
+///
+/// Accepted: a [`PROXY_SCHEMES`] scheme, a host (name, IPv4 or bracketed IPv6), an optional
+/// port, and at most a trailing `/`. Rejected: credentials (`user:pass@`, because ymd keeps no
+/// secrets on disk or in yt-dlp's arguments), any other path, a query or fragment, whitespace,
+/// control or non-ASCII characters, `\` and `%`. Mirrored by `src/screens/settings/network.ts`.
+pub fn normalize_proxy(raw: &str) -> Option<String> {
+    let raw = raw.trim();
+    if raw.is_empty()
+        || !raw
+            .bytes()
+            .all(|b| b.is_ascii_graphic() && b != b'\\' && b != b'%')
+    {
+        return None;
+    }
+    let url = url::Url::parse(raw).ok()?;
+    let scheme = url.scheme().to_ascii_lowercase();
+    if !PROXY_SCHEMES.contains(&scheme.as_str())
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+        || !matches!(url.path(), "" | "/")
+        || url.port() == Some(0)
+    {
+        return None;
+    }
+    let host = match url.host()? {
+        url::Host::Domain(d) => {
+            let d = d.to_ascii_lowercase();
+            let ok = !d.is_empty()
+                && !d.starts_with(['-', '.'])
+                && d.bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.');
+            if !ok {
+                return None;
+            }
+            d
+        }
+        url::Host::Ipv4(ip) => ip.to_string(),
+        url::Host::Ipv6(ip) => format!("[{ip}]"),
+    };
+    Some(match url.port() {
+        Some(port) => format!("{scheme}://{host}:{port}"),
+        None => format!("{scheme}://{host}"),
+    })
 }
 
 fn normalize_accent(a: &str) -> Option<String> {
@@ -547,5 +614,131 @@ mod tests {
             assert_eq!(s.limit_rate_mbps, want, "{raw}");
             assert_eq!(s.concurrency, 2, "siblings survive {raw}");
         }
+    }
+
+    #[test]
+    fn proxy_rules() {
+        for (raw, want) in [
+            ("http://127.0.0.1:8080", "http://127.0.0.1:8080"),
+            ("  socks5://127.0.0.1:1080  ", "socks5://127.0.0.1:1080"),
+            (
+                "socks5h://Proxy.Example.com:1080/",
+                "socks5h://proxy.example.com:1080",
+            ),
+            ("HTTPS://proxy.example.com", "https://proxy.example.com"),
+            ("socks4://10.0.0.1:1080", "socks4://10.0.0.1:1080"),
+            ("socks4a://gw:1080", "socks4a://gw:1080"),
+            ("socks5://[::1]:1080", "socks5://[::1]:1080"),
+            ("http://[2001:DB8::1]", "http://[2001:db8::1]"),
+            ("http://proxy:65535", "http://proxy:65535"),
+            ("http://proxy:80", "http://proxy"),
+            ("https://proxy:443/", "https://proxy"),
+            ("socks5://proxy:80", "socks5://proxy:80"),
+            ("http://proxy:", "http://proxy"),
+        ] {
+            assert_eq!(normalize_proxy(raw).as_deref(), Some(want), "{raw}");
+        }
+        for bad in [
+            "",
+            "   ",
+            "-x",
+            "--proxy",
+            "127.0.0.1:8080",
+            "proxy.example.com",
+            "http://u:p@host:8080",
+            "http://user@host:8080",
+            "socks5://:secret@host:1080",
+            "http://host:8080/path?q",
+            "http://host:8080/path",
+            "http://host:8080?q=1",
+            "http://host:8080#frag",
+            "ftp://h",
+            "file:///etc/passwd",
+            "socks://h:1080",
+            "http://host:8080\n--exec=calc",
+            "http://ho\r\nst:8080",
+            "http://host:8080\r\nX-Injected: 1",
+            "http://ho st:8080",
+            "http://ho\tst:8080",
+            "http://host\u{0}:1",
+            "http://host:0",
+            "http://host:70000",
+            "http://",
+            "socks5://",
+            "http://ho_st:1",
+            "http://-host:1",
+            "http://ñandú.com",
+            "http://ho%73t:1",
+            "http:\\\\host",
+            "http://host:123456",
+            "http://host:8a",
+            "http://[1.2.3.4]",
+            "http://[::1",
+            "http://a:b:c",
+        ] {
+            assert_eq!(normalize_proxy(bad), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn network_rules() {
+        let d = defaults(Path::new("/v"), Path::new("/a"));
+        assert_eq!(d.network, NetworkSettings::default());
+        let user = serde_json::json!({
+            "network": {
+                "proxy": " http://u:p@host:8080 ",
+                "ipVersion": "v4",
+                "socketTimeoutS": 30,
+                "retries": 10
+            }
+        });
+        let s = sanitize(merge_settings(&d, &user));
+        assert_eq!(s.network.proxy, None, "credentials are never stored");
+        assert_eq!(s.network.ip_version, crate::model::IpVersion::V4);
+        assert_eq!(s.network.socket_timeout_s, Some(30));
+        assert_eq!(s.network.retries, Some(10));
+
+        for (t, want) in [(0, None), (1, Some(1)), (300, Some(300)), (301, None)] {
+            let n = sanitize_network(NetworkSettings {
+                socket_timeout_s: Some(t),
+                ..NetworkSettings::default()
+            });
+            assert_eq!(n.socket_timeout_s, want, "{t}");
+        }
+        for (r, want) in [(0, Some(0)), (50, Some(50)), (51, None)] {
+            let n = sanitize_network(NetworkSettings {
+                retries: Some(r),
+                ..NetworkSettings::default()
+            });
+            assert_eq!(n.retries, want, "{r}");
+        }
+
+        // A bad field keeps its siblings; an unknown IP version falls back to auto.
+        let user = serde_json::json!({
+            "network": { "proxy": "socks5h://gw:1080", "ipVersion": "v5", "retries": "x" },
+            "concurrency": 2
+        });
+        let s = sanitize(merge_settings(&d, &user));
+        assert_eq!(s.network.proxy.as_deref(), Some("socks5h://gw:1080"));
+        assert_eq!(s.network.ip_version, crate::model::IpVersion::Auto);
+        assert_eq!(s.network.retries, None);
+        assert_eq!(s.concurrency, 2);
+    }
+
+    /// A settings file from before the network section loads with every network default.
+    #[test]
+    fn old_file_without_network_loads() {
+        let d = defaults(Path::new("/v"), Path::new("/a"));
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("settings.json");
+        let mut old = serde_json::to_value(&d).unwrap();
+        old.as_object_mut().unwrap().remove("network");
+        old["limitRateMbps"] = serde_json::json!(5);
+        std::fs::write(&file, old.to_string()).unwrap();
+        let s = load(&file, d);
+        assert_eq!(s.network, NetworkSettings::default());
+        assert_eq!(s.limit_rate_mbps, Some(5));
+        let direct: Settings = serde_json::from_value(old).unwrap();
+        assert_eq!(direct.network, NetworkSettings::default());
     }
 }

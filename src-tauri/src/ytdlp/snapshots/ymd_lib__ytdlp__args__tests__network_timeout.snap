@@ -1,0 +1,6 @@
+---
+source: src/ytdlp/args.rs
+expression: args
+---
+- "--socket-timeout"
+- "20"

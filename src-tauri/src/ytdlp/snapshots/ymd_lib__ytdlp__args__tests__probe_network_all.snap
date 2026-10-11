@@ -1,0 +1,29 @@
+---
+source: src/ytdlp/args.rs
+expression: "probe_args(URL, &w.tools, &net, &[])"
+---
+- "--ignore-config"
+- "--color"
+- never
+- "--encoding"
+- utf-8
+- "-J"
+- "--flat-playlist"
+- "--no-playlist"
+- "--no-warnings"
+- "--proxy"
+- "socks5h://127.0.0.1:1080"
+- "-4"
+- "--socket-timeout"
+- "30"
+- "--retries"
+- "10"
+- "--fragment-retries"
+- "10"
+- "--ffmpeg-location"
+- "C:\\Users\\user\\AppData\\Local\\ymd\\bin"
+- "--no-js-runtimes"
+- "--js-runtimes"
+- "node:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\node.exe"
+- "--"
+- "https://www.youtube.com/watch?v=YE7VzlLtp-4"

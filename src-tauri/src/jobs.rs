@@ -664,6 +664,7 @@ impl JobManager {
             use_aria2c: settings.use_aria2c,
             limit_rate_mbps: settings.limit_rate_mbps,
             clip: req.clip,
+            network: &settings.network,
             auth_args,
         });
         drop(req);

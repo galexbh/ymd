@@ -37,7 +37,8 @@ pub async fn cookies_test(state: State<'_>, source: CookieSource) -> CmdResult<C
     );
     // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
     let (args, _jar) = crate::auth::cookies::ephemeral_args(&args, &paths.tmp_dir())?;
-    Ok(crate::auth::cookies::test(&tools, &args).await)
+    let network = state.settings().network;
+    Ok(crate::auth::cookies::test(&tools, &network, &args).await)
 }
 
 #[tauri::command]

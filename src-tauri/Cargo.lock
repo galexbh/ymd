@@ -6704,6 +6704,7 @@ dependencies = [
  "tracing-appender",
  "tracing-log",
  "tracing-subscriber",
+ "url",
  "uuid",
  "which",
  "windows-sys 0.61.2",

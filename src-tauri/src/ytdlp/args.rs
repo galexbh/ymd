@@ -14,7 +14,9 @@
 //!   so the file starts and ends where asked instead of on the nearest keyframe.
 
 use crate::deps::{jsruntime, Tools};
-use crate::model::{AudioFormat, AudioOptions, Clip, MediaKind, Preset, VideoContainer};
+use crate::model::{
+    AudioFormat, AudioOptions, Clip, IpVersion, MediaKind, NetworkSettings, Preset, VideoContainer,
+};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -61,6 +63,8 @@ pub struct DownloadSpec<'a> {
     pub limit_rate_mbps: Option<u32>,
     /// Only this time range of the video (already validated); `None` = the whole video.
     pub clip: Option<Clip>,
+    /// Proxy, IP version, timeout and retries from settings (already sanitized).
+    pub network: &'a NetworkSettings,
     /// Already-built auth args from `auth::args_for` (cookies / netrc-cmd / video password / 2FA).
     pub auth_args: Vec<String>,
 }
@@ -138,6 +142,7 @@ pub fn download_args(spec: &DownloadSpec) -> Vec<String> {
         a.extend([s("--limit-rate"), format!("{n}M")]);
     }
 
+    a.extend(network_args(spec.network));
     a.extend(tool_args(spec.tools));
     // A section is cut by ffmpeg while it downloads: aria2c cannot do that.
     if spec.use_aria2c && spec.clip.is_none() {
@@ -402,7 +407,12 @@ pub fn playlist_args(items: Option<&[u32]>) -> Vec<String> {
 ///
 /// `--no-playlist` makes an ambiguous `watch?v=…&list=…` URL resolve to the single video,
 /// while a pure playlist URL still returns the playlist (with flat entries).
-pub fn probe_args(url: &str, tools: &Tools, auth_args: &[String]) -> Vec<String> {
+pub fn probe_args(
+    url: &str,
+    tools: &Tools,
+    network: &NetworkSettings,
+    auth_args: &[String],
+) -> Vec<String> {
     let mut a = base_args();
     a.extend([
         s("-J"),
@@ -410,10 +420,40 @@ pub fn probe_args(url: &str, tools: &Tools, auth_args: &[String]) -> Vec<String>
         s("--no-playlist"),
         s("--no-warnings"),
     ]);
+    a.extend(network_args(network));
     a.extend(tool_args(tools));
     a.extend(auth_args.iter().cloned());
     a.push(s("--"));
     a.push(url.to_string());
+    a
+}
+
+/// Network flags shared by downloads, link analysis and the cookie test: `--proxy <url>`,
+/// `-4`/`-6`, `--socket-timeout N`, `--retries N --fragment-retries N`. Defaults add nothing.
+///
+/// The proxy comes from `settings::sanitize` (`scheme://host[:port]`, never credentials).
+/// TLS certificate checks are never relaxed.
+pub fn network_args(n: &NetworkSettings) -> Vec<String> {
+    let mut a = Vec::new();
+    if let Some(proxy) = n.proxy.as_deref().filter(|p| !p.is_empty()) {
+        a.extend([s("--proxy"), s(proxy)]);
+    }
+    match n.ip_version {
+        IpVersion::Auto => {}
+        IpVersion::V4 => a.push(s("-4")),
+        IpVersion::V6 => a.push(s("-6")),
+    }
+    if let Some(t) = n.socket_timeout_s {
+        a.extend([s("--socket-timeout"), t.to_string()]);
+    }
+    if let Some(r) = n.retries {
+        a.extend([
+            s("--retries"),
+            r.to_string(),
+            s("--fragment-retries"),
+            r.to_string(),
+        ]);
+    }
     a
 }
 
@@ -623,8 +663,119 @@ mod tests {
             use_aria2c: aria2c,
             limit_rate_mbps: None,
             clip: None,
+            network: &NO_NETWORK,
             auth_args: auth,
         }
+    }
+
+    /// Network defaults: no flags at all.
+    static NO_NETWORK: NetworkSettings = NetworkSettings {
+        proxy: None,
+        ip_version: IpVersion::Auto,
+        socket_timeout_s: None,
+        retries: None,
+    };
+
+    fn net_all() -> NetworkSettings {
+        NetworkSettings {
+            proxy: Some("socks5h://127.0.0.1:1080".into()),
+            ip_version: IpVersion::V4,
+            socket_timeout_s: Some(30),
+            retries: Some(10),
+        }
+    }
+
+    #[test]
+    fn network_args_each_option() {
+        assert!(network_args(&NO_NETWORK).is_empty());
+        assert!(network_args(&NetworkSettings::default()).is_empty());
+        let only = |n: NetworkSettings| network_args(&n);
+        let cases: Vec<(&str, Vec<String>)> = vec![
+            (
+                "proxy",
+                only(NetworkSettings {
+                    proxy: Some("http://127.0.0.1:8080".into()),
+                    ..NetworkSettings::default()
+                }),
+            ),
+            (
+                "ipv4",
+                only(NetworkSettings {
+                    ip_version: IpVersion::V4,
+                    ..NetworkSettings::default()
+                }),
+            ),
+            (
+                "ipv6",
+                only(NetworkSettings {
+                    ip_version: IpVersion::V6,
+                    ..NetworkSettings::default()
+                }),
+            ),
+            (
+                "timeout",
+                only(NetworkSettings {
+                    socket_timeout_s: Some(20),
+                    ..NetworkSettings::default()
+                }),
+            ),
+            (
+                "retries",
+                only(NetworkSettings {
+                    retries: Some(0),
+                    ..NetworkSettings::default()
+                }),
+            ),
+            ("all", network_args(&net_all())),
+        ];
+        for (name, args) in cases {
+            insta::assert_yaml_snapshot!(format!("network_{name}"), args);
+        }
+        // An empty proxy string never becomes a bare `--proxy`.
+        let empty = NetworkSettings {
+            proxy: Some(String::new()),
+            ..NetworkSettings::default()
+        };
+        assert!(network_args(&empty).is_empty());
+    }
+
+    #[test]
+    fn snapshot_network_download_and_probe() {
+        let w = windows();
+        let presets = presets();
+        let net = net_all();
+        let mut s = spec(&presets[1], &w, None, false, false, vec![]);
+        s.network = &net;
+        insta::assert_yaml_snapshot!("download_combo_network_all", download_args(&s));
+        insta::assert_yaml_snapshot!("probe_network_all", probe_args(URL, &w.tools, &net, &[]));
+    }
+
+    /// No argv ymd builds ever turns TLS certificate checks off.
+    #[test]
+    fn never_relaxes_tls() {
+        let insecure = |args: &[String]| {
+            args.iter().any(|x| {
+                x.starts_with("--no-check-certificate") || x.starts_with("--legacy-server-connect")
+            })
+        };
+        let w = windows();
+        let net = net_all();
+        for preset in presets() {
+            for n in [&NO_NETWORK, &net] {
+                for aria in [false, true] {
+                    let mut s = spec(&preset, &w, Some(&[]), true, aria, vec![]);
+                    s.network = n;
+                    assert!(!insecure(&download_args(&s)), "{}", preset.id);
+                    s.clip = Some(Clip {
+                        start: 1.0,
+                        end: 2.0,
+                    });
+                    assert!(!insecure(&download_args(&s)), "{}", preset.id);
+                }
+                assert!(!insecure(&probe_args(URL, &w.tools, n, &[])));
+            }
+        }
+        assert!(!insecure(&network_args(&net)));
     }
 
     #[test]
@@ -963,8 +1114,14 @@ mod tests {
             "--cookies".to_string(),
             r"C:\Users\user\cookies.txt".to_string(),
         ];
-        insta::assert_yaml_snapshot!("probe_windows", probe_args(URL, &w.tools, &auth));
-        insta::assert_yaml_snapshot!("probe_no_tools", probe_args(URL, &Tools::default(), &[]));
+        insta::assert_yaml_snapshot!(
+            "probe_windows",
+            probe_args(URL, &w.tools, &NO_NETWORK, &auth)
+        );
+        insta::assert_yaml_snapshot!(
+            "probe_no_tools",
+            probe_args(URL, &Tools::default(), &NO_NETWORK, &[])
+        );
     }
 
     /// Invariants over the whole matrix (preset × playlist × archive × aria2c × auth × OS).
@@ -1047,7 +1204,7 @@ mod tests {
         let args = download_args(&s);
         let n = args.len();
         assert_eq!(&args[n - 2..], ["--", "--exec=calc.exe"]);
-        let probe = probe_args("-rf", &Tools::default(), &[]);
+        let probe = probe_args("-rf", &Tools::default(), &NO_NETWORK, &[]);
         assert_eq!(&probe[probe.len() - 2..], ["--", "-rf"]);
     }
 

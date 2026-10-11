@@ -4,7 +4,7 @@
 
 use std::time::{Duration, Instant};
 use ymd_lib::deps::Tools;
-use ymd_lib::model::ErrorCode;
+use ymd_lib::model::{ErrorCode, NetworkSettings};
 use ymd_lib::ytdlp::probe;
 
 const FAKE: &str = env!("CARGO_BIN_EXE_fake-ytdlp");
@@ -49,6 +49,7 @@ async fn timed_out_probe_kills_ytdlp() {
     let err = probe::probe_with_timeout(
         "https://example.com/v",
         &tools,
+        &NetworkSettings::default(),
         &[],
         Duration::from_millis(1500),
     )

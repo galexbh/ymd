@@ -6,8 +6,8 @@
 //! quotes or backslashes (so a JSON line stays valid), and is idempotent.
 //!
 //! What goes: the value after secret-bearing yt-dlp flags (`--video-password`, `--twofactor`,
-//! `--netrc-cmd`, `--cookies`, `--password`, `--username`, …), URL credentials, query strings and
-//! fragments, the user's home folder (→ `~`), `Bearer`/`Basic` credentials and cookie / auth
+//! `--netrc-cmd`, `--cookies`, `--password`, `--username`, `--proxy`, …), URL credentials,
+//! query strings and fragments, the user's home folder (→ `~`), `Bearer`/`Basic` credentials and cookie / auth
 //! headers, cookie- or token-named values (`SID=…`, `access_token=…`), Netscape cookie-jar
 //! values, and long base64/hex runs (≥ 32 characters with a digit; UUIDs are kept so job ids
 //! still correlate).
@@ -20,7 +20,7 @@ pub const REDACTED: &str = "[redacted]";
 /// yt-dlp flags whose value is a secret, a credential or a personal file path.
 const SECRET_FLAGS: &str = "--video-password|--twofactor|--netrc-cmd|--netrc-location|\
 --cookies-from-browser|--cookies|--password|--username|--ap-password|--ap-username|\
---client-certificate-password|--client-certificate-key|--add-headers?|-p|-u|-2";
+--client-certificate-password|--client-certificate-key|--add-headers?|--proxy|-p|-u|-2";
 
 fn re(pattern: &str) -> Regex {
     Regex::new(pattern).expect("valid redaction pattern")
@@ -220,6 +220,23 @@ mod tests {
             r(r#"\"--cookies\", \"C:\\\\tmp\\\\jar.txt\""#),
             r#"\"--cookies\", \"[redacted]\""#
         );
+    }
+
+    /// The proxy reveals the user's network setup: its value never reaches a log.
+    #[test]
+    fn proxy_value_goes() {
+        assert_eq!(r("--proxy socks5h://127.0.0.1:1080"), "--proxy [redacted]");
+        assert_eq!(r("--proxy=http://gw:8080"), "--proxy=[redacted]");
+        assert_eq!(
+            r(r#"["-4", "--proxy", "socks5://[::1]:1080", "--socket-timeout", "5"]"#),
+            r#"["-4", "--proxy", "[redacted]", "--socket-timeout", "5"]"#
+        );
+        assert_eq!(
+            r(r#"{"argv":"[\"--proxy\", \"http://proxy.example.com:3128\"]"}"#),
+            r#"{"argv":"[\"--proxy\", \"[redacted]\"]"}"#
+        );
+        // Other flags that merely start with the word stay.
+        assert_eq!(r("--proxy-headers ok"), "--proxy-headers ok");
     }
 
     #[test]

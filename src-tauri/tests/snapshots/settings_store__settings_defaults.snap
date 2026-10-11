@@ -182,5 +182,11 @@ expression: defs()
   "closeToTray": true,
   "trayHintShown": false,
   "limitRateMbps": null,
-  "notifyDownloads": true
+  "notifyDownloads": true,
+  "network": {
+    "proxy": null,
+    "ipVersion": "auto",
+    "socketTimeoutS": null,
+    "retries": null
+  }
 }

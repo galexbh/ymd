@@ -89,7 +89,7 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 `network`. La conexión se cortó o el servidor no respondió.
 
-**Arreglo:** revisa tu conexión a internet y vuelve a intentarlo.
+**Arreglo:** revisa tu conexión a internet y vuelve a intentarlo. Si usas un proxy en [**Ajustes → Red**](/ymd/guia/red/), comprueba que esté en marcha y que la dirección sea la correcta; un proxy que no responde produce este mismo error.
 
 ## Disco y carpetas
 

@@ -187,6 +187,22 @@ export interface Settings {
   limitRateMbps: number | null;
   /** system notification when a download ends while ymd is in the background */
   notifyDownloads: boolean;
+  /** proxy, IP version, timeout and retries for every yt-dlp run */
+  network: NetworkSettings;
+}
+
+/** Which IP family yt-dlp connects over (`-4` / `-6`); `auto` passes nothing. */
+export type IpVersion = "auto" | "v4" | "v6";
+
+/** Network options passed to yt-dlp; `null` = yt-dlp's own default. */
+export interface NetworkSettings {
+  /** normalized `scheme://host[:port]`; never carries a user or password */
+  proxy: string | null;
+  ipVersion: IpVersion;
+  /** `--socket-timeout` in seconds (1..=300) */
+  socketTimeoutS: number | null;
+  /** `--retries` and `--fragment-retries` (0..=50) */
+  retries: number | null;
 }
 
 // ───────────── Jobs ─────────────

@@ -33,11 +33,20 @@ import {
   type JsRuntimeInfo,
   type PendingJob,
   type Preset,
+  type IpVersion,
+  type NetworkSettings,
   type ProbeResult,
   type QueueSchedule,
   type Settings,
   type SiteCredential,
 } from "../types";
+import {
+  RETRIES_MAX,
+  TIMEOUT_MAX,
+  TIMEOUT_MIN,
+  inRange,
+  normalizeProxy,
+} from "../../screens/settings/network";
 import { ManualClock, RealClock, type MockClock, type TimerId } from "./clock";
 import {
   BRIDGE_BROWSERS,
@@ -254,6 +263,7 @@ function isTerminal(stage: Job["stage"]): boolean {
 
 const HEX = /^#[0-9a-f]{6}$/i;
 const CLIPBOARD_WATCH: readonly ClipboardWatch[] = ["off", "known", "any"];
+const IP_VERSIONS: readonly IpVersion[] = ["auto", "v4", "v6"];
 
 /** Finished jobs kept in the session list (mirrors `jobs::MAX_FINISHED_JOBS`); older ones
  * are evicted with `job://removed`. */
@@ -298,6 +308,17 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
   s.limitRateMbps =
     typeof rate === "number" && Number.isInteger(rate) && rate >= 1 && rate <= 1000 ? rate : null;
   if (typeof s.notifyDownloads !== "boolean") s.notifyDownloads = true;
+  // Same rules as `settings::sanitize_network`: a proxy with credentials or out of shape is
+  // dropped, timeout 1..=300 s, retries 0..=50; a missing block loads as all defaults.
+  const net: Partial<NetworkSettings> = s.network && typeof s.network === "object" ? s.network : {};
+  s.network = {
+    proxy: normalizeProxy(net.proxy),
+    ipVersion: IP_VERSIONS.includes(net.ipVersion as IpVersion)
+      ? (net.ipVersion as IpVersion)
+      : "auto",
+    socketTimeoutS: inRange(net.socketTimeoutS, TIMEOUT_MIN, TIMEOUT_MAX),
+    retries: inRange(net.retries, 0, RETRIES_MAX),
+  };
   return s;
 }
 

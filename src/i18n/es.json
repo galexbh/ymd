@@ -106,7 +106,7 @@
     },
     "network": {
       "title": "Se perdió la conexión",
-      "action": "Revisa tu conexión a internet y vuelve a intentarlo."
+      "action": "Revisa tu conexión a internet y, si usas un proxy en Ajustes → Red, que esté en marcha. Luego vuelve a intentarlo."
     },
     "cookies_locked": {
       "title": "El navegador tiene bloqueadas sus cookies",
@@ -541,6 +541,7 @@
       "downloads": "Descargas",
       "presets": "Preajustes",
       "accounts": "Cuentas",
+      "network": "Red",
       "appearance": "Apariencia",
       "language": "Idioma",
       "advanced": "Avanzado"
@@ -571,13 +572,6 @@
       "aria2c": "Usar aria2c",
       "aria2cHint": "Descarga cada archivo por varias conexiones.",
       "aria2cMissing": "Instala aria2c en Dependencias para activarlo.",
-      "limitRate": "Límite de velocidad",
-      "limitRateHint": "Se aplica a las descargas que empiecen a partir de ahora.",
-      "limitRateNone": "Sin límite",
-      "limitRateValue": "{{n}} MB/s",
-      "limitRateOther": "Otro…",
-      "limitRateCustom": "Límite en MB/s",
-      "limitRateInvalid": "Escribe un número entero entre 1 y 1000.",
       "notify": "Avisar cuando termine una descarga",
       "notifyHint": "Solo si ymd está en segundo plano. Varias descargas que terminan juntas llegan en un solo aviso.",
       "clipboard": "Portapapeles",
@@ -593,6 +587,36 @@
         "any": "Los sitios conocidos se pegan solos; cualquier otro enlace se sugiere y espera a que lo aceptes."
       },
       "clipboardPrivacy": "ymd lee el portapapeles solo cuando vuelves a la ventana, ignora lo que no sea un enlace y nunca lo guarda."
+    },
+    "network": {
+      "intro": "Se aplica a las descargas, al análisis de enlaces y a la prueba de cookies.",
+      "proxyTitle": "Proxy",
+      "proxy": "Dirección del proxy",
+      "proxyHint": "El proxy ve a qué sitios te conectas: usa uno de confianza. Sin usuario ni contraseña.",
+      "proxyInvalid": "Escribe una dirección como socks5://127.0.0.1:1080 (http, https, socks4, socks4a, socks5 o socks5h), sin ruta.",
+      "proxyCredentials": "ymd no guarda usuario ni contraseña del proxy: quítalos de la dirección.",
+      "connection": "Conexión",
+      "ipVersion": "Versión de IP",
+      "ipModes": {
+        "auto": "Automática",
+        "v4": "Solo IPv4",
+        "v6": "Solo IPv6"
+      },
+      "ipHint": "Solo IPv4 ayuda cuando la conexión IPv6 falla o un sitio la bloquea.",
+      "default": "Predeterminado de yt-dlp",
+      "timeout": "Tiempo de espera",
+      "timeoutHint": "Cuánto esperar a que el servidor responda antes de dar la conexión por perdida.",
+      "timeoutValue": "{{n}} s",
+      "retries": "Reintentos",
+      "retriesHint": "Cuántas veces repetir una descarga o un fragmento que falla.",
+      "speed": "Velocidad",
+      "limitRate": "Límite de velocidad",
+      "limitRateHint": "Se aplica a las descargas que empiecen a partir de ahora.",
+      "limitRateNone": "Sin límite",
+      "limitRateValue": "{{n}} MB/s",
+      "limitRateOther": "Otro…",
+      "limitRateCustom": "Límite en MB/s",
+      "limitRateInvalid": "Escribe un número entero entre 1 y 1000."
     },
     "presets": {
       "description": "Un preajuste fija el formato, la calidad y lo que se incrusta. Los incluidos mantienen su formato; duplícalos para crear el tuyo.",
