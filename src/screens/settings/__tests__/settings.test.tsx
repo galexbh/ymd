@@ -7,9 +7,9 @@ import { useSettings } from "../../../store/settings";
 import { renderTemplate, templateHasExt } from "../template";
 
 describe("Ajustes → Cuentas: origen de las cookies", () => {
-  it("offers Ninguno, Extensión and Firefox; no manual cookies.txt, no Chromium browsers", async () => {
+  it("offers Sin sesión, Extensión and Firefox; no manual cookies.txt, no Chromium browsers", async () => {
     const { user, tick } = await renderApp({ route: "settings", section: "accounts" });
-    for (const name of ["Ninguno", "Extensión", "Firefox"]) {
+    for (const name of ["Sin sesión", "Extensión", "Firefox"]) {
       expect(screen.getByRole("radio", { name })).toBeInTheDocument();
     }
     expect(screen.queryByRole("radio", { name: "Archivo cookies.txt" })).toBeNull();
