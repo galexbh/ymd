@@ -1,6 +1,6 @@
 [package]
 name = "ymd"
-version = "0.5.1"
+version = "0.6.0"
 description = "A calm desktop front end for yt-dlp"
 authors = ["galexbh"]
 license = "MIT"
