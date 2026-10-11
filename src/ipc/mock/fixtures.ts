@@ -255,12 +255,12 @@ export const DEP_CATALOG: Record<DepId, DepCatalogEntry> = {
     archive: true,
     verified: true,
   },
-  deno: {
-    id: "deno",
+  node: {
+    id: "node",
     level: "recommended",
-    file: "deno",
-    latest: "2.5.4",
-    size: 41_000_000,
+    file: "node",
+    latest: "v24.21.0",
+    size: 32_000_000,
     archive: true,
     verified: true,
   },
@@ -284,7 +284,7 @@ export const DEP_CATALOG: Record<DepId, DepCatalogEntry> = {
   },
 };
 
-export const DEP_ORDER: DepId[] = ["ytdlp", "ffmpeg", "deno", "aria2c", "atomicparsley"];
+export const DEP_ORDER: DepId[] = ["ytdlp", "ffmpeg", "node", "aria2c", "atomicparsley"];
 
 // ───────────── Browsers ─────────────
 

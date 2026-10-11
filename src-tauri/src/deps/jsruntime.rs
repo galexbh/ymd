@@ -1,5 +1,5 @@
 //! JS runtime detection for yt-dlp-ejs. Owner: A.
-//! Priority: managed Deno in bin dir, then deno, node, bun, qjs on PATH.
+//! Priority: managed Node.js in bin dir, then node, deno, bun, qjs on PATH.
 //!
 //! Supported ranges come from the yt-dlp wiki page "EJS"
 //! (<https://github.com/yt-dlp/yt-dlp/wiki/EJS>, checked 2026-10): Deno >= 2.3.0,
@@ -56,22 +56,22 @@ fn same_file(a: &Path, b: &Path) -> bool {
 /// All runtimes found, highest priority first.
 pub async fn detect(bin_dir: &Path) -> Vec<JsRuntimeInfo> {
     let mut candidates = Vec::new();
-    let managed_deno = bin_dir.join(crate::paths::exe_name("deno"));
-    if managed_deno.is_file() {
+    let managed_node = bin_dir.join(crate::paths::exe_name("node"));
+    if managed_node.is_file() {
         candidates.push(Candidate {
-            name: JsRuntimeName::Deno,
-            path: managed_deno.clone(),
+            name: JsRuntimeName::Node,
+            path: managed_node.clone(),
             managed: true,
         });
     }
     for (exe, name) in [
-        ("deno", JsRuntimeName::Deno),
         ("node", JsRuntimeName::Node),
+        ("deno", JsRuntimeName::Deno),
         ("bun", JsRuntimeName::Bun),
         ("qjs", JsRuntimeName::Quickjs),
     ] {
         if let Ok(path) = which::which(exe) {
-            if name == JsRuntimeName::Deno && same_file(&path, &managed_deno) {
+            if name == JsRuntimeName::Node && same_file(&path, &managed_node) {
                 continue;
             }
             candidates.push(Candidate {

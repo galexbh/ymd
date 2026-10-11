@@ -12,11 +12,11 @@
 //! (`.ymd-work-<dep>-<uuid>`), so the final rename never crosses filesystems. What was
 //! installed (tag, revision, verified) is kept in `bin_dir/.ymd-manifest.json`.
 
-use super::catalog::{self, ArchiveKind, Checksum, DepSpec, Platform, Source};
+use super::catalog::{self, ArchiveKind, Checksum, DepSpec, Host, Platform, Source};
 use super::github::{self, Asset, Release};
 use super::manifest::{self, Manifest};
 use super::version::{self, Probe, Tool};
-use super::{archive, jsruntime, verify, Tools};
+use super::{archive, jsruntime, nodejs, verify, Tools};
 use crate::model::{DepId, DepPhase, DepProgress, DepState, DepStatus, DepsReport, UpdateChannel};
 use crate::paths::{exe_name, AppPaths};
 use anyhow::{anyhow, bail, Context};
@@ -57,7 +57,7 @@ fn tool_for(id: DepId) -> Tool {
     match id {
         DepId::Ytdlp => Tool::Ytdlp,
         DepId::Ffmpeg => Tool::Ffmpeg,
-        DepId::Deno => Tool::Deno,
+        DepId::Node => Tool::Node,
         DepId::Aria2c => Tool::Aria2c,
         DepId::Atomicparsley => Tool::AtomicParsley,
     }
@@ -204,11 +204,45 @@ fn emit(
     });
 }
 
+/// Manifest key of the Deno that older ymd versions managed (replaced by Node.js).
+const LEGACY_DENO_KEY: &str = "deno";
+
+/// Older ymd versions installed Deno as the JS runtime. Remove that managed copy (only the
+/// files its manifest entry lists) and the entry, so Node.js takes over. A Deno the user put
+/// in the bin dir by hand (no manifest entry) is left alone. Best effort; never fails startup.
+pub fn migrate_legacy_deno(bin_dir: &Path) {
+    let manifest = Manifest::load(bin_dir);
+    let Some(entry) = manifest.deps.get(LEGACY_DENO_KEY) else {
+        return;
+    };
+    for file in &entry.files {
+        // Manifest data is ours, but never let a name escape the bin dir.
+        let Some(name) = Path::new(file).file_name() else {
+            continue;
+        };
+        let path = bin_dir.join(name);
+        if let Err(e) = remove_managed(&path) {
+            log::warn!("could not remove legacy Deno {}: {e}", path.display());
+        }
+    }
+    match manifest::update(bin_dir, |m| {
+        m.deps.remove(LEGACY_DENO_KEY);
+    }) {
+        Ok(()) => log::info!(
+            "removed the managed Deno from {} (ymd now manages Node.js)",
+            bin_dir.display()
+        ),
+        Err(e) => log::warn!("could not update the deps manifest: {e:#}"),
+    }
+}
+
 pub struct DepsManager {
     pub paths: AppPaths,
     pub channel: UpdateChannel,
     /// Base URL of the GitHub API (overridable for tests): `https://api.github.com`.
     pub api_base: String,
+    /// Base URL of the Node.js downloads (overridable for tests): `https://nodejs.org/dist`.
+    pub node_dist: String,
     pub http: reqwest::Client,
 }
 
@@ -217,8 +251,18 @@ impl DepsManager {
         Self::with_api_base(paths, channel, GITHUB_API.to_string())
     }
 
-    /// Test constructor pointing at a mock server.
+    /// Test constructor pointing the GitHub API at a mock server.
     pub fn with_api_base(paths: AppPaths, channel: UpdateChannel, api_base: String) -> Self {
+        Self::with_endpoints(paths, channel, api_base, nodejs::NODE_DIST.to_string())
+    }
+
+    /// Test constructor pointing both the GitHub API and nodejs.org at mock servers.
+    pub fn with_endpoints(
+        paths: AppPaths,
+        channel: UpdateChannel,
+        api_base: String,
+        node_dist: String,
+    ) -> Self {
         let http = reqwest::Client::builder()
             .user_agent(concat!("ymd/", env!("CARGO_PKG_VERSION")))
             .connect_timeout(Duration::from_secs(20))
@@ -226,10 +270,12 @@ impl DepsManager {
             .build()
             .unwrap_or_default();
         clean_old_files(&paths.bin_dir);
+        migrate_legacy_deno(&paths.bin_dir);
         Self {
             paths,
             channel,
             api_base,
+            node_dist,
             http,
         }
     }
@@ -249,13 +295,18 @@ impl DepsManager {
     }
 
     async fn resolve_release(&self, source: &Source) -> anyhow::Result<(Release, Asset)> {
-        let release = github::fetch_release(
-            &self.http,
-            &self.api_base,
-            &source.repo,
-            source.tag.as_deref(),
-        )
-        .await?;
+        let release = match source.host {
+            Host::GitHub => {
+                github::fetch_release(
+                    &self.http,
+                    &self.api_base,
+                    &source.repo,
+                    source.tag.as_deref(),
+                )
+                .await?
+            }
+            Host::NodeJs => nodejs::fetch_latest_lts(&self.http, &self.node_dist, source).await?,
+        };
         let asset = release.find(source)?.clone();
         Ok((release, asset))
     }
@@ -305,7 +356,16 @@ impl DepsManager {
                     if state == DepState::System {
                         // A system copy is never touched, but an outdated one is worth
                         // replacing with a managed copy (managed wins in `tools()`).
-                        update_available = system_outdated(source, &release.tag_name, &version);
+                        // Node: any LTS yt-dlp accepts (>= 22) is fine; only an unsupported
+                        // system copy is worth replacing, not every one older than the latest LTS.
+                        update_available = if id == DepId::Node {
+                            !jsruntime::supported(
+                                crate::model::JsRuntimeName::Node,
+                                version.as_deref(),
+                            )
+                        } else {
+                            system_outdated(source, &release.tag_name, &version)
+                        };
                     } else if state == DepState::Installed {
                         update_available = match entry {
                             Some(e) => e.revision != release.revision(source, &asset),
@@ -690,6 +750,69 @@ mod tests {
         let _m = DepsManager::new(paths, UpdateChannel::Stable);
         assert!(!bin.join("yt-dlp.old").exists());
         assert!(bin.join("keep").exists());
+    }
+
+    fn legacy_entry(files: &[&str]) -> manifest::Entry {
+        manifest::Entry {
+            tag: "v2.9.7".into(),
+            revision: "v2.9.7".into(),
+            asset: "deno-x86_64-pc-windows-msvc.zip".into(),
+            verified: true,
+            installed_at: "2026-10-09T00:00:00Z".into(),
+            files: files.iter().map(|f| f.to_string()).collect(),
+        }
+    }
+
+    #[test]
+    fn legacy_managed_deno_is_removed_on_construct() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = dir.path().join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        let deno = exe_name("deno");
+        std::fs::write(bin.join(&deno), b"deno").unwrap();
+        std::fs::write(bin.join("keep"), b"x").unwrap();
+        manifest::update(&bin, |m| {
+            m.deps.insert("deno".into(), legacy_entry(&[&deno]));
+            m.deps
+                .insert("ytdlp".into(), legacy_entry(&[&exe_name("yt-dlp")]));
+        })
+        .unwrap();
+        // Old manifests (and their `deno` key) still load.
+        assert!(Manifest::load(&bin).deps.contains_key("deno"));
+
+        let paths = AppPaths::new(
+            dir.path().into(),
+            dir.path().into(),
+            Some(bin.to_str().unwrap()),
+        );
+        let _m = DepsManager::new(paths, UpdateChannel::Stable);
+        assert!(!bin.join(&deno).exists());
+        assert!(bin.join("keep").exists());
+        let m = Manifest::load(&bin);
+        assert!(!m.deps.contains_key("deno"));
+        assert!(m.deps.contains_key("ytdlp"));
+
+        // Idempotent; a hand-placed deno (no manifest entry) is left alone.
+        std::fs::write(bin.join(&deno), b"mine").unwrap();
+        migrate_legacy_deno(&bin);
+        assert!(bin.join(&deno).exists());
+    }
+
+    #[test]
+    fn legacy_migration_never_leaves_the_bin_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let bin = dir.path().join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        let outside = dir.path().join("outside");
+        std::fs::write(&outside, b"x").unwrap();
+        manifest::update(&bin, |m| {
+            m.deps
+                .insert("deno".into(), legacy_entry(&["../outside", ""]));
+        })
+        .unwrap();
+        migrate_legacy_deno(&bin);
+        assert!(outside.exists());
+        assert!(!Manifest::load(&bin).deps.contains_key("deno"));
     }
 
     #[test]

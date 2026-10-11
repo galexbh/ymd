@@ -97,8 +97,8 @@
       "action": "Install it with one click in Dependencies; it joins video and audio."
     },
     "js_runtime_missing": {
-      "title": "The JavaScript runtime (Deno) is missing",
-      "action": "Install Deno in Dependencies; YouTube requires it to list formats."
+      "title": "The JavaScript runtime (Node.js) is missing",
+      "action": "Install Node.js in Dependencies; YouTube requires it to list formats."
     },
     "unsupported_url": {
       "title": "This link isn't supported",
@@ -238,7 +238,7 @@
   "fix": {
     "accounts": "Open Settings → Accounts",
     "installFfmpeg": "Install ffmpeg",
-    "installDeno": "Install Deno",
+    "installNode": "Install Node.js",
     "installMissing": "Install what's missing",
     "closedRetry": "I closed the browser, retry",
     "closedRetryNamed": "I closed {{browser}}, retry",
@@ -466,7 +466,7 @@
     "desc": {
       "ytdlp": "The download engine.",
       "ffmpeg": "Merges video and audio and converts formats.",
-      "deno": "JavaScript runtime YouTube requires to hand out formats.",
+      "node": "JavaScript runtime (Node.js) YouTube requires to hand out formats.",
       "aria2c": "Downloads over several connections at once.",
       "atomicparsley": "Embeds cover art in MP4 and M4A files."
     },
@@ -484,7 +484,7 @@
       "alsoFound": "Also found:",
       "why": "YouTube requires running JavaScript to hand out formats; yt-dlp uses the first one in this list.",
       "noneTitle": "No JavaScript runtime",
-      "noneBody": "Without one, YouTube may refuse video formats. Install Deno in one click."
+      "noneBody": "Without one, YouTube may refuse video formats. Install Node.js in one click."
     },
     "binDir": {
       "title": "Tools folder",
@@ -500,7 +500,7 @@
     "lead": "ymd downloads with yt-dlp and merges video and audio with ffmpeg. They are installed once, verified, in your user folder.",
     "tools": {
       "title": "Tools",
-      "body": "What downloading requires, plus Deno if your computer has no JavaScript runtime.",
+      "body": "What downloading requires, plus Node.js if your computer has no JavaScript runtime.",
       "install": "Install what's needed",
       "ready": "All set",
       "failed": "The installation didn't finish",

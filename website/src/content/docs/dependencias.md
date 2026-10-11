@@ -7,13 +7,13 @@ ymd instala las herramientas que necesita en tu carpeta de usuario, comprueba su
 
 ## Herramientas
 
-| Herramienta                                           | Nivel       | Uso                                                             | Origen                                                                                                                                                  |
-| ----------------------------------------------------- | ----------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp)            | requerida   | El motor de descargas.                                          | Ejecutable oficial del canal elegido (estable, nightly o master), verificado con `SHA2-256SUMS`.                                                        |
-| [FFmpeg](https://ffmpeg.org/) (ffmpeg y ffprobe)      | requerida   | Une video y audio y convierte formatos.                         | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) en Windows y Linux, verificado con `checksums.sha256`. En macOS: `brew install ffmpeg`. |
-| [Deno](https://deno.com/)                             | recomendada | Entorno JavaScript que YouTube exige para obtener los formatos. | [denoland/deno](https://github.com/denoland/deno), verificado con su archivo `.sha256sum`.                                                              |
-| [aria2c](https://aria2.github.io/)                    | opcional    | Descargas por varias conexiones a la vez.                       | Windows: [aria2/aria2](https://github.com/aria2/aria2) (sin suma publicada). macOS: `brew install aria2`. Linux: `sudo apt install aria2`.              |
-| [AtomicParsley](https://github.com/wez/atomicparsley) | opcional    | Incrusta portadas en archivos MP4 y M4A.                        | [wez/atomicparsley](https://github.com/wez/atomicparsley) (sin suma publicada) en Windows, macOS Apple Silicon y Linux x64; si no, con Homebrew o apt.  |
+| Herramienta                                           | Nivel       | Uso                                                                       | Origen                                                                                                                                                  |
+| ----------------------------------------------------- | ----------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp)            | requerida   | El motor de descargas.                                                    | Ejecutable oficial del canal elegido (estable, nightly o master), verificado con `SHA2-256SUMS`.                                                        |
+| [FFmpeg](https://ffmpeg.org/) (ffmpeg y ffprobe)      | requerida   | Une video y audio y convierte formatos.                                   | [yt-dlp/FFmpeg-Builds](https://github.com/yt-dlp/FFmpeg-Builds) en Windows y Linux, verificado con `checksums.sha256`. En macOS: `brew install ffmpeg`. |
+| [Node.js](https://nodejs.org/)                        | recomendada | Entorno JavaScript (Node.js) que YouTube exige para obtener los formatos. | La última versión LTS (22 o posterior) de [nodejs.org](https://nodejs.org/dist/), verificada con `SHASUMS256.txt`. Solo se guarda el ejecutable `node`. |
+| [aria2c](https://aria2.github.io/)                    | opcional    | Descargas por varias conexiones a la vez.                                 | Windows: [aria2/aria2](https://github.com/aria2/aria2) (sin suma publicada). macOS: `brew install aria2`. Linux: `sudo apt install aria2`.              |
+| [AtomicParsley](https://github.com/wez/atomicparsley) | opcional    | Incrusta portadas en archivos MP4 y M4A.                                  | [wez/atomicparsley](https://github.com/wez/atomicparsley) (sin suma publicada) en Windows, macOS Apple Silicon y Linux x64; si no, con Homebrew o apt.  |
 
 Cuando no hay una compilación descargable para tu sistema, la pantalla muestra el comando del gestor de paquetes en su lugar.
 
@@ -35,13 +35,15 @@ Cada descarga se comprueba con la suma SHA-256 que publica el autor antes de ree
 
 ## Copias del sistema
 
-Si una herramienta ya está instalada en el sistema (en el `PATH`), aparece como **Del sistema** y se usa. Si el yt-dlp del sistema está desactualizado, ymd puede **Instalar copia actualizada**: la suya tendrá prioridad y el archivo del sistema no se toca.
+Si una herramienta ya está instalada en el sistema (en el `PATH`), aparece como **Del sistema** y se usa. Si el yt-dlp o el Node.js del sistema está desactualizado (en Node.js, más viejo que la última LTS), ymd puede **Instalar copia actualizada**: la suya tendrá prioridad y el archivo del sistema no se toca.
 
 ## Entorno JavaScript
 
 YouTube exige ejecutar JavaScript para entregar los formatos. yt-dlp usa el primero que encuentre, en este orden:
 
-1. Deno instalado por ymd.
-2. Deno, Node, Bun o QuickJS del sistema.
+1. Node.js instalado por ymd.
+2. Node, Deno, Bun o QuickJS del sistema.
 
-ymd solo pasa a yt-dlp versiones que yt-dlp admite: Deno 2.3.0 o posterior, Node 22 o posterior, Bun entre 1.2.11 y 1.3.14, QuickJS 2023-12-09 o posterior (QuickJS-NG, cualquiera). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y cuáles más encontró. Si no hay ninguno, instala Deno con un clic.
+ymd solo pasa a yt-dlp versiones que yt-dlp admite: Deno 2.3.0 o posterior, Node 22 o posterior, Bun entre 1.2.11 y 1.3.14, QuickJS 2023-12-09 o posterior (QuickJS-NG, cualquiera). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y cuáles más encontró. Si no hay ninguno, instala Node.js con un clic (**Instalar Node.js**).
+
+Antes ymd instalaba Deno. Desde que [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), su entorno solo recibe un año más de correcciones, así que ymd gestiona ahora Node.js LTS, que yt-dlp admite desde la versión 22. Al actualizar, ymd borra el Deno que había instalado en la carpeta de herramientas; un Deno instalado en el sistema se sigue detectando y usando.

@@ -136,6 +136,7 @@ mod tests {
 
     fn source(tag: Option<&str>) -> Source {
         Source {
+            host: crate::deps::catalog::Host::GitHub,
             repo: "o/r".into(),
             tag: tag.map(Into::into),
             asset: "a.zip".into(),

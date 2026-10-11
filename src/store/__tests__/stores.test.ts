@@ -166,14 +166,18 @@ describe("deps selectors", () => {
     expect(requiredReady(null)).toBe(false);
   });
 
-  it("recommends Deno only without a JS runtime", () => {
+  it("recommends Node.js only without a JS runtime", () => {
     const deps = [
       dep({ id: "ffmpeg", state: "missing" }),
-      dep({ id: "deno", level: "recommended", state: "missing" }),
+      dep({ id: "node", level: "recommended", state: "missing" }),
       dep({ id: "aria2c", level: "optional", state: "missing" }),
     ];
-    expect(recommendedMissing(report(deps)).map((d) => d.id)).toEqual(["ffmpeg", "deno"]);
+    expect(recommendedMissing(report(deps)).map((d) => d.id)).toEqual(["ffmpeg", "node"]);
     expect(recommendedMissing(report(deps, true)).map((d) => d.id)).toEqual(["ffmpeg"]);
+    // a system Node.js that yt-dlp cannot use leaves no runtime: the managed one is offered
+    const sys = [dep({ id: "node", level: "recommended", state: "system" })];
+    expect(recommendedMissing(report(sys)).map((d) => d.id)).toEqual(["node"]);
+    expect(recommendedMissing(report(sys, true))).toEqual([]);
   });
 
   it("installRecommended reports a failure and refreshes", async () => {

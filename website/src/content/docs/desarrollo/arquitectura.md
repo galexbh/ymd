@@ -26,7 +26,7 @@ ymd es una aplicación [Tauri 2](https://v2.tauri.app/): un backend en Rust (`sr
 - **`deps/`**: herramientas gestionadas.
   - `catalog.rs`: datos puros; qué archivo descargar por sistema y arquitectura, y cómo verificarlo.
   - `manager.rs`: descarga, verificación SHA-256 y reemplazo atómico.
-  - `jsruntime.rs`: detección de Deno, Node, Bun y QuickJS.
+  - `jsruntime.rs`: detección de Node (el gestionado primero), Deno, Bun y QuickJS; `nodejs.rs`: la última LTS de Node desde `nodejs.org/dist/index.json`.
 - **`ytdlp/`**: integración con yt-dlp.
   - `args.rs`: construye la lista argv (función pura, con snapshots de `insta`).
   - `progress.rs`: interpreta las marcas de progreso de la salida estándar.

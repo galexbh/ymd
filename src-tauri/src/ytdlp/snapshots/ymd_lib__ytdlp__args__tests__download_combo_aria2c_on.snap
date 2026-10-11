@@ -33,7 +33,7 @@ expression: download_args(&s)
 - "C:\\Users\\user\\AppData\\Local\\ymd\\bin"
 - "--no-js-runtimes"
 - "--js-runtimes"
-- "deno:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\deno.exe"
+- "node:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\node.exe"
 - "--downloader"
 - "C:\\Users\\user\\AppData\\Local\\ymd\\bin\\aria2c.exe"
 - "--downloader-args"

@@ -32,7 +32,9 @@ describe("mock backend — dependencies", () => {
     const r = await api.depsReport();
     expect(dep(r, "ytdlp").state).toBe("installed");
     expect(dep(r, "ffmpeg").state).toBe("installed");
-    expect(dep(r, "deno").state).toBe("missing");
+    // Node.js on PATH: the managed-Node row reports the system copy
+    expect(dep(r, "node").state).toBe("system");
+    expect(dep(r, "node").path).toBe(r.jsRuntime?.path);
     expect(r.jsRuntime?.name).toBe("node");
     expect(r.jsRuntime?.managed).toBe(false);
   });
@@ -91,25 +93,36 @@ describe("mock backend — dependencies", () => {
     expect(dep(r, "ffmpeg").error).toMatch(/SHA-256/);
 
     be.setDepFails("ffmpeg", false);
-    be.setDepFails("deno", true);
-    const p2 = api.depsInstall("deno").catch((e: unknown) => e);
+    be.setDepFails("aria2c", true);
+    const p2 = api.depsInstall("aria2c").catch((e: unknown) => e);
     await be.manualClock.advanceAsync(2500);
     await p2;
-    expect(dep(await api.depsReport(), "deno").state).toBe("error");
+    expect(dep(await api.depsReport(), "aria2c").state).toBe("error");
   });
 
-  it("installing Deno makes it the managed JS runtime; removing it falls back", async () => {
+  it("installing Node.js makes it the managed JS runtime; removing it falls back", async () => {
     const be = installMockBackend({ scenario: "ready", clock: "manual" });
-    const p = api.depsInstall("deno");
+    const p = api.depsInstall("node");
     await be.manualClock.advanceAsync(2500);
     const r = await p;
-    expect(r.jsRuntime).toMatchObject({ name: "deno", managed: true });
-    const r2 = await api.depsRemove("deno");
-    expect(dep(r2, "deno").state).toBe("missing");
-    expect(r2.jsRuntime?.name).toBe("node");
+    expect(dep(r, "node").state).toBe("installed");
+    expect(r.jsRuntime).toMatchObject({ name: "node", managed: true, version: "24.21.0" });
+    expect(r.jsRuntimesFound).toHaveLength(2);
+    const r2 = await api.depsRemove("node");
+    // the system Node.js takes over again
+    expect(dep(r2, "node").state).toBe("system");
+    expect(r2.jsRuntime).toMatchObject({ name: "node", managed: false });
+
+    const first = installMockBackend({ scenario: "first-run", clock: "manual" });
+    const p3 = api.depsInstall("node");
+    await first.manualClock.advanceAsync(2500);
+    await p3;
+    const r3 = await api.depsRemove("node");
+    expect(dep(r3, "node").state).toBe("missing");
+    expect(r3.jsRuntime).toBeNull();
   });
 
-  it("install_recommended installs required deps and Deno when no runtime exists", async () => {
+  it("install_recommended installs required deps and Node.js when no runtime exists", async () => {
     const be = installMockBackend({ scenario: "first-run", clock: "manual" });
     const p = api.depsInstallRecommended();
     await be.manualClock.advanceAsync(10_000, 100);
@@ -117,7 +130,7 @@ describe("mock backend — dependencies", () => {
     expect(r.deps.filter((d) => d.state === "installed").map((d) => d.id)).toEqual([
       "ytdlp",
       "ffmpeg",
-      "deno",
+      "node",
     ]);
   });
 
@@ -157,7 +170,7 @@ describe("mock backend — dependencies", () => {
     be.setScenario("complete");
     expect(seen).toHaveLength(1);
     expect(seen[0].deps.every((d) => d.state === "installed")).toBe(true);
-    expect(seen[0].jsRuntime?.name).toBe("deno");
+    expect(seen[0].jsRuntime).toMatchObject({ name: "node", managed: true });
   });
 });
 
@@ -430,7 +443,7 @@ describe("mock backend — transport & helpers", () => {
     const real = installMockBackend();
     expect(() => real.manualClock).toThrow(/manual/);
     const be = installMockBackend({ clock: "manual" });
-    void api.depsInstall("deno");
+    void api.depsInstall("node");
     be.manualClock.runAll();
     expect(be.manualClock.pending).toBe(0);
   });

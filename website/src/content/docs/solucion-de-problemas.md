@@ -65,11 +65,11 @@ Cuando una descarga falla, ymd traduce el error de yt-dlp en un mensaje con su a
 
 **Arreglo:** instálalo con un clic en **Dependencias** (botón **Instalar ffmpeg**). En macOS, instálalo con `brew install ffmpeg`.
 
-### Falta el entorno JavaScript (Deno)
+### Falta el entorno JavaScript (Node.js)
 
 `js_runtime_missing`. YouTube exige ejecutar JavaScript para entregar los formatos, y no hay un entorno compatible.
 
-**Arreglo:** instala Deno en **Dependencias** (botón **Instalar Deno**). Ver [Entorno JavaScript](/ymd/dependencias/#entorno-javascript).
+**Arreglo:** instala Node.js en **Dependencias** (botón **Instalar Node.js**). Ver [Entorno JavaScript](/ymd/dependencias/#entorno-javascript).
 
 ### Falta una herramienta necesaria
 
@@ -143,7 +143,7 @@ Para reportar un problema en los [issues de ymd](https://github.com/galexbh/ymd/
 
 El zip se arma en tu computadora y solo lo compartes tú. Contiene:
 
-- `info.txt`: versión de ymd, sistema operativo y arquitectura, idioma, versiones de yt-dlp, FFmpeg y Deno, el entorno JavaScript en uso y un resumen de tus ajustes (solo opciones y números, como el canal de yt-dlp o cuántas descargas simultáneas; ninguna carpeta).
+- `info.txt`: versión de ymd, sistema operativo y arquitectura, idioma, versiones de yt-dlp, FFmpeg y Node.js, el entorno JavaScript en uso y un resumen de tus ajustes (solo opciones y números, como el canal de yt-dlp o cuántas descargas simultáneas; ninguna carpeta).
 - `logs/`: los registros de los últimos 14 días, limpiados otra vez al exportarlos.
 - `timings.txt`: cuánto tardó cada etapa (descarga, unión, posprocesado) de las últimas descargas.
 

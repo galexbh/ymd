@@ -23,7 +23,7 @@ export function OnboardingScreen() {
 
   const needed = report?.deps.filter(
     (d) =>
-      d.level === "required" || (d.id === "deno" && (!report.jsRuntime || d.state === "installed")),
+      d.level === "required" || (d.id === "node" && (!report.jsRuntime || d.state === "installed")),
   );
   const missing = recommendedMissing(report);
   const ready = requiredReady(report);

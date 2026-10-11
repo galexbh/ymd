@@ -65,11 +65,11 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 
 **Fix:** install it with one click in **Dependencies** (the **Install ffmpeg** button). On macOS, install it with `brew install ffmpeg`.
 
-### The JavaScript runtime (Deno) is missing
+### The JavaScript runtime (Node.js) is missing
 
 `js_runtime_missing`. YouTube requires running JavaScript to list formats, and there's no supported runtime.
 
-**Fix:** install Deno in **Dependencies** (the **Install Deno** button). See [JavaScript runtime](/ymd/en/dependencias/#javascript-runtime).
+**Fix:** install Node.js in **Dependencies** (the **Install Node.js** button). See [JavaScript runtime](/ymd/en/dependencias/#javascript-runtime).
 
 ### A required tool is missing
 
@@ -143,7 +143,7 @@ To report a problem in [ymd's issues](https://github.com/galexbh/ymd/issues):
 
 The zip is built on your computer and only you share it. It contains:
 
-- `info.txt`: ymd's version, operating system and architecture, language, the yt-dlp, FFmpeg and Deno versions, the JavaScript runtime in use and a summary of your settings (only options and numbers, like the yt-dlp channel or how many simultaneous downloads; no folders).
+- `info.txt`: ymd's version, operating system and architecture, language, the yt-dlp, FFmpeg and Node.js versions, the JavaScript runtime in use and a summary of your settings (only options and numbers, like the yt-dlp channel or how many simultaneous downloads; no folders).
 - `logs/`: the logs from the last 14 days, cleaned again on export.
 - `timings.txt`: how long each stage (download, merge, post-processing) of the latest downloads took.
 

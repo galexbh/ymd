@@ -1,4 +1,4 @@
-//! Managed toolchain: yt-dlp, ffmpeg/ffprobe, Deno, aria2c, AtomicParsley.
+//! Managed toolchain: yt-dlp, ffmpeg/ffprobe, Node.js, aria2c, AtomicParsley.
 //! Owner: deps agent (A).
 
 pub mod archive;
@@ -7,6 +7,7 @@ pub mod github;
 pub mod jsruntime;
 pub mod manager;
 pub mod manifest;
+pub mod nodejs;
 pub mod verify;
 pub mod version;
 

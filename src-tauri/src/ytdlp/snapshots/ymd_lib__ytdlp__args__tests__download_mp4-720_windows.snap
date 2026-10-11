@@ -33,7 +33,7 @@ expression: args
 - "C:\\Users\\user\\AppData\\Local\\ymd\\bin"
 - "--no-js-runtimes"
 - "--js-runtimes"
-- "deno:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\deno.exe"
+- "node:C:\\Users\\user\\AppData\\Local\\ymd\\bin\\node.exe"
 - "-f"
 - "bv*[height<=720]+ba/b[height<=720]"
 - "-S"

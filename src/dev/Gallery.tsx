@@ -547,7 +547,7 @@ function Column({ theme }: { theme: ResolvedTheme }) {
             value={41.2 * MiB}
             max={88.6 * MiB}
           />
-          <ProgressDeterminate label="Deno 2.4 · verificando" value={null} max={null} />
+          <ProgressDeterminate label="Node.js 24.21 · verificando" value={null} max={null} />
           <ProgressDeterminate
             label="yt-dlp · falló la suma de verificación"
             value={9.4 * MiB}
@@ -719,7 +719,7 @@ function Column({ theme }: { theme: ResolvedTheme }) {
             2026.10.02 corrige descargas de varios sitios.
           </Notice>
           <Notice tone="success" title="Dependencias listas">
-            yt-dlp, ffmpeg y Deno están instalados y verificados.
+            yt-dlp, ffmpeg y Node.js están instalados y verificados.
           </Notice>
           <Notice tone="warning" title="Brave está abierto">
             Ciérralo antes de leer sus cookies, o usa una copia.

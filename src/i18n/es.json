@@ -97,8 +97,8 @@
       "action": "Instálalo con un clic en Dependencias; se usa para unir video y audio."
     },
     "js_runtime_missing": {
-      "title": "Falta el entorno JavaScript (Deno)",
-      "action": "Instala Deno en Dependencias; YouTube lo exige para obtener los formatos."
+      "title": "Falta el entorno JavaScript (Node.js)",
+      "action": "Instala Node.js en Dependencias; YouTube lo exige para obtener los formatos."
     },
     "unsupported_url": {
       "title": "Este enlace no es compatible",
@@ -238,7 +238,7 @@
   "fix": {
     "accounts": "Abrir Ajustes → Cuentas",
     "installFfmpeg": "Instalar ffmpeg",
-    "installDeno": "Instalar Deno",
+    "installNode": "Instalar Node.js",
     "installMissing": "Instalar lo que falta",
     "closedRetry": "Ya cerré el navegador, reintentar",
     "closedRetryNamed": "Ya cerré {{browser}}, reintentar",
@@ -466,7 +466,7 @@
     "desc": {
       "ytdlp": "El motor de descargas.",
       "ffmpeg": "Une video y audio y convierte formatos.",
-      "deno": "Entorno JavaScript que YouTube exige para obtener los formatos.",
+      "node": "Entorno JavaScript (Node.js) que YouTube exige para obtener los formatos.",
       "aria2c": "Descargas por varias conexiones a la vez.",
       "atomicparsley": "Incrusta portadas en archivos MP4 y M4A."
     },
@@ -484,7 +484,7 @@
       "alsoFound": "También se encontró:",
       "why": "YouTube exige ejecutar JavaScript para entregar los formatos; yt-dlp usa el primero de esta lista.",
       "noneTitle": "No hay entorno JavaScript",
-      "noneBody": "Sin él, YouTube puede negar los formatos de video. Instala Deno con un clic."
+      "noneBody": "Sin él, YouTube puede negar los formatos de video. Instala Node.js con un clic."
     },
     "binDir": {
       "title": "Carpeta de herramientas",
@@ -500,7 +500,7 @@
     "lead": "ymd descarga con yt-dlp y une video y audio con ffmpeg. Se instalan una sola vez, verificados, en tu carpeta de usuario.",
     "tools": {
       "title": "Herramientas",
-      "body": "Lo requerido para descargar, más Deno si tu equipo no tiene un entorno JavaScript.",
+      "body": "Lo requerido para descargar, más Node.js si tu equipo no tiene un entorno JavaScript.",
       "install": "Instalar lo necesario",
       "ready": "Todo listo",
       "failed": "La instalación no terminó",

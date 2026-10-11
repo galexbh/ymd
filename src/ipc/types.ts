@@ -1,7 +1,7 @@
 // IPC contract — mirror of `src-tauri/src/model.rs`. Change both in the same commit.
 
 // ───────────── Dependencies ─────────────
-export type DepId = "ytdlp" | "ffmpeg" | "deno" | "aria2c" | "atomicparsley";
+export type DepId = "ytdlp" | "ffmpeg" | "node" | "aria2c" | "atomicparsley";
 export type DepLevel = "required" | "recommended" | "optional";
 export type DepState = "installed" | "system" | "missing" | "installing" | "error";
 

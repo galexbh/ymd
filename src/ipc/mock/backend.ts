@@ -75,7 +75,7 @@ export type DepsScenario =
   | "ready"
   /** Like `ready`, but the managed yt-dlp is old and an update is available. */
   | "outdated"
-  /** Everything installed, including Deno, aria2c and AtomicParsley. */
+  /** Everything installed, including Node.js (managed), aria2c and AtomicParsley. */
   | "complete"
   /** Like `ready`, but yt-dlp is only an old copy found on PATH (system), with an update out. */
   | "system-outdated";
@@ -677,7 +677,7 @@ export class MockBackend {
       name: "node",
       path:
         this.platform === "windows" ? "C:\\Program Files\\nodejs\\node.exe" : "/usr/local/bin/node",
-      version: "v22.11.0",
+      version: "22.11.0",
       managed: false,
     };
     if (scenario === "first-run") return;
@@ -697,13 +697,14 @@ export class MockBackend {
       this.deps.set("ytdlp", old);
     }
     if (scenario === "complete") {
-      for (const id of ["deno", "aria2c", "atomicparsley"] as DepId[]) {
+      for (const id of ["node", "aria2c", "atomicparsley"] as DepId[]) {
         this.deps.set(id, this.depStatus(id, "installed", DEP_CATALOG[id].latest));
       }
-      this.setDenoRuntime(true);
+      this.setNodeRuntime(true);
     } else {
       this.jsRuntimesFound = [node];
       this.jsRuntime = node;
+      this.deps.set("node", this.systemNodeStatus() ?? this.depStatus("node", "missing", null));
     }
   }
 
@@ -738,16 +739,23 @@ export class MockBackend {
     };
   }
 
-  private setDenoRuntime(present: boolean): void {
-    this.jsRuntimesFound = this.jsRuntimesFound.filter((r) => !(r.name === "deno" && r.managed));
+  /** The `node` dependency as found on PATH (state `system`), when a system Node exists. */
+  private systemNodeStatus(): DepStatus | null {
+    const sys = this.jsRuntimesFound.find((r) => r.name === "node" && !r.managed);
+    if (!sys) return null;
+    return { ...this.depStatus("node", "system", sys.version), path: sys.path };
+  }
+
+  private setNodeRuntime(present: boolean): void {
+    this.jsRuntimesFound = this.jsRuntimesFound.filter((r) => !(r.name === "node" && r.managed));
     if (present) {
-      const deno: JsRuntimeInfo = {
-        name: "deno",
-        path: joinPath(this.paths.sep, this.binDir(), "deno" + this.paths.exe),
-        version: DEP_CATALOG.deno.latest,
+      const node: JsRuntimeInfo = {
+        name: "node",
+        path: joinPath(this.paths.sep, this.binDir(), "node" + this.paths.exe),
+        version: DEP_CATALOG.node.latest.replace(/^v/, ""),
         managed: true,
       };
-      this.jsRuntimesFound.unshift(deno);
+      this.jsRuntimesFound.unshift(node);
     }
     // Managed copies win over system ones.
     this.jsRuntime = this.jsRuntimesFound[0] ?? null;
@@ -853,7 +861,7 @@ export class MockBackend {
         const next = this.depStatus(id, "installed", c.latest);
         next.latest = c.latest;
         this.deps.set(id, next);
-        if (id === "deno") this.setDenoRuntime(true);
+        if (id === "node") this.setNodeRuntime(true);
         progress({ phase: "done", received: c.size, total: c.size, message: null });
         const report = this.report(false);
         this.emit(EVT_DEPS_CHANGED, report);
@@ -869,7 +877,12 @@ export class MockBackend {
       throw commandError("unknown", "yt-dlp cannot be removed while downloads are running");
     }
     this.deps.set(id, this.depStatus(id, "missing", null));
-    if (id === "deno") this.setDenoRuntime(false);
+    if (id === "node") {
+      this.setNodeRuntime(false);
+      // Like the real backend: a Node.js on PATH shows up again as the system copy.
+      const sys = this.systemNodeStatus();
+      if (sys) this.deps.set(id, sys);
+    }
     const report = this.report(false);
     this.emit(EVT_DEPS_CHANGED, report);
     return report;
@@ -879,8 +892,12 @@ export class MockBackend {
     const wanted = DEP_ORDER.filter((id) => {
       const d = this.deps.get(id)!;
       const want =
-        d.level === "required" || (d.level === "recommended" && (id !== "deno" || !this.jsRuntime));
-      return want && (d.state === "missing" || d.state === "error") && d.canInstall;
+        d.level === "required" || (d.level === "recommended" && (id !== "node" || !this.jsRuntime));
+      const absent =
+        d.state === "missing" ||
+        d.state === "error" ||
+        (id === "node" && d.state === "system" && !this.jsRuntime);
+      return want && absent && d.canInstall;
     });
     for (const id of wanted) await this.installDep(id);
     return this.report(false);

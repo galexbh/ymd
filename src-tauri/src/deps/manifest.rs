@@ -39,7 +39,7 @@ pub fn key(id: DepId) -> &'static str {
     match id {
         DepId::Ytdlp => "ytdlp",
         DepId::Ffmpeg => "ffmpeg",
-        DepId::Deno => "deno",
+        DepId::Node => "node",
         DepId::Aria2c => "aria2c",
         DepId::Atomicparsley => "atomicparsley",
     }
@@ -104,13 +104,13 @@ mod tests {
         })
         .unwrap();
         update(dir.path(), |m| {
-            m.deps.insert(key(DepId::Deno).into(), entry("v2.9.7"));
+            m.deps.insert(key(DepId::Node).into(), entry("v24.21.0"));
         })
         .unwrap();
         let m = Manifest::load(dir.path());
         assert_eq!(m.version, 1);
         assert_eq!(m.get(DepId::Ytdlp), Some(&entry("2026.08.19")));
-        assert_eq!(m.get(DepId::Deno).unwrap().tag, "v2.9.7");
+        assert_eq!(m.get(DepId::Node).unwrap().tag, "v24.21.0");
         assert_eq!(m.get(DepId::Ffmpeg), None);
         let text = std::fs::read_to_string(path(dir.path())).unwrap();
         assert!(text.contains("\"installedAt\""), "{text}");
@@ -121,6 +121,13 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(path(dir.path()), b"{not json").unwrap();
         assert_eq!(Manifest::load(dir.path()), Manifest::default());
+    }
+
+    #[test]
+    fn legacy_deno_id_reads_as_node() {
+        let id: DepId = serde_json::from_str("\"deno\"").unwrap();
+        assert_eq!(id, DepId::Node);
+        assert_eq!(serde_json::to_value(DepId::Node).unwrap(), "node");
     }
 
     #[test]
