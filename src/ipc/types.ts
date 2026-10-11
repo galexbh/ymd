@@ -179,6 +179,8 @@ export interface Settings {
   trayHintShown: boolean;
   /** download speed cap in MB/s (1..=1000) for jobs that start afterwards; null = unlimited */
   limitRateMbps: number | null;
+  /** system notification when a download ends while ymd is in the background */
+  notifyDownloads: boolean;
 }
 
 // ───────────── Jobs ─────────────
@@ -260,6 +262,25 @@ export interface Job {
   playlistCount: number | null;
   createdAt: string;
   finishedAt: string | null;
+}
+
+/**
+ * A download left unfinished when ymd closed. Keeps its id (so yt-dlp continues from its
+ * partial files) and number. Secrets are never stored: `needsSecret` marks the ones that had a
+ * video password or 2FA code and must be pasted again.
+ */
+export interface PendingJob {
+  id: JobId;
+  seq: number;
+  url: string;
+  presetId: string;
+  playlistItems: number[] | null;
+  outputDir: string;
+  title: string | null;
+  thumbnail: string | null;
+  kind: MediaKind;
+  createdAt: string;
+  needsSecret: boolean;
 }
 
 // ───────────── History ─────────────

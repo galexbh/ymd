@@ -15,6 +15,7 @@ import type {
   HistoryQuery,
   Job,
   JobId,
+  PendingJob,
   ProbeResult,
   Settings,
   SiteCredential,
@@ -49,6 +50,12 @@ export const api = {
   /** hold queued jobs until `at` (RFC 3339); null clears it and starts them now */
   queueSchedule: (at: string | null) => invoke<string | null>("queue_schedule", { at }),
   queueScheduleGet: () => invoke<string | null>("queue_schedule_get"),
+  /** downloads a previous session left unfinished */
+  jobsPending: () => invoke<PendingJob[]>("jobs_pending"),
+  /** re-queues them with their id and number (skips the ones that need a secret) */
+  jobsResume: (ids: JobId[]) => invoke<Job[]>("jobs_resume", { ids }),
+  /** forgets them and deletes their partial files */
+  jobsDiscardPending: (ids: JobId[]) => invoke<void>("jobs_discard_pending", { ids }),
 
   // history
   historyQuery: (query: HistoryQuery) => invoke<HistoryPage>("history_query", { query }),

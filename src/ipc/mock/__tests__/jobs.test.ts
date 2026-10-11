@@ -330,3 +330,59 @@ describe("mock backend — speed limit and scheduled start", () => {
     await expect(api.queueSchedule("tonight")).rejects.toMatchObject({ code: "unknown" });
   });
 });
+
+describe("mock backend — resume after restart", () => {
+  it("simulateRestart turns unfinished jobs into pending rows and empties the list", async () => {
+    const t = setup({ settings: { concurrency: 1 } });
+    await t.listen();
+    expect(await api.jobsPending()).toEqual([]);
+    const done = await api.enqueue(req(VIDEO));
+    await t.clock.advanceAsync(60_000, 250);
+    const running = await api.enqueue(req(PLAYLIST, "mp3-320", { playlistItems: [2, 3] }));
+    const locked = await api.enqueue(req(VIDEO, "best", { videoPassword: "placeholder-pw" }));
+    const coded = await api.enqueue(req(VIDEO, "best", { twofactor: "123456" }));
+    await t.clock.advanceAsync(500, 250);
+    expect((await api.jobsList()).find((j) => j.id === running.id)?.stage).toBe("downloading");
+
+    const rows = t.be.simulateRestart();
+    expect(rows.map((p) => p.id)).toEqual([running.id, locked.id, coded.id]);
+    expect(await api.jobsList()).toEqual([]);
+    expect(t.removed).toEqual(expect.arrayContaining([done.id, running.id, locked.id, coded.id]));
+    const pending = await api.jobsPending();
+    expect(pending).toEqual(rows);
+    expect(pending[0]).toMatchObject({
+      seq: running.seq,
+      playlistItems: [2, 3],
+      kind: "audio",
+      needsSecret: false,
+    });
+    expect(pending.slice(1).every((p) => p.needsSecret)).toBe(true);
+    // secrets are flagged, never kept
+    expect(JSON.stringify(t.be.snapshot().pending)).not.toMatch(/placeholder-pw|123456/);
+
+    // nothing runs on its own
+    await t.clock.advanceAsync(5_000, 250);
+    expect(await api.jobsList()).toEqual([]);
+  });
+
+  it("resume keeps id and number, skips secret-needing rows; discard forgets", async () => {
+    const t = setup({ settings: { concurrency: 1 } });
+    const a = await api.enqueue(req(VIDEO));
+    const b = await api.enqueue(req(VIDEO, "best", { videoPassword: "x" }));
+    t.be.simulateRestart();
+    const next = await api.jobsNextSeq();
+
+    const resumed = await api.jobsResume([a.id, b.id, "nope"]);
+    expect(resumed.map((j) => [j.id, j.seq, j.createdAt])).toEqual([[a.id, a.seq, a.createdAt]]);
+    expect((await api.jobsPending()).map((p) => p.id)).toEqual([b.id]);
+    // a second resume of the same row is a no-op
+    expect(await api.jobsResume([a.id])).toEqual([]);
+    await t.clock.advanceAsync(60_000, 250);
+    expect((await api.jobsList()).find((j) => j.id === a.id)?.stage).toBe("done");
+    // numbering is not disturbed
+    expect((await api.enqueue(req(VIDEO))).seq).toBe(next);
+
+    await api.jobsDiscardPending([b.id]);
+    expect(await api.jobsPending()).toEqual([]);
+  });
+});

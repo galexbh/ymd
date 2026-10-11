@@ -14,7 +14,11 @@
 //!   yt-dlp keeps `*.part` / `*.ytdl` files because of `-P temp:`);
 //! - retry re-enqueues a terminal job with the same request (new id and seq);
 //! - transient secrets in `EnqueueRequest` (video password / 2FA) stay in this in-memory map
-//!   only; they are never copied into `Job` or emitted;
+//!   only; they are never copied into `Job`, emitted, persisted or logged;
+//! - every queued job is also saved as a `PendingJob` (`JobEnv::pending_save`) and forgotten
+//!   when it ends. When ymd exits (`shutdown`), running jobs are killed but keep their row and
+//!   their `tmp/<id>` dir, so `resume` can start them again with the same id and yt-dlp
+//!   continues from its `.part` files;
 //! - each running job is a `job{id, preset, kind}` tracing span; a stage change logs how long
 //!   the previous stage took (`stage finished`) and the end logs the outcome and `ErrorCode`
 //!   (`job finished`). The URL and the argv are never logged.
@@ -22,15 +26,16 @@
 use crate::deps::Tools;
 use crate::diagnostics::{elapsed_ms, kind_name, stage_name, wire_name, MSG_JOB, MSG_STAGE};
 use crate::model::{
-    CommandError, EnqueueRequest, ErrorCode, Job, JobError, JobId, JobStage, MediaKind, Preset,
-    Settings,
+    CommandError, EnqueueRequest, ErrorCode, Job, JobError, JobId, JobStage, MediaKind, PendingJob,
+    Preset, Settings,
 };
 use crate::process;
 use crate::ytdlp::progress::{self, Event};
 use crate::ytdlp::{args, errors};
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
@@ -53,7 +58,7 @@ pub trait JobEnv: Send + Sync + 'static {
     fn archive_file(&self) -> PathBuf;
     /// Every state change (throttled for progress).
     fn emit(&self, job: &Job);
-    /// Job reached `Done`: record history, notify.
+    /// Job reached `Done`: record history.
     fn completed(&self, job: &Job, preset: &Preset);
     /// First accession number of this session (numbers continue across sessions).
     fn first_seq(&self) -> u64 {
@@ -61,6 +66,63 @@ pub trait JobEnv: Send + Sync + 'static {
     }
     /// The scheduled queue start changed (RFC 3339, UTC; `None` = the queue runs freely).
     fn schedule_changed(&self, _start_at: Option<&str>) {}
+    /// A job was queued: remember it so it can be resumed after a restart.
+    fn pending_save(&self, _pending: &PendingJob) {}
+    /// A job ended (or was removed): forget it.
+    fn pending_delete(&self, _id: &JobId) {}
+}
+
+/// The row that lets `job` be resumed later. Secrets are never copied, only flagged.
+pub fn pending_of(job: &Job, req: &EnqueueRequest) -> PendingJob {
+    let given = |s: &Option<String>| s.as_deref().is_some_and(|v| !v.is_empty());
+    PendingJob {
+        id: job.id.clone(),
+        seq: job.seq,
+        url: job.url.clone(),
+        preset_id: job.preset_id.clone(),
+        playlist_items: req.playlist_items.clone(),
+        output_dir: job.output_dir.clone(),
+        title: job.title.clone(),
+        thumbnail: job.thumbnail.clone(),
+        kind: job.kind,
+        created_at: job.created_at.clone(),
+        needs_secret: given(&req.video_password) || given(&req.twofactor),
+    }
+}
+
+/// A job id as `enqueue` makes them: a UUID in its canonical lowercase, hyphenated form.
+fn is_job_id(s: &str) -> bool {
+    uuid::Uuid::try_parse(s).is_ok_and(|u| u.to_string() == s)
+}
+
+/// Deletes `tmp/<id>` of a discarded job. Only ids shaped like a job id (a UUID) are touched,
+/// so an id from the UI can never point outside `tmp_dir`.
+pub fn discard_tmp(tmp_dir: &Path, id: &str) -> bool {
+    if !is_job_id(id) {
+        return false;
+    }
+    std::fs::remove_dir_all(tmp_dir.join(id)).is_ok()
+}
+
+/// Removes job dirs in `tmp_dir` (named by a job's UUID) that belong to no pending job; other
+/// entries (e.g. cookie copies, see `auth::cookies::sweep_stale_copies`) are left alone.
+/// Returns how many were removed.
+pub fn sweep_orphan_tmp(tmp_dir: &Path, keep: &HashSet<JobId>) -> usize {
+    let Ok(entries) = std::fs::read_dir(tmp_dir) else {
+        return 0;
+    };
+    let mut removed = 0;
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let is_dir = entry.file_type().is_ok_and(|t| t.is_dir());
+        if !is_dir || !is_job_id(&name) || keep.contains(&name) {
+            continue;
+        }
+        if std::fs::remove_dir_all(entry.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    removed
 }
 
 /// Longest single sleep of the schedule timer: the wall clock is re-read after each one, so a
@@ -106,6 +168,8 @@ pub struct JobManager {
     env: Arc<dyn JobEnv>,
     inner: Mutex<Inner>,
     me: Weak<JobManager>,
+    /// ymd is quitting: stop starting jobs, keep the tmp dirs and rows of interrupted ones.
+    exiting: AtomicBool,
 }
 
 fn now() -> String {
@@ -146,7 +210,12 @@ impl JobManager {
             env,
             inner: Mutex::new(Inner::default()),
             me: me.clone(),
+            exiting: AtomicBool::new(false),
         })
+    }
+
+    fn is_exiting(&self) -> bool {
+        self.exiting.load(Ordering::SeqCst)
     }
 
     fn lock(&self) -> MutexGuard<'_, Inner> {
@@ -176,16 +245,35 @@ impl JobManager {
             return Err(cmd_err(ErrorCode::PermissionDenied, "no output folder"));
         }
         let kind = preset.kind;
+        let job = self.insert(req, kind, output_dir, None);
+        self.pump();
+        Ok(job)
+    }
+
+    /// Creates the queued `Job` (a new id and number, or the ones of `resumed`), saves its
+    /// pending row and emits it. The caller pumps.
+    fn insert(
+        &self,
+        req: EnqueueRequest,
+        kind: MediaKind,
+        output_dir: String,
+        resumed: Option<&PendingJob>,
+    ) -> Job {
         let first_seq = self.env.first_seq();
+        let concurrency = self.env.settings().concurrency;
         let job = {
             let mut g = self.lock();
             if g.limit.is_none() {
-                g.limit = Some(settings.concurrency.max(1) as usize);
+                g.limit = Some(concurrency.max(1) as usize);
             }
-            let seq = *g.next_seq.get_or_insert(first_seq);
-            g.next_seq = Some(seq + 1);
+            let next = *g.next_seq.get_or_insert(first_seq);
+            let (id, seq, created_at) = match resumed {
+                Some(p) => (p.id.clone(), p.seq, p.created_at.clone()),
+                None => (uuid::Uuid::new_v4().to_string(), next, now()),
+            };
+            g.next_seq = Some(next.max(seq + 1));
             let job = Job {
-                id: uuid::Uuid::new_v4().to_string(),
+                id,
                 seq,
                 url: req.url.clone(),
                 title: req.title.clone(),
@@ -203,9 +291,10 @@ impl JobManager {
                 error: None,
                 playlist_index: None,
                 playlist_count: None,
-                created_at: now(),
+                created_at,
                 finished_at: None,
             };
+            self.env.pending_save(&pending_of(&job, &req));
             g.jobs.insert(
                 job.id.clone(),
                 Entry {
@@ -222,12 +311,66 @@ impl JobManager {
             job
         };
         self.env.emit(&job);
+        job
+    }
+
+    /// Re-queues downloads left unfinished by a previous session, with their id (so yt-dlp
+    /// picks up the `.part` files in `tmp/<id>`) and number. Skips the ones that need a secret
+    /// and the ones already in the list. Does not check the preset: a deleted one fails the
+    /// job visibly when it starts.
+    pub async fn resume(self: &Arc<Self>, pending: Vec<PendingJob>) -> Vec<Job> {
+        let mut out = Vec::new();
+        for p in pending {
+            if p.needs_secret || self.lock().jobs.contains_key(&p.id) {
+                continue;
+            }
+            let req = EnqueueRequest {
+                url: p.url.clone(),
+                preset_id: p.preset_id.clone(),
+                playlist_items: p.playlist_items.clone(),
+                output_dir: Some(p.output_dir.clone()),
+                video_password: None,
+                twofactor: None,
+                title: p.title.clone(),
+                thumbnail: p.thumbnail.clone(),
+            };
+            out.push(self.insert(req, p.kind, p.output_dir.clone(), Some(&p)));
+        }
         self.pump();
-        Ok(job)
+        out
+    }
+
+    /// Ids of jobs in this session's list (resumed rows must not be discarded under them).
+    pub async fn ids(&self) -> HashSet<JobId> {
+        self.lock().jobs.keys().cloned().collect()
+    }
+
+    /// ymd is quitting: start nothing more and kill the running downloads, keeping their tmp
+    /// dirs and pending rows so they can be resumed. Waits (bounded) for the processes to go.
+    pub async fn shutdown(&self) {
+        if self.exiting.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        {
+            let mut g = self.lock();
+            for e in g.jobs.values_mut() {
+                if !e.job.stage.is_terminal() && e.job.stage != JobStage::Queued {
+                    e.cancel_requested = true;
+                    e.cancel.notify_one();
+                }
+            }
+        }
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while self.lock().running > 0 && Instant::now() < deadline {
+            tokio::time::sleep(Duration::from_millis(25)).await;
+        }
     }
 
     /// Starts queued jobs while there are free slots.
     fn pump(&self) {
+        if self.is_exiting() {
+            return;
+        }
         let mut started = Vec::new();
         {
             let mut g = self.lock();
@@ -276,8 +419,12 @@ impl JobManager {
         async move {
             tracing::info!("job started");
             let outcome = self.execute(&id).await;
-            remove_dir_retrying(&self.env.tmp_dir().join(&id)).await;
-            self.finish(&id, outcome);
+            // Interrupted by ymd quitting: keep `tmp/<id>` (the `.part` files) and the pending row.
+            let keep = self.is_exiting() && !matches!(outcome, Outcome::Done(_));
+            if !keep {
+                remove_dir_retrying(&self.env.tmp_dir().join(&id)).await;
+            }
+            self.finish(&id, outcome, keep);
             {
                 let mut g = self.lock();
                 g.running = g.running.saturating_sub(1);
@@ -519,7 +666,7 @@ impl JobManager {
         }
     }
 
-    fn finish(&self, id: &JobId, outcome: Outcome) {
+    fn finish(&self, id: &JobId, outcome: Outcome, keep_pending: bool) {
         let (job, preset, last_stage, stage_ms, total_ms) = {
             let mut g = self.lock();
             let Some(e) = g.jobs.get_mut(id) else { return };
@@ -574,6 +721,9 @@ impl JobManager {
             self.env.completed(&job, &p);
         }
         self.env.emit(&job);
+        if !keep_pending {
+            self.env.pending_delete(id);
+        }
     }
 
     pub async fn cancel(&self, id: &JobId) -> anyhow::Result<()> {
@@ -598,6 +748,7 @@ impl JobManager {
             }
         };
         if let Some(job) = queued {
+            self.env.pending_delete(id);
             self.env.emit(&job);
         }
         Ok(())
@@ -632,6 +783,8 @@ impl JobManager {
             ));
         }
         g.jobs.remove(id);
+        drop(g);
+        self.env.pending_delete(id);
         Ok(())
     }
 

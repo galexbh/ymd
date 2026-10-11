@@ -68,6 +68,7 @@ pub fn defaults(video_dir: &Path, audio_dir: &Path) -> Settings {
         close_to_tray: true,
         tray_hint_shown: false,
         limit_rate_mbps: None,
+        notify_downloads: true,
     }
 }
 

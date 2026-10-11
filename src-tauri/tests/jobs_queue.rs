@@ -7,8 +7,11 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use ymd_lib::deps::Tools;
-use ymd_lib::jobs::{JobEnv, JobManager, EMIT_INTERVAL};
-use ymd_lib::model::{CommandError, EnqueueRequest, ErrorCode, Job, JobStage, Preset, Settings};
+use ymd_lib::history::History;
+use ymd_lib::jobs::{self, JobEnv, JobManager, EMIT_INTERVAL};
+use ymd_lib::model::{
+    CommandError, EnqueueRequest, ErrorCode, Job, JobId, JobStage, PendingJob, Preset, Settings,
+};
 
 const FAKE: &str = env!("CARGO_BIN_EXE_fake-ytdlp");
 
@@ -24,6 +27,8 @@ struct FakeEnv {
     cookies: Mutex<Option<PathBuf>>,
     /// Every `schedule_changed` payload, in order.
     schedules: Mutex<Vec<Option<String>>>,
+    /// Real history database (on disk) holding the pending rows.
+    history: Arc<History>,
 }
 
 impl JobEnv for FakeEnv {
@@ -70,6 +75,12 @@ impl JobEnv for FakeEnv {
             .lock()
             .unwrap()
             .push(start_at.map(String::from));
+    }
+    fn pending_save(&self, pending: &PendingJob) {
+        self.history.pending_save(pending).unwrap();
+    }
+    fn pending_delete(&self, id: &JobId) {
+        self.history.pending_delete(id).unwrap();
     }
 }
 
@@ -130,6 +141,7 @@ fn harness_with(concurrency: u32, ytdlp: Option<PathBuf>) -> Harness {
         completed: Mutex::new(vec![]),
         cookies: Mutex::new(None),
         schedules: Mutex::new(vec![]),
+        history: Arc::new(History::open(&root.join("history.sqlite3")).unwrap()),
     });
     let jobs = JobManager::new(env.clone());
     Harness {
@@ -732,4 +744,296 @@ async fn superseded_timer_does_not_start_the_queue() {
     assert!(h.jobs.start_at().is_some());
     h.jobs.set_start_at(None);
     assert_eq!(h.wait_terminal(&job.id).await.stage, JobStage::Done);
+}
+
+// ───────────── Resume after restart ─────────────
+
+/// Waits until the `hang` scenario started (it writes `<tmp>/pids.txt`) and returns its pids.
+async fn hang_pids(tmp: &Path) -> Vec<u32> {
+    let pids_file = tmp.join("pids.txt");
+    let deadline = Instant::now() + Duration::from_secs(30);
+    while !pids_file.exists() {
+        assert!(Instant::now() < deadline, "fake never started");
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    std::fs::read_to_string(&pids_file)
+        .unwrap()
+        .split_whitespace()
+        .map(|p| p.parse().unwrap())
+        .collect()
+}
+
+/// The row goes right after the terminal state is published: poll until no row is left.
+async fn wait_no_pending(history: &History) {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        let rows = history.pending_list().unwrap();
+        if rows.is_empty() {
+            return;
+        }
+        assert!(Instant::now() < deadline, "rows left: {rows:#?}");
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+}
+
+fn has_part(dir: &Path) -> bool {
+    std::fs::read_dir(dir)
+        .is_ok_and(|mut it| it.any(|e| e.unwrap().file_name().to_string_lossy().ends_with(".part")))
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn pending_row_lives_from_enqueue_to_the_end() {
+    let h = harness(1);
+    let ok = h
+        .jobs
+        .enqueue(req("fake://slow/20", "mp4-1080"))
+        .await
+        .unwrap();
+    let queued = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    let mut pl = req("fake://playlist", "mp3-320");
+    pl.playlist_items = Some(vec![2, 5]);
+    let failing = h.jobs.enqueue(req("fake://error-bot", "mp4-1080")).await;
+    let failing = failing.unwrap();
+    let rows = h.env.history.pending_list().unwrap();
+    assert_eq!(
+        rows.iter().map(|p| p.id.clone()).collect::<Vec<_>>(),
+        vec![ok.id.clone(), queued.id.clone(), failing.id.clone()]
+    );
+    assert_eq!(rows[0].seq, ok.seq);
+    assert_eq!(rows[0].output_dir, ok.output_dir);
+    assert!(rows.iter().all(|p| !p.needs_secret));
+
+    // Canceling a queued job forgets it at once.
+    h.jobs.cancel(&queued.id).await.unwrap();
+    assert!(h
+        .env
+        .history
+        .pending_list()
+        .unwrap()
+        .iter()
+        .all(|p| p.id != queued.id));
+
+    // Done and Error forget it too.
+    assert_eq!(h.wait_terminal(&ok.id).await.stage, JobStage::Done);
+    assert_eq!(h.wait_terminal(&failing.id).await.stage, JobStage::Error);
+    wait_no_pending(&h.env.history).await;
+
+    // Playlist selection is kept as is.
+    let p = h.jobs.enqueue(pl).await.unwrap();
+    let row = h.env.history.pending_list().unwrap().remove(0);
+    assert_eq!(row.id, p.id);
+    assert_eq!(row.playlist_items, Some(vec![2, 5]));
+    h.wait_terminal(&p.id).await;
+    wait_no_pending(&h.env.history).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn secrets_are_never_persisted_only_flagged() {
+    let h = harness(1);
+    let mut r = req("fake://hang", "mp4-1080");
+    r.video_password = Some("placeholder-video-pw".into());
+    let a = h.jobs.enqueue(r).await.unwrap();
+    let mut r = req("fake://success", "mp4-1080");
+    r.twofactor = Some("placeholder-2fa".into());
+    let b = h.jobs.enqueue(r).await.unwrap();
+    let mut r = req("fake://success", "mp4-1080");
+    r.video_password = Some(String::new());
+    let c = h.jobs.enqueue(r).await.unwrap();
+
+    let rows = h.env.history.pending_list().unwrap();
+    let flag = |id: &str| rows.iter().find(|p| p.id == id).unwrap().needs_secret;
+    assert!(flag(&a.id) && flag(&b.id));
+    assert!(!flag(&c.id), "an empty password is no secret");
+    for p in &rows {
+        let json = serde_json::to_string(p).unwrap();
+        assert!(!json.contains("placeholder-video-pw") && !json.contains("placeholder-2fa"));
+    }
+    // Nothing in the database files either (WAL included).
+    for f in ["history.sqlite3", "history.sqlite3-wal"] {
+        if let Ok(bytes) = std::fs::read(h.root.join(f)) {
+            let text = String::from_utf8_lossy(&bytes);
+            assert!(!text.contains("placeholder-video-pw"), "{f}");
+            assert!(!text.contains("placeholder-2fa"), "{f}");
+        }
+    }
+
+    // Resume never re-queues a job that needs its secret.
+    h.jobs.shutdown().await;
+    let fresh = JobManager::new(h.env.clone());
+    let resumed = fresh.resume(h.env.history.pending_list().unwrap()).await;
+    assert!(resumed.iter().all(|j| j.id != a.id && j.id != b.id));
+    fresh.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn quitting_keeps_partial_files_but_cancel_deletes_them() {
+    let h = harness(2);
+    let quit = h
+        .jobs
+        .enqueue(req("fake://hang", "mp4-1080"))
+        .await
+        .unwrap();
+    let canceled = h
+        .jobs
+        .enqueue(req("fake://hang", "mp4-1080"))
+        .await
+        .unwrap();
+    let quit_tmp = h.root.join("tmp").join(&quit.id);
+    let canceled_tmp = h.root.join("tmp").join(&canceled.id);
+    let pids = hang_pids(&quit_tmp).await;
+    hang_pids(&canceled_tmp).await;
+
+    h.jobs.cancel(&canceled.id).await.unwrap();
+    assert_eq!(
+        h.wait_terminal(&canceled.id).await.stage,
+        JobStage::Canceled
+    );
+    assert!(!canceled_tmp.exists(), "user cancel removes tmp");
+
+    // A third job waits in the queue behind the running one.
+    h.jobs.set_concurrency(1).await;
+    let waiting = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+
+    h.jobs.shutdown().await;
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while pids.iter().any(|p| is_alive(*p)) {
+        assert!(Instant::now() < deadline, "process tree alive: {pids:?}");
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    assert!(quit_tmp.exists(), "quitting keeps tmp/<id>");
+    assert!(has_part(&quit_tmp));
+    let ids: Vec<_> = h
+        .env
+        .history
+        .pending_list()
+        .unwrap()
+        .into_iter()
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(ids, vec![quit.id.clone(), waiting.id.clone()]);
+    // Nothing new starts while quitting.
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    assert_eq!(h.job(&waiting.id).await.stage, JobStage::Queued);
+    // Idempotent.
+    h.jobs.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn resume_reuses_the_id_tmp_dir_and_number() {
+    let h = harness(1);
+    let first = h
+        .jobs
+        .enqueue(req("fake://hang", "mp4-1080"))
+        .await
+        .unwrap();
+    let tmp = h.root.join("tmp").join(&first.id);
+    hang_pids(&tmp).await;
+    h.jobs.shutdown().await;
+    assert!(has_part(&tmp));
+
+    // Next session: a new manager on the same data. The row comes back with its id; here
+    // yt-dlp finishes this time.
+    let fresh = JobManager::new(h.env.clone());
+    let mut rows = h.env.history.pending_list().unwrap();
+    assert_eq!(rows.len(), 1);
+    rows[0].url = "fake://success".into();
+    let resumed = fresh.resume(rows.clone()).await;
+    assert_eq!(resumed.len(), 1);
+    assert_eq!(resumed[0].id, first.id);
+    assert_eq!(resumed[0].seq, first.seq);
+    assert_eq!(resumed[0].created_at, first.created_at);
+    assert_eq!(resumed[0].stage, JobStage::Queued);
+    // Resuming twice does not duplicate it.
+    assert!(fresh.resume(rows).await.is_empty());
+
+    let deadline = Instant::now() + Duration::from_secs(30);
+    loop {
+        let j = fresh
+            .list()
+            .await
+            .into_iter()
+            .find(|j| j.id == first.id)
+            .unwrap();
+        if j.stage.is_terminal() {
+            assert_eq!(j.stage, JobStage::Done, "{j:#?}");
+            break;
+        }
+        assert!(Instant::now() < deadline);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    assert!(!tmp.exists(), "done removes tmp/<id>");
+    wait_no_pending(&h.env.history).await;
+    // Numbers continue after the resumed one.
+    let next = fresh
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    assert_eq!(next.seq, first.seq + 1);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn resumed_number_moves_the_counter_forward_only() {
+    let h = harness(1);
+    let row = |id: &str, seq: u64| PendingJob {
+        id: id.into(),
+        seq,
+        url: "fake://success".into(),
+        preset_id: "mp4-1080".into(),
+        playlist_items: None,
+        output_dir: h.root.join("Videos").to_string_lossy().into_owned(),
+        title: Some("T".into()),
+        thumbnail: None,
+        kind: ymd_lib::model::MediaKind::Video,
+        created_at: "2026-01-01T00:00:00Z".into(),
+        needs_secret: false,
+    };
+    let a = "6f1c9a52-1f0e-4a8e-9c35-0b7a0f0c1a01";
+    let b = "6f1c9a52-1f0e-4a8e-9c35-0b7a0f0c1a02";
+    let got = h.jobs.resume(vec![row(a, 90)]).await;
+    assert_eq!(got[0].seq, 90);
+    assert_eq!(h.jobs.next_seq().await, 91);
+    // An older number does not move the counter back.
+    h.jobs.resume(vec![row(b, 7)]).await;
+    assert_eq!(h.jobs.next_seq().await, 91);
+    for id in [a, b] {
+        h.wait_terminal(id).await;
+    }
+}
+
+#[test]
+fn orphan_tmp_dirs_are_swept_and_discard_only_takes_job_ids() {
+    let dir = tempfile::tempdir().unwrap();
+    let tmp = dir.path().join("tmp");
+    let kept = "0b7c2f8e-3a1d-4c5b-9e6f-112233445566";
+    let orphan = "0b7c2f8e-3a1d-4c5b-9e6f-665544332211";
+    for d in [kept, orphan, "not-a-job"] {
+        std::fs::create_dir_all(tmp.join(d)).unwrap();
+        std::fs::write(tmp.join(d).join("x.part"), "p").unwrap();
+    }
+    std::fs::write(tmp.join("ymd-cookies-1.txt"), "c").unwrap();
+    let keep: std::collections::HashSet<JobId> = [kept.to_string()].into();
+    assert_eq!(jobs::sweep_orphan_tmp(&tmp, &keep), 1);
+    assert!(tmp.join(kept).join("x.part").exists());
+    assert!(!tmp.join(orphan).exists());
+    assert!(tmp.join("not-a-job").exists(), "only job dirs are touched");
+    assert!(tmp.join("ymd-cookies-1.txt").exists());
+    assert_eq!(
+        jobs::sweep_orphan_tmp(&dir.path().join("missing"), &keep),
+        0
+    );
+
+    assert!(!jobs::discard_tmp(&tmp, "../tmp"));
+    assert!(!jobs::discard_tmp(&tmp, "not-a-job"));
+    assert!(!jobs::discard_tmp(&tmp, &kept.to_uppercase()));
+    assert!(jobs::discard_tmp(&tmp, kept));
+    assert!(!tmp.join(kept).exists());
 }

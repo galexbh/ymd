@@ -163,5 +163,6 @@ expression: defs()
   "clipboardWatch": "known",
   "closeToTray": true,
   "trayHintShown": false,
-  "limitRateMbps": null
+  "limitRateMbps": null,
+  "notifyDownloads": true
 }

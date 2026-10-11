@@ -515,6 +515,16 @@ describe("mock backend — clipboard plugin", () => {
     expect((await api.settingsSet({ ...s, trayHintShown: false })).trayHintShown).toBe(true);
   });
 
+  it("settings carry notifyDownloads (default on, missing → on)", async () => {
+    installMockBackend({ clock: "manual" });
+    const s = await api.settingsGet();
+    expect(s.notifyDownloads).toBe(true);
+    expect((await api.settingsSet({ ...s, notifyDownloads: false })).notifyDownloads).toBe(false);
+    const old: Partial<Settings> = { ...s };
+    delete old.notifyDownloads;
+    expect(sanitizeSettings(old as Settings, s).notifyDownloads).toBe(true);
+  });
+
   it("bootMock seeds the clipboard from ?clipboard= without remembering it", async () => {
     window.localStorage.clear();
     const link = "https://vimeo.com/123456";

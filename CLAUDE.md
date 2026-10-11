@@ -64,7 +64,8 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
 `installMockBackend({ scenario, clock: "manual" | "real", speed, delays, failDeps, braveRunning,
 platform, settings, seedHistory })` installs `mockIPC` + event mocking and returns a
 `MockBackend` (`manualClock.advance/advanceAsync`, `setScenario`, `setBrowserRunning`,
-`setDepFails`, `snapshot()`, `calls`, `events`). `resetMockBackend()` runs after every test.
+`setDepFails`, `simulateRestart()` (unfinished jobs → `jobs_pending` rows), `snapshot()`,
+`calls`, `events`). `resetMockBackend()` runs after every test.
 Scenarios: `first-run`, `ready`, `outdated`, `complete`.
 
 ## Rules

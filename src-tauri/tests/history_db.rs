@@ -460,3 +460,104 @@ fn v1_rows_survive_the_v2_migration() {
     assert_eq!(page.items[0].seq, None);
     assert_eq!(page.items[0].preset_id, None);
 }
+
+// ───────────── v3: pending jobs ─────────────
+
+fn pending(id: &str, seq: u64) -> PendingJob {
+    PendingJob {
+        id: id.into(),
+        seq,
+        url: format!("https://example.com/{id}"),
+        preset_id: "best".into(),
+        playlist_items: None,
+        output_dir: "/out".into(),
+        title: Some(format!("Title {id}")),
+        thumbnail: None,
+        kind: MediaKind::Video,
+        created_at: "2026-10-01T10:00:00Z".into(),
+        needs_secret: false,
+    }
+}
+
+#[test]
+fn v2_database_migrates_to_v3_and_keeps_its_rows() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("h.sqlite3");
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, title TEXT NOT NULL,
+                filepath TEXT NOT NULL, kind TEXT NOT NULL, preset_name TEXT NOT NULL,
+                size INTEGER, thumbnail TEXT, extractor TEXT, completed_at TEXT NOT NULL,
+                haystack TEXT NOT NULL DEFAULT '', seq INTEGER, preset_id TEXT);
+             INSERT INTO downloads (url, title, filepath, kind, preset_name, completed_at, haystack, seq, preset_id)
+             VALUES ('u', 'v2 row', '/x.mp4', 'video', 'Mejor calidad', '2024-01-01T00:00:00Z', 'v2 row', 12, 'best');
+             PRAGMA user_version = 2;",
+        )
+        .unwrap();
+    }
+    let h = History::open(&path).unwrap();
+    assert_eq!(SCHEMA_VERSION, 3);
+    assert_eq!(h.schema_version().unwrap(), 3);
+    let page = h.query(&q(None, None, 10, 0)).unwrap();
+    assert_eq!(titles(&page), ["v2 row"]);
+    assert_eq!(page.items[0].seq, Some(12));
+    assert!(h.pending_list().unwrap().is_empty());
+    h.pending_save(&pending("a", 13)).unwrap();
+    drop(h);
+    // The table and its rows survive a reopen.
+    let h = History::open(&path).unwrap();
+    assert_eq!(h.pending_list().unwrap(), vec![pending("a", 13)]);
+}
+
+#[test]
+fn pending_rows_round_trip_replace_and_delete() {
+    let h = History::open_in_memory().unwrap();
+    let mut b = pending("b", 8);
+    b.playlist_items = Some(vec![2, 5, 9]);
+    b.kind = MediaKind::Audio;
+    b.needs_secret = true;
+    b.title = None;
+    b.thumbnail = Some("https://img/b.jpg".into());
+    h.pending_save(&b).unwrap();
+    h.pending_save(&pending("a", 3)).unwrap();
+    let mut whole = pending("c", 9);
+    whole.playlist_items = Some(vec![]);
+    h.pending_save(&whole).unwrap();
+    assert_eq!(
+        h.pending_list().unwrap(),
+        vec![pending("a", 3), b.clone(), whole]
+    );
+
+    // Same id = same row (resume saves it again).
+    let mut b2 = b.clone();
+    b2.url = "https://example.com/changed".into();
+    h.pending_save(&b2).unwrap();
+    assert_eq!(h.pending_list().unwrap().len(), 3);
+    assert_eq!(h.pending_list().unwrap()[1].url, b2.url);
+
+    h.pending_delete("b").unwrap();
+    h.pending_delete("missing").unwrap();
+    let ids: Vec<_> = h
+        .pending_list()
+        .unwrap()
+        .into_iter()
+        .map(|p| p.id)
+        .collect();
+    assert_eq!(ids, ["a", "c"]);
+}
+
+#[test]
+fn next_number_also_counts_pending_jobs() {
+    let h = History::open_in_memory().unwrap();
+    assert_eq!(h.max_seq_hint(), 0);
+    h.pending_save(&pending("a", 50)).unwrap();
+    assert_eq!(h.max_seq_hint(), 50);
+    let mut j = job(1, Some("t"), Some("/x/a.mp4"), MediaKind::Video);
+    j.seq = 70;
+    h.record(&j, &preset()).unwrap();
+    assert_eq!(h.max_seq_hint(), 70);
+    h.pending_delete("a").unwrap();
+    assert_eq!(h.max_seq_hint(), 70);
+}

@@ -70,6 +70,7 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 - **Skip what's already downloaded**: yt-dlp notes every video in an archive file and never repeats it.
 - **Use aria2c**: downloads each file over several connections (install aria2c in Dependencies first).
 - **Speed limit**: **No limit** (the default), 1, 2, 5, 10, 20 or 50 MB/s, or **Other…** to type a whole number between 1 and 1000. Each download keeps to that cap on its own, and with aria2c the cap applies to aria2c too. It applies to downloads that start from now on: running ones keep the speed they started with.
+- **Notify me when a download ends**: see [Notifications](#notifications).
 
 ### Scheduling the start
 
@@ -77,14 +78,33 @@ To leave downloads queued and have them start later (at night, say), type a time
 
 Meanwhile a notice reads "The queue starts at 23:30" (or "tomorrow at …"): queued downloads wait and running ones carry on. **Start now** drops the scheduled time and starts the queue right away. The time only lives while ymd is open: quitting ymd forgets it.
 
+## Notifications
+
+While ymd is in the background (another window in front, minimized or in the tray), a system notification tells you when a download ends:
+
+- If it was archived, the notification says **Download finished** and the video's title.
+- If it failed, it says **Couldn’t download “…”** and why. When you come back to ymd, the **Ledger** opens, where the row explains what to do.
+- Downloads that end at about the same time arrive as one notification ("3 downloads finished"; if any failed, it says so too).
+
+With ymd's window in front there is no notification: the in-app message is enough. To stop them, turn off **Settings → Downloads → Notify me when a download ends**.
+
 ## When closing the window
 
 Clicking the X doesn't quit ymd: it hides in the system tray, next to the clock (on macOS, in the menu bar). Downloads keep going and it answers **Download with ymd** from the browser instantly. The first time, a notification tells you.
 
 - Click the icon or **Open ymd** in its menu: the window comes back.
-- **Quit** in its menu: closes ymd completely.
+- **Quit** in its menu: closes ymd completely. Unfinished downloads stop, but they aren't lost: see [Unfinished downloads](#unfinished-downloads).
 
 To make the X quit ymd, turn off **Settings → Advanced → When closing the window → Keep ymd in the system tray** (on macOS, **Keep ymd in the menu bar**). On Linux desktops without a system tray, the X always quits ymd.
+
+## Unfinished downloads
+
+If ymd closes with downloads running or queued (with **Quit**, when the computer shuts down or after a crash), it remembers them. Next time, the **Ledger** shows "N downloads didn’t finish" with their number and title:
+
+- **Resume** puts them back in the queue with the same number. yt-dlp picks up where it left off, without downloading again what it already had.
+- **Discard** forgets them and deletes their partial files.
+
+Nothing resumes on its own: you decide when. Downloads that used a **Video password** or a **Verification code (2FA)** are listed apart, because ymd never stores those: paste them again in **Receive** and type them again.
 
 ## The ledger
 

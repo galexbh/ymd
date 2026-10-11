@@ -213,6 +213,12 @@ export function DownloadsSettings() {
           }
         />
         <SpeedLimitField />
+        <Switch
+          checked={settings.notifyDownloads}
+          onChange={(notifyDownloads) => update({ notifyDownloads })}
+          label={t("settings.downloads.notify")}
+          description={t("settings.downloads.notifyHint")}
+        />
       </Section>
 
       <Section title={t("settings.downloads.clipboard")}>

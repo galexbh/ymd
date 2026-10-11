@@ -369,6 +369,10 @@ pub struct Settings {
     /// unlimited. Absent in older files.
     #[serde(default)]
     pub limit_rate_mbps: Option<u32>,
+    /// System notification when a download finishes or fails while ymd is in the background.
+    /// Absent in older files: on.
+    #[serde(default = "default_true")]
+    pub notify_downloads: bool,
 }
 
 fn default_true() -> bool {
@@ -478,6 +482,27 @@ pub struct Job {
     /// RFC3339
     pub created_at: String,
     pub finished_at: Option<String>,
+}
+
+/// A download that was queued or running when ymd closed (table `pending_jobs`). It keeps the
+/// job id so the resumed job reuses `tmp/<id>`, where yt-dlp left its `.part` files. Transient
+/// secrets are never stored: `needs_secret` only says the job had a video password or a 2FA
+/// code, so it cannot be resumed without the person typing it again.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PendingJob {
+    pub id: JobId,
+    pub seq: u64,
+    pub url: String,
+    pub preset_id: String,
+    pub playlist_items: Option<Vec<u32>>,
+    pub output_dir: String,
+    pub title: Option<String>,
+    pub thumbnail: Option<String>,
+    pub kind: MediaKind,
+    /// RFC3339
+    pub created_at: String,
+    pub needs_secret: bool,
 }
 
 // ───────────────────────────── History ─────────────────────────────
