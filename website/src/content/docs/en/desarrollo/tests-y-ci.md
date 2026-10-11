@@ -46,11 +46,11 @@ A cache saved from a tag can only be read by that tag, so `release.yml` does not
 
 ## Other workflows
 
-| Workflow                 | When                                                                       | What it does                                                                            |
-| ------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `release.yml`            | `v*` tags                                                                  | Signed installers and a draft release (see [Releases](/ymd/en/desarrollo/releases/))    |
-| `docs.yml`               | pushes to `main` touching `website/**`, `CHANGELOG.md` or `docs/assets/**` | Publishes this site to GitHub Pages                                                     |
-| `nightly-smoke.yml`      | daily                                                                      | A real download with the nightly yt-dlp; opens an issue on failure                      |
-| `supported-sites.yml`    | weekly                                                                     | Refreshes the supported-sites list and opens a PR when it changed                       |
-| `warm-release-cache.yml` | pushes to `main` touching `Cargo.lock` or `Cargo.toml`, weekly, manual     | Builds the release binaries without installers and saves the cache `release.yml` reads  |
-| `cache-cleanup.yml`      | when a PR closes; daily; manual                                            | Deletes the closed PR's caches; on `main` keeps only the newest cache of each key group |
+| Workflow                 | When                                                                       | What it does                                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `release.yml`            | `v*` tags                                                                  | Signed installers and a draft release (see [Releases](/ymd/en/desarrollo/releases/))                                   |
+| `docs.yml`               | pushes to `main` touching `website/**`, `CHANGELOG.md` or `docs/assets/**` | Publishes this site to GitHub Pages                                                                                    |
+| `nightly-smoke.yml`      | daily                                                                      | A real download with the nightly yt-dlp; opens an issue on failure (a YouTube "not a bot" check only leaves a warning) |
+| `supported-sites.yml`    | weekly                                                                     | Refreshes the supported-sites list and opens a PR when it changed                                                      |
+| `warm-release-cache.yml` | pushes to `main` touching `Cargo.lock` or `Cargo.toml`, weekly, manual     | Builds the release binaries without installers and saves the cache `release.yml` reads                                 |
+| `cache-cleanup.yml`      | when a PR closes; daily; manual                                            | Deletes the closed PR's caches; on `main` keeps only the newest cache of each key group                                |
