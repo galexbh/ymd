@@ -2,10 +2,11 @@ import { useState } from "react";
 import { FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ClipboardWatch } from "../../ipc/types";
-import { Button, Figure, SegmentedControl, Section, Switch, TextField } from "../../ui";
+import { Button, Figure, SegmentedControl, Section, Select, Switch, TextField } from "../../ui";
 import { pickFolder } from "../../app/native";
 import { depById, isPresent, useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
+import { RATE_PRESETS, isRatePreset, parseRate } from "./constants";
 import { renderTemplate, templateHasExt } from "./template";
 import s from "./settings.module.css";
 
@@ -49,6 +50,69 @@ export function FolderField({
       >
         {t("settings.choose")}
       </Button>
+    </div>
+  );
+}
+
+const RATE_NONE = "none";
+const RATE_OTHER = "other";
+
+/** «Límite de velocidad»: common caps, or «Otro…» with a numeric field (saved debounced). */
+function SpeedLimitField() {
+  const { t } = useTranslation();
+  const limit = useSettings((st) => st.settings!.limitRateMbps);
+  const update = useSettings((st) => st.update);
+  // «Otro…» stays chosen while typing, even before the number is valid
+  const [other, setOther] = useState(() => limit !== null && !isRatePreset(limit));
+  const [draft, setDraft] = useState<string | null>(null);
+  const showOther = other || (limit !== null && !isRatePreset(limit));
+  const value = showOther ? RATE_OTHER : limit === null ? RATE_NONE : String(limit);
+  const text = draft ?? (limit === null ? "" : String(limit));
+  const invalid = showOther && text.trim() !== "" && parseRate(text) === null;
+
+  return (
+    <div className={s.fieldStack}>
+      <Select
+        label={t("settings.downloads.limitRate")}
+        hint={t("settings.downloads.limitRateHint")}
+        value={value}
+        data-testid="settings-limit-rate"
+        onChange={(e) => {
+          const v = e.target.value;
+          setDraft(null);
+          if (v === RATE_OTHER) {
+            setOther(true);
+            return;
+          }
+          setOther(false);
+          update({ limitRateMbps: v === RATE_NONE ? null : Number(v) });
+        }}
+        options={[
+          { value: RATE_NONE, label: t("settings.downloads.limitRateNone") },
+          ...RATE_PRESETS.map((n) => ({
+            value: String(n),
+            label: t("settings.downloads.limitRateValue", { n }),
+          })),
+          { value: RATE_OTHER, label: t("settings.downloads.limitRateOther") },
+        ]}
+      />
+      {showOther && (
+        <TextField
+          label={t("settings.downloads.limitRateCustom")}
+          mono
+          inputMode="numeric"
+          autoComplete="off"
+          value={text}
+          trailing="MB/s"
+          error={invalid ? t("settings.downloads.limitRateInvalid") : undefined}
+          data-testid="settings-limit-rate-custom"
+          onChange={(e) => {
+            setDraft(e.target.value);
+            const n = parseRate(e.target.value);
+            if (n !== null) update({ limitRateMbps: n }, { debounce: 500 });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -148,6 +212,7 @@ export function DownloadsSettings() {
             aria2Ready ? t("settings.downloads.aria2cHint") : t("settings.downloads.aria2cMissing")
           }
         />
+        <SpeedLimitField />
       </Section>
 
       <Section title={t("settings.downloads.clipboard")}>

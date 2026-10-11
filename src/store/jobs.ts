@@ -26,6 +26,12 @@ interface JobsState {
   retry: (id: JobId) => Promise<void>;
   remove: (id: JobId) => Promise<void>;
   clearFinished: () => Promise<void>;
+  /** scheduled queue start (RFC 3339) or null; mirrors `queue://schedule` */
+  startAt: string | null;
+  /** last failed schedule change */
+  scheduleError: CommandError | null;
+  /** hold queued jobs until `at` (ISO); null clears the schedule and starts them now */
+  schedule: (at: string | null) => Promise<void>;
 }
 
 const listeners = new Set<JobListener>();
@@ -99,6 +105,17 @@ export const useJobs = create<JobsState>((set, get) => {
         // rows stay; nothing to undo
       }
     },
+
+    startAt: null,
+    scheduleError: null,
+    schedule: async (at) => {
+      try {
+        const startAt = await api.queueSchedule(at);
+        set({ startAt, scheduleError: null });
+      } catch (e) {
+        set({ scheduleError: toCommandError(e) });
+      }
+    },
   };
 });
 
@@ -107,14 +124,26 @@ export async function connectJobs(): Promise<() => void> {
   const offs = await Promise.all([
     events.onJobUpdate((j) => useJobs.getState().upsert(j)),
     events.onJobRemoved((id) => useJobs.getState().drop(id)),
+    events.onQueueSchedule(({ startAt }) => useJobs.setState({ startAt })),
   ]);
   await useJobs.getState().load();
+  try {
+    useJobs.setState({ startAt: await api.queueScheduleGet() });
+  } catch {
+    // no schedule known; the event keeps it current
+  }
   return () => offs.forEach((f) => f());
 }
 
 export function resetJobsStore() {
   listeners.clear();
-  useJobs.setState({ jobs: {}, loaded: false, actionErrors: {} });
+  useJobs.setState({
+    jobs: {},
+    loaded: false,
+    actionErrors: {},
+    startAt: null,
+    scheduleError: null,
+  });
 }
 
 // ───────────── selectors ─────────────

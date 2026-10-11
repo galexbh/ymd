@@ -162,5 +162,6 @@ expression: defs()
   "onboarded": false,
   "clipboardWatch": "known",
   "closeToTray": true,
-  "trayHintShown": false
+  "trayHintShown": false,
+  "limitRateMbps": null
 }

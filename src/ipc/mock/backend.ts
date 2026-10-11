@@ -7,6 +7,7 @@ import {
   EVT_HIDDEN_TO_TRAY,
   EVT_JOB_REMOVED,
   EVT_JOB_UPDATE,
+  EVT_QUEUE_SCHEDULE,
   TERMINAL_STAGES,
   type Browser,
   type BrowserInfo,
@@ -32,6 +33,7 @@ import {
   type JsRuntimeInfo,
   type Preset,
   type ProbeResult,
+  type QueueSchedule,
   type Settings,
   type SiteCredential,
 } from "../types";
@@ -279,8 +281,14 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
   if (!CLIPBOARD_WATCH.includes(s.clipboardWatch)) s.clipboardWatch = fallback.clipboardWatch;
   if (typeof s.closeToTray !== "boolean") s.closeToTray = true;
   if (typeof s.trayHintShown !== "boolean") s.trayHintShown = false;
+  const rate = s.limitRateMbps;
+  s.limitRateMbps =
+    typeof rate === "number" && Number.isInteger(rate) && rate >= 1 && rate <= 1000 ? rate : null;
   return s;
 }
+
+/** Bytes per second of `limitRateMbps` (yt-dlp's `M` suffix is a mebibyte). */
+const MIB = 1024 * 1024;
 
 export class MockBackend {
   readonly clock: MockClock;
@@ -304,6 +312,9 @@ export class MockBackend {
   private installing = new Set<DepId>();
   private jobs = new Map<JobId, SimJob>();
   private seq = 0;
+  /** scheduled queue start (simulated epoch ms), like `JobManager::start_at`; in memory only */
+  private startAt: number | null = null;
+  private scheduleTimer: TimerId | null = null;
   private history: HistoryItem[] = [];
   private nextHistoryId = 1;
   private cookies: CookieFileInfo | null = null;
@@ -485,6 +496,7 @@ export class MockBackend {
       settings: clone(this.settings),
       deps: this.report(false),
       jobs: [...this.jobs.values()].map((j) => clone(j.job)),
+      queueStartAt: this.scheduleString(),
       history: clone(this.history),
       cookies: clone(this.cookies),
       credentials: this.credentialList(),
@@ -495,6 +507,7 @@ export class MockBackend {
   dispose(): void {
     this.disposed = true;
     for (const sim of this.jobs.values()) this.stopTimer(sim);
+    this.clearScheduleTimer();
     this.clock.dispose();
   }
 
@@ -539,6 +552,10 @@ export class MockBackend {
         return this.clearFinished();
       case "jobs_next_seq":
         return this.seq + 1;
+      case "queue_schedule":
+        return this.setSchedule((a.at as string | null | undefined) ?? null);
+      case "queue_schedule_get":
+        return this.scheduleString();
       // history
       case "history_query":
         return this.historyQuery(a.query as HistoryQuery);
@@ -930,6 +947,7 @@ export class MockBackend {
 
   /** Start queued jobs while there are free slots (settings.concurrency). */
   private pump(): void {
+    if (this.startAt !== null && this.clock.now() < this.startAt) return;
     let free = this.settings.concurrency - this.activeJobs();
     const queued = [...this.jobs.values()]
       .filter((s) => s.job.stage === "queued")
@@ -976,7 +994,10 @@ export class MockBackend {
       return;
     }
     const item = sim.items[sim.itemIdx];
-    const speed = sim.baseSpeed * (0.7 + sim.rand() * 0.6);
+    const cap = this.settings.limitRateMbps;
+    const raw = sim.baseSpeed * (0.7 + sim.rand() * 0.6);
+    // the real cap applies when the job starts; a live one keeps the simulation simple
+    const speed = cap === null ? raw : Math.min(raw, cap * MIB);
     sim.itemBytes = Math.min(item.total, sim.itemBytes + speed * (TICK_MS / 1000));
     const count = sim.items.length;
     j.speed = Math.round(speed);
@@ -1109,6 +1130,48 @@ export class MockBackend {
 
   private emitJob(sim: SimJob): void {
     this.emit(EVT_JOB_UPDATE, clone(sim.job));
+  }
+
+  // ───────────── Scheduled start (mirrors `JobManager::set_start_at`) ─────────────
+
+  private scheduleString(): string | null {
+    // RFC 3339 in UTC with whole seconds, like `SecondsFormat::Secs`
+    return this.startAt === null
+      ? null
+      : new Date(this.startAt).toISOString().replace(/\.\d{3}Z$/, "Z");
+  }
+
+  private clearScheduleTimer(): void {
+    if (this.scheduleTimer !== null) {
+      this.clock.clearTimeout(this.scheduleTimer);
+      this.scheduleTimer = null;
+    }
+  }
+
+  private setSchedule(at: string | null): string | null {
+    let when: number | null = null;
+    if (at !== null && at.trim()) {
+      when = Date.parse(at);
+      if (Number.isNaN(when)) throw commandError("unknown", `invalid time "${at}"`);
+      when = Math.floor(when / 1000) * 1000;
+    }
+    // an instant that already passed means «start now»
+    if (when !== null && when <= this.clock.now()) when = null;
+    this.clearScheduleTimer();
+    this.startAt = when;
+    this.emit(EVT_QUEUE_SCHEDULE, { startAt: this.scheduleString() } satisfies QueueSchedule);
+    if (when === null) {
+      this.pump();
+    } else {
+      this.scheduleTimer = this.clock.setTimeout(() => {
+        this.scheduleTimer = null;
+        if (this.disposed) return;
+        this.startAt = null;
+        this.emit(EVT_QUEUE_SCHEDULE, { startAt: null } satisfies QueueSchedule);
+        this.pump();
+      }, when - this.clock.now());
+    }
+    return this.scheduleString();
   }
 
   // ───────────── History ─────────────

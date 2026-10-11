@@ -69,6 +69,13 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 - **Nombre de archivo**: la **Plantilla** usa los campos de yt-dlp, como `%(title)s`, `%(id)s`, `%(uploader)s` o `%(ext)s`. Debe incluir `%(ext)s`.
 - **Saltar lo ya descargado**: yt-dlp anota cada video en un archivo de registro y no lo repite.
 - **Usar aria2c**: descarga cada archivo por varias conexiones (requiere instalar aria2c en Dependencias).
+- **Límite de velocidad**: **Sin límite** (lo predeterminado), 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir un número entero entre 1 y 1000. Cada descarga respeta ese tope por separado, y con aria2c también se aplica a aria2c. Se aplica a las descargas que empiecen a partir de ahora: las que ya están en curso siguen a la velocidad con la que empezaron.
+
+### Programar el inicio
+
+Para dejar descargas en cola y que empiecen más tarde (por ejemplo, de noche), escribe una hora en la pantalla **Registro**, junto a **Programar inicio**, y pulsa el botón. Si esa hora ya pasó hoy, la cola empieza mañana a esa hora.
+
+Mientras tanto, un aviso dice «La cola empieza a las 23:30» (o «mañana a las …»): lo que esté en cola espera y lo que ya se descarga sigue. **Empezar ahora** arranca la cola de inmediato y **Quitar** cancela la hora programada (lo que esté en cola también empieza). La hora solo vive mientras ymd está abierto: si sales de ymd, se olvida.
 
 ## Al cerrar la ventana
 

@@ -32,6 +32,9 @@ pub const DEFAULT_FILENAME_TEMPLATE: &str = "%(title).180B [%(id)s].%(ext)s";
 pub const DEFAULT_PRESET_ID: &str = "best";
 pub const CONCURRENCY_MIN: u32 = 1;
 pub const CONCURRENCY_MAX: u32 = 8;
+/// Speed cap bounds in MB/s; anything outside means unlimited.
+pub const LIMIT_RATE_MIN: u32 = 1;
+pub const LIMIT_RATE_MAX: u32 = 1000;
 pub const FONT_SCALE_MIN: f64 = 0.875;
 pub const FONT_SCALE_MAX: f64 = 1.25;
 
@@ -64,6 +67,7 @@ pub fn defaults(video_dir: &Path, audio_dir: &Path) -> Settings {
         clipboard_watch: ClipboardWatch::Known,
         close_to_tray: true,
         tray_hint_shown: false,
+        limit_rate_mbps: None,
     }
 }
 
@@ -213,6 +217,9 @@ pub fn sanitize(settings: Settings) -> Settings {
     let mut s = settings;
 
     s.concurrency = s.concurrency.clamp(CONCURRENCY_MIN, CONCURRENCY_MAX);
+    s.limit_rate_mbps = s
+        .limit_rate_mbps
+        .filter(|n| (LIMIT_RATE_MIN..=LIMIT_RATE_MAX).contains(n));
 
     s.theme.font_scale = if s.theme.font_scale.is_finite() {
         s.theme.font_scale.clamp(FONT_SCALE_MIN, FONT_SCALE_MAX)
@@ -518,5 +525,29 @@ mod tests {
         assert_eq!(s.theme.font_scale, 1.1);
         assert_eq!(s.concurrency, 3);
         assert_eq!(s.language, Language::En);
+        assert_eq!(
+            s.limit_rate_mbps, None,
+            "absent field defaults to unlimited"
+        );
+    }
+
+    #[test]
+    fn limit_rate_rules() {
+        let d = defaults(Path::new("/v"), Path::new("/a"));
+        for (raw, want) in [
+            (serde_json::json!(5), Some(5)),
+            (serde_json::json!(1), Some(1)),
+            (serde_json::json!(1000), Some(1000)),
+            (serde_json::json!(0), None),
+            (serde_json::json!(1001), None),
+            (serde_json::json!(-3), None),
+            (serde_json::json!("fast"), None),
+            (serde_json::json!(null), None),
+        ] {
+            let user = serde_json::json!({ "limitRateMbps": raw, "concurrency": 2 });
+            let s = sanitize(merge_settings(&d, &user));
+            assert_eq!(s.limit_rate_mbps, want, "{raw}");
+            assert_eq!(s.concurrency, 2, "siblings survive {raw}");
+        }
     }
 }

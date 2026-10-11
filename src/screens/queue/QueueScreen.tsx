@@ -5,6 +5,7 @@ import { Button, Figure, SegmentedControl, SpeedFigure } from "../../ui";
 import { isActive, jobTotals, sortedJobs, useJobs } from "../../store/jobs";
 import { JobsLedger } from "../shared/JobsLedger";
 import { ScreenHeader } from "../shared/ScreenHeader";
+import { ScheduleBanner, ScheduleControl } from "./QueueSchedule";
 import screen from "../shared/screen.module.css";
 import s from "./queue.module.css";
 
@@ -39,15 +40,19 @@ export function QueueScreen() {
         title={t("nav.queue")}
         description={t("queue.description")}
         actions={
-          <Button
-            variant="secondary"
-            disabled={totals.done + totals.failed === 0}
-            onClick={() => void useJobs.getState().clearFinished()}
-          >
-            {t("ledger.clearFinished")}
-          </Button>
+          <>
+            <ScheduleControl />
+            <Button
+              variant="secondary"
+              disabled={totals.done + totals.failed === 0}
+              onClick={() => void useJobs.getState().clearFinished()}
+            >
+              {t("ledger.clearFinished")}
+            </Button>
+          </>
         }
       />
+      <ScheduleBanner />
       <div className={s.bar}>
         <SegmentedControl<Filter>
           label={t("queue.filter")}

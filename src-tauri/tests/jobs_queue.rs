@@ -22,6 +22,8 @@ struct FakeEnv {
     completed: Mutex<Vec<(Job, String)>>,
     /// Canonical cookies.txt handed over as `--cookies` (cookie source "file").
     cookies: Mutex<Option<PathBuf>>,
+    /// Every `schedule_changed` payload, in order.
+    schedules: Mutex<Vec<Option<String>>>,
 }
 
 impl JobEnv for FakeEnv {
@@ -62,6 +64,12 @@ impl JobEnv for FakeEnv {
     }
     fn first_seq(&self) -> u64 {
         self.first_seq
+    }
+    fn schedule_changed(&self, start_at: Option<&str>) {
+        self.schedules
+            .lock()
+            .unwrap()
+            .push(start_at.map(String::from));
     }
 }
 
@@ -121,6 +129,7 @@ fn harness_with(concurrency: u32, ytdlp: Option<PathBuf>) -> Harness {
         events: Mutex::new(vec![]),
         completed: Mutex::new(vec![]),
         cookies: Mutex::new(None),
+        schedules: Mutex::new(vec![]),
     });
     let jobs = JobManager::new(env.clone());
     Harness {
@@ -625,4 +634,102 @@ async fn cookies_jar_is_an_ephemeral_copy() {
         .unwrap();
     let failed = h.wait_terminal(&job.id).await;
     assert_eq!(failed.stage, JobStage::Error);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn speed_limit_setting_reaches_the_download() {
+    let h = harness(1);
+    h.env.settings.lock().unwrap().limit_rate_mbps = Some(5);
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    // The fake parses `--limit-rate 5M` as a flag with a value: the URL still drives it.
+    let done = h.wait_terminal(&job.id).await;
+    assert_eq!(done.stage, JobStage::Done, "{:?}", done.error);
+}
+
+fn in_ms(ms: i64) -> chrono::DateTime<chrono::Utc> {
+    chrono::Utc::now() + chrono::Duration::milliseconds(ms)
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn scheduled_start_holds_queued_jobs_until_the_timer() {
+    let h = harness(2);
+    let at = in_ms(1500);
+    h.jobs.set_start_at(Some(at));
+    assert_eq!(h.jobs.start_at(), Some(at));
+    let a = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    let b = h
+        .jobs
+        .enqueue(req("fake://success", "mp3-320"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(400)).await;
+    for id in [&a.id, &b.id] {
+        assert_eq!(
+            h.job(id).await.stage,
+            JobStage::Queued,
+            "held by the schedule"
+        );
+    }
+    for id in [&a.id, &b.id] {
+        assert_eq!(h.wait_terminal(id).await.stage, JobStage::Done);
+    }
+    assert!(chrono::Utc::now() >= at);
+    assert_eq!(h.jobs.start_at(), None, "the timer clears the schedule");
+    let schedules = h.env.schedules.lock().unwrap().clone();
+    assert_eq!(schedules.len(), 2, "{schedules:?}");
+    assert!(schedules[0].as_deref().is_some_and(|s| s.ends_with('Z')));
+    assert_eq!(schedules[1], None);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn clearing_or_replacing_the_schedule() {
+    let h = harness(1);
+    h.jobs.set_start_at(Some(in_ms(60 * 60 * 1000)));
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    // Replacing with a later time keeps holding; the earlier timer is superseded.
+    h.jobs.set_start_at(Some(in_ms(2 * 60 * 60 * 1000)));
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    assert_eq!(h.job(&job.id).await.stage, JobStage::Queued);
+    // «Empezar ahora»: clearing starts queued jobs at once.
+    h.jobs.set_start_at(None);
+    assert_eq!(h.jobs.start_at(), None);
+    assert_eq!(h.wait_terminal(&job.id).await.stage, JobStage::Done);
+
+    // A past instant counts as no schedule.
+    h.jobs.set_start_at(Some(in_ms(-1000)));
+    assert_eq!(h.jobs.start_at(), None);
+    let schedules = h.env.schedules.lock().unwrap().clone();
+    assert_eq!(schedules.len(), 4, "{schedules:?}");
+    assert!(schedules[0].is_some() && schedules[1].is_some());
+    assert_eq!(schedules[2..], [None, None]);
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn superseded_timer_does_not_start_the_queue() {
+    let h = harness(1);
+    h.jobs.set_start_at(Some(in_ms(300)));
+    // Replaced before it fires by a far-away schedule: the first timer must not pump.
+    h.jobs.set_start_at(Some(in_ms(60 * 60 * 1000)));
+    let job = h
+        .jobs
+        .enqueue(req("fake://success", "mp4-1080"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(900)).await;
+    assert_eq!(h.job(&job.id).await.stage, JobStage::Queued);
+    assert!(h.jobs.start_at().is_some());
+    h.jobs.set_start_at(None);
+    assert_eq!(h.wait_terminal(&job.id).await.stage, JobStage::Done);
 }

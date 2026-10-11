@@ -46,6 +46,9 @@ export const api = {
   jobRemove: (id: JobId) => invoke<void>("job_remove", { id }),
   jobsClearFinished: () => invoke<JobId[]>("jobs_clear_finished"),
   jobsNextSeq: () => invoke<number>("jobs_next_seq"),
+  /** hold queued jobs until `at` (RFC 3339); null clears it and starts them now */
+  queueSchedule: (at: string | null) => invoke<string | null>("queue_schedule", { at }),
+  queueScheduleGet: () => invoke<string | null>("queue_schedule_get"),
 
   // history
   historyQuery: (query: HistoryQuery) => invoke<HistoryPage>("history_query", { query }),

@@ -27,3 +27,19 @@ export function orderBrowsers(list: BrowserInfo[]): BrowserInfo[] {
 }
 
 export const FIREFOX_DOWNLOAD_URL = "https://www.mozilla.org/firefox/new/";
+
+/** Speed caps (MB/s) offered in «Límite de velocidad»; any other value goes through «Otro…». */
+export const RATE_PRESETS = [1, 2, 5, 10, 20, 50] as const;
+/** Bounds of `limitRateMbps`, as `settings::sanitize` enforces them. */
+export const RATE_MIN = 1;
+export const RATE_MAX = 1000;
+
+export const isRatePreset = (n: number) => (RATE_PRESETS as readonly number[]).includes(n);
+
+/** A whole number of MB/s within bounds, else null. */
+export function parseRate(text: string): number | null {
+  const v = text.trim();
+  if (!/^\d+$/.test(v)) return null;
+  const n = Number(v);
+  return n >= RATE_MIN && n <= RATE_MAX ? n : null;
+}

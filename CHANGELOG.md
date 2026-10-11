@@ -7,6 +7,8 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 ### Novedades
 
 - **Varios enlaces a la vez.** Pegar en **Recibir** un texto con dos o más enlaces abre el panel **Varios enlaces**: lista los enlaces (sin repetidos, hasta 200), marca como **Excluido** lo que no es un enlace y los encola todos con el preajuste del mostrador. La carpeta se pregunta una sola vez y **Playlists completas** decide si un enlace de lista baja la lista entera o solo el video. <kbd>Enter</kbd> encola y <kbd>Esc</kbd> cancela.
+- **Límite de velocidad.** **Ajustes → Descargas → Límite de velocidad** pone un tope por descarga: **Sin límite**, 1, 2, 5, 10, 20 o 50 MB/s, u **Otro…** para escribir de 1 a 1000. Se aplica a las descargas que empiecen a partir de ese momento (yt-dlp `--limit-rate`, y también aria2c cuando está activado).
+- **Programar el inicio de la cola.** En **Registro**, **Programar inicio** deja lo que esté en cola esperando hasta una hora (hoy, o mañana si ya pasó). Un aviso muestra «La cola empieza a las HH:MM» con **Empezar ahora** y **Quitar**. La hora no se guarda al salir de ymd.
 
 ### Proyecto
 

@@ -52,6 +52,28 @@ test.describe("flows", () => {
     await expect(page.getByRole("radio", { name: "Extensión" })).toBeVisible();
   });
 
+  test("a scheduled start holds the queue until «Empezar ahora»", async ({ page, app }) => {
+    await app.open({ scenario: "ready" });
+    await page.getByTestId("nav-queue").click();
+    await page.getByTestId("queue-schedule-time").fill("23:30");
+    await page.getByRole("button", { name: "Programar inicio" }).click();
+    const banner = page.getByTestId("queue-schedule-banner");
+    await expect(banner).toContainText(/La cola empieza (mañana )?a las 23:30/);
+
+    await page.getByTestId("nav-receive").click();
+    const url = page.getByTestId("home-url-input");
+    await url.fill("https://www.youtube.com/watch?v=e2eSched001");
+    await url.press("Enter");
+    const rows = page.getByTestId(/^queue-item-/);
+    await expect(rows).toHaveCount(1, { timeout: 10_000 });
+    await expect(rows.first()).toHaveAttribute("data-stage", "queued");
+
+    await page.getByTestId("nav-queue").click();
+    await banner.getByRole("button", { name: "Empezar ahora" }).click();
+    await expect(banner).toBeHidden();
+    await expect(rows.first()).toHaveAttribute("data-stage", "done", { timeout: 60_000 });
+  });
+
   test("catalog search narrows the ledger", async ({ page, app }) => {
     await app.open({ scenario: "ready" });
     await page.getByTestId("nav-catalog").click();

@@ -7,10 +7,12 @@ import {
   EVT_JOB_REMOVED,
   EVT_JOB_UPDATE,
   EVT_OPEN_URL,
+  EVT_QUEUE_SCHEDULE,
   type DepProgress,
   type DepsReport,
   type Job,
   type JobId,
+  type QueueSchedule,
 } from "./types";
 
 export const events = {
@@ -18,6 +20,8 @@ export const events = {
     listen<Job>(EVT_JOB_UPDATE, (e) => cb(e.payload)),
   onJobRemoved: (cb: (id: JobId) => void): Promise<UnlistenFn> =>
     listen<JobId>(EVT_JOB_REMOVED, (e) => cb(e.payload)),
+  onQueueSchedule: (cb: (s: QueueSchedule) => void): Promise<UnlistenFn> =>
+    listen<QueueSchedule>(EVT_QUEUE_SCHEDULE, (e) => cb(e.payload)),
   onDepsProgress: (cb: (p: DepProgress) => void): Promise<UnlistenFn> =>
     listen<DepProgress>(EVT_DEPS_PROGRESS, (e) => cb(e.payload)),
   onDepsChanged: (cb: (r: DepsReport) => void): Promise<UnlistenFn> =>
