@@ -58,7 +58,7 @@ diálogo, así que YouTube funciona sin ningún paso. `pnpm ext:zip:store` quita
 `key` (`src/lib/store-manifest.ts`): la versión de la tienda empieza vacía. Al instalarse, las dos
 abren `welcome.html`, que guía para fijar la extensión en la barra y elegir sitios.
 
-Agregar un sitio (escribiéndolo o desde «Sitios sugeridos») pide el permiso del navegador para ese
+Agregar un sitio (desde «Sitios sugeridos», o escribiéndolo tras «+ Otro sitio…») pide el permiso del navegador para ese
 dominio, y quitarlo lo devuelve (salvo YouTube en el paquete descomprimido, cuyo permiso es del
 manifiesto). Un sitio que perdió el permiso muestra «Permitir».
 

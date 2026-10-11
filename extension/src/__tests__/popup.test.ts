@@ -166,6 +166,47 @@ describe("popup in Spanish", () => {
     expect($("sites-toggle").hidden).toBe(true);
   });
 
+  it("folds the typed-domain field behind «+ Otro sitio…»", async () => {
+    await mount("es", { grant: true, sites: ["youtube.com"] });
+    const toggle = $("add-toggle");
+    expect($("add-form").hidden).toBe(true);
+    expect(toggle.hidden).toBe(false);
+    expect(toggle.textContent?.trim()).toBe("Otro sitio…");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    toggle.click();
+    expect($("add-form").hidden).toBe(false);
+    expect(toggle.hidden).toBe(true);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(document.activeElement).toBe($("add-input"));
+
+    // adding folds it back
+    ($("add-input") as HTMLInputElement).value = "vimeo.com";
+    ($("add-form") as HTMLFormElement).requestSubmit();
+    await flush();
+    expect($("add-form").hidden).toBe(true);
+    expect(toggle.hidden).toBe(false);
+  });
+
+  it("Esc on an empty field folds it; a refused suggestion still explains why", async () => {
+    await mount("es", { grant: false, sites: ["youtube.com"] });
+    $("add-toggle").click();
+    $("add-input").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect($("add-form").hidden).toBe(true);
+    expect(document.activeElement).toBe($("add-toggle"));
+
+    (document.querySelector("#suggest-list button") as HTMLElement).click();
+    await flush();
+    expect($("add-form").hidden).toBe(true);
+    expect($("add-error").hidden).toBe(false);
+    expect(text("add-error")).toMatch(/vimeo.com/);
+  });
+
+  it("reads «Another site…» in English", async () => {
+    await mount("en", { sites: ["youtube.com"] });
+    expect($("add-toggle").textContent?.trim()).toBe("Another site…");
+  });
+
   it("a site just added is shown even past the fifth row", async () => {
     const sites = ["a.com", "b.com", "c.com", "d.com", "e.com", "f.com"];
     await mount("es", { grant: true, sites });

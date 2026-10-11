@@ -170,7 +170,35 @@
           <div id="suggest-list" class="chips"></div>
         </div>
 
-        <form id="add-form" class="add" novalidate>
+        <!-- Typing a domain is the rare path (suggestions and «Esta página» cover the known
+             sites), so the field stays folded behind a quiet link. -->
+        <button
+          id="add-toggle"
+          class="button ghost add-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="add-form"
+        >
+          <svg
+            class="icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="M12 5v14" />
+          </svg>
+          <span data-i18n="addOther"></span>
+        </button>
+
+        <form id="add-form" class="add" novalidate hidden>
           <label class="field-label" for="add-input" data-i18n="addLabel"></label>
           <div class="add-row">
             <input
@@ -203,8 +231,9 @@
               <span data-i18n="addButton"></span>
             </button>
           </div>
-          <p id="add-error" class="field-error" role="alert" hidden></p>
         </form>
+        <!-- outside the form: a refused suggestion reports here too, with the field folded -->
+        <p id="add-error" class="field-error" role="alert" hidden></p>
       </section>
 
       <footer class="privacy">
