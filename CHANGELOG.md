@@ -8,6 +8,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - **Ventana de la extensión más limpia.** El campo para escribir un sitio queda plegado tras **+ Otro sitio…**: los sitios conocidos se agregan con **Sitios sugeridos** o **Usar mi sesión de …**. Extensión 1.4.2.
 
+### Proyecto
+
+- README y portada de la documentación presentan ymd por lo que resuelve («Pega un enlace y guarda el video…»), con una sección «Qué resuelve este proyecto» y la nueva página [Casos de borde](https://galexbh.github.io/ymd/desarrollo/casos-de-borde/): once problemas reales con su síntoma, causa, arreglo y código.
+
 ## [0.6.0] - 2026-10-11
 
 ### Novedades

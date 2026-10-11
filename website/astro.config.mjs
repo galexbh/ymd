@@ -75,6 +75,7 @@ export default defineConfig({
             "desarrollo/tests-y-ci",
             "desarrollo/releases",
             "desarrollo/puente-de-cookies",
+            "desarrollo/casos-de-borde",
           ],
         },
         "changelog",

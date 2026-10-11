@@ -5,7 +5,7 @@
   <img src="docs/assets/ymd-isotype-light.svg" alt="ymd" width="96">
 </picture>
 
-<p><strong>Aplicación de escritorio para descargar video y audio con yt-dlp.</strong></p>
+<p><strong>Pega un enlace y guarda el video o la música en tu equipo. Sin terminal ni comandos, y con tu sesión cuando el video la pide.</strong></p>
 
 [![CI](https://github.com/galexbh/ymd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/galexbh/ymd/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/galexbh/ymd?display_name=tag&sort=semver)](https://github.com/galexbh/ymd/releases/latest)
@@ -91,7 +91,7 @@ Para videos que exigen sesión: extensión ymd Cookies para Brave, Chrome y Edge
 
 Requisitos: Node 24+, Rust estable y, en Linux, los [prerrequisitos de Tauri 2](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` arranca la app; `pnpm dev:mock`, solo la interfaz con un backend simulado.
 
-Guía, arquitectura, tests y releases en [Desarrollo](https://galexbh.github.io/ymd/desarrollo/contribuir/) y en [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+Guía, arquitectura, tests y releases en [Desarrollo](https://galexbh.github.io/ymd/desarrollo/contribuir/) y en [CONTRIBUTING.md](.github/CONTRIBUTING.md). Los problemas reales que no salen en ningún tutorial, con su causa y su arreglo, están en [Casos de borde](https://galexbh.github.io/ymd/desarrollo/casos-de-borde/).
 
 | Ruta         | Contenido                                                                  |
 | ------------ | -------------------------------------------------------------------------- |
@@ -112,6 +112,14 @@ El instalador no incluye yt-dlp ni FFmpeg. ymd los descarga desde sus fuentes of
 ## Aviso
 
 ymd no está afiliado a YouTube ni a ningún otro sitio. Respeta los términos de servicio de cada sitio y descarga solo contenido que tengas derecho a guardar.
+
+## Qué resuelve este proyecto
+
+- **Una herramienta de terminal convertida en una app para cualquiera.** Quien no usa la consola pega un enlace y descarga; la app instala, verifica y mantiene al día sus propias dependencias.
+- **Usar la sesión del navegador de forma segura para descargar lo que pide una cuenta.** Es el mismo patrón que bajar tus propios datos de un portal donde tienes cuenta: las cookies viajan por un canal local, sin red, y se guardan cifradas.
+- **Publicar y actualizar una app de escritorio en tres sistemas operativos con CI.** Cada versión se compila y se publica desde GitHub Actions, y la app se actualiza sola con actualizaciones firmadas.
+
+Los problemas concretos que hubo que resolver, con su causa y su arreglo, están en [Casos de borde](https://galexbh.github.io/ymd/desarrollo/casos-de-borde/).
 
 ## Agradecimientos
 
