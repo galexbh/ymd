@@ -128,6 +128,32 @@ fn cookies_are_stored() {
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
     assert_eq!(names.len(), 2, "{names:?}");
+
+    // The sync is logged to the local log file: counts only, never names or values.
+    let logs: Vec<std::path::PathBuf> = std::fs::read_dir(dir.path().join("logs"))
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .collect();
+    assert_eq!(logs.len(), 1, "{logs:?}");
+    let log = std::fs::read_to_string(&logs[0]).unwrap();
+    let event: Value = serde_json::from_str(
+        log.lines()
+            .find(|l| l.contains("cookie sync finished"))
+            .expect("cookie sync event"),
+    )
+    .unwrap();
+    assert_eq!(event["fields"]["received"], 3);
+    assert_eq!(event["fields"]["stored"], 2);
+    assert_eq!(event["fields"]["outcome"], "ok");
+    assert_eq!(event["span"]["name"], "cookie_sync");
+    assert_eq!(event["span"]["browser"], "brave");
+    for secret in ["synthetic-sid", "SID", "PREF", "youtube.com", "f6=8"] {
+        assert!(
+            !log.contains(secret),
+            "{secret} in the log:
+{log}"
+        );
+    }
 }
 
 #[test]

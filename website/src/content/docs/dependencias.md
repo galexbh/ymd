@@ -27,7 +27,7 @@ Acciones: **Instalar todo lo recomendado**, **Buscar actualizaciones**, y por he
 | macOS   | `~/Library/Application Support/<id de la app>/bin`                 |
 | Linux   | `$XDG_DATA_HOME/<id de la app>/bin` (normalmente `~/.local/share`) |
 
-Los programas viven aquí, fuera de la instalación de ymd; borrarlos no afecta tus descargas. La ubicación se cambia en **Ajustes → Avanzado → Carpeta de herramientas** (**Volver a la predeterminada** la restablece). **Abrir carpeta de datos** abre la carpeta donde ymd guarda su historial y su copia de cookies.
+Los programas viven aquí, fuera de la instalación de ymd; borrarlos no afecta tus descargas. La ubicación se cambia en **Ajustes → Avanzado → Carpeta de herramientas** (**Volver a la predeterminada** la restablece). **Abrir carpeta de datos** abre la carpeta donde ymd guarda su historial, su copia de cookies y sus [registros](/ymd/solucion-de-problemas/#registros-de-ymd).
 
 ## Verificación
 

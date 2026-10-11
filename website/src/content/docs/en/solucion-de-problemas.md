@@ -118,3 +118,33 @@ When a download fails, ymd turns the yt-dlp error into a message with its fix an
 When installing ymd on Windows, SmartScreen may show this warning because the installer isn't code-signed (Authenticode) yet.
 
 **Fix:** select **More info**, then **Run anyway**. See [Installation](/ymd/en/guia/instalacion/#smartscreen-warning).
+
+## Reporting a problem
+
+### ymd's logs
+
+ymd notes what it does (how long each stage of a download takes, how it ended, the error code, tool updates and how many cookies came in from the extension) in text files inside its data folder, under `logs`:
+
+- **Windows:** `%APPDATA%\com.ymd.app\logs`
+- **macOS:** `~/Library/Application Support/com.ymd.app/logs`
+- **Linux:** `~/.local/share/com.ymd.app/logs`
+
+**Settings → Advanced → Open data folder** opens that folder. There's one file per day (`ymd.YYYY-MM-DD.jsonl`), and ymd deletes the ones older than 14 days on its own (and the oldest ones if together they go past 20 MB).
+
+The logs never leave your computer: ymd has no analytics or telemetry and sends them nowhere. They don't store links, passwords, 2FA codes or cookies either; before writing each line, ymd strips your home-folder paths, link parameters and anything that looks like a token.
+
+### Export diagnostics
+
+To report a problem in [ymd's issues](https://github.com/galexbh/ymd/issues):
+
+1. Open **Settings → Advanced** and press **Export diagnostics**.
+2. Choose where to save the `ymd-diagnostico-YYYYMMDD-HHMM.zip` file. When it's done, the **Diagnostics saved** notice has **Show in folder**.
+3. Attach that zip to the issue and describe what you did and what you expected.
+
+The zip is built on your computer and only you share it. It contains:
+
+- `info.txt`: ymd's version, operating system and architecture, language, the yt-dlp, FFmpeg and Deno versions, the JavaScript runtime in use and a summary of your settings (only options and numbers, like the yt-dlp channel or how many simultaneous downloads; no folders).
+- `logs/`: the logs from the last 14 days, cleaned again on export.
+- `timings.txt`: how long each stage (download, merge, post-processing) of the latest downloads took.
+
+It doesn't contain your history, the download archive, cookies, passwords, system keychain data or your settings file.
