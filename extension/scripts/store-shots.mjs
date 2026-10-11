@@ -1,5 +1,6 @@
 // Chrome Web Store graphics, all JPEG (24-bit, no alpha, as the store asks):
 //   store/screenshot-<locale>-<scheme>.jpg  1280×800  the real popup, connected, on a plain page
+//   store/screenshot-welcome-<locale>.jpg   1280×800  the welcome page of the store package
 //   store/tile-small.jpg                    440×280   small promo tile
 //   store/tile-marquee.jpg                  1400×560  marquee promo tile
 //
@@ -17,6 +18,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { storeManifest } from "../src/lib/store-manifest.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(here, "../dist");
@@ -32,11 +34,17 @@ mkdirSync(OUT, { recursive: true });
 const COPY = {
   es: {
     title: "Tus sesiones, de tu navegador a ymd",
-    body: "Descarga con tu cuenta de YouTube sin exportar archivos. Las cookies viajan solo a ymd, en tu equipo, sin red.",
+    body: "Descarga con tu propia sesión, sin exportar archivos. Las cookies viajan solo a ymd, en tu equipo, sin red.",
+    welcomeTitle: "Dos pasos y listo",
+    welcomeBody:
+      "Al instalarla, una página te guía para fijarla en la barra y elegir los sitios. Cada sitio pide su propio permiso.",
   },
   en: {
     title: "Your sessions, from your browser to ymd",
-    body: "Download with your YouTube account without exporting files. Cookies travel only to ymd, on your computer, with no network.",
+    body: "Download with your own session, without exporting files. Cookies travel only to ymd, on your computer, with no network.",
+    welcomeTitle: "Two steps and you're done",
+    welcomeBody:
+      "Once installed, a page guides you to pin it to the toolbar and choose your sites. Each site asks for its own permission.",
   },
 };
 const THEME = {
@@ -95,6 +103,37 @@ async function popupShot(locale, scheme) {
   }
 }
 
+/** The welcome page a store install opens, as a 2× PNG of its main column. */
+async function welcomeShot(locale) {
+  const userDataDir = mkdtempSync(join(tmpdir(), "ymd-shots-"));
+  const ext = join(userDataDir, "extension");
+  cpSync(DIST, ext, { recursive: true });
+  const manifest = JSON.parse(readFileSync(join(ext, "manifest.json"), "utf8"));
+  writeFileSync(join(ext, "manifest.json"), JSON.stringify(storeManifest(manifest), null, 2));
+  const lang = locale === "es" ? "es-ES" : "en-US";
+  const context = await chromium.launchPersistentContext(userDataDir, {
+    channel: "chromium",
+    headless: true,
+    locale: lang,
+    colorScheme: "light",
+    viewport: { width: 760, height: 1200 },
+    deviceScaleFactor: 2,
+    args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, `--lang=${locale}`],
+    env: { ...process.env, LANGUAGE: locale, LANG: `${lang.replace("-", "_")}.UTF-8` },
+  });
+  try {
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+    const id = new URL(worker.url()).host;
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${id}/welcome.html`);
+    await page.waitForSelector("#use-youtube:not([hidden])");
+    return await page.locator("main.welcome").screenshot();
+  } finally {
+    await context.close();
+    rmSync(userDataDir, { recursive: true, force: true });
+  }
+}
+
 const img = (png, width, c) =>
   `<img alt="" src="data:image/png;base64,${png.toString("base64")}" style="width:${width}px;
    border:1px solid ${c.rule};border-radius:12px;box-shadow:0 24px 60px rgb(0 0 0 / .18)">`;
@@ -113,7 +152,9 @@ async function render(browser, name, width, height, html) {
 }
 
 const shots = {};
+const welcome = {};
 for (const locale of ["es", "en"]) {
+  welcome[locale] = await welcomeShot(locale);
   for (const scheme of ["light", "dark"]) {
     shots[`${locale}-${scheme}`] = await popupShot(locale, scheme);
   }
@@ -138,6 +179,26 @@ try {
           <p style="margin:0;font-size:20px;line-height:1.5;color:${c.muted}">${COPY[locale].body}</p>
         </div>
         ${img(png, 380, c)}
+      </div>`,
+    );
+  }
+
+  for (const [locale, png] of Object.entries(welcome)) {
+    const c = THEME.light;
+    await render(
+      browser,
+      `screenshot-welcome-${locale}.jpg`,
+      1280,
+      800,
+      `<div style="width:1280px;height:800px;box-sizing:border-box;background:${c.ground};color:${c.ink};
+        font-family:${FONT};display:flex;align-items:center;gap:72px;padding:0 96px;overflow:hidden">
+        <div style="flex:1;max-width:520px">
+          <p style="margin:0 0 20px;font:600 14px/1 ${MONO};letter-spacing:.14em;text-transform:uppercase;
+            color:${c.muted}">ymd Cookies</p>
+          <h1 style="margin:0 0 20px;font-size:44px;line-height:1.15;font-weight:650">${COPY[locale].welcomeTitle}</h1>
+          <p style="margin:0;font-size:20px;line-height:1.5;color:${c.muted}">${COPY[locale].welcomeBody}</p>
+        </div>
+        <div style="height:800px;padding-top:48px;box-sizing:border-box">${img(png, 420, c)}</div>
       </div>`,
     );
   }
