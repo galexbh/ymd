@@ -75,7 +75,7 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 
 To leave downloads queued and have them start later (at night, say), type a time on the **Ledger** screen next to **Schedule start** and press the button. If that time already passed today, the queue starts tomorrow at that time.
 
-Meanwhile a notice reads "The queue starts at 23:30" (or "tomorrow at …"): queued downloads wait and running ones carry on. **Start now** starts the queue right away and **Remove** drops the scheduled time (queued downloads start too). The time only lives while ymd is open: quitting ymd forgets it.
+Meanwhile a notice reads "The queue starts at 23:30" (or "tomorrow at …"): queued downloads wait and running ones carry on. **Start now** drops the scheduled time and starts the queue right away. The time only lives while ymd is open: quitting ymd forgets it.
 
 ## When closing the window
 

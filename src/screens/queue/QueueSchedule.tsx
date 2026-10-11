@@ -79,12 +79,13 @@ export function ScheduleBanner() {
         tone="info"
         title={title}
         actions={[
+          // Without a time the queue simply runs, so dropping the schedule and starting now are
+          // the same action: one button.
           {
             label: t("queue.schedule.startNow"),
             primary: true,
             onClick: () => void schedule(null),
           },
-          { label: t("queue.schedule.remove"), onClick: () => void schedule(null) },
         ]}
       >
         {t("queue.schedule.body")}
