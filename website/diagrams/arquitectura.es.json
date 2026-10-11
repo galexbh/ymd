@@ -9,7 +9,7 @@
     "repository": {
       "url": "git@github.com:galexbh/ymd.git",
       "link_mode": "local-only",
-      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+      "revision": "219842f9f6fd568577e69a598fd235dabca93f69"
     },
     "translations": {
       "page.title": "{title} · Diagrama",
@@ -493,7 +493,7 @@
       "sources": [
         {
           "path": "src-tauri/src/lib.rs",
-          "line": 160,
+          "line": 191,
           "label": "generate_handler"
         }
       ]
@@ -508,8 +508,8 @@
       "sources": [
         {
           "path": "src-tauri/src/settings.rs",
-          "line": 139,
-          "end_line": 185,
+          "line": 141,
+          "end_line": 149,
           "label": "load / save"
         }
       ]
@@ -613,8 +613,8 @@
         },
         {
           "path": "src-tauri/src/auth/mod.rs",
-          "line": 68,
-          "end_line": 71,
+          "line": 69,
+          "end_line": 72,
           "label": "--netrc-cmd"
         }
       ]
@@ -644,20 +644,20 @@
       "id": "cookies",
       "type": "database",
       "label": "cookies.txt",
-      "sublabel": "auth/ · solo el usuario",
+      "sublabel": "auth/ · cifrado",
       "pos": [720, 490],
       "size": [130, 56],
       "sources": [
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 157,
-          "end_line": 163,
-          "label": "store"
+          "line": 49,
+          "end_line": 60,
+          "label": "store_from_extension"
         },
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 207,
-          "end_line": 220,
+          "line": 152,
+          "end_line": 165,
           "label": "copia por ejecución"
         }
       ]
@@ -672,14 +672,14 @@
       "sources": [
         {
           "path": "extension/src/lib/sync.ts",
-          "line": 111,
-          "end_line": 145,
+          "line": 138,
+          "end_line": 174,
           "label": "runSync"
         },
         {
           "path": "src-tauri/src/auth/native_host.rs",
-          "line": 250,
-          "end_line": 279,
+          "line": 359,
+          "end_line": 386,
           "label": "host nativo"
         }
       ]
@@ -793,7 +793,7 @@
       "title": "Secretos",
       "items": [
         "Contraseñas solo en el llavero; yt-dlp las pide con --netrc-cmd",
-        "cookies.txt con permisos solo para el usuario",
+        "cookies.txt cifrado con una clave del llavero, solo para el usuario",
         "yt-dlp descarga de los sitios por HTTPS"
       ]
     },

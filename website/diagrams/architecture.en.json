@@ -9,7 +9,7 @@
     "repository": {
       "url": "git@github.com:galexbh/ymd.git",
       "link_mode": "local-only",
-      "revision": "78054fa146c791dc64bd6e9dd901f1c709460e7a"
+      "revision": "219842f9f6fd568577e69a598fd235dabca93f69"
     }
   },
   "components": [
@@ -33,13 +33,13 @@
         {
           "path": "src/ipc/commands.ts",
           "line": 33,
-          "label": "api: único invoke"
+          "label": "api: single invoke"
         },
         {
           "path": "src/ipc/events.ts",
           "line": 1,
           "end_line": 2,
-          "label": "listen tipado"
+          "label": "typed listen"
         }
       ]
     },
@@ -53,7 +53,7 @@
       "sources": [
         {
           "path": "src-tauri/src/lib.rs",
-          "line": 160,
+          "line": 191,
           "label": "generate_handler"
         }
       ]
@@ -68,8 +68,8 @@
       "sources": [
         {
           "path": "src-tauri/src/settings.rs",
-          "line": 139,
-          "end_line": 185,
+          "line": 141,
+          "end_line": 149,
           "label": "load / save"
         }
       ]
@@ -127,7 +127,7 @@
           "path": "src-tauri/src/jobs.rs",
           "line": 1,
           "end_line": 6,
-          "label": "FIFO + límite"
+          "label": "FIFO + limit"
         },
         {
           "path": "src-tauri/src/jobs.rs",
@@ -148,7 +148,7 @@
         {
           "path": "src-tauri/src/process.rs",
           "line": 13,
-          "label": "argv, sin shell"
+          "label": "argv, no shell"
         }
       ]
     },
@@ -173,8 +173,8 @@
         },
         {
           "path": "src-tauri/src/auth/mod.rs",
-          "line": 68,
-          "end_line": 71,
+          "line": 69,
+          "end_line": 72,
           "label": "--netrc-cmd"
         }
       ]
@@ -196,7 +196,7 @@
           "path": "src-tauri/src/state.rs",
           "line": 89,
           "end_line": 92,
-          "label": "al completar"
+          "label": "on completion"
         }
       ]
     },
@@ -204,21 +204,21 @@
       "id": "cookies",
       "type": "database",
       "label": "cookies.txt",
-      "sublabel": "auth/ · owner-only",
+      "sublabel": "auth/ · encrypted",
       "pos": [720, 490],
       "size": [130, 56],
       "sources": [
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 157,
-          "end_line": 163,
-          "label": "store"
+          "line": 49,
+          "end_line": 60,
+          "label": "store_from_extension"
         },
         {
           "path": "src-tauri/src/auth/cookies.rs",
-          "line": 207,
-          "end_line": 220,
-          "label": "copia por ejecución"
+          "line": 152,
+          "end_line": 165,
+          "label": "per-run copy"
         }
       ]
     },
@@ -232,15 +232,15 @@
       "sources": [
         {
           "path": "extension/src/lib/sync.ts",
-          "line": 111,
-          "end_line": 145,
+          "line": 138,
+          "end_line": 174,
           "label": "runSync"
         },
         {
           "path": "src-tauri/src/auth/native_host.rs",
-          "line": 250,
-          "end_line": 279,
-          "label": "host nativo"
+          "line": 359,
+          "end_line": 386,
+          "label": "native host"
         }
       ]
     }
@@ -353,7 +353,7 @@
       "title": "Secrets",
       "items": [
         "Passwords live only in the keychain; yt-dlp asks via --netrc-cmd",
-        "cookies.txt is owner-only",
+        "cookies.txt is encrypted with a keychain key and owner-only",
         "yt-dlp downloads from the sites over HTTPS"
       ]
     },
