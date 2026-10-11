@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { api, toCommandError } from "../../commands";
 import { installMockBackend } from "..";
 import { bootMock, extensionFromParam } from "../boot";
-import { EXTENSION_ID } from "../fixtures";
+import { BUNDLED_EXTENSION_VERSION, EXTENSION_ID } from "../fixtures";
 
 describe("mock backend — cookie bridge", () => {
   afterEach(() => {
@@ -19,6 +19,7 @@ describe("mock backend — cookie bridge", () => {
     const st = await api.extensionStatus();
     expect(st.extensionId).toBe(EXTENSION_ID);
     expect(st.extensionDir).toBe("C:\\Program Files\\ymd\\resources\\extension");
+    expect(st.bundledVersion).toBe(BUNDLED_EXTENSION_VERSION);
     expect(st.hostManifest).toMatch(/com\.ymd\.cookies\.json$/);
     expect(st.targets.map((t) => t.browser)).toEqual(["brave", "chrome", "edge"]);
     expect(st.targets.every((t) => t.registered)).toBe(true);
@@ -39,11 +40,13 @@ describe("mock backend — cookie bridge", () => {
           cookieCount: 9,
           domains: [],
           signedIn: [],
+          extensionVersion: null,
         },
       },
     });
     const st = await api.extensionStatus();
     expect(st.extensionDir).toBeNull();
+    expect(st.bundledVersion).toBeNull();
     expect(st.targets.some((t) => t.registered)).toBe(false);
     expect(st.lastSync).toMatchObject({ browser: "edge", cookieCount: 9 });
     expect(st.hostManifest).toMatch(/^\/home\/ana\//);
@@ -59,6 +62,7 @@ describe("mock backend — cookie bridge", () => {
       cookieCount: 42,
       domains: [".youtube.com", ".google.com"],
       signedIn: ["youtube.com"],
+      extensionVersion: BUNDLED_EXTENSION_VERSION,
     });
     // a delivered message proves the host is registered for that browser
     expect(st.targets.find((t) => t.browser === "brave")?.registered).toBe(true);
@@ -73,6 +77,21 @@ describe("mock backend — cookie bridge", () => {
     // no YouTube cookies: signed out
     be.simulateExtensionSync("edge", 3, [".vimeo.com"]);
     expect((await api.cookiesInfo())?.signedIn).toEqual([]);
+  });
+
+  it("simulateExtensionSync records the sender's version; bundledVersion can be set", async () => {
+    const be = installMockBackend({ clock: "manual", extension: { bundledVersion: "2.0.0" } });
+    expect((await api.extensionStatus()).bundledVersion).toBe("2.0.0");
+    be.simulateExtensionSync("brave", 1, [], [], "1.3.0");
+    expect((await api.extensionStatus()).lastSync?.extensionVersion).toBe("1.3.0");
+    be.simulateExtensionSync("brave", 1, [], [], null);
+    expect((await api.extensionStatus()).lastSync?.extensionVersion).toBeNull();
+    be.setExtensionState({ extensionDir: false });
+    expect((await api.extensionStatus()).bundledVersion).toBeNull();
+    be.setExtensionState({ extensionDir: true });
+    expect((await api.extensionStatus()).bundledVersion).toBe(BUNDLED_EXTENSION_VERSION);
+    be.setExtensionState({ bundledVersion: "9.9" });
+    expect((await api.extensionStatus()).bundledVersion).toBe("9.9");
   });
 
   it("setExtensionState flips registration, folder and sync", async () => {
@@ -112,7 +131,10 @@ describe("mock backend — cookie bridge", () => {
       at: "2026-10-08T14:56:00.000Z",
       browser: "brave",
       cookieCount: 42,
+      extensionVersion: BUNDLED_EXTENSION_VERSION,
     });
+    const outdated = extensionFromParam("outdated", 0);
+    expect(outdated.lastSync?.extensionVersion).toBe("1.4.0");
 
     window.history.replaceState(null, "", "/?ext=synced");
     const be = bootMock();

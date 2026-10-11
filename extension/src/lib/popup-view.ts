@@ -5,7 +5,7 @@ import { originPattern } from "./domains";
 import { addSite, removeSite } from "./sites";
 import { stampState, type Status, type StatusError } from "./status";
 import { KEYS, readAllowlist, readStatus } from "./storage";
-import { type PopupRequest, type PopupResponse, type OpenResult } from "./sync";
+import { type PopupRequest, type PopupResponse } from "./sync";
 import { siteToOffer } from "./current-site";
 import { webLink } from "./links";
 import { siteOf, suggestedProviders } from "./suggestions";
@@ -32,6 +32,9 @@ const ERROR_KEYS: Record<StatusError["code"], [string, string]> = {
 };
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+/** Rows shown before «Mostrar todos (N)» folds the rest of a long list. */
+export const SITES_FOLDED = 5;
 
 function xIcon(doc: Document): SVGSVGElement {
   // Lucide "x", stroke 1.75.
@@ -85,6 +88,8 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
 
   let status: Status = await readStatus(api);
   let sites: string[] = await readAllowlist(api);
+  // A long list starts folded; a site just added is always shown (it unfolds the list).
+  let expanded = false;
 
   function renderStatus(): void {
     const state = stampState(status);
@@ -131,10 +136,26 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     }
   }
 
+  /** Puts a just-added site on screen: past the fifth row, the list unfolds. */
+  function revealSite(domain: string): void {
+    if (sites.indexOf(domain) >= SITES_FOLDED) expanded = true;
+  }
+
+  const toggle = $<HTMLButtonElement>("sites-toggle");
+  toggle.addEventListener("click", () => {
+    expanded = !expanded;
+    renderSites();
+  });
+
   function renderSites(): void {
     const list = $("site-list");
+    const folds = sites.length > SITES_FOLDED;
+    const shown = folds && !expanded ? sites.slice(0, SITES_FOLDED) : sites;
+    toggle.hidden = !folds;
+    toggle.setAttribute("aria-expanded", String(folds && expanded));
+    toggle.textContent = expanded ? t("sitesShowLess") : t("sitesShowAll", String(sites.length));
     list.replaceChildren(
-      ...sites.map((domain) => {
+      ...shown.map((domain) => {
         const li = doc.createElement("li");
         li.className = "ledger-row";
         const name = doc.createElement("span");
@@ -199,6 +220,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
           void addSite(api, sites, siteOf(p)).then((res) => {
             if (res.ok) {
               sites = res.list;
+              revealSite(res.domain);
               showAddError(null);
               renderSites();
             } else if (res.reason === "denied") {
@@ -251,6 +273,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     void addSite(api, sites, input.value).then((res) => {
       if (res.ok) {
         sites = res.list;
+        revealSite(res.domain);
         input.value = "";
         showAddError(null);
         renderSites();
@@ -287,30 +310,23 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     }
   });
 
-  // «Descargar con ymd» for the page in the active tab (readable thanks to activeTab).
-  let pageUrl: string | null = null;
-  try {
-    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
-    pageUrl = webLink(tab?.url);
-  } catch {
-    pageUrl = null;
-  }
-  if (pageUrl) {
-    $("current").hidden = false;
-    $("current-host").textContent = new URL(pageUrl).hostname.replace(/^www\./, "");
-  }
-  // «Usar mi sesión de Vimeo»: one click adds the active site when ymd knows it.
+  // «Esta página» offers «Usar mi sesión de Vimeo» when ymd knows the active site (readable
+  // thanks to activeTab) and the list doesn't cover it yet. Nothing to offer, no section.
   let tabUrl: string | undefined;
   try {
     tabUrl = (await api.tabs.query({ active: true, currentWindow: true }))[0]?.url;
   } catch {
     tabUrl = undefined;
   }
+  const pageUrl = webLink(tabUrl);
+  if (pageUrl) $("current-host").textContent = new URL(pageUrl).hostname.replace(/^www\./, "");
   const addCurrent = $<HTMLButtonElement>("add-current");
   function renderCurrentSite(): void {
     const offer = siteToOffer(tabUrl, sites);
     addCurrent.hidden = !offer;
     if (offer) $("add-current-label").textContent = t("currentUseSession", offer.name);
+    // The result of a click stays readable after the offer is gone.
+    $("current").hidden = !pageUrl || (!offer && !$("add-current-result").textContent);
   }
   async function addCurrentSite(): Promise<void> {
     const offer = siteToOffer(tabUrl, sites);
@@ -320,6 +336,7 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
     const res = await addSite(api, sites, offer.domain);
     if (res.ok) {
       sites = res.list;
+      revealSite(res.domain);
       renderSites();
       result.textContent = t("currentAdded", offer.name);
       result.dataset.tone = "ok";
@@ -335,32 +352,10 @@ export async function mountPopup(doc: Document, deps: PopupDeps) {
   addCurrent.addEventListener("click", () => void addCurrentSite());
   renderCurrentSite();
 
-  const download = $<HTMLButtonElement>("download-page");
-  async function downloadPage(): Promise<void> {
-    if (!pageUrl || download.getAttribute("aria-busy") === "true") return;
-    download.setAttribute("aria-busy", "true");
-    const result = $("download-result");
-    try {
-      const res = (await api.runtime.sendMessage({
-        type: "open",
-        url: pageUrl,
-      } satisfies PopupRequest)) as OpenResult | undefined;
-      result.textContent = res?.ok ? t("downloadSent") : t("downloadFailed");
-      result.dataset.tone = res?.ok ? "ok" : "error";
-    } catch {
-      result.textContent = t("downloadFailed");
-      result.dataset.tone = "error";
-    } finally {
-      download.removeAttribute("aria-busy");
-    }
-  }
-  download.addEventListener("click", () => void downloadPage());
-
   renderStatus();
   renderSites();
 
   return {
-    downloadPage,
     addCurrentSite,
     sendNow,
     refresh: renderStatus,

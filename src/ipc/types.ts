@@ -319,12 +319,16 @@ export interface ExtensionSync {
   domains: string[];
   /** sites with a signed-in session in the synced jar */
   signedIn: string[];
+  /** manifest version of the extension that synced ("1.4.1"); null for extensions older than this field */
+  extensionVersion: string | null;
 }
 
 export interface ExtensionStatus {
   extensionId: string;
   /** folder to "Load unpacked" from; null in dev builds without bundled resources */
   extensionDir: string | null;
+  /** version of the bundled extension (its manifest.json); null without the folder */
+  bundledVersion: string | null;
   hostManifest: string | null;
   targets: BridgeTarget[];
   lastSync: ExtensionSync | null;

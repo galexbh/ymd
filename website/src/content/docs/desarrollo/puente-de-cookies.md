@@ -38,8 +38,9 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 - `{"type":"hello","version":1}`
   → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1,"features":["cookies","open"]}`
   - `features` lista los mensajes que entiende este ymd; un ymd anterior no lo envía.
-- `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","cookies":[Cookie…]}`
+- `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","extension":"1.4.1","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
+  - `extension` es opcional: la versión del manifiesto de la extensión (`chrome.runtime.getManifest().version`). Solo se aceptan dígitos y puntos, de 16 caracteres como máximo; otro valor se ignora y el envío sigue. Una extensión anterior no lo envía.
   - `Cookie` refleja `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Los campos extra se ignoran.
   - Un `browser` desconocido se registra como `other`.
   - `count` y `domains` describen lo que se escribió. Se omiten las cookies con nombre vacío, con caracteres de control en la ruta, el nombre o el valor, con un dominio que no sea un nombre de host válido, con una ruta que no empiece por `/`, o de más de 4096 bytes (nombre más valor). Si no queda ninguna, la respuesta es un error y se conserva el `cookies.txt` anterior.
@@ -52,7 +53,8 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 ## Efectos
 
 - El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
-- Escribe `cookies.meta.json` con `origin: "extension:<browser>"`.
+- Escribe `cookies.meta.json` con `origin: "extension:<browser>"` y, si llegó, `extensionVersion`.
+- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, o no llegó, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza sola.
 - La app lee ambos con `cookies_info` y `extension_status`.
 - `open` lanza `ymd --open-url <url>` y responde enseguida. Si ymd ya está abierto, esa segunda instancia le pasa el enlace y se cierra, y ymd pasa al frente; si no, ymd arranca con él. El enlace aparece en **Recibir** con su ficha. Nunca se descarga nada sin tu clic.
 

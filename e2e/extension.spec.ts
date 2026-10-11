@@ -61,3 +61,16 @@ test("Cuentas with the extension card never scrolls sideways at 880px", async ({
   });
   expect(overflow).toEqual([]);
 });
+
+test("an extension older than the bundled one gets a reload notice", async ({ page, app }) => {
+  await page.clock.install({ time: T0 });
+  await app.open({ scenario: "ready", ext: "outdated" });
+  await openAccounts(page);
+  const card = page.getByTestId("extension-card");
+  await expect(card.getByTestId("extension-stamp")).toContainText("Conectada");
+  await expect(card.getByTestId("extension-version")).toHaveText("1.4.0");
+  const notice = card.getByTestId("extension-outdated");
+  await expect(notice).toContainText("Hay una versión nueva de la extensión (1.4.1)");
+  await notice.getByRole("button", { name: "Abrir Brave y copiar la dirección" }).click();
+  await expect(card.getByTestId("extension-opened")).toContainText("brave://extensions");
+});

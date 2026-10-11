@@ -44,6 +44,10 @@ export interface MenuClickInfo {
   menuItemId: string | number;
   linkUrl?: string;
   srcUrl?: string;
+  /** The embedded document (iframe) right-clicked, e.g. a YouTube or Vimeo player. */
+  frameUrl?: string;
+  /** Selected text, when the selection itself is a link. */
+  selectionText?: string;
   pageUrl?: string;
 }
 
@@ -52,7 +56,6 @@ export interface MenuProperties {
   title: string;
   contexts: string[];
   documentUrlPatterns?: string[];
-  targetUrlPatterns?: string[];
 }
 
 export interface Tab {
@@ -80,8 +83,11 @@ export interface ChromeApi {
   runtime: {
     /** This extension's ID. */
     id: string;
-    /** Only the required host permissions are read (they decide the preset sites). */
-    getManifest(): { host_permissions?: string[] };
+    /**
+     * Only the required host permissions (they decide the preset sites) and the version (sent
+     * to ymd with every sync) are read.
+     */
+    getManifest(): { version: string; host_permissions?: string[] };
     getURL(path: string): string;
     lastError?: { message?: string };
     // Callback form on purpose: it is the only form where `lastError` is readable everywhere.
@@ -121,6 +127,10 @@ export interface ChromeApi {
     setTitle(details: { title: string }): Promise<void>;
     /** Chrome 91+: whether the person pinned the extension to the toolbar. */
     getUserSettings?(): Promise<{ isOnToolbar?: boolean }>;
+  };
+  commands: {
+    /** Keyboard shortcuts declared under `commands` in the manifest (no permission needed). */
+    onCommand: ChromeEvent<(command: string, tab?: Tab) => void>;
   };
   tabs: {
     /** With `activeTab`, the active tab's `url` is readable while the popup is open. */

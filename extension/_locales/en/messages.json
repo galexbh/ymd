@@ -134,15 +134,6 @@
   "currentHeading": {
     "message": "This page"
   },
-  "downloadPage": {
-    "message": "Download with ymd"
-  },
-  "downloadSent": {
-    "message": "Sent to ymd. Check the ymd window."
-  },
-  "downloadFailed": {
-    "message": "Couldn't open ymd. Make sure it's installed and up to date."
-  },
   "sessionYoutube": {
     "message": "YouTube session"
   },
@@ -235,5 +226,20 @@
   },
   "welcomeDone": {
     "message": "You can close this tab. To change your sites later, open ymd Cookies from the toolbar."
+  },
+  "commandDownload": {
+    "message": "Download the current page with ymd"
+  },
+  "sitesShowAll": {
+    "message": "Show all ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "sitesShowLess": {
+    "message": "Show less"
   }
 }

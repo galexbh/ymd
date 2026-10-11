@@ -46,27 +46,6 @@
       <section id="current" class="section" aria-labelledby="current-head" hidden>
         <h2 id="current-head" class="section-head" data-i18n="currentHeading"></h2>
         <p id="current-host" class="current-host"></p>
-        <button id="download-page" class="button primary block" type="button">
-          <svg
-            class="icon"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 15V3" />
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <path d="m7 10 5 5 5-5" />
-          </svg>
-          <span data-i18n="downloadPage"></span>
-        </button>
-        <p id="download-result" class="field-note" role="status"></p>
         <button id="add-current" class="button secondary block" type="button" hidden>
           <svg
             class="icon"
@@ -177,6 +156,14 @@
       <section class="section" aria-labelledby="sites-head">
         <h2 id="sites-head" class="section-head" data-i18n="sitesHeading"></h2>
         <ul id="site-list" class="ledger"></ul>
+        <button
+          id="sites-toggle"
+          class="button ghost sites-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-list"
+          hidden
+        ></button>
         <p id="sites-empty" class="empty" data-i18n="sitesEmpty" hidden></p>
         <div id="suggest" class="suggest" hidden>
           <p class="field-label" data-i18n="suggestLabel"></p>

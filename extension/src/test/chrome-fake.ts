@@ -20,6 +20,10 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const EXTENSION_DIR = resolve(here, "../..");
+/** The real manifest version (extension/manifest.json), as `runtime.getManifest()` reports it. */
+export const MANIFEST_VERSION = (
+  JSON.parse(readFileSync(resolve(EXTENSION_DIR, "manifest.json"), "utf8")) as { version: string }
+).version;
 
 export type Locale = "es" | "en";
 
@@ -153,6 +157,8 @@ export function createChromeFake(options: FakeOptions = {}) {
     installed: fakeEvent<(details: { reason: string }) => void>(),
     startup: fakeEvent<() => void>(),
     menuClicked: fakeEvent<(info: MenuClickInfo, tab?: Tab) => void>(),
+    /** Keyboard shortcuts (`commands` in the manifest). */
+    command: fakeEvent<(command: string, tab?: Tab) => void>(),
   };
 
   const record = {
@@ -191,7 +197,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       });
     },
     id: FAKE_ID,
-    getManifest: () => ({ host_permissions: [...required] }),
+    getManifest: () => ({ version: MANIFEST_VERSION, host_permissions: [...required] }),
     getURL: (path: string) => `chrome-extension://${FAKE_ID}/${path.replace(/^\//, "")}`,
     sendMessage(message) {
       return new Promise((resolve) => {
@@ -279,6 +285,9 @@ export function createChromeFake(options: FakeOptions = {}) {
       async getUserSettings() {
         return { isOnToolbar: pinned };
       },
+    },
+    commands: {
+      onCommand: events.command,
     },
     tabs: {
       async query() {

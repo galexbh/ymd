@@ -193,7 +193,7 @@
     "skip": "Ir al contenido",
     "pending": "{{n}} descargas en curso o en cola",
     "attention": "Hay dependencias que requieren atención",
-    "js": "Entorno JS",
+    "author": "Hecho por galexbh.dev",
     "missing": "no instalado"
   },
   "shortcuts": {
@@ -656,7 +656,8 @@
     "fact": {
       "browser": "Navegador",
       "lastSync": "Última sincronización",
-      "cookies": "Cookies"
+      "cookies": "Cookies",
+      "version": "Versión de la extensión"
     },
     "steps": "Pasos, una sola vez",
     "step1": "Muestra la carpeta de la extensión que viene con ymd: es la que vas a arrastrar.",
@@ -680,7 +681,9 @@
     "folderFailedHint": "Ábrela desde el Explorador de archivos en esta ruta:",
     "firefoxDefault": "Tu navegador predeterminado es Firefox",
     "firefoxDefaultBody": "ymd lee las cookies de Firefox directamente, así que no necesitas la extensión. Inicia sesión en YouTube en Firefox y usa sus cookies.",
-    "useFirefox": "Usar cookies de Firefox"
+    "useFirefox": "Usar cookies de Firefox",
+    "versionUnknown": "Anterior a esta función",
+    "outdated": "Hay una versión nueva de la extensión ({{version}}). Abre {{browser}} → extensiones y pulsa recargar en ymd Cookies."
   },
   "accounts": {
     "cookies": {

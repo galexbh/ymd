@@ -18,11 +18,11 @@ Steps, once:
 3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or press **Load unpacked** and choose it: it's the one containing `manifest.json`.
 4. The extension's welcome page opens. Follow its **Pin the extension to the toolbar** step: click the extensions icon (the puzzle piece), then the pin next to **ymd Cookies**. The page confirms once it's pinned. YouTube is already added in the extension that ships with ymd, so signing in to YouTube in that browser is enough: ymd will receive the cookies on its own.
 
-When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync and the number of cookies, and the cookie source switches to **Extension**. If **YouTube session** reads **Not added**, the extension isn't sending YouTube yet: add it from the extension.
+When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync, the number of cookies and the **Extension version**, and the cookie source switches to **Extension**. If **YouTube session** reads **Not added**, the extension isn't sending YouTube yet: add it from the extension.
 
 The **Extension ID** is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. Check it on the extensions page. The Chrome Web Store build, once published, has its own ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`; ymd only accepts messages from those two.
 
-When ymd updates, the extension is updated in the same folder.
+When ymd updates, the extension is updated in the same folder, but the browser keeps running the copy it loaded: an unpacked extension doesn't update itself. When ymd brings a newer version than the one syncing, the card says so: "A new version of the extension is available". Click **Open [browser] and copy the address**, paste the address and click the reload button on **ymd Cookies**. The notice goes away with the next sync.
 
 ### Supported browsers
 
@@ -49,8 +49,10 @@ On Windows, ymd registers the bridge under Brave's, Edge's and Vivaldi's keys, a
 
 From the browser, no copying or pasting:
 
-- **Right-click** a link, a video or anywhere on the page → **Download with ymd**.
-- Or open the extension popup and, under **This page**, click **Download with ymd**.
+- **Right-click** → **Download with ymd** on a link, a video or audio, selected text that is a link, an embedded player (for example, a YouTube or Vimeo video inside another page) or anywhere on the page. If what you clicked isn't a web link (the YouTube video itself, for example, or a `mailto:` link), the page is sent.
+- Or press **Alt+Shift+Y** to send the open tab. You can change the shortcut at `brave://extensions/shortcuts` (or `chrome://extensions/shortcuts`, depending on your browser).
+
+The address bar's own menu belongs to the browser: no extension can add entries there. Right-click the page or use the shortcut instead.
 
 ymd opens, or comes to the front if it was already open, with the link in **Receive** and its card. If the counter already held another link, ymd asks before replacing it. Nothing downloads until you click **File it**.
 
@@ -61,15 +63,15 @@ Pin "ymd Cookies" to the browser toolbar and open it:
 - The **Bridge to ymd** stamp reads **Connected**, **Offline** or **Error**, with the last send and the number of cookies.
 - **YouTube session** tells whether the copy ymd got holds your session: **Active** or **Signed out**. It goes by the cookies' names, without looking at their contents.
 - **Send now** forces a send.
-- **This page**: **Download with ymd** for the open tab and, on a site ymd knows (Vimeo, SoundCloud, Twitch…) that isn't on the list yet, **Use my … session in ymd** adds it in one click.
-- **Allowed sites**: in the extension that ships with ymd, it starts with `youtube.com`, whose permission comes in the manifest. The Chrome Web Store version starts empty and its welcome page offers **Use YouTube**. **Suggested sites** adds YouTube, Vimeo, SoundCloud or Twitch in one click, and **Add a site** takes any other domain. Each site, with its subdomains, asks the browser for permission at that moment, and removing it gives the permission back. A site on the list that lost its permission (for example, because you withdrew it in the browser) shows **Allow**. Your YouTube session lives in `youtube.com` cookies, so adding YouTube gives no access to your Google account.
+- **This page**: shows up only on a site ymd knows (Vimeo, SoundCloud, Twitch…) that isn't on the list yet; **Use my … session in ymd** adds it in one click. On YouTube once it's added, or on an unknown site, it isn't shown.
+- **Allowed sites**: in the extension that ships with ymd, it starts with `youtube.com`, whose permission comes in the manifest. The Chrome Web Store version starts empty and its welcome page offers **Use YouTube**. **Suggested sites** adds YouTube, Vimeo, SoundCloud or Twitch in one click, and **Add a site** takes any other domain. Each site, with its subdomains, asks the browser for permission at that moment, and removing it gives the permission back. A site on the list that lost its permission (for example, because you withdrew it in the browser) shows **Allow**. With more than five sites, the list folds: **Show all (N)** reveals the rest and **Show less** folds it again. A site you just added always stays in view. Your YouTube session lives in `youtube.com` cookies, so adding YouTube gives no access to your Google account.
 
 The extension icon shows an amber **!** when you're signed out of YouTube, and a red one when it can't reach ymd; hovering explains which. In ymd, **Settings → Accounts** shows the same **YouTube session** and tells you how to get it back.
 
 ## What it sends and where
 
 - **To whom:** only to the native program `com.ymd.cookies` (ymd), over Native Messaging. The browser starts it as a local process and passes the message on standard input. There's no network, server or telemetry.
-- **What:** the cookies of the domains on the list, with the `chrome.cookies.Cookie` fields (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), plus the browser name.
+- **What:** the cookies of the domains on the list, with the `chrome.cookies.Cookie` fields (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), plus the browser name and the extension version.
 - **When:** 3 s after a cookie on the list changes, every 30 min as a full sync, and when you click **Send now**. It only sends when the content changed (a SHA-256 hash is compared).
 - **What ymd does:** writes `cookies.txt` (Netscape format) in its data folder, encrypted with a key from the system keychain and readable only by your user, and uses it with yt-dlp.
 
@@ -98,6 +100,9 @@ The first sync arrives when a cookie changes or when you click **Send now** in t
 
 **Brave warns about developer-mode extensions on startup.**
 That's expected: the extension is loaded unpacked because it isn't published in a store yet.
+
+**"A new version of the extension is available".**
+ymd ships a newer version of the extension than the one you have loaded. On the browser's extensions page, click the reload button on **ymd Cookies**. If **Extension version** on the card reads **Older than this feature**, the loaded extension predates this feature: reload it all the same.
 
 **"This build doesn't include the extension folder".**
 Only happens in development mode. Build the extension with `pnpm ext:build` and load it from `extension/dist`.

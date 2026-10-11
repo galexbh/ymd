@@ -47,6 +47,7 @@ import {
   builtinPresets,
   defaultSettings,
   extensionDirFor,
+  BUNDLED_EXTENSION_VERSION,
   hash,
   hostManifestFor,
   isPlaylistUrl,
@@ -122,6 +123,11 @@ export interface MockExtensionOptions {
   registered?: boolean;
   /** The build bundles the extension folder (false = dev build). Default true. */
   extensionDir?: boolean;
+  /**
+   * Version of the bundled extension. Default `BUNDLED_EXTENSION_VERSION` ("1.4.1"), or null
+   * without the folder (like the real build).
+   */
+  bundledVersion?: string | null;
   /** Last sync delivered by the extension. Default null (installed, nothing synced yet). */
   lastSync?: ExtensionSync | null;
   /** The user's default browser. Default "brave". */
@@ -328,9 +334,16 @@ export class MockBackend {
     this.clipboard = options.clipboard ?? null;
     this.pendingUrl = options.pendingUrl ?? null;
     const ext = options.extension ?? {};
+    const bundled = ext.extensionDir ?? true;
     this.extension = {
       extensionId: EXTENSION_ID,
-      extensionDir: (ext.extensionDir ?? true) ? extensionDirFor(this.platform) : null,
+      extensionDir: bundled ? extensionDirFor(this.platform) : null,
+      bundledVersion:
+        ext.bundledVersion !== undefined
+          ? ext.bundledVersion
+          : bundled
+            ? BUNDLED_EXTENSION_VERSION
+            : null,
       hostManifest: hostManifestFor(this.platform),
       targets: bridgeTargetsFixture(ext.registered ?? true),
       lastSync: clone(ext.lastSync ?? null),
@@ -405,12 +418,17 @@ export class MockBackend {
     return true;
   }
 
-  /** The extension delivered `count` cookies from `browser` (writes cookies.txt + meta). */
+  /**
+   * The extension delivered `count` cookies from `browser` (writes cookies.txt + meta).
+   * `extensionVersion` is the sender's manifest version (default: the bundled one; null = an
+   * extension older than the version field).
+   */
   simulateExtensionSync(
     browser: string,
     count: number,
     domains: string[],
     signedIn: string[] = domains.some((d) => /youtube\.com$/.test(d)) ? ["youtube.com"] : [],
+    extensionVersion: string | null = BUNDLED_EXTENSION_VERSION,
   ): ExtensionSync {
     const at = new Date(this.clock.now()).toISOString();
     const sync: ExtensionSync = {
@@ -419,6 +437,7 @@ export class MockBackend {
       cookieCount: count,
       domains: [...domains],
       signedIn: [...signedIn],
+      extensionVersion,
     };
     this.extension.lastSync = sync;
     // a message got through, so the host is registered for that browser
@@ -442,7 +461,9 @@ export class MockBackend {
     }
     if (state.extensionDir !== undefined) {
       this.extension.extensionDir = state.extensionDir ? extensionDirFor(this.platform) : null;
+      this.extension.bundledVersion = state.extensionDir ? BUNDLED_EXTENSION_VERSION : null;
     }
+    if (state.bundledVersion !== undefined) this.extension.bundledVersion = state.bundledVersion;
     if (state.lastSync !== undefined) this.extension.lastSync = clone(state.lastSync);
     if (
       state.defaultBrowser !== undefined ||
