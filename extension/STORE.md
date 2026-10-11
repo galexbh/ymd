@@ -20,7 +20,8 @@ youtube.com.
 4. **Privacy:** single purpose, permission justifications and data usage from this file. Privacy
    policy URL: <https://galexbh.github.io/ymd/en/cookies/privacidad-extension/>.
 5. **Graphics:** `pnpm ext:shots` writes JPEGs (24-bit, no alpha) to `extension/store/`:
-   `screenshot-<es|en>-<light|dark>.jpg` (1280×800), `tile-small.jpg` (440×280) and
+   `screenshot-<es|en>-<light|dark>.jpg` and `screenshot-welcome-<es|en>.jpg` (1280×800; up to 5
+   per language in the store), `tile-small.jpg` (440×280) and
    `tile-marquee.jpg` (1400×560). The 128×128 icon is `extension/icons/icon-128.png`.
 6. Visibility: **Unlisted** is enough (installable by link and from ymd).
 7. Submit for review. `STORE_EXTENSION_ID` is already set. Once published, phase 2: turn on
