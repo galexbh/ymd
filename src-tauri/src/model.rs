@@ -13,9 +13,7 @@ use serde::{Deserialize, Serialize};
 pub enum DepId {
     Ytdlp,
     Ffmpeg,
-    /// Managed Node.js LTS (JS runtime for yt-dlp's EJS). Replaced the managed Deno;
-    /// `"deno"` from older data still deserializes (as Node).
-    #[serde(alias = "deno")]
+    /// Managed Node.js LTS (JS runtime for yt-dlp's EJS).
     Node,
     Aria2c,
     Atomicparsley,

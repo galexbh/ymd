@@ -6,7 +6,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Cambios
 
-- **Node.js reemplaza a Deno como entorno JavaScript gestionado.** [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/) y su entorno solo recibirá un año más de correcciones, así que ymd instala ahora la última versión LTS de Node.js (22 o posterior) desde nodejs.org, verificada con `SHASUMS256.txt`. Al abrir ymd se borra el Deno que había instalado en la carpeta de herramientas; si no queda otro entorno, **Dependencias** ofrece **Instalar Node.js**. Un Node, Deno, Bun o QuickJS del sistema se sigue usando.
+- **Node.js reemplaza a Deno como entorno JavaScript gestionado.** [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/) y su entorno solo recibirá un año más de correcciones, así que ymd instala ahora la última versión LTS de Node.js (22 o posterior) desde nodejs.org, verificada con `SHASUMS256.txt`. Si no hay otro entorno, **Dependencias** ofrece **Instalar Node.js**. Un Node, Deno, Bun o QuickJS del sistema se sigue usando.
 - **Ventana de la extensión más limpia.** El campo para escribir un sitio queda plegado tras **+ Otro sitio…**: los sitios conocidos se agregan con **Sitios sugeridos** o **Usar mi sesión de …**. Extensión 1.4.2.
 
 ### Proyecto

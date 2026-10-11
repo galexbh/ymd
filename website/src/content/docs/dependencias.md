@@ -46,4 +46,4 @@ YouTube exige ejecutar JavaScript para entregar los formatos. yt-dlp usa el prim
 
 ymd solo pasa a yt-dlp versiones que yt-dlp admite: Deno 2.3.0 o posterior, Node 22 o posterior, Bun entre 1.2.11 y 1.3.14, QuickJS 2023-12-09 o posterior (QuickJS-NG, cualquiera). La sección **Entorno JavaScript** de Dependencias muestra cuál usará yt-dlp y cuáles más encontró. Si no hay ninguno, instala Node.js con un clic (**Instalar Node.js**).
 
-Antes ymd instalaba Deno. Desde que [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), su entorno solo recibe un año más de correcciones, así que ymd gestiona ahora Node.js LTS, que yt-dlp admite desde la versión 22. Al actualizar, ymd borra el Deno que había instalado en la carpeta de herramientas; un Deno instalado en el sistema se sigue detectando y usando.
+Antes ymd instalaba Deno. Desde que [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), su entorno solo recibe un año más de correcciones, así que ymd gestiona ahora Node.js LTS, que yt-dlp admite desde la versión 22. Un Deno instalado en el sistema se sigue detectando y usando.

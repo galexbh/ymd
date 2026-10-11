@@ -46,4 +46,4 @@ YouTube requires running JavaScript to hand out formats. yt-dlp uses the first r
 
 ymd only hands yt-dlp versions it supports: Deno 2.3.0 or later, Node 22 or later, Bun 1.2.11 to 1.3.14, QuickJS 2023-12-09 or later (QuickJS-NG, any). The **JavaScript runtime** section of Dependencies shows which one yt-dlp will use and which others it found. If there's none, install Node.js in one click (**Install Node.js**).
 
-ymd used to install Deno. Since [Deno joined Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), its runtime only gets one more year of fixes, so ymd now manages Node.js LTS, which yt-dlp supports from version 22. On update, ymd deletes the Deno it had installed in the tools folder; a Deno installed on the system is still detected and used.
+ymd used to install Deno. Since [Deno joined Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/), its runtime only gets one more year of fixes, so ymd now manages Node.js LTS, which yt-dlp supports from version 22. A Deno installed on the system is still detected and used.
