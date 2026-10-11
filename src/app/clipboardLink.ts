@@ -1,4 +1,5 @@
 // Pure classifier for clipboard text: is it exactly one http(s) link, and to which site?
+// `parseLinks` applies the same rules to each token of a paste that holds several links.
 // Nothing here stores, logs or sends the text; callers keep at most the last offered URL
 // in memory.
 import type { ClipboardWatch } from "../ipc/types";
@@ -57,4 +58,34 @@ export function classify(text: string, mode: ClipboardWatch): ClipboardLink | nu
   if (provider) return { url: link.url, provider: provider.name, known: true };
   if (mode !== "any") return null;
   return { url: link.url, provider: link.host.replace(/^www\./, ""), known: false };
+}
+
+/** Most links one paste can hand over; the rest are left out and counted. */
+export const MAX_BATCH_LINKS = 200;
+
+export interface ParsedLinks {
+  /** distinct links that pass the single-link rules, in paste order, at most {@link MAX_BATCH_LINKS} */
+  valid: string[];
+  /** distinct tokens that are not a downloadable link */
+  invalid: string[];
+  /** valid links past {@link MAX_BATCH_LINKS}, left out */
+  overflow: number;
+}
+
+/**
+ * Split pasted text on whitespace (spaces, tabs, newlines) and sort each token with the same
+ * rules as a single copied link. Duplicates are dropped silently, keeping the first.
+ */
+export function parseLinks(text: string): ParsedLinks {
+  const out: ParsedLinks = { valid: [], invalid: [], overflow: 0 };
+  if (typeof text !== "string") return out;
+  const seen = new Set<string>();
+  for (const token of text.split(/\s+/)) {
+    if (!token || seen.has(token)) continue;
+    seen.add(token);
+    if (!parseLink(token)) out.invalid.push(token);
+    else if (out.valid.length < MAX_BATCH_LINKS) out.valid.push(token);
+    else out.overflow++;
+  }
+  return out;
 }

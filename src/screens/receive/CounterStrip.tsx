@@ -5,6 +5,7 @@ import { Button, SegmentedControl, Select, UrlField } from "../../ui";
 import { looksLikeUrl, useReceive } from "../../store/receive";
 import { presetsOfKind, useSettings } from "../../store/settings";
 import { presetName } from "../shared/labels";
+import { parseLinks } from "../../app/clipboardLink";
 import { ClipboardOffer } from "./ClipboardOffer";
 import { activePreset, ingest, URL_INPUT_ID } from "./ingest";
 import s from "./receive.module.css";
@@ -20,7 +21,8 @@ export function CounterStrip() {
   const probe = useReceive((st) => st.probe);
   const selected = useReceive((st) => st.selected.length);
   const enqueueing = useReceive((st) => st.enqueueing);
-  const { setUrl, setKind, setPreset, runProbe, reset } = useReceive.getState();
+  const batchOpen = useReceive((st) => st.batch !== null);
+  const { setUrl, setKind, setPreset, runProbe, reset, openBatch } = useReceive.getState();
 
   const presets = presetsOfKind(settings, kind);
   const preset = activePreset(settings, kind, chosen);
@@ -45,6 +47,13 @@ export function CounterStrip() {
           onValueChange={setUrl}
           onPasteText={(text) => {
             if (looksLikeUrl(text)) void runProbe(text);
+          }}
+          interceptPaste={(text) => {
+            // two or more links open the multi-link panel; one link keeps the usual flow
+            const { valid, invalid, overflow } = parseLinks(text);
+            if (valid.length < 2) return false;
+            openBatch({ links: valid, invalid, overflow });
+            return true;
           }}
           onClear={reset}
         />
@@ -72,7 +81,7 @@ export function CounterStrip() {
           type="submit"
           variant="primary"
           size="lg"
-          loading={enqueueing}
+          loading={enqueueing && !batchOpen}
           disabled={!url.trim() || emptyPlaylist || !settings}
           data-testid="home-ingest"
         >

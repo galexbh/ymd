@@ -23,6 +23,11 @@ export interface UrlFieldProps extends Omit<
   onValueChange: (value: string) => void;
   /** called with the pasted text after a paste lands in the field */
   onPasteText?: (text: string) => void;
+  /**
+   * sees the pasted text first; return true to take it over (the field is left untouched and
+   * `onPasteText` is not called), e.g. for a paste that holds several links
+   */
+  interceptPaste?: (text: string) => boolean;
   onClear?: () => void;
   label?: ReactNode;
   hint?: ReactNode;
@@ -39,6 +44,7 @@ export const UrlField = forwardRef<HTMLInputElement, UrlFieldProps>(function Url
     value,
     onValueChange,
     onPasteText,
+    interceptPaste,
     onClear,
     label,
     hint,
@@ -60,7 +66,12 @@ export const UrlField = forwardRef<HTMLInputElement, UrlFieldProps>(function Url
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData("text").trim();
-    if (!text || !onPasteText) return;
+    if (!text) return;
+    if (interceptPaste?.(text)) {
+      e.preventDefault();
+      return;
+    }
+    if (!onPasteText) return;
     // replace the whole field with the pasted link, the common case
     e.preventDefault();
     onValueChange(text);

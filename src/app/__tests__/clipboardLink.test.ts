@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { classify, MAX_LINK_LENGTH, PROVIDERS } from "../clipboardLink";
+import {
+  classify,
+  MAX_BATCH_LINKS,
+  MAX_LINK_LENGTH,
+  parseLinks,
+  PROVIDERS,
+} from "../clipboardLink";
 
 const known = (text: string) => classify(text, "known");
 
@@ -165,5 +171,62 @@ describe("classify: modes", () => {
     ]) {
       expect(classify(text, "any")).toBeNull();
     }
+  });
+});
+
+describe("parseLinks", () => {
+  const A = "https://www.youtube.com/watch?v=aaaaaaaaaaa";
+  const B = "https://vimeo.com/1";
+  const C = "https://example.org/video";
+
+  it("splits on spaces, tabs and newlines (CRLF too) and keeps paste order", () => {
+    expect(parseLinks(`${A} ${B}\t${C}`).valid).toEqual([A, B, C]);
+    expect(parseLinks(`\r\n${C}\r\n\r\n${A}\n  ${B}  \n`).valid).toEqual([C, A, B]);
+  });
+
+  it("drops duplicates silently, keeping the first", () => {
+    expect(parseLinks(`${A}\n${B}\n${A}\n${B}\nnope\nnope`)).toEqual({
+      valid: [A, B],
+      invalid: ["nope"],
+      overflow: 0,
+    });
+  });
+
+  it("applies the single-link rules to every token", () => {
+    const bad = [
+      "ftp://example.org/file",
+      "example.org/video",
+      "https://user:pw@example.org/v",
+      "https://192.168.1.10/v",
+      "https://localhost/v",
+      `https://example.org/${"a".repeat(MAX_LINK_LENGTH)}`,
+    ];
+    const r = parseLinks([A, ...bad, B].join("\n"));
+    expect(r.valid).toEqual([A, B]);
+    expect(r.invalid).toEqual(bad);
+  });
+
+  it("keeps a link of exactly the length limit", () => {
+    const base = "https://example.org/";
+    const max = base + "a".repeat(MAX_LINK_LENGTH - base.length);
+    expect(parseLinks(`${max} ${A}`).valid).toEqual([max, A]);
+  });
+
+  it(`caps a batch at ${MAX_BATCH_LINKS} links and counts the rest`, () => {
+    const links = Array.from({ length: MAX_BATCH_LINKS + 7 }, (_, i) => `${C}?n=${i}`);
+    const r = parseLinks(links.join("\n"));
+    expect(r.valid).toHaveLength(MAX_BATCH_LINKS);
+    expect(r.valid[MAX_BATCH_LINKS - 1]).toBe(links[MAX_BATCH_LINKS - 1]);
+    expect(r.overflow).toBe(7);
+    expect(r.invalid).toEqual([]);
+  });
+
+  it("returns nothing for empty or non-string input", () => {
+    expect(parseLinks("  \n\t ")).toEqual({ valid: [], invalid: [], overflow: 0 });
+    expect(parseLinks(undefined as unknown as string)).toEqual({
+      valid: [],
+      invalid: [],
+      overflow: 0,
+    });
   });
 });

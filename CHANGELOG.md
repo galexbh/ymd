@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **Varios enlaces a la vez.** Pegar en **Recibir** un texto con dos o más enlaces abre el panel **Varios enlaces**: lista los enlaces (sin repetidos, hasta 200), marca como **Excluido** lo que no es un enlace y los encola todos con el preajuste del mostrador. La carpeta se pregunta una sola vez y **Playlists completas** decide si un enlace de lista baja la lista entera o solo el video. <kbd>Enter</kbd> encola y <kbd>Esc</kbd> cancela.
+
 ### Proyecto
 
 - Oxlint y oxfmt reemplazan a ESLint y Prettier: mismas reglas (incluidas las de hooks y React Compiler) y el mismo estilo, con `pnpm lint` y `pnpm format:check` varias veces más rápidos. La configuración vive en `.oxlintrc.json` y `.oxfmtrc.json`; en VS Code se recomienda la extensión Oxc.
