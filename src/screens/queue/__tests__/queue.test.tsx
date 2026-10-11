@@ -55,14 +55,19 @@ describe("Cola → Programar inicio", () => {
     expect(be.snapshot().jobs[0].stage).toBe("downloading");
   });
 
-  it("«Quitar» drops the schedule; a schedule set elsewhere shows up through the event", async () => {
+  it("a schedule set elsewhere shows up through the event; «Empezar ahora» is its only action", async () => {
     const { be, user, tick } = await renderApp({ route: "queue" });
     await act(async () => {
       await api.queueSchedule(new Date(be.clock.now() + 3_600_000).toISOString());
     });
     await tick(0);
     const banner = await screen.findByTestId("queue-schedule-banner");
-    await user.click(within(banner).getByRole("button", { name: "Quitar" }));
+    expect(
+      within(banner)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Empezar ahora"]);
+    await user.click(within(banner).getByRole("button", { name: "Empezar ahora" }));
     await tick(0);
     expect(screen.queryByTestId("queue-schedule-banner")).toBeNull();
     expect(be.snapshot().queueStartAt).toBeNull();
