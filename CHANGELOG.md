@@ -4,6 +4,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Cambios
+
+- **Tramo** se pliega como **Opciones de esta descarga**: está cerrado de inicio, muestra el tramo elegido junto al título («Tramo · 1:30–2:45») y queda abierto mientras el tramo no sea válido.
+
 ## [0.8.0] - 2026-10-11
 
 ### Novedades

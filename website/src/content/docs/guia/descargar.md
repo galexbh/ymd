@@ -62,11 +62,12 @@ Cada entrada elegida entra al registro como una descarga propia («Entrada 3 de 
 
 ## Descargar solo un tramo
 
-La ficha de un video (no la de una lista) incluye el bloque **Tramo**, con dos campos: **Desde** y **Hasta**. Acepta segundos (`90`), `m:ss` (`1:30`) o `h:mm:ss` (`1:02:03`):
+La ficha de un video (no la de una lista) incluye **Tramo**, que está cerrado de inicio. Ábrelo para ver dos campos: **Desde** y **Hasta**. Aceptan segundos (`90`), `m:ss` (`1:30`) o `h:mm:ss` (`1:02:03`):
 
 - Con los dos campos vacíos se descarga el video completo.
 - **Desde** vacío empieza en `0:00`; **Hasta** vacío llega hasta el final del video.
-- Si la hora no tiene un formato válido, **Hasta** no va después de **Desde** o el tramo pasa del final del video, el campo lo indica e **Ingresar** queda desactivado hasta corregirlo.
+- Si la hora no tiene un formato válido, **Hasta** no va después de **Desde** o el tramo pasa del final del video, el campo lo indica e **Ingresar** queda desactivado hasta corregirlo. Mientras tanto, **Tramo** no se puede cerrar.
+- Con un tramo válido, **Tramo** lo muestra junto al título aunque esté cerrado («Tramo · 1:30–2:45»).
 
 El archivo lleva el tramo al final del nombre, con puntos en lugar de dos puntos para que sea válido en cualquier sistema: `Mi video [abc123] [1.30-2.45].mp4`. En el registro, la fila muestra el tramo junto al título («1:30–2:45»).
 

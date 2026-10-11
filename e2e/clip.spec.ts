@@ -21,6 +21,10 @@ test.describe("tramo", () => {
     const card = page.getByTestId("accession-card");
     await expect(card).toBeVisible({ timeout: 10_000 });
 
+    // «Tramo» starts closed: open it before typing
+    const summary = card.getByTestId("clip-summary");
+    await expect(card.getByTestId("clip-fields")).not.toHaveAttribute("open");
+    await summary.click();
     const tramo = card.getByRole("group", { name: "Tramo" });
     const from = tramo.getByRole("textbox", { name: "Desde" });
     const to = tramo.getByRole("textbox", { name: "Hasta" });
@@ -38,6 +42,7 @@ test.describe("tramo", () => {
 
     await to.fill("1:45");
     await expect(to).not.toHaveAttribute("aria-invalid", "true");
+    await expect(summary).toHaveText("Tramo · 1:30–1:45");
     await page.getByTestId("home-ingest").click();
 
     const row = page.getByTestId(/^queue-item-/);

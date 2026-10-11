@@ -40,7 +40,7 @@ import { isActive, isTerminal, useJobs } from "../../store/jobs";
 import { useSettings } from "../../store/settings";
 import { openFile, showInFolder } from "../../app/native";
 import { useErrorFixes } from "./errorFixes";
-import { formatClock } from "../receive/clip";
+import { formatClipRange } from "../receive/clip";
 import { formatCode } from "./labels";
 import { SeqFigure } from "./SeqFigure";
 import s from "./jobs.module.css";
@@ -114,7 +114,7 @@ const COLS = 9;
 /** «1:30–2:45»: the row downloads only that section of the video. */
 function ClipTag({ clip }: { clip: Clip }) {
   const { t } = useTranslation();
-  const range = `${formatClock(clip.start)}–${formatClock(clip.end)}`;
+  const range = formatClipRange(clip);
   return (
     <Tag mono className={s.clip} title={t("ledger.clip", { range })} data-testid="job-clip">
       {range}
