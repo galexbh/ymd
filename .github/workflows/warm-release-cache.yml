@@ -1,0 +1,98 @@
+# Keeps release.yml's Rust cache warm. A cache saved from a tag is scoped to that tag, so
+# release.yml only restores (save-if: false) and always started cold (6-12 min per OS). This
+# workflow builds the same release binaries on main and saves the cache under the key release.yml
+# restores; tag runs may restore caches created on the default branch.
+#
+# Must stay in sync with release.yml: runners, matrix names, Rust targets, workflow env (rust-cache
+# hashes CARGO*/RUST* variables into the key), Linux packages and the --target argument.
+name: Warm release cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src-tauri/Cargo.lock
+      - src-tauri/Cargo.toml
+      - .github/workflows/warm-release-cache.yml
+  # GitHub evicts caches unused for 7 days; a weekly restore keeps them alive, and a new stable
+  # Rust (part of the key) gets a fresh build.
+  schedule:
+    - cron: "41 4 * * 1" # Mondays, 04:41 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: warm-release-cache
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Same as release.yml.
+env:
+  CARGO_INCREMENTAL: 0
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  warm:
+    name: warm (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+            args: ""
+            rust-targets: ""
+          - name: macos-universal
+            os: macos-latest
+            args: --target universal-apple-darwin
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - name: linux
+            os: ubuntu-22.04
+            args: ""
+            rust-targets: ""
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - uses: Swatinem/rust-cache@v2
+        id: cache
+        with:
+          workspaces: src-tauri
+          shared-key: release-${{ matrix.name }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      # An exact hit means this cache is current; restoring it already reset its eviction clock.
+      - uses: pnpm/action-setup@v6
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - uses: actions/setup-node@v7
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Linux system dependencies
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libdbus-1-dev pkg-config libssl-dev build-essential file
+
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      # What tauri-action runs in release.yml (same profile and --target) minus the installers,
+      # which do not affect the compiled dependencies.
+      - name: tauri build (release, no bundle)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pnpm exec tauri build --no-bundle ${{ matrix.args }} -- --locked

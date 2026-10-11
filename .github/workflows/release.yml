@@ -22,6 +22,11 @@ concurrency:
 permissions:
   contents: write
 
+# Must match warm-release-cache.yml exactly: rust-cache hashes CARGO*/RUST* variables into the
+# cache key, and that workflow saves the cache this one restores.
+env:
+  CARGO_INCREMENTAL: 0
+
 defaults:
   run:
     shell: bash
@@ -62,11 +67,13 @@ jobs:
           targets: ${{ matrix.rust-targets }}
 
       # Read-only: a cache saved from a tag is scoped to that tag, so the next release could
-      # never restore it; saving only cost minutes and pushed main's caches out of the budget.
+      # never restore it. warm-release-cache.yml builds the same release binaries on main and
+      # saves this cache (same shared-key, env and toolchain), and tag runs may restore main's
+      # caches. Keep the matrix, targets and Linux packages of both workflows in sync.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          key: release-${{ matrix.name }}
+          shared-key: release-${{ matrix.name }}
           save-if: false
 
       - name: Linux system dependencies

@@ -109,8 +109,17 @@ jobs:
 
       # Ignored real-network tests in the Rust crate (named `smoke_*`), run against the same
       # binaries. Passes trivially if the backend has none yet.
+      # Runs through cargo-llvm-cov (no report) because CI's Linux debug cache holds the
+      # instrumented build of the suite (ci.yml's rust job measures coverage there); a plain
+      # `cargo test` would recompile every dependency.
       - uses: dtolnay/rust-toolchain@stable
         if: always() && steps.video.outcome != 'skipped'
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@v2
+        if: always() && steps.video.outcome != 'skipped'
+        with:
+          tool: cargo-llvm-cov
       - uses: Swatinem/rust-cache@v2
         if: always() && steps.video.outcome != 'skipped'
         with:
@@ -134,7 +143,7 @@ jobs:
         run: |
           mkdir -p ../dist
           [ -f ../dist/index.html ] || echo '<!doctype html><title>ymd</title>' > ../dist/index.html
-          cargo test --features test-support -- --ignored smoke_
+          cargo llvm-cov --locked --no-report --features test-support -- --ignored smoke_
 
       - name: Upload logs
         if: always()
