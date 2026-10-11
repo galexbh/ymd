@@ -4,6 +4,8 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-11
+
 ### Novedades
 
 - **Ajustes → Red.** Nueva sección con **Proxy** (`http`, `https`, `socks4`, `socks4a`, `socks5` o `socks5h`; sin usuario ni contraseña), **Versión de IP** (**Automática**, **Solo IPv4**, **Solo IPv6**), **Tiempo de espera** y **Reintentos**. Se aplican a las descargas, al análisis de enlaces y a **Probar cookies**. El **Límite de velocidad** pasa de **Ajustes → Descargas** a esta sección, sin cambios.
@@ -235,7 +237,8 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/galexbh/ymd/releases/tag/v0.9.0
 [0.8.0]: https://github.com/galexbh/ymd/releases/tag/v0.8.0
 [0.7.0]: https://github.com/galexbh/ymd/releases/tag/v0.7.0
 [0.6.0]: https://github.com/galexbh/ymd/releases/tag/v0.6.0
