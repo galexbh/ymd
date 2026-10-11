@@ -5,7 +5,7 @@
   <img src="assets/ymd-isotype-light.svg" alt="ymd" width="96">
 </picture>
 
-<p><strong>A desktop app to download video and audio with yt-dlp.</strong></p>
+<p><strong>Paste a link and keep the video or music on your computer. No terminal, no flags, and your own session when a video needs it.</strong></p>
 
 [![CI](https://github.com/galexbh/ymd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/galexbh/ymd/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/galexbh/ymd?display_name=tag&sort=semver)](https://github.com/galexbh/ymd/releases/latest)
@@ -91,7 +91,7 @@ For videos that need a session: the ymd Cookies extension for Brave, Chrome and 
 
 Requirements: Node 24+, stable Rust and, on Linux, the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). `corepack enable && pnpm install && pnpm tauri dev` runs the app; `pnpm dev:mock` runs the UI only, against a simulated backend.
 
-Guide, architecture, tests and releases in [Development](https://galexbh.github.io/ymd/en/desarrollo/contribuir/) and in [CONTRIBUTING.md](../.github/CONTRIBUTING.md).
+Guide, architecture, tests and releases in [Development](https://galexbh.github.io/ymd/en/desarrollo/contribuir/) and in [CONTRIBUTING.md](../.github/CONTRIBUTING.md). The real problems no tutorial covers, with their cause and fix, are in [Edge cases](https://galexbh.github.io/ymd/en/desarrollo/casos-de-borde/).
 
 | Path         | Contents                                                                  |
 | ------------ | ------------------------------------------------------------------------- |
@@ -112,6 +112,14 @@ The installer does not include yt-dlp or FFmpeg. ymd downloads them from their o
 ## Disclaimer
 
 ymd is not affiliated with YouTube or any other site. Respect each site's terms of service and only download content you have the right to keep.
+
+## What this project solves
+
+- **A terminal tool turned into an app anyone can use.** People who never open a console paste a link and download; the app installs, verifies and keeps its own dependencies up to date.
+- **Reusing the browser's session safely to download what requires an account.** It is the same pattern as fetching your own data from a portal where you have an account: cookies travel over a local channel, with no network, and are stored encrypted.
+- **Shipping and updating a signed desktop app on three operating systems with CI.** Every version is built, signed and published from GitHub Actions, and the app updates itself.
+
+The concrete problems that had to be solved, with their cause and fix, are in [Edge cases](https://galexbh.github.io/ymd/en/desarrollo/casos-de-borde/).
 
 ## Acknowledgements
 
