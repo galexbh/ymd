@@ -58,6 +58,15 @@ Varias descargas avanzan a la vez. El número se cambia en **Ajustes → Descarg
 - **Saltar lo ya descargado**: yt-dlp anota cada video en un archivo de registro y no lo repite.
 - **Usar aria2c**: descarga cada archivo por varias conexiones (requiere instalar aria2c en Dependencias).
 
+## Al cerrar la ventana
+
+Al pulsar la X, ymd no se cierra: se oculta en la bandeja del sistema, junto al reloj (en macOS, en la barra de menús). Las descargas siguen y responde al instante a **Descargar con ymd** desde el navegador. La primera vez lo avisa con una notificación.
+
+- Clic en el icono o **Abrir ymd** en su menú: vuelve la ventana.
+- **Salir** en su menú: cierra ymd por completo.
+
+Para que la X cierre ymd, apaga **Ajustes → Avanzado → Al cerrar la ventana → Mantener ymd en la bandeja del sistema** (en macOS, **Mantener ymd en la barra de menús**). En los escritorios Linux sin bandeja del sistema, la X cierra ymd siempre.
+
 ## El registro
 
 La pantalla **Registro** lista todas las descargas de la sesión, de la más reciente a la más antigua, con su número (**N.º**), título, formato, tamaño, avance exacto en bytes, velocidad, tiempo restante y estado. Se puede filtrar por estado (**En curso**, **En cola**, **Archivadas**, **Fallidas**) y **Limpiar terminados**. La pantalla **Recibir** muestra el registro de la sesión debajo del mostrador.

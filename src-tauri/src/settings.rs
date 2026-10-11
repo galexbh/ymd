@@ -62,6 +62,8 @@ pub fn defaults(video_dir: &Path, audio_dir: &Path) -> Settings {
         default_preset_id: DEFAULT_PRESET_ID.to_string(),
         onboarded: false,
         clipboard_watch: ClipboardWatch::Known,
+        close_to_tray: true,
+        tray_hint_shown: false,
     }
 }
 
@@ -248,6 +250,13 @@ pub fn sanitize(settings: Settings) -> Settings {
         s.presets[0].id.clone()
     };
     s
+}
+
+/// Fields only the backend writes survive a save from the UI, whose copy may be older:
+/// once the tray notice was shown it stays shown.
+pub fn keep_backend_fields(old: &Settings, mut new: Settings) -> Settings {
+    new.tray_hint_shown |= old.tray_hint_shown;
+    new
 }
 
 fn normalize_accent(a: &str) -> Option<String> {

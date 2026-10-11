@@ -160,5 +160,7 @@ expression: defs()
   ],
   "defaultPresetId": "best",
   "onboarded": false,
-  "clipboardWatch": "known"
+  "clipboardWatch": "known",
+  "closeToTray": true,
+  "trayHintShown": false
 }

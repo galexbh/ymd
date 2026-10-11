@@ -9,6 +9,7 @@ pub mod paths;
 pub mod process;
 pub mod settings;
 pub mod state;
+pub mod tray;
 pub mod ytdlp;
 
 use crate::auth::keychain::OsKeychain;
@@ -123,6 +124,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     });
     let jobs = JobManager::new(env.clone());
 
+    let language = settings.language;
     let state = Arc::new(AppState {
         app: handle.clone(),
         paths: RwLock::new(paths),
@@ -134,6 +136,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     });
     let _ = env.inner.set(state.clone());
     app.manage(state.clone());
+    tray::create(&handle, language);
 
     // «Descargar con ymd» on a cold start: the browser link came in this process's argv.
     let pending = open_url::PendingUrl::default();
@@ -184,6 +187,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(setup)
+        .on_window_event(tray::on_window_event)
         .invoke_handler(tauri::generate_handler![
             commands::deps::deps_report,
             commands::deps::deps_install,
@@ -213,6 +217,13 @@ pub fn run() {
             commands::auth::extension_status,
             commands::auth::extension_open_page,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running ymd");
+        .build(tauri::generate_context!())
+        .expect("error while building ymd")
+        .run(|_app, _event| {
+            // macOS: clicking the Dock icon brings back a window hidden to the menu bar.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = _event {
+                open_url::focus_main(_app);
+            }
+        });
 }

@@ -208,6 +208,8 @@ export function defaultSettings(platform: MockPlatform): Settings {
     defaultPresetId: "best",
     onboarded: true,
     clipboardWatch: "known",
+    closeToTray: true,
+    trayHintShown: false,
   };
 }
 

@@ -2,6 +2,12 @@
 
 Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); las versiones siguen [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Novedades
+
+- **ymd se queda en la bandeja del sistema.** Al pulsar la X, la ventana se oculta junto al reloj (en macOS, en la barra de menús): las descargas siguen y **Descargar con ymd** responde al instante. El icono abre ymd con un clic y su menú trae **Abrir ymd** y **Salir**. La primera vez lo avisa una notificación. Para que la X cierre ymd, apaga **Ajustes → Avanzado → Al cerrar la ventana → Mantener ymd en la bandeja del sistema**.
+
 ## [0.5.0] - 2026-10-10
 
 ### Novedades

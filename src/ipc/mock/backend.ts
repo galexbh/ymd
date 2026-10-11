@@ -4,6 +4,7 @@
 import {
   EVT_DEPS_CHANGED,
   EVT_DEPS_PROGRESS,
+  EVT_HIDDEN_TO_TRAY,
   EVT_JOB_REMOVED,
   EVT_JOB_UPDATE,
   TERMINAL_STAGES,
@@ -270,6 +271,8 @@ export function sanitizeSettings(input: Settings, fallback: Settings): Settings 
   if (s.presets.length === 0) s.presets = builtinPresets();
   if (!s.presets.some((p) => p.id === s.defaultPresetId)) s.defaultPresetId = s.presets[0].id;
   if (!CLIPBOARD_WATCH.includes(s.clipboardWatch)) s.clipboardWatch = fallback.clipboardWatch;
+  if (typeof s.closeToTray !== "boolean") s.closeToTray = true;
+  if (typeof s.trayHintShown !== "boolean") s.trayHintShown = false;
   return s;
 }
 
@@ -386,6 +389,20 @@ export class MockBackend {
   simulateOpenUrl(url: string): void {
     this.pendingUrl = url;
     this.emit("app://open-url", null);
+  }
+
+  /**
+   * The window's X (like the Rust `tray::on_window_event`): with «closeToTray» the window hides;
+   * the first time the flag is stored and `app://hidden-to-tray` is emitted. Returns whether
+   * the window was hidden (false = ymd would quit).
+   */
+  simulateWindowClose(): boolean {
+    if (!this.settings.closeToTray) return false;
+    if (!this.settings.trayHintShown) {
+      this.settings.trayHintShown = true;
+      this.emit(EVT_HIDDEN_TO_TRAY, null);
+    }
+    return true;
   }
 
   /** The extension delivered `count` cookies from `browser` (writes cookies.txt + meta). */
@@ -1099,7 +1116,10 @@ export class MockBackend {
   private setSettings(next: Settings): Settings {
     if (!next || typeof next !== "object") throw commandError("unknown", "invalid settings");
     const before = this.settings.concurrency;
+    const hintShown = this.settings.trayHintShown;
     this.settings = sanitizeSettings(next, this.settingsFallback);
+    // like `settings::keep_backend_fields`: a stale UI copy never unsets the tray notice
+    this.settings.trayHintShown ||= hintShown;
     if (this.settings.concurrency > before) this.pump();
     return clone(this.settings);
   }

@@ -470,6 +470,25 @@ describe("mock backend — clipboard plugin", () => {
     expect(sanitizeSettings(old as Settings, s).clipboardWatch).toBe("known");
   });
 
+  it("settings carry closeToTray (default on) and a sticky trayHintShown", async () => {
+    const be = installMockBackend({ clock: "manual" });
+    const s = await api.settingsGet();
+    expect(s.closeToTray).toBe(true);
+    expect(s.trayHintShown).toBe(false);
+    expect((await api.settingsSet({ ...s, closeToTray: false })).closeToTray).toBe(false);
+    const old: Partial<Settings> = { ...s };
+    delete old.closeToTray;
+    delete old.trayHintShown;
+    const fixed = sanitizeSettings(old as Settings, s);
+    expect(fixed.closeToTray).toBe(true);
+    expect(fixed.trayHintShown).toBe(false);
+
+    await api.settingsSet({ ...s, closeToTray: true });
+    expect(be.simulateWindowClose()).toBe(true);
+    expect(be.snapshot().settings.trayHintShown).toBe(true);
+    expect((await api.settingsSet({ ...s, trayHintShown: false })).trayHintShown).toBe(true);
+  });
+
   it("bootMock seeds the clipboard from ?clipboard= without remembering it", async () => {
     window.localStorage.clear();
     const link = "https://vimeo.com/123456";

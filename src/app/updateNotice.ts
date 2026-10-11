@@ -61,7 +61,8 @@ function toastUpdate(version: string) {
   });
 }
 
-async function notifySystem(title: string, body: string): Promise<void> {
+/** System notification through the notification plugin (asks for permission once). */
+export async function notifySystem(title: string, body: string): Promise<void> {
   const { isPermissionGranted, requestPermission, sendNotification } =
     await import("@tauri-apps/plugin-notification");
   let granted = await isPermissionGranted();

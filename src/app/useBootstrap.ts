@@ -9,6 +9,7 @@ import { connectJobs, onJobChange } from "../store/jobs";
 import { connectBrowserLinks, connectClipboard } from "../store/clipboard";
 import { useSettings } from "../store/settings";
 import { showInFolder } from "./native";
+import { connectTrayNotice } from "./trayNotice";
 import { connectAppUpdates } from "./updateNotice";
 
 function announce(job: Job, prev: Job | undefined) {
@@ -39,6 +40,7 @@ export function useBootstrap() {
     offs.push(connectBrowserLinks());
     void useSettings.getState().load();
     offs.push(connectAppUpdates());
+    offs.push(connectTrayNotice());
     void Promise.all([connectJobs(), connectDeps()]).then((fns) => {
       if (alive) offs.push(...fns);
       else fns.forEach((f) => f());
