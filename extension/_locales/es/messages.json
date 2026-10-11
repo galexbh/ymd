@@ -134,15 +134,6 @@
   "currentHeading": {
     "message": "Esta página"
   },
-  "downloadPage": {
-    "message": "Descargar con ymd"
-  },
-  "downloadSent": {
-    "message": "Enviado a ymd. Revisa la ventana de ymd."
-  },
-  "downloadFailed": {
-    "message": "No se pudo abrir ymd. Comprueba que esté instalado y actualizado."
-  },
   "sessionYoutube": {
     "message": "Sesión de YouTube"
   },
@@ -235,5 +226,20 @@
   },
   "welcomeDone": {
     "message": "Puedes cerrar esta pestaña. Para cambiar tus sitios más tarde, abre ymd Cookies desde la barra."
+  },
+  "commandDownload": {
+    "message": "Descargar con ymd la página actual"
+  },
+  "sitesShowAll": {
+    "message": "Mostrar todos ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "sitesShowLess": {
+    "message": "Mostrar menos"
   }
 }

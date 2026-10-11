@@ -259,6 +259,13 @@ body {
 .ledger-row:hover {
   background: var(--surface-hover);
 }
+/* «Mostrar todos (N)»: long lists start folded at five rows */
+.sites-toggle {
+  align-self: flex-start;
+  height: var(--control-h-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+}
 .domain {
   flex: 1;
   min-width: 0;
@@ -345,7 +352,7 @@ body {
   margin-top: 2px;
 }
 
-/* «Esta página»: the active tab's site and «Descargar con ymd». */
+/* «Esta página»: the active tab's site and «Usar mi sesión de …». */
 .current-host {
   margin: 0 0 var(--space-2);
   font-family: var(--font-mono);
@@ -358,6 +365,10 @@ body {
   margin: var(--space-2) 0 0;
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+/* an empty note takes no room, so nothing leaves a gap */
+.field-note:empty {
+  display: none;
 }
 .field-note[data-tone="ok"] {
   color: var(--success);

@@ -189,7 +189,7 @@ test.describe.serial("ymd Cookies extension", () => {
       "Twitch",
     ]);
     await expect(page.locator(".privacy")).toContainText("sin red");
-    // Opened as a tab, the active page is the popup itself: nothing to download or add.
+    // Opened as a tab, the active page is the popup itself: nothing to add.
     // (The session row may show: the install-time sync already reached the fake host.)
     await expect(page.locator("#current")).toBeHidden();
     // Tokens applied: the stamp is drawn, the page has a themed ground.
@@ -319,22 +319,42 @@ test.describe.serial("ymd Cookies extension", () => {
     );
     expect(menus).toBe(1);
 
-    const page = await context.newPage();
-    await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
+    // A right-click on YouTube's player: the <video> is a blob: URL, so the page goes to ymd.
+    // Chromium can't open a context menu headless; the click event is dispatched directly.
     const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw";
-    const reply = await page.evaluate(
+    await worker.evaluate(
       (u) =>
         (
           globalThis as unknown as {
-            chrome: { runtime: { sendMessage(m: object): Promise<unknown> } };
+            chrome: { contextMenus: { onClicked: { dispatch(info: object, tab?: object): void } } };
           }
-        ).chrome.runtime.sendMessage({ type: "open", url: u }),
+        ).chrome.contextMenus.onClicked.dispatch({
+          menuItemId: "ymd-download",
+          srcUrl: "blob:https://www.youtube.com/0b1c",
+          pageUrl: u,
+        }),
       url,
     );
-    expect(reply).toEqual({ ok: true, error: null });
-    expect(readRecord(recordFile).filter((m) => m.type === "open")).toEqual([
-      { type: "open", version: 1, url },
-    ]);
+    await expect
+      .poll(() => readRecord(recordFile).filter((m) => m.type === "open"))
+      .toEqual([{ type: "open", version: 1, url }]);
+
+    // the Alt+Shift+Y shortcut is registered with the browser
+    const commands = await worker.evaluate(() =>
+      (
+        globalThis as unknown as {
+          chrome: { commands: { getAll(): Promise<Array<{ name?: string; shortcut?: string }>> } };
+        }
+      ).chrome.commands.getAll(),
+    );
+    expect(commands.find((c) => c.name === "download-page")?.shortcut).toMatch(/Y$/);
+  });
+
+  test("the popup has no download button and no «Esta página» on its own page", async () => {
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
+    await expect(page.locator("#download-page")).toHaveCount(0);
+    await expect(page.locator("#current")).toBeHidden();
     await page.close();
   });
 });
