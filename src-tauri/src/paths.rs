@@ -3,7 +3,7 @@
 //! - bin dir: Windows `%LOCALAPPDATA%\ymd\bin` (falls back to `<data dir>/bin`),
 //!   macOS `~/Library/Application Support/<id>/bin`, Linux `$XDG_DATA_HOME/<id>/bin`;
 //!   overridable from settings.
-//! - data dir: history db, download archive, auth/cookies.txt, tmp.
+//! - data dir: history db, download archive, auth/cookies.txt, tmp, logs.
 //! - config dir: settings.json.
 
 use std::path::{Path, PathBuf};
@@ -56,10 +56,19 @@ impl AppPaths {
     pub fn tmp_dir(&self) -> PathBuf {
         self.data_dir.join("tmp")
     }
+    /// Local JSON-lines logs (`ymd.YYYY-MM-DD.jsonl`), never sent anywhere.
+    pub fn logs_dir(&self) -> PathBuf {
+        logs_dir(&self.data_dir)
+    }
     /// Executable path for a managed tool inside the bin dir (adds `.exe` on Windows).
     pub fn bin(&self, name: &str) -> PathBuf {
         self.bin_dir.join(exe_name(name))
     }
+}
+
+/// `<data dir>/logs`; also used by the helper modes, which have no `AppPaths`.
+pub fn logs_dir(data_dir: &Path) -> PathBuf {
+    data_dir.join("logs")
 }
 
 /// Platform default bin dir. On Windows this is `%LOCALAPPDATA%\ymd\bin`.
@@ -157,6 +166,7 @@ mod tests {
             Path::new("d").join("auth").join("cookies.txt")
         );
         assert_eq!(p.bin("yt-dlp"), Path::new("b").join(exe_name("yt-dlp")));
+        assert_eq!(p.logs_dir(), Path::new("d").join("logs"));
         assert_eq!(exe_name("x").ends_with(".exe"), cfg!(windows));
     }
 }

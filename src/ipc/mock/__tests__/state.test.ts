@@ -370,6 +370,32 @@ describe("mock backend — auth", () => {
   });
 });
 
+describe("mock backend — diagnostics", () => {
+  it("app_data_dir is the per-platform data dir", async () => {
+    installMockBackend({ clock: "manual" });
+    expect(await api.appDataDir()).toBe("C:\\Users\\ana\\AppData\\Roaming\\com.ymd.app");
+    installMockBackend({ clock: "manual", platform: "macos" });
+    expect(await api.appDataDir()).toBe("/Users/ana/Library/Application Support/com.ymd.app");
+    installMockBackend({ clock: "manual", platform: "linux" });
+    expect(await api.appDataDir()).toBe("/home/ana/.local/share/com.ymd.app");
+  });
+
+  it("diagnostics_export returns the dated zip path, or null when the dialog is cancelled", async () => {
+    const be = installMockBackend({
+      clock: "manual",
+      platform: "linux",
+      startTime: new Date(2026, 9, 9, 7, 5).getTime(),
+    });
+    expect(await api.diagnosticsExport()).toBe(
+      "/home/ana/Downloads/ymd-diagnostico-20261009-0705.zip",
+    );
+    be.setSaveDialogCancels(true);
+    expect(await api.diagnosticsExport()).toBeNull();
+    be.setSaveDialogCancels(false);
+    expect(await api.diagnosticsExport()).toMatch(/\.zip$/);
+  });
+});
+
 describe("mock backend — transport & helpers", () => {
   it("unknown commands reject with a CommandError; plugin calls succeed", async () => {
     const be = installMockBackend({ clock: "manual" });

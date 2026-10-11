@@ -81,6 +81,8 @@ export interface PlatformPaths {
   videoDir: string;
   audioDir: string;
   downloads: string;
+  /** ymd's data dir (`app_data_dir`): history, logs, cookie copy */
+  dataDir: string;
   exe: string;
 }
 
@@ -94,6 +96,7 @@ export function platformPaths(platform: MockPlatform): PlatformPaths {
         videoDir: "C:\\Users\\ana\\Videos",
         audioDir: "C:\\Users\\ana\\Music",
         downloads: "C:\\Users\\ana\\Downloads",
+        dataDir: "C:\\Users\\ana\\AppData\\Roaming\\com.ymd.app",
         exe: ".exe",
       };
     case "macos":
@@ -104,6 +107,7 @@ export function platformPaths(platform: MockPlatform): PlatformPaths {
         videoDir: "/Users/ana/Movies",
         audioDir: "/Users/ana/Music",
         downloads: "/Users/ana/Downloads",
+        dataDir: "/Users/ana/Library/Application Support/com.ymd.app",
         exe: "",
       };
     case "linux":
@@ -114,6 +118,7 @@ export function platformPaths(platform: MockPlatform): PlatformPaths {
         videoDir: "/home/ana/Videos",
         audioDir: "/home/ana/Music",
         downloads: "/home/ana/Downloads",
+        dataDir: "/home/ana/.local/share/com.ymd.app",
         exe: "",
       };
   }

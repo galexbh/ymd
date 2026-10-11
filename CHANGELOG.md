@@ -11,6 +11,12 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - **Programar el inicio de la cola.** En **Registro**, **Programar inicio** deja lo que esté en cola esperando hasta una hora (hoy, o mañana si ya pasó). Un aviso muestra «La cola empieza a las HH:MM» con **Empezar ahora**. La hora no se guarda al salir de ymd.
 - **Las descargas ya no se pierden al cerrar ymd.** Si ymd se cierra con descargas en curso o en cola (con **Salir**, al apagar el equipo o tras un cierre inesperado), el **Registro** muestra «Hay N descargas sin terminar» al volver: **Reanudar** las devuelve a la cola con su mismo número y yt-dlp sigue desde donde iba; **Descartar** las olvida y borra los archivos parciales. Nada se reanuda solo. Las que usaron contraseña del video o código 2FA aparecen aparte para pegarlas de nuevo en **Recibir**: esos datos nunca se guardan.
 - **Avisos con criterio.** La notificación del sistema llega solo si ymd está en segundo plano, agrupa las descargas que terminan juntas («3 descargas terminadas») y, si una falla, dice cuál y por qué; al volver a ymd se abre el **Registro**. Se apaga en **Ajustes → Descargas → Avisar cuando termine una descarga**.
+- **Exportar diagnóstico.** En **Ajustes → Avanzado**, **Exportar diagnóstico** guarda un zip para adjuntar a un issue: versiones de ymd y de las herramientas, sistema, un resumen de los ajustes sin carpetas, los registros de los últimos 14 días y cuánto tardó cada etapa de las últimas descargas. No incluye cookies, contraseñas, el historial ni el archivo de ajustes. Al guardarlo, el aviso trae **Mostrar en la carpeta**.
+- **Registros locales.** ymd anota en su carpeta de datos (`logs`, un archivo por día) cuánto tarda cada etapa de una descarga, cómo termina y su código de error, las actualizaciones de herramientas y las sincronizaciones de la extensión (solo cuántas cookies). Antes de escribir, borra enlaces con parámetros, rutas de tu carpeta personal, contraseñas y tokens; los archivos se borran solos a los 14 días y nunca salen de tu computadora.
+
+### Correcciones
+
+- **Abrir carpeta de datos** abre la carpeta donde ymd guarda de verdad sus datos (en Windows, `%APPDATA%\com.ymd.app`), no una carpeta vacía en `%LOCALAPPDATA%`.
 
 ### Proyecto
 

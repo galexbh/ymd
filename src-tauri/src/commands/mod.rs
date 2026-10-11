@@ -3,6 +3,7 @@
 
 pub mod auth;
 pub mod deps;
+pub mod diagnostics;
 pub mod history;
 pub mod jobs;
 pub mod settings;

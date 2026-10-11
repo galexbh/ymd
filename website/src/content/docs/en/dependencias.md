@@ -27,7 +27,7 @@ Actions: **Install everything recommended**, **Check for updates**, and per tool
 | macOS   | `~/Library/Application Support/<app id>/bin`             |
 | Linux   | `$XDG_DATA_HOME/<app id>/bin` (usually `~/.local/share`) |
 
-The programs live here, outside ymd's install; removing them doesn't touch your downloads. Change the location in **Settings → Advanced → Tools folder** (**Back to the default** restores it). **Open data folder** opens the folder where ymd keeps its history and its cookie copy.
+The programs live here, outside ymd's install; removing them doesn't touch your downloads. Change the location in **Settings → Advanced → Tools folder** (**Back to the default** restores it). **Open data folder** opens the folder where ymd keeps its history, its cookie copy and its [logs](/ymd/en/solucion-de-problemas/#ymds-logs).
 
 ## Verification
 

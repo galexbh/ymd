@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod commands;
 pub mod deps;
+pub mod diagnostics;
 pub mod history;
 pub mod jobs;
 pub mod model;
@@ -27,6 +28,7 @@ pub fn maybe_run_netrc_helper() -> Option<i32> {
     if args.get(1).map(String::as_str) != Some(auth::netrc::HELPER_FLAG) {
         return None;
     }
+    // No logging here: stdout is yt-dlp's answer channel and the helper must stay minimal.
     // The helper has no Tauri context: resolve the same data dir Tauri would use.
     let index = helper_index_file();
     let store = OsKeychain { index_file: index };
@@ -48,6 +50,14 @@ pub fn maybe_run_native_host() -> Option<i32> {
         .filter(|v| !v.is_empty())
         .map(std::path::PathBuf::from)
         .unwrap_or_else(helper_data_dir);
+    // File-only logs (stdout is the native-messaging channel), and only for an allowed
+    // caller: a rejected origin writes nothing at all.
+    if args
+        .get(1)
+        .is_some_and(|o| auth::native_host::is_allowed_origin(o))
+    {
+        diagnostics::logging::init_file_only(&paths::logs_dir(&data_dir));
+    }
     Some(auth::native_host::host_main(
         &args[1..],
         &data_dir,
@@ -91,6 +101,24 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let defaults = settings::defaults(&video_dir, &audio_dir);
     let settings_file = config_dir.join("settings.json");
     let settings = settings::load(&settings_file, defaults);
+
+    // Local logs first, so everything below is recorded. Old files go before the new one opens.
+    let logs_dir = paths::logs_dir(&data_dir);
+    diagnostics::retention::prune_logs(
+        &logs_dir,
+        std::time::SystemTime::now(),
+        diagnostics::retention::max_age(),
+        diagnostics::retention::LOG_MAX_BYTES,
+    );
+    if let Some(guard) = diagnostics::logging::init_app(&logs_dir) {
+        app.manage(guard);
+    }
+    tracing::info!(
+        version = env!("CARGO_PKG_VERSION"),
+        os = std::env::consts::OS,
+        arch = std::env::consts::ARCH,
+        "ymd started"
+    );
 
     let paths = AppPaths::new(data_dir, config_dir, settings.bin_dir.as_deref());
     for dir in [
@@ -169,6 +197,20 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => log::warn!("cookie bridge: cannot resolve the executable: {e}"),
     });
 
+    // Log retention: daily (startup already pruned).
+    tauri::async_runtime::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            let removed = diagnostics::retention::prune_logs(
+                &logs_dir,
+                std::time::SystemTime::now(),
+                diagnostics::retention::max_age(),
+                diagnostics::retention::LOG_MAX_BYTES,
+            );
+            tracing::info!(removed, "old log files pruned");
+        }
+    });
+
     // yt-dlp auto-update: on startup, then every 24h.
     tauri::async_runtime::spawn(async move {
         loop {
@@ -234,6 +276,8 @@ pub fn run() {
             commands::auth::credentials_delete,
             commands::auth::extension_status,
             commands::auth::extension_open_page,
+            commands::diagnostics::app_data_dir,
+            commands::diagnostics::diagnostics_export,
         ])
         .build(tauri::generate_context!())
         .expect("error while building ymd")

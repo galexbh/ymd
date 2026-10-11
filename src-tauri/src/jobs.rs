@@ -14,13 +14,17 @@
 //!   yt-dlp keeps `*.part` / `*.ytdl` files because of `-P temp:`);
 //! - retry re-enqueues a terminal job with the same request (new id and seq);
 //! - transient secrets in `EnqueueRequest` (video password / 2FA) stay in this in-memory map
-//!   only; they are never copied into `Job`, emitted or persisted;
+//!   only; they are never copied into `Job`, emitted, persisted or logged;
 //! - every queued job is also saved as a `PendingJob` (`JobEnv::pending_save`) and forgotten
 //!   when it ends. When ymd exits (`shutdown`), running jobs are killed but keep their row and
 //!   their `tmp/<id>` dir, so `resume` can start them again with the same id and yt-dlp
-//!   continues from its `.part` files.
+//!   continues from its `.part` files;
+//! - each running job is a `job{id, preset, kind}` tracing span; a stage change logs how long
+//!   the previous stage took (`stage finished`) and the end logs the outcome and `ErrorCode`
+//!   (`job finished`). The URL and the argv are never logged.
 
 use crate::deps::Tools;
+use crate::diagnostics::{elapsed_ms, kind_name, stage_name, wire_name, MSG_JOB, MSG_STAGE};
 use crate::model::{
     CommandError, EnqueueRequest, ErrorCode, Job, JobError, JobId, JobStage, MediaKind, PendingJob,
     Preset, Settings,
@@ -36,6 +40,7 @@ use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::sync::{mpsc, Notify};
+use tracing::Instrument;
 
 /// Minimum time between two throttled progress emissions of the same job (≤ 4/s).
 pub const EMIT_INTERVAL: Duration = Duration::from_millis(250);
@@ -134,6 +139,9 @@ struct Entry {
     cancel: Arc<Notify>,
     cancel_requested: bool,
     last_emit: Option<Instant>,
+    /// When the job left the queue and when its current stage began (for the logs).
+    started: Option<Instant>,
+    stage_since: Option<Instant>,
 }
 
 #[derive(Default)]
@@ -295,6 +303,8 @@ impl JobManager {
                     cancel: Arc::new(Notify::new()),
                     cancel_requested: false,
                     last_emit: None,
+                    started: None,
+                    stage_since: None,
                 },
             );
             g.queue.push_back(job.id.clone());
@@ -377,7 +387,10 @@ impl JobManager {
                     continue;
                 }
                 entry.job.stage = JobStage::Downloading;
-                entry.last_emit = Some(Instant::now());
+                let now = Instant::now();
+                entry.last_emit = Some(now);
+                entry.started = Some(now);
+                entry.stage_since = Some(now);
                 started.push(entry.job.clone());
                 g.running += 1;
             }
@@ -394,18 +407,32 @@ impl JobManager {
     }
 
     async fn run(self: Arc<Self>, id: JobId) {
-        let outcome = self.execute(&id).await;
-        // Interrupted by ymd quitting: keep `tmp/<id>` (the `.part` files) and the pending row.
-        let keep = self.is_exiting() && !matches!(outcome, Outcome::Done(_));
-        if !keep {
-            remove_dir_retrying(&self.env.tmp_dir().join(&id)).await;
+        let span = {
+            let g = self.lock();
+            let (preset, kind) = g
+                .jobs
+                .get(&id)
+                .map(|e| (e.job.preset_id.clone(), kind_name(e.job.kind)))
+                .unwrap_or_default();
+            tracing::info_span!("job", id = %id, preset = %preset, kind = kind)
+        };
+        async move {
+            tracing::info!("job started");
+            let outcome = self.execute(&id).await;
+            // Interrupted by ymd quitting: keep `tmp/<id>` (the `.part` files) and the pending row.
+            let keep = self.is_exiting() && !matches!(outcome, Outcome::Done(_));
+            if !keep {
+                remove_dir_retrying(&self.env.tmp_dir().join(&id)).await;
+            }
+            self.finish(&id, outcome, keep);
+            {
+                let mut g = self.lock();
+                g.running = g.running.saturating_sub(1);
+            }
+            self.pump();
         }
-        self.finish(&id, outcome, keep);
-        {
-            let mut g = self.lock();
-            g.running = g.running.saturating_sub(1);
-        }
-        self.pump();
+        .instrument(span)
+        .await
     }
 
     async fn execute(&self, id: &JobId) -> Outcome {
@@ -560,12 +587,14 @@ impl JobManager {
 
     /// Applies one parsed event and emits (throttled unless the change is significant).
     fn apply(&self, id: &JobId, ev: Event) {
+        let mut stage_ended: Option<(JobStage, u64)> = None;
         let emit = {
             let mut g = self.lock();
             let Some(e) = g.jobs.get_mut(id) else { return };
             if e.cancel_requested || e.job.stage.is_terminal() {
                 return;
             }
+            let before = e.job.stage;
             let job = &mut e.job;
             let mut force = false;
             match ev {
@@ -612,6 +641,10 @@ impl JobManager {
                     job.playlist_count = Some(count);
                 }
             }
+            if e.job.stage != before {
+                let since = e.stage_since.replace(Instant::now());
+                stage_ended = Some((before, since.map_or(0, elapsed_ms)));
+            }
             let due = e.last_emit.map_or(true, |t| t.elapsed() >= EMIT_INTERVAL);
             if force || due {
                 e.last_emit = Some(Instant::now());
@@ -620,15 +653,26 @@ impl JobManager {
                 None
             }
         };
+        if let Some((stage, duration_ms)) = stage_ended {
+            tracing::info!(
+                stage = stage_name(stage),
+                duration_ms,
+                outcome = "ok",
+                "{MSG_STAGE}"
+            );
+        }
         if let Some(job) = emit {
             self.env.emit(&job);
         }
     }
 
     fn finish(&self, id: &JobId, outcome: Outcome, keep_pending: bool) {
-        let (job, preset) = {
+        let (job, preset, last_stage, stage_ms, total_ms) = {
             let mut g = self.lock();
             let Some(e) = g.jobs.get_mut(id) else { return };
+            let last_stage = e.job.stage;
+            let stage_ms = e.stage_since.take().map_or(0, elapsed_ms);
+            let total_ms = e.started.map_or(0, elapsed_ms);
             let job = &mut e.job;
             job.speed = None;
             job.eta = None;
@@ -650,8 +694,29 @@ impl JobManager {
                 }
             };
             e.last_emit = Some(Instant::now());
-            (e.job.clone(), preset)
+            (e.job.clone(), preset, last_stage, stage_ms, total_ms)
         };
+        let outcome = stage_name(job.stage);
+        tracing::info!(
+            stage = stage_name(last_stage),
+            duration_ms = stage_ms,
+            outcome = if job.stage == JobStage::Done {
+                "ok"
+            } else {
+                outcome
+            },
+            "{MSG_STAGE}"
+        );
+        match &job.error {
+            Some(err) => tracing::warn!(
+                duration_ms = total_ms,
+                outcome,
+                error_code = %wire_name(&err.code),
+                detail = %truncate(&err.detail, 300),
+                "{MSG_JOB}"
+            ),
+            None => tracing::info!(duration_ms = total_ms, outcome, "{MSG_JOB}"),
+        }
         if let Some(p) = preset {
             self.env.completed(&job, &p);
         }
@@ -821,6 +886,14 @@ impl JobManager {
     }
 }
 
+/// At most `max` characters (logs keep error lines short).
+fn truncate(s: &str, max: usize) -> String {
+    match s.char_indices().nth(max) {
+        Some((i, _)) => format!("{}…", &s[..i]),
+        None => s.to_string(),
+    }
+}
+
 /// Forwards lines (lossy UTF-8, without `\r\n`) to the job loop until EOF.
 fn read_lines<R>(stream: R, is_stderr: bool, tx: mpsc::UnboundedSender<(bool, String)>)
 where
@@ -899,6 +972,12 @@ mod tests {
             title: None,
             thumbnail: None,
         }
+    }
+
+    #[test]
+    fn truncate_keeps_short_text() {
+        assert_eq!(truncate("abc", 5), "abc");
+        assert_eq!(truncate("ñandú", 2), "ña…");
     }
 
     #[test]

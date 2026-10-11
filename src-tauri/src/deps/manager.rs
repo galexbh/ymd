@@ -347,9 +347,36 @@ impl DepsManager {
     }
 
     pub async fn install(&self, id: DepId, progress: ProgressFn) -> anyhow::Result<()> {
-        let lock = install_lock(&self.paths.bin_dir, id);
-        let _guard = lock.lock().await;
-        let result = self.install_locked(id, &progress).await;
+        use tracing::Instrument;
+        let dep = crate::diagnostics::wire_name(&id);
+        let span = tracing::info_span!("dep_update", dep = %dep);
+        let started = std::time::Instant::now();
+        let result = async {
+            let lock = install_lock(&self.paths.bin_dir, id);
+            let _guard = lock.lock().await;
+            self.install_locked(id, &progress).await
+        }
+        .instrument(span.clone())
+        .await;
+        let _entered = span.enter();
+        let duration_ms = crate::diagnostics::elapsed_ms(started);
+        match &result {
+            Ok(()) => tracing::info!(
+                dep = %dep,
+                duration_ms,
+                outcome = "ok",
+                "{}",
+                crate::diagnostics::MSG_DEP
+            ),
+            Err(e) => tracing::warn!(
+                dep = %dep,
+                duration_ms,
+                outcome = "error",
+                detail = %format!("{e:#}"),
+                "{}",
+                crate::diagnostics::MSG_DEP
+            ),
+        }
         match &result {
             Ok(()) => emit(&progress, id, DepPhase::Done, 0, None, None),
             Err(e) => emit(

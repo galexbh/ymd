@@ -453,6 +453,47 @@ describe("Ajustes → Avanzado: al cerrar la ventana", () => {
   });
 });
 
+describe("Ajustes → Avanzado: carpeta de datos y diagnóstico", () => {
+  it("«Abrir carpeta de datos» opens the backend's data dir (Roaming on Windows)", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });
+    await user.click(screen.getByRole("button", { name: "Abrir carpeta de datos" }));
+    await tick(0);
+    await waitFor(() => expect(calls(be, "plugin:opener|open_path")).toHaveLength(1));
+    expect(calls(be, "app_data_dir")).toHaveLength(1);
+    expect(calls(be, "plugin:opener|open_path")[0].args?.path).toBe(
+      "C:\\Users\\ana\\AppData\\Roaming\\com.ymd.app",
+    );
+  });
+
+  it("«Exportar diagnóstico» saves a zip and offers «Mostrar en la carpeta»", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });
+    expect(
+      screen.getByText(
+        "Un archivo para adjuntar a un issue. No incluye cookies, contraseñas ni tu historial.",
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Exportar diagnóstico" }));
+    await tick(0);
+    expect(await screen.findByText("Diagnóstico guardado")).toBeInTheDocument();
+    expect(calls(be, "diagnostics_export")).toHaveLength(1);
+    const path = screen.getByText(/ymd-diagnostico-\d{8}-\d{4}\.zip$/);
+    expect(path.textContent).toMatch(/^C:\\Users\\ana\\Downloads\\/);
+    await user.click(screen.getByRole("button", { name: "Mostrar en la carpeta" }));
+    await tick(0);
+    expect(calls(be, "plugin:opener|reveal_item_in_dir")).toHaveLength(1);
+  });
+
+  it("a cancelled save dialog shows nothing", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });
+    be.setSaveDialogCancels(true);
+    await user.click(screen.getByRole("button", { name: "Exportar diagnóstico" }));
+    await tick(0);
+    await waitFor(() => expect(calls(be, "diagnostics_export")).toHaveLength(1));
+    expect(screen.queryByText("Diagnóstico guardado")).toBeNull();
+    expect(screen.getByRole("button", { name: "Exportar diagnóstico" })).toBeEnabled();
+  });
+});
+
 describe("Ajustes → Avanzado: actualización de ymd", () => {
   it("shows the release notes formatted, not as raw Markdown", async () => {
     await renderApp({ route: "settings", section: "advanced" });

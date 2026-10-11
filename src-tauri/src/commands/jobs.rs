@@ -6,11 +6,33 @@ use tauri::{AppHandle, Emitter};
 
 #[tauri::command]
 pub async fn probe(state: State<'_>, url: String) -> CmdResult<ProbeResult> {
-    let tools = state.tools().await;
-    let auth = state.auth_args(None);
-    // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
-    let (auth, _jar) = crate::auth::cookies::ephemeral_args(&auth, &state.paths().tmp_dir())?;
-    crate::ytdlp::probe::probe(url.trim(), &tools, &auth).await
+    use crate::diagnostics::{elapsed_ms, wire_name, MSG_PROBE};
+    use tracing::Instrument;
+    let started = std::time::Instant::now();
+    let result = async {
+        let tools = state.tools().await;
+        let auth = state.auth_args(None);
+        // yt-dlp gets a throwaway copy of the jar (deleted when `_jar` drops).
+        let (auth, _jar) = crate::auth::cookies::ephemeral_args(&auth, &state.paths().tmp_dir())?;
+        crate::ytdlp::probe::probe(url.trim(), &tools, &auth).await
+    }
+    .instrument(tracing::info_span!("probe"))
+    .await;
+    // The link itself is never logged.
+    match &result {
+        Ok(_) => tracing::info!(
+            duration_ms = elapsed_ms(started),
+            outcome = "ok",
+            "{MSG_PROBE}"
+        ),
+        Err(e) => tracing::warn!(
+            duration_ms = elapsed_ms(started),
+            outcome = "error",
+            error_code = %wire_name(&e.code),
+            "{MSG_PROBE}"
+        ),
+    }
+    result
 }
 
 #[tauri::command]

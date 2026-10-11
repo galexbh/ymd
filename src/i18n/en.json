@@ -668,6 +668,12 @@
       "binDirCustom": "Custom location.",
       "binDirReset": "Back to the default",
       "openData": "Open data folder",
+      "diagnostics": {
+        "export": "Export diagnostics",
+        "hint": "A file to attach to an issue. It doesn't include cookies, passwords or your history.",
+        "saved": "Diagnostics saved",
+        "failed": "Couldn't export the diagnostics"
+      },
       "tray": {
         "title": "When closing the window",
         "keep": "Keep ymd in the system tray",
