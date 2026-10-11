@@ -14,6 +14,7 @@ import {
   cookie,
   createChromeFake,
   flush,
+  MANIFEST_VERSION,
   HOST_NOT_FOUND,
   type ChromeFake,
   type FakeOptions,
@@ -93,8 +94,20 @@ describe("cookies message", () => {
     expect(fake.record.native).toHaveLength(1);
     const { host, message } = fake.record.native[0];
     expect(host).toBe(HOST_NAME);
-    expect(Object.keys(message).sort()).toEqual(["browser", "cookies", "type", "version"]);
-    expect(message).toMatchObject({ type: "cookies", version: 1, browser: "brave" });
+    expect(Object.keys(message).sort()).toEqual([
+      "browser",
+      "cookies",
+      "extension",
+      "type",
+      "version",
+    ]);
+    expect(message).toMatchObject({
+      type: "cookies",
+      version: 1,
+      browser: "brave",
+      extension: MANIFEST_VERSION,
+    });
+    expect(MANIFEST_VERSION).toMatch(/^\d+(\.\d+){0,3}$/);
     expect(message.cookies).toEqual([
       {
         domain: ".google.com",

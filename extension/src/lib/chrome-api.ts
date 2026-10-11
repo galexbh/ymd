@@ -83,8 +83,11 @@ export interface ChromeApi {
   runtime: {
     /** This extension's ID. */
     id: string;
-    /** Only the required host permissions are read (they decide the preset sites). */
-    getManifest(): { host_permissions?: string[] };
+    /**
+     * Only the required host permissions (they decide the preset sites) and the version (sent
+     * to ymd with every sync) are read.
+     */
+    getManifest(): { version: string; host_permissions?: string[] };
     getURL(path: string): string;
     lastError?: { message?: string };
     // Callback form on purpose: it is the only form where `lastError` is readable everywhere.

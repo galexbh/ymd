@@ -10,7 +10,9 @@ import {
   bridgeState,
   extensionsUrl,
   cardTarget,
+  extensionOutdated,
   forkExtensionsUrl,
+  olderVersion,
   pageBrowser,
   syncBrowserName,
 } from "../extension";
@@ -21,6 +23,7 @@ const SYNC: ExtensionSync = {
   cookieCount: 42,
   domains: [".youtube.com", ".google.com"],
   signedIn: ["youtube.com"],
+  extensionVersion: "1.4.1",
 };
 
 /** Cuentas with «Extensión» as the cookie source: the only place the card shows. */
@@ -86,6 +89,50 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
     expect(screen.getByTestId("extension-session-hint")).toHaveTextContent(
       "Ábrela en Brave y agrega YouTube desde «Sitios sugeridos»",
     );
+  });
+
+  it("shows the synced extension version; no reload notice when it matches the bundled one", async () => {
+    await renderApp({ ...accounts, extension: { lastSync: SYNC } });
+    await stamp();
+    const facts = screen.getByTestId("extension-sync");
+    expect(within(facts).getByText("Versión de la extensión")).toBeInTheDocument();
+    expect(screen.getByTestId("extension-version")).toHaveTextContent("1.4.1");
+    expect(screen.queryByTestId("extension-outdated")).toBeNull();
+  });
+
+  it("an older synced extension gets a reload notice that opens the extensions page", async () => {
+    const { be, user, tick } = await renderApp({
+      ...accounts,
+      extension: { lastSync: { ...SYNC, extensionVersion: "1.4.0" } },
+    });
+    await stamp();
+    expect(screen.getByTestId("extension-version")).toHaveTextContent("1.4.0");
+    const notice = await screen.findByTestId("extension-outdated");
+    expect(notice).toHaveTextContent(
+      "Hay una versión nueva de la extensión (1.4.1). Abre Brave → extensiones y pulsa recargar en ymd Cookies.",
+    );
+    await user.click(
+      within(notice).getByRole("button", { name: "Abrir Brave y copiar la dirección" }),
+    );
+    await tick(0);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "brave" }]);
+    expect(await screen.findByTestId("extension-opened")).toHaveTextContent("brave://extensions");
+  });
+
+  it("a sync without a version (an extension older than the field) is outdated too", async () => {
+    await renderApp({ ...accounts, extension: { lastSync: { ...SYNC, extensionVersion: null } } });
+    await stamp();
+    expect(screen.getByTestId("extension-version")).toHaveTextContent("Anterior a esta función");
+    expect(await screen.findByTestId("extension-outdated")).toHaveTextContent("(1.4.1)");
+  });
+
+  it("no reload notice without a bundled folder (dev build) or with a newer extension", async () => {
+    await renderApp({
+      ...accounts,
+      extension: { extensionDir: false, lastSync: { ...SYNC, extensionVersion: null } },
+    });
+    await stamp();
+    expect(screen.queryByTestId("extension-outdated")).toBeNull();
   });
 
   it("PENDIENTE: bridge registered, nothing synced yet", async () => {
@@ -349,6 +396,18 @@ describe("Ajustes → Cuentas: extensión de ymd — idiomas", () => {
     expect(
       screen.getByRole("button", { name: "Open Brave and copy the address" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Extension version")).toBeInTheDocument();
+  });
+
+  it("the reload notice in English", async () => {
+    await renderApp({
+      ...accounts,
+      settings: { ...EXT_SETTINGS, language: "en" },
+      extension: { lastSync: { ...SYNC, extensionVersion: "1.3.9" } },
+    });
+    expect(await screen.findByTestId("extension-outdated")).toHaveTextContent(
+      "A new version of the extension is available (1.4.1). Open Brave → extensions and click reload on ymd Cookies.",
+    );
   });
 });
 
@@ -356,6 +415,7 @@ describe("extension helpers", () => {
   const status = {
     extensionId: "x",
     extensionDir: null,
+    bundledVersion: null,
     hostManifest: null,
     targets: [
       { browser: "brave" as const, installed: false, registered: true },
@@ -419,6 +479,33 @@ describe("extension helpers", () => {
         null,
       ),
     ).toEqual({ browser: "edge", name: "Edge", url: "edge://extensions" });
+  });
+
+  it("olderVersion compares dot-separated numbers", () => {
+    expect(olderVersion("1.4.0", "1.4.1")).toBe(true);
+    expect(olderVersion("1.4.1", "1.4.1")).toBe(false);
+    expect(olderVersion("1.4.2", "1.4.1")).toBe(false);
+    expect(olderVersion("1.9", "1.10")).toBe(true);
+    expect(olderVersion("1.10", "1.9")).toBe(false);
+    expect(olderVersion("1.4", "1.4.0")).toBe(false);
+    expect(olderVersion("1.4", "1.4.1")).toBe(true);
+    expect(olderVersion("2", "1.99.99")).toBe(false);
+    expect(olderVersion("x", "0.1")).toBe(true);
+  });
+
+  it("extensionOutdated needs a bundled version and a sync", () => {
+    const bundled = { ...status, bundledVersion: "1.4.1" };
+    expect(extensionOutdated(bundled)).toBe(false);
+    expect(extensionOutdated({ ...bundled, lastSync: SYNC })).toBe(false);
+    expect(
+      extensionOutdated({ ...bundled, lastSync: { ...SYNC, extensionVersion: "1.4.0" } }),
+    ).toBe(true);
+    expect(extensionOutdated({ ...bundled, lastSync: { ...SYNC, extensionVersion: null } })).toBe(
+      true,
+    );
+    expect(extensionOutdated({ ...status, lastSync: { ...SYNC, extensionVersion: null } })).toBe(
+      false,
+    );
   });
 
   it("forkExtensionsUrl", () => {

@@ -20,6 +20,10 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const EXTENSION_DIR = resolve(here, "../..");
+/** The real manifest version (extension/manifest.json), as `runtime.getManifest()` reports it. */
+export const MANIFEST_VERSION = (
+  JSON.parse(readFileSync(resolve(EXTENSION_DIR, "manifest.json"), "utf8")) as { version: string }
+).version;
 
 export type Locale = "es" | "en";
 
@@ -193,7 +197,7 @@ export function createChromeFake(options: FakeOptions = {}) {
       });
     },
     id: FAKE_ID,
-    getManifest: () => ({ host_permissions: [...required] }),
+    getManifest: () => ({ version: MANIFEST_VERSION, host_permissions: [...required] }),
     getURL: (path: string) => `chrome-extension://${FAKE_ID}/${path.replace(/^\//, "")}`,
     sendMessage(message) {
       return new Promise((resolve) => {

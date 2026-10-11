@@ -86,8 +86,11 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
         let extension_dir = dev
             .into_iter()
             .chain(resource.map(|r| r.join("extension")))
-            .find(|d| d.join("manifest.json").is_file())
-            .map(|d| d.to_string_lossy().into_owned());
+            .find(|d| d.join("manifest.json").is_file());
+        let bundled_version = extension_dir
+            .as_deref()
+            .and_then(native_host::manifest_version);
+        let extension_dir = extension_dir.map(|d| d.to_string_lossy().into_owned());
         let manifest = native_registry::manifest_path(&paths.data_dir);
         let last_sync = crate::auth::cookies::info(&paths).and_then(|info| {
             let browser = info.origin.strip_prefix("extension:")?.to_string();
@@ -97,12 +100,14 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 cookie_count: info.cookie_count,
                 domains: info.domains,
                 signed_in: info.signed_in,
+                extension_version: crate::auth::cookies::extension_version(&paths),
             })
         });
         let default = crate::auth::default_browser::detect_info();
         ExtensionStatus {
             extension_id: native_host::EXTENSION_ID.to_string(),
             extension_dir,
+            bundled_version,
             host_manifest: manifest
                 .is_file()
                 .then(|| manifest.to_string_lossy().into_owned()),

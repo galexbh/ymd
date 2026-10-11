@@ -17,6 +17,7 @@ import {
   bridgeState,
   cardTarget,
   type CardTarget,
+  extensionOutdated,
   syncBrowserName,
 } from "./extension";
 import s from "./ExtensionCard.module.css";
@@ -278,7 +279,31 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
                   : t("session.notAdded")}
             </dd>
           </div>
+          <div>
+            <dt>{t("extension.fact.version")}</dt>
+            <dd data-testid="extension-version">
+              {sync.extensionVersion ?? t("extension.versionUnknown")}
+            </dd>
+          </div>
         </dl>
+      )}
+      {status && status.bundledVersion && extensionOutdated(status) && (
+        <div data-testid="extension-outdated">
+          <Notice
+            tone="warning"
+            title={t("extension.outdated", {
+              version: status.bundledVersion,
+              browser: targetName,
+            })}
+            actions={[
+              {
+                label: t("extension.openPage", { browser: targetName }),
+                primary: true,
+                onClick: () => void openPage(),
+              },
+            ]}
+          />
+        </div>
       )}
       {sync && !sync.signedIn.includes("youtube.com") && (
         <p className={settings.fieldHint} data-testid="extension-session-hint">

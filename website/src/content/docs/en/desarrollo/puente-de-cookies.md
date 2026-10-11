@@ -38,8 +38,9 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 - `{"type":"hello","version":1}`
   → `{"ok":true,"app":"ymd","appVersion":"0.4.0","protocol":1,"features":["cookies","open"]}`
   - `features` lists the messages this ymd understands; an older ymd doesn't send it.
-- `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","cookies":[Cookie…]}`
+- `{"type":"cookies","version":1,"browser":"brave"|"chrome"|"edge"|"chromium"|"vivaldi"|"opera"|"other","extension":"1.4.1","cookies":[Cookie…]}`
   → `{"ok":true,"count":N,"domains":["youtube.com",…]}`
+  - `extension` is optional: the extension's manifest version (`chrome.runtime.getManifest().version`). Only digits and dots, at most 16 characters, are accepted; any other value is ignored and the sync goes on. An older extension doesn't send it.
   - `Cookie` mirrors `chrome.cookies.Cookie`: `{domain, hostOnly, path, secure, httpOnly, session, expirationDate?, name, value}`. Extra fields are ignored.
   - An unknown `browser` is recorded as `other`.
   - `count` / `domains` describe what was written: cookies with an empty name, control characters in the path, name or value, a domain that isn't a valid hostname, a path not starting with `/`, or more than 4096 bytes (name plus value) are skipped. If none remain, the reply is an error and the previous `cookies.txt` is kept.
@@ -52,7 +53,8 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 ## Effects
 
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
-- It writes `cookies.meta.json` with `origin: "extension:<browser>"`.
+- It writes `cookies.meta.json` with `origin: "extension:<browser>"` and, when sent, `extensionVersion`.
+- `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). When the synced one is older, or missing, the card asks to reload the extension: an unpacked extension doesn't update itself.
 - The app reads both through `cookies_info` / `extension_status`.
 - `open` launches `ymd --open-url <url>` and replies right away. If ymd is already open, that second instance hands it the link and exits, and ymd comes to the front; otherwise ymd starts with it. The link shows up in **Receive** with its card. Nothing is ever downloaded without your click.
 

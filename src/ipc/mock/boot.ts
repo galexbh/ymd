@@ -4,7 +4,8 @@
 //
 // Pick a scenario with `?scenario=first-run|ready|outdated|complete` (remembered in
 // localStorage), speed with `?speed=4`, Brave state with `?brave=closed`, and the cookie bridge
-// with `?ext=synced|none|nobridge` (default `none`: bridge registered, nothing synced yet).
+// with `?ext=synced|outdated|none|nobridge` (default `none`: bridge registered, nothing synced
+// yet; `outdated`: synced by an extension older than the bundled one).
 // `?clipboard=<text>` seeds the simulated clipboard; it is read from the URL only and never
 // remembered, like real clipboard contents.
 // The live backend is available in devtools as `window.__YMD_MOCK__`.
@@ -14,7 +15,7 @@ import {
   type MockBackend,
   type MockExtensionOptions,
 } from "./index";
-import { EXTENSION_SYNC_DOMAINS } from "./fixtures";
+import { BUNDLED_EXTENSION_VERSION, EXTENSION_SYNC_DOMAINS } from "./fixtures";
 
 declare global {
   interface Window {
@@ -37,7 +38,7 @@ function readParam(name: string): string | null {
 /** `?ext=` → cookie bridge state for dev. */
 export function extensionFromParam(value: string | null, now: number): MockExtensionOptions {
   if (value === "nobridge") return { registered: false, lastSync: null };
-  if (value === "synced") {
+  if (value === "synced" || value === "outdated") {
     return {
       registered: true,
       lastSync: {
@@ -46,6 +47,7 @@ export function extensionFromParam(value: string | null, now: number): MockExten
         cookieCount: 42,
         domains: EXTENSION_SYNC_DOMAINS,
         signedIn: ["youtube.com"],
+        extensionVersion: value === "outdated" ? "1.4.0" : BUNDLED_EXTENSION_VERSION,
       },
     };
   }

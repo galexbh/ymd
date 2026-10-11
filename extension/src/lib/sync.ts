@@ -35,6 +35,8 @@ export interface CookiesMessage {
   version: typeof PROTOCOL_VERSION;
   browser: BrowserName;
   cookies: WireCookie[];
+  /** This extension's manifest version, so ymd can tell when the bundled one is newer. */
+  extension: string;
 }
 
 /** «Descargar con ymd»: ymd opens the link in Recibir (it never downloads by itself). */
@@ -145,6 +147,7 @@ export function createSyncEngine(deps: EngineDeps) {
       version: PROTOCOL_VERSION,
       browser: await browser(),
       cookies,
+      extension: api.runtime.getManifest().version,
     };
     const result = await sendNative(api, message);
     const t = now();

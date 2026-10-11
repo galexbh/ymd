@@ -306,6 +306,9 @@ export function browsersFixture(braveRunning: boolean, firefoxInstalled = true):
 /** Fixed ID derived from the manifest `key` (website/src/content/docs/desarrollo/puente-de-cookies.md). */
 export const EXTENSION_ID = "gicaphbpepkphmeciigjhdpnbcaflfgd";
 
+/** Version of the bundled extension (its manifest.json) in the mock build. */
+export const BUNDLED_EXTENSION_VERSION = "1.4.1";
+
 /** Chromium browsers the native-messaging host is registered for, in display order. */
 export const BRIDGE_BROWSERS: Browser[] = ["brave", "chrome", "edge"];
 
