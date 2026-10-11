@@ -23,6 +23,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 - Dos navegadores que sincronizan cookies a la vez ya no mezclan el archivo de cookies con los datos de otro envío, y el puente responde con un error si una petición tarda más de 20 s.
 - ymd busca entornos JavaScript una vez cada 10 minutos (o al instalar o quitar uno), no en cada descarga.
 - Las últimas líneas del registro local se escriben antes de salir.
+- **Extensión: sin reenvíos en bucle tras un error.** Si un envío falla, la extensión ya no reenvía las cookies con cada cambio: reintenta con la sincronización de cada 30 min, con espera creciente (30 min, 1 h, 2 h… hasta 6 h) si ymd rechazó el envío o no respondió. **Enviar ahora** sigue intentándolo en el momento. Extensión 1.4.4.
+- **Extensión: un ymd que no responde ya no bloquea los envíos.** Cada mensaje al puente espera 30 s como máximo, y solo queda en cola un envío pendiente.
+- **Extensión: más de 10.000 cookies se avisa sin enviar.** La ventana explica el motivo y el icono muestra **!** en rojo, igual que cuando ymd no pudo guardar las cookies.
+- **Extensión: menos trabajo por cambio de cookie.** La lista de sitios se lee de memoria, un flujo continuo de cambios se envía como máximo 30 s después del primero, un envío pendiente se completa aunque el navegador haya suspendido la extensión, y la página de bienvenida deja de comprobar el anclaje una vez fijada.
 
 ### Proyecto
 

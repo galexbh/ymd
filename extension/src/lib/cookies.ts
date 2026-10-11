@@ -71,10 +71,12 @@ export function domainsOf(cookies: readonly WireCookie[], allowlist: readonly st
  * is stored, never the values themselves.
  */
 export async function hashCookies(cookies: readonly WireCookie[]): Promise<string> {
+  // Each row is serialized once, then the strings are sorted (code-unit order, as `<` compares)
+  // and joined: byte for byte what `JSON.stringify` of the sorted rows gives.
   const rows = cookies
-    .map((c) => [c.name, c.domain, c.path, c.value, c.expirationDate ?? null])
-    .sort((a, b) => (JSON.stringify(a) < JSON.stringify(b) ? -1 : 1));
-  const bytes = new TextEncoder().encode(JSON.stringify(rows));
+    .map((c) => JSON.stringify([c.name, c.domain, c.path, c.value, c.expirationDate ?? null]))
+    .sort();
+  const bytes = new TextEncoder().encode(`[${rows.join(",")}]`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

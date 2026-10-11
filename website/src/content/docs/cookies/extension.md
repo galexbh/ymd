@@ -72,20 +72,21 @@ Fija «ymd Cookies» en la barra del navegador y ábrela:
   - Con más de cinco sitios, la lista se pliega: **Mostrar todos (N)** muestra el resto y **Mostrar menos** la vuelve a plegar. Un sitio recién agregado siempre queda a la vista.
   - La sesión de YouTube está en las cookies de `youtube.com`, así que agregar YouTube no da acceso a tu cuenta de Google.
 
-El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube está cerrada, y en rojo cuando no puede comunicarse con ymd; al pasar el puntero indica el motivo. En ymd, **Ajustes → Cuentas** muestra la misma **Sesión de YouTube** e indica cómo recuperarla.
+El icono de la extensión muestra **!** en ámbar cuando tu sesión de YouTube está cerrada, y en rojo cuando el último envío falló: ymd no respondió, no pudo guardar las cookies o los sitios de la lista suman más de 10.000 cookies. Al pasar el puntero indica el motivo. En ymd, **Ajustes → Cuentas** muestra la misma **Sesión de YouTube** e indica cómo recuperarla.
 
 ## Qué envía y adónde
 
 - **A quién:** solo al programa nativo `com.ymd.cookies` (ymd), por Native Messaging. El navegador lo arranca como un proceso local y le pasa el mensaje por la entrada estándar. No hay red, servidor ni telemetría.
 - **Qué:** las cookies de los dominios de la lista, con los campos de `chrome.cookies.Cookie` (`domain`, `hostOnly`, `path`, `secure`, `httpOnly`, `session`, `expirationDate`, `name`, `value`), el nombre del navegador y la versión de la extensión.
-- **Cuándo:** 3 s después de que cambie una cookie de la lista, cada 30 min como sincronización completa, y al pulsar **Enviar ahora**. Solo se envía si el contenido cambió (se compara un hash SHA-256).
+- **Cuándo:** 3 s después de que cambie una cookie de la lista (como máximo 30 s después del primer cambio, aunque los cambios no se detengan), cada 30 min como sincronización completa, y al pulsar **Enviar ahora**. Solo se envía si el contenido cambió (se compara un hash SHA-256).
+- **Si un envío falla:** la extensión no reenvía las cookies con cada cambio. Vuelve a intentarlo con la sincronización de cada 30 min; si ymd rechazó el envío o no respondió, espera cada vez más entre intentos (30 min, 1 h, 2 h… hasta 6 h). **Enviar ahora** lo intenta en el momento. Un envío sin respuesta de ymd en 30 s cuenta como fallido. Con más de 10.000 cookies, el máximo que acepta ymd, no se envía nada.
 - **Qué hace ymd:** escribe `cookies.txt` (formato Netscape) en su carpeta de datos, cifrado con una clave del llavero del sistema y con permisos solo para tu usuario, y lo usa con yt-dlp.
 
 El protocolo completo está en [Protocolo del puente de cookies](/ymd/desarrollo/puente-de-cookies/).
 
 ## Privacidad
 
-- La extensión guarda la lista de sitios, el estado (última sincronización, número de cookies, dominios y el último error) y el hash. Nunca guarda el valor de una cookie.
+- La extensión guarda la lista de sitios, el estado (última sincronización, número de cookies, dominios y el último error), el hash y, tras un fallo, el hash del intento fallido con su código de error. Nunca guarda el valor de una cookie.
 - Las cookies se envían solo a ymd en este equipo. No se envían por red ni al desarrollador.
 - Ninguna otra extensión ni página web puede comunicarse con «ymd Cookies», y ymd nunca devuelve cookies a nadie. Detalles en [Seguridad](/ymd/desarrollo/puente-de-cookies/#seguridad).
 - Para dejar de compartir: quita el sitio de la lista o desinstala la extensión. **Borrar copia**, en **Ajustes → Cuentas**, borra el `cookies.txt` de ymd.
@@ -100,6 +101,9 @@ La extensión cargada no tiene el ID de ymd. Quítala y cárgala desde la carpet
 
 **«ymd se cerró antes de responder» o «ymd no pudo guardar las cookies».**
 Vuelve a intentarlo con **Enviar ahora**. Si el error se repite, actualiza ymd.
+
+**«Hay más de 10.000 cookies en los sitios de la lista».**
+ymd acepta como máximo 10.000 cookies por envío. Quita de la lista los sitios que no necesites y pulsa **Enviar ahora**.
 
 **La tarjeta sigue en «Pendiente».**
 La primera sincronización llega cuando cambia una cookie o al pulsar **Enviar ahora** en la extensión. Comprueba que iniciaste sesión en YouTube en ese navegador.

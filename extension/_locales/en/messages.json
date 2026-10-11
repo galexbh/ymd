@@ -59,6 +59,12 @@
   "errorRejectedHint": {
     "message": "Try again. If it keeps happening, check ymd."
   },
+  "errorTooMany": {
+    "message": "The listed sites have more than 10,000 cookies; ymd does not accept that many."
+  },
+  "errorTooManyHint": {
+    "message": "Remove the sites you do not need from the list and press “Send now”."
+  },
   "errorUnknown": {
     "message": "Could not reach ymd."
   },
@@ -148,6 +154,12 @@
   },
   "badgeError": {
     "message": "ymd Cookies: couldn't reach ymd"
+  },
+  "badgeRejected": {
+    "message": "ymd Cookies: ymd could not save the cookies"
+  },
+  "badgeTooMany": {
+    "message": "ymd Cookies: too many cookies to send to ymd"
   },
   "currentUseSession": {
     "message": "Use my $SITE$ session in ymd",

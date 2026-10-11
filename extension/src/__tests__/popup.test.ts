@@ -108,6 +108,19 @@ describe("popup in Spanish", () => {
     expect(text("notice-text")).toBe("ymd no pudo guardar las cookies (io_error).");
   });
 
+  it("explains a jar too big to send", async () => {
+    await mount("es", {
+      storage: { [KEYS.status]: status({ error: { code: "too_many_cookies" } }) },
+    });
+    expect($("stamp").dataset.state).toBe("error");
+    expect(text("notice-text")).toBe(
+      "Hay más de 10.000 cookies en los sitios de la lista; ymd no acepta tantas.",
+    );
+    expect(text("notice-hint")).toBe(
+      "Quita de la lista los sitios que no necesites y pulsa «Enviar ahora».",
+    );
+  });
+
   it("starts empty and suggests a few sites", async () => {
     await mount("es");
     expect(document.querySelectorAll("#site-list li")).toHaveLength(0);

@@ -1,14 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { type ChromeApi } from "../lib/chrome-api";
 import { mapLastError, stampState } from "../lib/status";
-import { KEYS } from "../lib/storage";
+import { KEYS, SESSION_KEYS } from "../lib/storage";
 import {
   ALARM_NAME,
   ALARM_PERIOD_MINUTES,
   createSyncEngine,
+  DEBOUNCE_MAX_WAIT_MS,
   DEBOUNCE_MS,
   HOST_NAME,
   installBackground,
+  installMenu,
+  MAX_COOKIES,
+  NATIVE_TIMEOUT_MS,
   type PopupResponse,
+  RETRY_BASE_MS,
+  retryDelay,
+  sendNative,
 } from "../lib/sync";
 import {
   cookie,
@@ -152,12 +160,12 @@ describe("hash", () => {
     expect(cookiesSent(fake)).toHaveLength(2);
   });
 
-  it("does not store the hash of a failed send, so the next sync retries", async () => {
+  it("does not store the hash of a failed send, so the next alarm retries", async () => {
     const { fake, engine } = setup({ native: { lastError: HOST_NOT_FOUND } });
     await engine.syncNow();
     expect(fake.store.has(KEYS.lastHash)).toBe(false);
     fake.setNative({ reply: { ok: true, count: 2 } });
-    expect((await engine.syncNow()).sent).toBe(true);
+    expect((await engine.syncNow("alarm")).sent).toBe(true);
     expect(typeof fake.store.get(KEYS.lastHash)).toBe("string");
   });
 
@@ -213,7 +221,7 @@ describe("debounce", () => {
     const { fake, engine, timers } = setup();
     installBackground(engine, fake.api);
     await fake.api.storage.local.set({ [KEYS.allowlist]: ["youtube.com"] });
-    expect(timers.pending).toBe(1);
+    expect(timers.pending).toBe(2); // the quiet period and the 30 s ceiling
     timers.advance(DEBOUNCE_MS);
     await flush();
     const sent = cookiesSent(fake)[0].message.cookies as Array<{ name: string }>;
@@ -381,5 +389,320 @@ describe("lifecycle", () => {
     expect(fake.record.native).toHaveLength(0);
     expect(listener(msg, POPUP_SENDER, no)).toBe(true);
     expect(listener(msg, { ...POPUP_SENDER, url: `${POPUP_SENDER.url}?x=1` }, no)).toBe(true);
+  });
+});
+
+describe("native timeout", () => {
+  it("a host that never answers fails as a timeout after 30 s", async () => {
+    const { fake, engine, timers } = setup({ native: { hang: true } });
+    let settled = false;
+    const run = engine.syncNow().then((r) => {
+      settled = true;
+      return r;
+    });
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(1);
+    timers.advance(NATIVE_TIMEOUT_MS - 1);
+    await flush();
+    expect(settled).toBe(false);
+    timers.advance(1);
+    const result = await run;
+    expect(result.sent).toBe(false);
+    expect(result.status.error).toEqual({ code: "host_failed", detail: "timeout" });
+    expect(fake.store.has(KEYS.lastHash)).toBe(false);
+  });
+
+  it("ignores a reply that arrives after the timeout", async () => {
+    const timers = manualTimers();
+    let late: ((response: unknown) => void) | undefined;
+    const api = {
+      runtime: {
+        lastError: undefined,
+        sendNativeMessage: (_host: string, _msg: object, cb: (response: unknown) => void) => {
+          late = cb;
+        },
+      },
+    } as unknown as Pick<ChromeApi, "runtime">;
+    const pending = sendNative(api, { type: "hello", version: 1 }, timers);
+    timers.advance(NATIVE_TIMEOUT_MS);
+    expect(await pending).toEqual({
+      ok: false,
+      error: { code: "host_failed", detail: "timeout" },
+    });
+    expect(() => late?.({ ok: true })).not.toThrow();
+    expect(await pending).toMatchObject({ ok: false });
+  });
+
+  it("a reply in time clears the timer", async () => {
+    const { engine, timers } = setup();
+    await engine.syncNow();
+    expect(timers.pending).toBe(0);
+  });
+
+  it("a stuck hello does not hold the queue past the timeout", async () => {
+    const { fake, engine, timers } = setup({ native: { hang: true } });
+    const hello = engine.hello();
+    const sync = engine.syncNow(true);
+    await flush();
+    fake.setNative({ reply: { ok: true, count: 2 } });
+    timers.advance(NATIVE_TIMEOUT_MS);
+    expect((await hello).ok).toBe(false);
+    expect((await sync).sent).toBe(true);
+  });
+});
+
+describe("queue", () => {
+  it("keeps at most one sync waiting; later requests join it", async () => {
+    const { fake, engine, timers } = setup({ native: { hang: true } });
+    const running = engine.syncNow();
+    await flush();
+    const a = engine.syncNow();
+    const b = engine.syncNow();
+    expect(b).toBe(a);
+    timers.advance(NATIVE_TIMEOUT_MS);
+    expect((await running).status.error?.detail).toBe("timeout");
+    // the waiting change sync then meets a jar that just failed, and backs off
+    expect(await a).toMatchObject({ sent: false, skipped: true });
+    expect(cookiesSent(fake)).toHaveLength(1);
+  });
+
+  it("«Enviar ahora» upgrades the waiting sync", async () => {
+    const { fake, engine, timers } = setup({ native: { hang: true } });
+    const running = engine.syncNow();
+    await flush();
+    const waiting = engine.syncNow();
+    const forced = engine.syncNow(true);
+    expect(forced).toBe(waiting);
+    fake.setNative({ reply: { ok: true, count: 2 } });
+    timers.advance(NATIVE_TIMEOUT_MS);
+    await running;
+    expect((await forced).sent).toBe(true);
+    expect(cookiesSent(fake)).toHaveLength(2);
+  });
+
+  it("a request made once the waiting sync started queues a new one", async () => {
+    const { fake, engine } = setup();
+    const first = engine.syncNow(true);
+    expect(engine.syncNow(true)).toBe(first);
+    await first;
+    const next = engine.syncNow(true);
+    expect(next).not.toBe(first);
+    await next;
+    expect(cookiesSent(fake)).toHaveLength(2);
+  });
+});
+
+describe("retries after a failure", () => {
+  const MIN = 60_000;
+
+  it("backs off 30 min, 1 h, 2 h… capped at 6 h for costly failures", () => {
+    const steps = [1, 2, 3, 4, 5, 6].map((n) => retryDelay("host_rejected", n) / MIN);
+    expect(steps).toEqual([30, 60, 120, 240, 360, 360]);
+    expect(RETRY_BASE_MS).toBe(ALARM_PERIOD_MINUTES * MIN);
+    expect(retryDelay("host_failed", 2)).toBe(60 * MIN);
+    for (const code of ["host_not_found", "host_forbidden", "too_many_cookies"] as const) {
+      expect(retryDelay(code, 9)).toBe(0);
+    }
+  });
+
+  it("does not resend a refused jar on every change; only the alarm retries, with backoff", async () => {
+    const { fake, engine, tick } = setup({
+      native: { reply: { ok: false, code: "io_error", detail: "disk full" } },
+    });
+    expect((await engine.syncNow()).status.error?.code).toBe("host_rejected");
+    expect(await engine.syncNow()).toMatchObject({ skipped: true });
+    fake.jar[1] = { ...fake.jar[1], value: "rotated" }; // even a changed jar waits
+    expect(await engine.syncNow()).toMatchObject({ skipped: true });
+    tick(29 * MIN);
+    expect(await engine.syncNow("alarm")).toMatchObject({ skipped: true });
+    expect(cookiesSent(fake)).toHaveLength(1);
+    tick(MIN);
+    expect(await engine.syncNow("alarm")).toMatchObject({ skipped: false, sent: false });
+    expect(cookiesSent(fake)).toHaveLength(2);
+    // second failure in a row: one hour
+    tick(30 * MIN);
+    expect(await engine.syncNow("alarm")).toMatchObject({ skipped: true });
+    tick(30 * MIN);
+    await engine.syncNow("alarm");
+    expect(cookiesSent(fake)).toHaveLength(3);
+    // «Enviar ahora» never waits
+    await engine.syncNow(true);
+    expect(cookiesSent(fake)).toHaveLength(4);
+  });
+
+  it("past the backoff, a changed jar is tried on the next change", async () => {
+    const { fake, engine, tick } = setup({ native: { reply: { ok: false, code: "io_error" } } });
+    await engine.syncNow();
+    tick(30 * MIN);
+    // the same jar waits for the alarm
+    expect(await engine.syncNow()).toMatchObject({ skipped: true });
+    fake.jar[1] = { ...fake.jar[1], value: "rotated" };
+    fake.setNative({ reply: { ok: true, count: 2 } });
+    expect((await engine.syncNow()).sent).toBe(true);
+    expect(fake.store.get(KEYS.lastFailure)).toBeNull();
+  });
+
+  it("a missing ymd is retried by every alarm and on a changed jar, without backoff", async () => {
+    const { fake, engine } = setup({ native: { lastError: HOST_NOT_FOUND } });
+    await engine.syncNow();
+    expect(await engine.syncNow()).toMatchObject({ skipped: true });
+    await engine.syncNow("alarm");
+    await engine.syncNow("alarm");
+    expect(cookiesSent(fake)).toHaveLength(3);
+    fake.jar[1] = { ...fake.jar[1], value: "rotated" };
+    await engine.syncNow();
+    expect(cookiesSent(fake)).toHaveLength(4);
+  });
+
+  it("a successful hello lifts the wait", async () => {
+    const { fake, engine } = setup({ native: { reply: { ok: false, code: "io_error" } } });
+    await engine.syncNow();
+    fake.setNative({ reply: { ok: true, count: 2 } });
+    expect((await engine.hello()).ok).toBe(true);
+    expect((await engine.syncNow()).sent).toBe(true);
+  });
+
+  it("remembers only a hash, a code and two numbers", async () => {
+    const { fake, engine } = setup({ native: { reply: { ok: false, code: "io_error" } } });
+    await engine.syncNow();
+    const failure = fake.store.get(KEYS.lastFailure) as Record<string, unknown>;
+    expect(Object.keys(failure).sort()).toEqual(["attempts", "code", "hash", "nextAt"]);
+    expect(failure).toMatchObject({ code: "host_rejected", attempts: 1 });
+    expect(failure.hash).toMatch(/^[0-9a-f]{64}$/);
+    const everything = JSON.stringify([...fake.store.entries()]);
+    for (const c of SEED) expect(everything).not.toContain(c.value);
+  });
+});
+
+describe("too many cookies", () => {
+  function bigJar(n: number) {
+    return Array.from({ length: n }, (_, i) => cookie({ name: `c${i}`, value: `v${i}` }));
+  }
+
+  it("sends nothing past ymd's limit and says why, with the red badge", async () => {
+    const { fake, engine } = setup({ cookies: bigJar(MAX_COOKIES + 1) });
+    installBackground(engine, fake.api);
+    const result = await engine.syncNow(true);
+    expect(fake.record.native).toHaveLength(0);
+    expect(result.status.error).toMatchObject({ code: "too_many_cookies" });
+    expect(stampState(result.status)).toBe("error");
+    await flush();
+    expect(fake.record.badge).toMatchObject({
+      text: "!",
+      title: "ymd Cookies: demasiadas cookies para enviar a ymd",
+    });
+  });
+
+  it("sends exactly the limit", async () => {
+    const { fake, engine } = setup({ cookies: bigJar(MAX_COOKIES) });
+    expect((await engine.syncNow()).sent).toBe(true);
+    expect(cookiesSent(fake)[0].message.cookies).toHaveLength(MAX_COOKIES);
+  });
+});
+
+describe("allowlist cache", () => {
+  it("cookie changes read the list from memory, refreshed when it changes", async () => {
+    const { fake, engine } = setup();
+    installBackground(engine, fake.api);
+    await flush();
+    const get = vi.spyOn(fake.api.storage.local, "get");
+    const reads = () => get.mock.calls.filter(([k]) => k === KEYS.allowlist).length;
+    for (let i = 0; i < 5; i++) fake.setCookie(cookie({ name: "PREF", value: `v${i}` }));
+    await flush(2);
+    expect(reads()).toBe(0);
+    await fake.api.storage.local.set({ [KEYS.allowlist]: ["google.com"] });
+    const youtube = { removed: false, cookie: SEED[1], cause: "explicit" };
+    expect(await engine.onCookieChanged(youtube)).toBe(false);
+    expect(await engine.onCookieChanged({ ...youtube, cookie: SEED[0] })).toBe(true);
+    expect(reads()).toBe(0);
+  });
+});
+
+describe("debounce ceiling", () => {
+  it("a steady trickle of changes still syncs 30 s after the first one", async () => {
+    const { fake, engine, timers } = setup();
+    installBackground(engine, fake.api);
+    await flush();
+    const step = 2_000; // always inside the 3 s quiet period
+    for (let elapsed = 0; elapsed < DEBOUNCE_MAX_WAIT_MS; elapsed += step) {
+      expect(cookiesSent(fake)).toHaveLength(0);
+      fake.setCookie(cookie({ name: "PREF", value: `v${elapsed}` }));
+      await flush(2);
+      timers.advance(step);
+    }
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(1);
+    // the next change starts a new window
+    fake.setCookie(cookie({ name: "PREF", value: "after" }));
+    await flush(2);
+    timers.advance(DEBOUNCE_MS);
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(2);
+  });
+
+  it("leaves a pending flag in session storage until the sync ran", async () => {
+    const { fake, engine, timers } = setup();
+    engine.schedule();
+    await flush(2);
+    expect(typeof fake.session.get(SESSION_KEYS.pendingSince)).toBe("number");
+    timers.advance(DEBOUNCE_MS);
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(1);
+    expect(fake.session.has(SESSION_KEYS.pendingSince)).toBe(false);
+  });
+
+  it("a worker that wakes with a pending flag runs the missed sync", async () => {
+    const { fake, engine } = setup({ session: { [SESSION_KEYS.pendingSince]: 1 } });
+    installBackground(engine, fake.api);
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(1);
+    expect(fake.session.has(SESSION_KEYS.pendingSince)).toBe(false);
+  });
+
+  it("without a flag, waking does not sync", async () => {
+    const { fake, engine } = setup();
+    installBackground(engine, fake.api);
+    await flush();
+    expect(cookiesSent(fake)).toHaveLength(0);
+  });
+});
+
+describe("no unhandled rejections", () => {
+  it("hello answers even when storage fails", async () => {
+    const { fake, engine } = setup({ native: { reply: { ok: true } } });
+    installBackground(engine, fake.api);
+    await flush();
+    vi.spyOn(fake.api.storage.local, "get").mockRejectedValue(new Error("storage gone"));
+    const res = (await fake.api.runtime.sendMessage({ type: "hello" })) as PopupResponse;
+    expect(res.ok).toBe(false);
+    expect(res.status.error).toMatchObject({ code: "unknown", detail: "storage gone" });
+  });
+
+  it("install, startup and status changes swallow storage and alarm failures", async () => {
+    const { fake, engine } = setup();
+    vi.spyOn(fake.api.alarms, "get").mockRejectedValue(new Error("alarms gone"));
+    installBackground(engine, fake.api);
+    fake.events.installed.emit({ reason: "update" });
+    fake.events.startup.emit();
+    vi.spyOn(fake.api.storage.local, "get").mockRejectedValue(new Error("storage gone"));
+    fake.events.storageChanged.emit({ [KEYS.status]: { newValue: null } }, "local");
+    await flush();
+    // Vitest fails the run on an unhandled rejection: getting here is the assertion.
+    expect(cookiesSent(fake)).toHaveLength(0);
+  });
+
+  it("the menu is created with a callback that checks lastError", async () => {
+    const { fake } = setup();
+    const create = vi.spyOn(fake.api.contextMenus, "create");
+    await installMenu(fake.api);
+    expect(typeof create.mock.calls[0][1]).toBe("function");
+    // a duplicate id is reported through lastError, readable inside the callback
+    let seen: string | undefined;
+    fake.api.contextMenus.create({ id: "ymd-download", title: "x", contexts: [] }, () => {
+      seen = fake.api.runtime.lastError?.message;
+    });
+    await flush(1);
+    expect(seen).toMatch(/duplicate/);
+    expect(fake.api.runtime.lastError).toBeUndefined();
   });
 });

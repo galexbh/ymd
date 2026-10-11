@@ -59,8 +59,30 @@ describe("badge", () => {
     expect(
       badgeFor(st({ sessions: { "youtube.com": false }, error: { code: "host_not_found" } })),
     ).toMatchObject({ text: "!", titleKey: "badgeError" });
-    // a rejected message (e.g. a bad link) is not a broken bridge
-    expect(badgeFor(st({ error: { code: "host_rejected" } }))).toMatchObject({ text: "" });
+    // ymd refusing the jar, or a jar too big to send, also leaves cookies unsent: red, with
+    // its own tooltip (a refused link never reaches the stored status)
+    expect(badgeFor(st({ error: { code: "host_rejected" } }))).toMatchObject({
+      text: "!",
+      titleKey: "badgeRejected",
+    });
+    expect(badgeFor(st({ error: { code: "too_many_cookies" } }))).toMatchObject({
+      text: "!",
+      titleKey: "badgeTooMany",
+    });
+  });
+
+  it("names a refused jar in the tooltip", async () => {
+    const { fake, engine } = setup({
+      cookies: SIGNED_IN,
+      sites: ["youtube.com"],
+      native: { reply: { ok: false, code: "io_error" } },
+    });
+    await engine.syncNow(true);
+    await flush();
+    expect(fake.record.badge).toMatchObject({
+      text: "!",
+      title: "ymd Cookies: ymd no pudo guardar las cookies",
+    });
   });
 
   function setup(options: FakeOptions) {
