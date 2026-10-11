@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-Guidance for AI coding sessions in this repo. Product context: `PRODUCT.md`. Human guide:
-`CONTRIBUTING.md`.
+Guidance for AI coding sessions in this repo. Product context: `docs/PRODUCT.md`. Human guide:
+`.github/CONTRIBUTING.md`.
 
 ## Stack
 
@@ -52,7 +52,7 @@ Rust needs `dist/` to exist (`generate_context!`): run `pnpm build` or create `d
   under `en/` with the same file names. The cookie bridge contract lives in
   `src/content/docs/{,en/}desarrollo/puente-de-cookies.md` (its key block is read by
   `extension/src/__tests__/manifest.test.ts`). The changelog page renders the root `CHANGELOG.md`.
-  `docs/assets/` only holds README images. Diagrams: Archify sources in `website/diagrams/` (see its README),
+  `docs/` holds `PRODUCT.md`, `DESIGN.md`, the English README and README images (`docs/assets/`). Diagrams: Archify sources in `website/diagrams/` (see its README),
   published HTML in `website/public/diagramas/`; regenerate both when the code they cite changes.
 - `.github/workflows/` — `ci.yml` (gate), `release.yml` (tags `v*`), `docs.yml` (Pages deploy),
   `nightly-smoke.yml`, `warm-release-cache.yml` (saves on main the Rust cache release.yml
@@ -74,7 +74,7 @@ Scenarios: `first-run`, `ready`, `outdated`, `complete`.
 2. **Testing**: every change adds or updates tests. Never finish a task with red tests, lint
    errors or type errors. Run `pnpm check` (+ `pnpm test:rust` for Rust changes) before saying
    done. Don't skip/disable tests to get green.
-3. **Design**: follow `PRODUCT.md`, `DESIGN.md` (once it exists) and `.impeccable/`. UI uses
+3. **Design**: follow `docs/PRODUCT.md`, `docs/DESIGN.md` and `.impeccable/`. UI uses
    design tokens only (no raw hex/rgb in components); verify light and dark themes; es/en i18n
    keys must be identical; no hard-coded user-facing strings.
 4. **Security**: spawn tools with an argv list only, never a shell. No secrets on disk in

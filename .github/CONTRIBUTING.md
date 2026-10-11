@@ -126,7 +126,7 @@ La documentación de usuario y de desarrollo vive en `website/` (Astro Starlight
 
 ## Temas y diseño
 
-Lee `PRODUCT.md` (y `DESIGN.md` cuando exista). En componentes **solo se usan tokens**
+Lee `docs/PRODUCT.md` y `docs/DESIGN.md`. En componentes **solo se usan tokens**
 (variables CSS del tema): nada de hex, rgb ni tamaños sueltos. Todo cambio visual se revisa en
 tema claro y oscuro. Respeta `prefers-reduced-motion` y el foco visible.
 

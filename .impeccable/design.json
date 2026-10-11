@@ -462,7 +462,7 @@
           "magenta #9c2a74 / #f08cc8",
           "graphite #3d4a52 / #b4c2c9"
         ],
-        "derivation": "OKLCH lightness walk to 4.5:1 against surface, surface-2, sunken, raised, accent-soft and on-accent; see DESIGN.md Colors."
+        "derivation": "OKLCH lightness walk to 4.5:1 against surface, surface-2, sunken, raised, accent-soft and on-accent; see docs/DESIGN.md Colors."
       }
     },
     "accession": {
