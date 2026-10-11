@@ -4,9 +4,14 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
-### Cambios
+## [0.7.0] - 2026-10-11
+
+### Novedades
 
 - **Node.js reemplaza a Deno como entorno JavaScript gestionado.** [Deno pasó a Cloudflare](https://blog.cloudflare.com/deno-joins-cloudflare/) y su entorno solo recibirá un año más de correcciones, así que ymd instala ahora la última versión LTS de Node.js (22 o posterior) desde nodejs.org, verificada con `SHASUMS256.txt`. Si no hay otro entorno, **Dependencias** ofrece **Instalar Node.js**. Un Node, Deno, Bun o QuickJS del sistema se sigue usando.
+
+### Cambios
+
 - **Ventana de la extensión más limpia.** El campo para escribir un sitio queda plegado tras **+ Otro sitio…**: los sitios conocidos se agregan con **Sitios sugeridos** o **Usar mi sesión de …**. Extensión 1.4.2.
 - El interruptor «Actualizar yt-dlp solo» se llama ahora **Actualizar yt-dlp automáticamente** (**Ajustes → Avanzado → yt-dlp**).
 
@@ -206,7 +211,8 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/galexbh/ymd/releases/tag/v0.7.0
 [0.6.0]: https://github.com/galexbh/ymd/releases/tag/v0.6.0
 [0.5.1]: https://github.com/galexbh/ymd/releases/tag/v0.5.1
 [0.5.0]: https://github.com/galexbh/ymd/releases/tag/v0.5.0
