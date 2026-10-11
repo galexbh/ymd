@@ -58,6 +58,15 @@ Several downloads run at once. Change the number in **Settings → Downloads →
 - **Skip what's already downloaded**: yt-dlp notes every video in an archive file and never repeats it.
 - **Use aria2c**: downloads each file over several connections (install aria2c in Dependencies first).
 
+## When closing the window
+
+Clicking the X doesn't quit ymd: it hides in the system tray, next to the clock (on macOS, in the menu bar). Downloads keep going and it answers **Download with ymd** from the browser instantly. The first time, a notification tells you.
+
+- Click the icon or **Open ymd** in its menu: the window comes back.
+- **Quit** in its menu: closes ymd completely.
+
+To make the X quit ymd, turn off **Settings → Advanced → When closing the window → Keep ymd in the system tray** (on macOS, **Keep ymd in the menu bar**). On Linux desktops without a system tray, the X always quits ymd.
+
 ## The ledger
 
 The **Ledger** screen lists every download in the session, newest first, with its number (**No.**), title, format, size, exact progress in bytes, speed, time left and status. You can filter by status (**Running**, **Queued**, **Archived**, **Failed**) and **Clear finished**. The **Receive** screen shows this session's ledger under the counter.

@@ -211,7 +211,9 @@
     "appUpdateInstall": "Install and restart",
     "appUpdateLater": "Later",
     "appUpdateNotes": "What’s new",
-    "appUpdateNotifyBody": "Open ymd to see what’s new and install it in one click."
+    "appUpdateNotifyBody": "Open ymd to see what’s new and install it in one click.",
+    "hiddenToTray": "ymd is still in the system tray. Quit it from its icon or change this in Settings → Advanced.",
+    "hiddenToTrayMac": "ymd is still in the menu bar. Quit it from its icon or change this in Settings → Advanced."
   },
   "presets": {
     "builtin": {
@@ -608,6 +610,14 @@
       "binDirCustom": "Custom location.",
       "binDirReset": "Back to the default",
       "openData": "Open data folder",
+      "tray": {
+        "title": "When closing the window",
+        "keep": "Keep ymd in the system tray",
+        "keepMac": "Keep ymd in the menu bar",
+        "hint": "When you click the X, ymd hides next to the clock: downloads keep going and it answers «Download with ymd» instantly. To close it, use «Quit» in its icon.",
+        "hintMac": "When you click the X, ymd hides in the menu bar: downloads keep going and it answers «Download with ymd» instantly. To close it, use «Quit» in its icon.",
+        "off": "Clicking the X quits ymd completely."
+      },
       "app": {
         "title": "ymd",
         "current": "Installed version",

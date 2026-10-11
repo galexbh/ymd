@@ -137,6 +137,50 @@ fn load_old_file_without_clipboard_watch_uses_default() {
 }
 
 #[test]
+fn close_to_tray_defaults_on_and_old_files_load_with_it_on() {
+    assert!(defs().close_to_tray);
+    assert!(!defs().tray_hint_shown);
+    // v0_partial predates both fields.
+    let (_dir, file) = staged("v0_partial.json");
+    let s = load(&file, defs());
+    assert!(s.close_to_tray);
+    assert!(!s.tray_hint_shown);
+
+    // The IPC path deserializes a document without them too.
+    let mut old = serde_json::to_value(defs()).unwrap();
+    let obj = old.as_object_mut().unwrap();
+    obj.remove("closeToTray");
+    obj.remove("trayHintShown");
+    let direct: Settings = serde_json::from_value(old).unwrap();
+    assert!(direct.close_to_tray);
+    assert!(!direct.tray_hint_shown);
+}
+
+#[test]
+fn close_to_tray_round_trips() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("settings.json");
+    let mut s = defs();
+    s.close_to_tray = false;
+    s.tray_hint_shown = true;
+    save(&file, &sanitize(s)).unwrap();
+    let raw = std::fs::read_to_string(&file).unwrap();
+    assert!(raw.contains("\"closeToTray\": false"));
+    let back = load(&file, defs());
+    assert!(!back.close_to_tray);
+    assert!(back.tray_hint_shown);
+}
+
+#[test]
+fn a_save_from_the_ui_never_unsets_the_tray_notice() {
+    let mut old = defs();
+    old.tray_hint_shown = true;
+    let stale = defs(); // the UI's copy from before the notice
+    assert!(settings::keep_backend_fields(&old, stale.clone()).tray_hint_shown);
+    assert!(!settings::keep_backend_fields(&defs(), stale).tray_hint_shown);
+}
+
+#[test]
 fn load_clipboard_watch_saved_value_and_invalid_fallback() {
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("settings.json");

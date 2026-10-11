@@ -341,6 +341,34 @@ describe("template", () => {
   });
 });
 
+describe("Ajustes → Avanzado: al cerrar la ventana", () => {
+  it("keeps ymd in the tray by default and the switch saves closeToTray", async () => {
+    const { be, user, tick } = await renderApp({ route: "settings", section: "advanced" });
+    expect(screen.getByRole("heading", { name: "Al cerrar la ventana" })).toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: /^Mantener ymd en la bandeja del sistema/ });
+    expect(toggle).toBeChecked();
+    expect(screen.getByText(/ymd se oculta junto al reloj/)).toBeInTheDocument();
+
+    await user.click(toggle);
+    await tick(0);
+    await waitFor(() => expect(be.snapshot().settings.closeToTray).toBe(false));
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText("Al pulsar la X, ymd se cierra por completo.")).toBeInTheDocument();
+
+    await user.click(toggle);
+    await tick(0);
+    await waitFor(() => expect(be.snapshot().settings.closeToTray).toBe(true));
+  });
+
+  it("says «barra de menús» on macOS", async () => {
+    await renderApp({ route: "settings", section: "advanced", platform: "macos" });
+    expect(
+      screen.getByRole("switch", { name: /^Mantener ymd en la barra de menús/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/ymd se oculta en la barra de menús/)).toBeInTheDocument();
+  });
+});
+
 describe("Ajustes → Avanzado: actualización de ymd", () => {
   it("shows the release notes formatted, not as raw Markdown", async () => {
     await renderApp({ route: "settings", section: "advanced" });

@@ -6,6 +6,7 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ### Novedades
 
+- **ymd se queda en la bandeja del sistema.** Al pulsar la X, la ventana se oculta junto al reloj (en macOS, en la barra de menús): las descargas siguen y **Descargar con ymd** responde al instante. El icono abre ymd con un clic y su menú trae **Abrir ymd** y **Salir**. La primera vez lo avisa una notificación. Para que la X cierre ymd, apaga **Ajustes → Avanzado → Al cerrar la ventana → Mantener ymd en la bandeja del sistema**.
 - **Versión de la extensión.** La tarjeta de la extensión en **Ajustes → Cuentas** muestra qué versión de «ymd Cookies» sincroniza y avisa cuando ymd trae una más nueva: una extensión descomprimida no se actualiza sola, así que basta con pulsar recargar en la página de extensiones del navegador.
 
 ### Cambios

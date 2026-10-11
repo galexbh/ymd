@@ -11,7 +11,7 @@ import {
   Switch,
 } from "../../ui";
 import { inTauri, useAppUpdate } from "../../store/appUpdate";
-import { openExternal, openFile, parentDir } from "../../app/native";
+import { openExternal, openFile, osPlatform, parentDir } from "../../app/native";
 import { useDeps } from "../../store/deps";
 import { useSettings } from "../../store/settings";
 import screen from "../shared/screen.module.css";
@@ -119,6 +119,27 @@ function AppUpdateSection() {
   );
 }
 
+function TraySection() {
+  const { t } = useTranslation();
+  const closeToTray = useSettings((st) => st.settings?.closeToTray ?? true);
+  const update = useSettings((st) => st.update);
+  const mac = osPlatform() === "macos";
+  return (
+    <Section title={t("settings.advanced.tray.title")}>
+      <Switch
+        checked={closeToTray}
+        onChange={(v) => update({ closeToTray: v })}
+        label={t(mac ? "settings.advanced.tray.keepMac" : "settings.advanced.tray.keep")}
+        description={
+          closeToTray
+            ? t(mac ? "settings.advanced.tray.hintMac" : "settings.advanced.tray.hint")
+            : t("settings.advanced.tray.off")
+        }
+      />
+    </Section>
+  );
+}
+
 export function AdvancedSettings() {
   const { t } = useTranslation();
   const settings = useSettings((st) => st.settings)!;
@@ -136,6 +157,7 @@ export function AdvancedSettings() {
   return (
     <>
       <AppUpdateSection />
+      <TraySection />
       <Section title={t("settings.advanced.ytdlp")}>
         <div className={s.fieldStack}>
           <span className={s.fieldLabel}>{t("settings.advanced.channel")}</span>

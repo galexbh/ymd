@@ -3,6 +3,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   EVT_DEPS_CHANGED,
   EVT_DEPS_PROGRESS,
+  EVT_HIDDEN_TO_TRAY,
   EVT_JOB_REMOVED,
   EVT_JOB_UPDATE,
   EVT_OPEN_URL,
@@ -23,4 +24,6 @@ export const events = {
     listen<DepsReport>(EVT_DEPS_CHANGED, (e) => cb(e.payload)),
   /** A browser link is waiting: take it with `api.takePendingUrl()`. */
   onOpenUrl: (cb: () => void): Promise<UnlistenFn> => listen(EVT_OPEN_URL, () => cb()),
+  /** The window's X hid ymd to the tray for the first time. */
+  onHiddenToTray: (cb: () => void): Promise<UnlistenFn> => listen(EVT_HIDDEN_TO_TRAY, () => cb()),
 };

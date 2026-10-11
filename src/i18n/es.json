@@ -211,7 +211,9 @@
     "appUpdateInstall": "Instalar y reiniciar",
     "appUpdateLater": "Más tarde",
     "appUpdateNotes": "Ver novedades",
-    "appUpdateNotifyBody": "Abre ymd para ver las novedades e instalarla con un clic."
+    "appUpdateNotifyBody": "Abre ymd para ver las novedades e instalarla con un clic.",
+    "hiddenToTray": "ymd sigue en la bandeja del sistema. Ciérralo desde su icono o cambia esto en Ajustes → Avanzado.",
+    "hiddenToTrayMac": "ymd sigue en la barra de menús. Ciérralo desde su icono o cambia esto en Ajustes → Avanzado."
   },
   "presets": {
     "builtin": {
@@ -608,6 +610,14 @@
       "binDirCustom": "Ubicación personalizada.",
       "binDirReset": "Volver a la predeterminada",
       "openData": "Abrir carpeta de datos",
+      "tray": {
+        "title": "Al cerrar la ventana",
+        "keep": "Mantener ymd en la bandeja del sistema",
+        "keepMac": "Mantener ymd en la barra de menús",
+        "hint": "Al pulsar la X, ymd se oculta junto al reloj: las descargas siguen y responde al instante a «Descargar con ymd». Para cerrarlo, usa «Salir» en su icono.",
+        "hintMac": "Al pulsar la X, ymd se oculta en la barra de menús: las descargas siguen y responde al instante a «Descargar con ymd». Para cerrarlo, usa «Salir» en su icono.",
+        "off": "Al pulsar la X, ymd se cierra por completo."
+      },
       "app": {
         "title": "ymd",
         "current": "Versión instalada",

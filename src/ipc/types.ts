@@ -165,6 +165,10 @@ export interface Settings {
   defaultPresetId: string;
   onboarded: boolean;
   clipboardWatch: ClipboardWatch;
+  /** the window's X hides ymd to the system tray instead of quitting */
+  closeToTray: boolean;
+  /** the one-time tray notice was shown (written by the backend) */
+  trayHintShown: boolean;
 }
 
 // ───────────── Jobs ─────────────
@@ -349,3 +353,5 @@ export const EVT_DEPS_PROGRESS = "deps://progress";
 export const EVT_DEPS_CHANGED = "deps://changed";
 /** A link from the browser is waiting (`take_pending_url`); no payload. */
 export const EVT_OPEN_URL = "app://open-url";
+/** The window's X hid ymd to the tray for the first time (show the notice once); no payload. */
+export const EVT_HIDDEN_TO_TRAY = "app://hidden-to-tray";

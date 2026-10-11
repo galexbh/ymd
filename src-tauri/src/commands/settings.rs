@@ -13,8 +13,8 @@ pub async fn settings_get(state: State<'_>) -> CmdResult<Settings> {
 /// Returns what was actually stored.
 #[tauri::command]
 pub async fn settings_set(state: State<'_>, settings: Settings) -> CmdResult<Settings> {
-    let new = crate::settings::sanitize(settings);
     let old = state.settings();
+    let new = crate::settings::keep_backend_fields(&old, crate::settings::sanitize(settings));
     let paths = state.paths();
     crate::settings::save(&paths.settings_file(), &new)?;
     *state.settings.write().expect("settings lock") = new.clone();
@@ -30,6 +30,9 @@ pub async fn settings_set(state: State<'_>, settings: Settings) -> CmdResult<Set
         );
         *state.paths.write().expect("paths lock") = paths.clone();
         *state.deps.write().await = Arc::new(DepsManager::new(paths, new.ytdlp_channel));
+    }
+    if new.language != old.language {
+        crate::tray::relabel(&state.app, new.language);
     }
     Ok(new)
 }

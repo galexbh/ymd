@@ -358,6 +358,17 @@ pub struct Settings {
     /// Clipboard link detection on window focus. Absent in files written before it existed.
     #[serde(default)]
     pub clipboard_watch: ClipboardWatch,
+    /// The window's X hides ymd to the system tray instead of quitting. Absent in older
+    /// files: on.
+    #[serde(default = "default_true")]
+    pub close_to_tray: bool,
+    /// The one-time «ymd sigue en la bandeja» notice was shown. Set by the backend.
+    #[serde(default)]
+    pub tray_hint_shown: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 // ───────────────────────────── Jobs ─────────────────────────────
@@ -646,3 +657,5 @@ pub const EVT_DEPS_PROGRESS: &str = "deps://progress";
 pub const EVT_DEPS_CHANGED: &str = "deps://changed";
 /// A link from the browser is waiting (`take_pending_url`); no payload.
 pub const EVT_OPEN_URL: &str = "app://open-url";
+/// The window's X hid ymd to the tray for the first time (show the notice once); no payload.
+pub const EVT_HIDDEN_TO_TRAY: &str = "app://hidden-to-tray";
