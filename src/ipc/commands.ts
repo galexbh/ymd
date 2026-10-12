@@ -81,8 +81,10 @@ export const api = {
 
   // cookie bridge (ymd Cookies extension)
   extensionStatus: () => invoke<ExtensionStatus>("extension_status"),
-  /** launches (or focuses) a browser; null = the default browser by its own executable */
-  extensionOpenPage: (browser: Browser | null) => invoke<void>("extension_open_page", { browser }),
+  /** launches (or focuses) a browser; null = the default browser by its own executable;
+   * `store` opens the extension's Chrome Web Store page in it */
+  extensionOpenPage: (browser: Browser | null, store = false) =>
+    invoke<void>("extension_open_page", { browser, store }),
 
   // diagnostics (local only: nothing is uploaded)
   /** ymd's data folder (history, logs, cookie copy), as the backend resolves it */

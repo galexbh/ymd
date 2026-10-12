@@ -688,6 +688,7 @@ export class MockBackend {
       case "extension_status":
         return clone(this.extension);
       case "extension_open_page":
+        if (typeof a.store !== "boolean") throw commandError("unknown", "missing store");
         return this.extensionOpenPage((a.browser as Browser | null | undefined) ?? null);
       // diagnostics
       case "app_data_dir":

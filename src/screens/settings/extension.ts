@@ -2,6 +2,10 @@
 import type { Browser, ExtensionStatus, JobStage } from "../../ipc/types";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 
+/** «ymd Cookies» in the Chrome Web Store (STORE_LISTING_URL in native_host.rs). */
+export const STORE_URL =
+  "https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi";
+
 /** How often the card asks for the bridge state while Cuentas is open. */
 export const EXTENSION_POLL_MS = 5000;
 

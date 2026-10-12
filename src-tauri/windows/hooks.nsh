@@ -3,10 +3,12 @@
 ; The cookie-bridge host registration (HKCU ...\NativeMessagingHosts\com.ymd.cookies) is written
 ; by ymd itself on every launch (src/auth/native_registry.rs); the uninstaller removes it here.
 ;
-; The Chrome Web Store external-extension keys are prepared but off: they are written only
-; when the installer is compiled with YMD_STORE_EXTENSION defined, which mirrors
-; STORE_EXTENSION_ENABLED in native_registry.rs. Keep both lists in sync with that file
-; (a unit test checks it).
+; The Chrome Web Store external-extension keys make Chrome, Brave and Edge offer
+; «ymd Cookies» on their next start. They are written while YMD_STORE_EXTENSION is defined,
+; which mirrors STORE_EXTENSION_ENABLED in native_registry.rs. Keep both lists in sync with
+; that file (a unit test checks it).
+
+!define YMD_STORE_EXTENSION
 
 !macro NSIS_HOOK_POSTINSTALL
   !ifdef YMD_STORE_EXTENSION

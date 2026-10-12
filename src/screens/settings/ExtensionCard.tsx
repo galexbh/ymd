@@ -2,18 +2,19 @@
 // It polls `extension_status` while mounted, walks the user through the one-time install and
 // switches the cookie source to the synced file when the first sync arrives.
 import { useEffect, useId, useRef, useState, type ReactNode, type Ref } from "react";
-import { Copy, ExternalLink, FolderOpen } from "lucide-react";
+import { Copy, ExternalLink, FolderOpen, Store } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../../ipc/commands";
 import type { ExtensionStatus, ExtensionSync } from "../../ipc/types";
 import { Button, Figure, Notice, Stamp, formatStampDate } from "../../ui";
 import { currentLocale } from "../../i18n";
-import { copyText, showInFolder } from "../../app/native";
+import { copyText, osPlatform, showInFolder } from "../../app/native";
 import { useSettings } from "../../store/settings";
 import { BROWSER_NAMES } from "../shared/errorFixes";
 import {
   EXTENSION_POLL_MS,
   STAMP,
+  STORE_URL,
   bridgeState,
   cardTarget,
   type CardTarget,
@@ -169,6 +170,17 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
       setOpened({ target, copied });
     } catch {
       setOpenError(target);
+    }
+  };
+
+  // A web page, unlike brave://extensions: the browser opens it itself.
+  const openStore = async () => {
+    setOpenError(null);
+    setOpened(null);
+    try {
+      await api.extensionOpenPage(target.browser, true);
+    } catch {
+      setOpenError({ ...target, url: STORE_URL });
     }
   };
 
@@ -335,50 +347,95 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
         <>
           {/* Once connected the setup is history: fold it away for a second browser. */}
           <StepsFrame folded={!!sync} title={t(sync ? "extension.stepsOther" : "extension.steps")}>
-            <ol className={s.steps}>
+            <ol className={s.steps} data-testid="extension-store-steps">
               <li>
-                <span>{t("extension.step1")}</span>
+                <span>{t("extension.storeStep1", { browser: targetName })}</span>
                 <div className={s.stepAction}>
                   <Button
                     size="sm"
-                    variant="secondary"
-                    leadingIcon={FolderOpen}
-                    disabled={!status.extensionDir}
-                    aria-describedby={status.extensionDir ? undefined : folderHintId}
-                    onClick={() => {
-                      if (status.extensionDir) void openFolder(status.extensionDir);
-                    }}
-                    data-testid="extension-open-folder"
+                    variant="primary"
+                    leadingIcon={Store}
+                    onClick={() => void openStore()}
+                    data-testid="extension-open-store"
                   >
-                    {t("extension.openFolder")}
-                  </Button>
-                  {!status.extensionDir && (
-                    <span id={folderHintId} className={s.hint}>
-                      {t("extension.noFolder")}
-                    </span>
-                  )}
-                </div>
-              </li>
-              <li>
-                <span>
-                  {t("extension.step2", { browser: targetName })}{" "}
-                  <code className={s.url}>{target.url}</code>
-                </span>
-                <div className={s.stepAction}>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leadingIcon={ExternalLink}
-                    onClick={() => void openPage()}
-                    data-testid="extension-open-page"
-                  >
-                    {t("extension.openPage", { browser: targetName })}
+                    {t("extension.openStore", { browser: targetName })}
                   </Button>
                 </div>
               </li>
-              <li>{t("extension.step3")}</li>
-              <li>{t("extension.step4")}</li>
+              <li>{t("extension.storeStep2")}</li>
             </ol>
+            {osPlatform() === "windows" && (
+              <p className={s.hint} data-testid="extension-store-offered">
+                {t("extension.storeOffered")}
+              </p>
+            )}
+            <details className={s.stepsFold} data-testid="extension-unpacked">
+              <summary className={s.foldTitle}>{t("extension.unpacked")}</summary>
+              <ol className={s.steps}>
+                <li>
+                  <span>{t("extension.step1")}</span>
+                  <div className={s.stepAction}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      leadingIcon={FolderOpen}
+                      disabled={!status.extensionDir}
+                      aria-describedby={status.extensionDir ? undefined : folderHintId}
+                      onClick={() => {
+                        if (status.extensionDir) void openFolder(status.extensionDir);
+                      }}
+                      data-testid="extension-open-folder"
+                    >
+                      {t("extension.openFolder")}
+                    </Button>
+                    {!status.extensionDir && (
+                      <span id={folderHintId} className={s.hint}>
+                        {t("extension.noFolder")}
+                      </span>
+                    )}
+                  </div>
+                </li>
+                <li>
+                  <span>
+                    {t("extension.step2", { browser: targetName })}{" "}
+                    <code className={s.url}>{target.url}</code>
+                  </span>
+                  <div className={s.stepAction}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      leadingIcon={ExternalLink}
+                      onClick={() => void openPage()}
+                      data-testid="extension-open-page"
+                    >
+                      {t("extension.openPage", { browser: targetName })}
+                    </Button>
+                  </div>
+                </li>
+                <li>{t("extension.step3")}</li>
+                <li>{t("extension.step4")}</li>
+              </ol>
+              <div className={s.idRow}>
+                <span className={s.idLabel}>{t("extension.id")}</span>
+                <code className={s.id} data-testid="extension-id">
+                  {status.extensionId}
+                </code>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leadingIcon={Copy}
+                  onClick={async () => {
+                    const ok = await copyText(status.extensionId);
+                    setCopied(ok);
+                    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                    copiedTimer.current = setTimeout(() => setCopied(false), 1500);
+                  }}
+                >
+                  {copied ? t("common.copied") : t("common.copy")}
+                </Button>
+                <span className={s.hint}>{t("extension.idHint")}</span>
+              </div>
+            </details>
           </StepsFrame>
           {folderError && (
             <Notice
@@ -415,26 +472,6 @@ export function ExtensionCard({ prominent, onSynced, ref }: ExtensionCardProps) 
               })}
             </Notice>
           )}
-          <div className={s.idRow}>
-            <span className={s.idLabel}>{t("extension.id")}</span>
-            <code className={s.id} data-testid="extension-id">
-              {status.extensionId}
-            </code>
-            <Button
-              size="sm"
-              variant="ghost"
-              leadingIcon={Copy}
-              onClick={async () => {
-                const ok = await copyText(status.extensionId);
-                setCopied(ok);
-                if (copiedTimer.current) clearTimeout(copiedTimer.current);
-                copiedTimer.current = setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? t("common.copied") : t("common.copy")}
-            </Button>
-            <span className={s.hint}>{t("extension.idHint")}</span>
-          </div>
         </>
       )}
     </section>

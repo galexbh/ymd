@@ -14,6 +14,7 @@ import {
   forkExtensionsUrl,
   olderVersion,
   pageBrowser,
+  STORE_URL,
   syncBrowserName,
 } from "../extension";
 
@@ -115,7 +116,9 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
       within(notice).getByRole("button", { name: "Abrir Brave y copiar la dirección" }),
     );
     await tick(0);
-    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "brave" }]);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: "brave", store: false },
+    ]);
     expect(await screen.findByTestId("extension-opened")).toHaveTextContent("brave://extensions");
   });
 
@@ -150,14 +153,21 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
     expect(screen.getByTestId("extension-status")).toHaveTextContent(/Reinicia ymd/);
   });
 
-  it("shows its id and four steps, and leaves when another source is picked", async () => {
+  it("leads with the store's two steps, folds the folder's four with its id, and leaves when another source is picked", async () => {
     const { user, tick } = await renderApp(accounts);
     const c = await card();
     expect(c).toHaveAttribute("data-prominent", "true");
-    expect(within(c).getByTestId("extension-id")).toHaveTextContent(
+    expect(
+      within(within(c).getByTestId("extension-store-steps")).getAllByRole("listitem"),
+    ).toHaveLength(2);
+    const unpacked = within(c).getByTestId("extension-unpacked");
+    expect(unpacked.tagName).toBe("DETAILS");
+    expect(unpacked).not.toHaveAttribute("open");
+    expect(unpacked).toHaveTextContent("Sin la tienda: cargar la carpeta de ymd");
+    expect(within(unpacked).getAllByRole("listitem")).toHaveLength(4);
+    expect(within(unpacked).getByTestId("extension-id")).toHaveTextContent(
       "gicaphbpepkphmeciigjhdpnbcaflfgd",
     );
-    expect(within(c).getAllByRole("listitem")).toHaveLength(4);
     await user.click(screen.getByRole("radio", { name: "Firefox" }));
     await tick(0);
     expect(screen.queryByTestId("extension-card")).toBeNull();
@@ -166,6 +176,66 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
 });
 
 describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
+  it("opens the Chrome Web Store page in the target browser", async () => {
+    const { be, user, tick } = await renderApp(accounts);
+    const c = await card();
+    expect(within(c).getByTestId("extension-store-steps")).toHaveTextContent(
+      "Abre «ymd Cookies» en la Chrome Web Store con Brave",
+    );
+    await user.click(await within(c).findByRole("button", { name: "Abrir la tienda en Brave" }));
+    await tick(0);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: "brave", store: true },
+    ]);
+    // A web page opens by itself: nothing to paste.
+    expect(within(c).queryByTestId("extension-opened")).toBeNull();
+  });
+
+  it("the store follows the default browser, also a Chromium fork", async () => {
+    const { be, user, tick } = await renderApp({
+      ...accounts,
+      extension: {
+        defaultBrowser: "opera",
+        defaultBrowserName: "Opera GX",
+        defaultBrowserChromium: true,
+      },
+    });
+    const c = await card();
+    await user.click(await within(c).findByRole("button", { name: "Abrir la tienda en Opera GX" }));
+    await tick(0);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: null, store: true },
+    ]);
+  });
+
+  it("a failed store launch gives the store address to type", async () => {
+    const { be, user, tick } = await renderApp(accounts);
+    const c = await card();
+    const orig = be.invoke.bind(be);
+    vi.spyOn(be, "invoke").mockImplementation((cmd, args) =>
+      cmd === "extension_open_page"
+        ? Promise.reject({ code: "binary_missing", detail: "x" })
+        : orig(cmd, args),
+    );
+    await user.click(await within(c).findByRole("button", { name: "Abrir la tienda en Brave" }));
+    await tick(0);
+    expect(await within(c).findByText("No se pudo abrir Brave")).toBeInTheDocument();
+    expect(c).toHaveTextContent(STORE_URL);
+  });
+
+  it("on Windows, says the installer already offers it; not elsewhere", async () => {
+    await renderApp(accounts);
+    expect(await within(await card()).findByTestId("extension-store-offered")).toHaveTextContent(
+      "El instalador de ymd ya la ofrece a Chrome, Brave y Edge",
+    );
+  });
+
+  it("no installer note on macOS", async () => {
+    await renderApp({ ...accounts, platform: "macos" });
+    await stamp();
+    expect(screen.queryByTestId("extension-store-offered")).toBeNull();
+  });
+
   it("opens the bundled folder and Brave's extensions page", async () => {
     const { be, user, tick } = await renderApp(accounts);
     const c = await card();
@@ -179,7 +249,9 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
     expect(JSON.stringify(opened[0].args)).toContain(
       JSON.stringify("C:\\Program Files\\ymd\\resources\\extension").slice(1, -1),
     );
-    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "brave" }]);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: "brave", store: false },
+    ]);
     // Chromium won't open brave://extensions for another program: the card says what to paste.
     const notice = await within(c).findByTestId("extension-opened");
     expect(notice).toHaveTextContent("Brave está abierto");
@@ -197,7 +269,9 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
       await within(c).findByRole("button", { name: "Abrir Edge y copiar la dirección" }),
     );
     await tick(0);
-    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "edge" }]);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: "edge", store: false },
+    ]);
     expect(within(c).getAllByText("edge://extensions").length).toBeGreaterThan(0);
   });
 
@@ -211,7 +285,9 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
       await within(c).findByRole("button", { name: "Abrir Edge y copiar la dirección" }),
     );
     await tick(0);
-    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: "edge" }]);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: "edge", store: false },
+    ]);
   });
 
   it("explains a failed launch with the address to type", async () => {
@@ -261,7 +337,9 @@ describe("Ajustes → Cuentas: extensión de ymd — pasos", () => {
       await within(c).findByRole("button", { name: "Abrir Opera GX y copiar la dirección" }),
     );
     await tick(0);
-    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([{ browser: null }]);
+    expect(calls(be, "extension_open_page").map((x) => x.args)).toEqual([
+      { browser: null, store: false },
+    ]);
     const notice = await within(c).findByTestId("extension-opened");
     expect(notice).toHaveTextContent("Opera GX está abierto");
     expect(notice).toHaveTextContent("opera://extensions");

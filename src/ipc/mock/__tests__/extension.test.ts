@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { api, toCommandError } from "../../commands";
 import { installMockBackend } from "..";
@@ -115,11 +116,18 @@ describe("mock backend — cookie bridge", () => {
     const firefox = await api.extensionOpenPage("firefox").catch(toCommandError);
     expect(firefox).toMatchObject({ code: "unknown" });
     expect(be.calls.filter((c) => c.cmd === "extension_open_page").map((c) => c.args)).toEqual([
-      { browser: "brave" },
-      { browser: "edge" },
-      { browser: "chrome" },
-      { browser: "firefox" },
+      { browser: "brave", store: false },
+      { browser: "edge", store: false },
+      { browser: "chrome", store: false },
+      { browser: "firefox", store: false },
     ]);
+  });
+
+  it("extension_open_page requires the store flag, like the Rust command", async () => {
+    installMockBackend({ clock: "manual" });
+    await expect(api.extensionOpenPage("brave", true)).resolves.toBeNull();
+    const missing = await invoke("extension_open_page", { browser: "brave" }).catch(toCommandError);
+    expect(missing).toMatchObject({ code: "unknown" });
   });
 
   it("?ext= picks the bridge state for dev", async () => {
