@@ -102,6 +102,7 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
                 domains: info.domains,
                 signed_in: info.signed_in,
                 extension_version: crate::auth::cookies::extension_version(&paths),
+                from_store: crate::auth::cookies::extension_from_store(&paths),
             })
         });
         let default = crate::auth::default_browser::detect_info();

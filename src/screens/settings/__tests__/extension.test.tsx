@@ -25,6 +25,7 @@ const SYNC: ExtensionSync = {
   domains: [".youtube.com", ".google.com"],
   signedIn: ["youtube.com"],
   extensionVersion: "1.4.1",
+  fromStore: false,
 };
 
 /** Cuentas with «Extensión» as the cookie source: the only place the card shows. */
@@ -120,6 +121,16 @@ describe("Ajustes → Cuentas: extensión de ymd — estados", () => {
       { browser: "brave", store: false },
     ]);
     expect(await screen.findByTestId("extension-opened")).toHaveTextContent("brave://extensions");
+  });
+
+  it("an older store extension gets no reload notice: the store updates it", async () => {
+    await renderApp({
+      ...accounts,
+      extension: { lastSync: { ...SYNC, extensionVersion: "1.4.0", fromStore: true } },
+    });
+    await stamp();
+    expect(screen.getByTestId("extension-version")).toHaveTextContent("1.4.0");
+    expect(screen.queryByTestId("extension-outdated")).toBeNull();
   });
 
   it("a sync without a valid version shows a dash and no reload notice", async () => {
@@ -607,6 +618,13 @@ describe("extension helpers", () => {
     expect(extensionOutdated({ ...status, lastSync: { ...SYNC, extensionVersion: "1.4.0" } })).toBe(
       false,
     );
+    // The store build updates itself: an older one is the store's pace, not the user's.
+    expect(
+      extensionOutdated({
+        ...bundled,
+        lastSync: { ...SYNC, extensionVersion: "1.4.0", fromStore: true },
+      }),
+    ).toBe(false);
   });
 
   it("forkExtensionsUrl", () => {

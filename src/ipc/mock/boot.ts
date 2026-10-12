@@ -48,6 +48,7 @@ export function extensionFromParam(value: string | null, now: number): MockExten
         domains: EXTENSION_SYNC_DOMAINS,
         signedIn: ["youtube.com"],
         extensionVersion: value === "outdated" ? "1.4.0" : BUNDLED_EXTENSION_VERSION,
+        fromStore: false,
       },
     };
   }

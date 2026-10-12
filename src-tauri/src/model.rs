@@ -684,6 +684,10 @@ pub struct ExtensionSync {
     /// has no valid version.
     #[serde(default)]
     pub extension_version: Option<String>,
+    /// The Chrome Web Store build synced (it updates itself, so a newer bundled version asks
+    /// nothing of the user).
+    #[serde(default)]
+    pub from_store: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -693,7 +697,8 @@ pub struct ExtensionStatus {
     /// Folder to "Load unpacked" from (bundled resources); `None` in dev builds without it.
     pub extension_dir: Option<String>,
     /// Version of the bundled extension (`manifest.json`), `None` when there is no folder.
-    /// Newer than [`ExtensionSync::extension_version`]: the user must reload the extension.
+    /// Newer than [`ExtensionSync::extension_version`] of the folder build: the user must reload
+    /// the extension (the store build updates itself).
     #[serde(default)]
     pub bundled_version: Option<String>,
     /// Path of the host manifest JSON ymd maintains.

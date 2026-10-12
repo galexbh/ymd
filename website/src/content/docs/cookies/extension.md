@@ -35,7 +35,7 @@ Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestr
 
 La extensión de la Chrome Web Store tiene el ID `hhojlkpllmndkaolmebblijfcjkjpdpi`. La que incluye ymd tiene siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque su manifiesto lleva una clave pública fija; la tarjeta lo muestra en **Sin la tienda: cargar la carpeta de ymd**. Puedes comprobarlos en la página de extensiones. ymd solo acepta mensajes de esos dos.
 
-La extensión de la tienda se actualiza sola. La de la carpeta no: cuando ymd se actualiza, la carpeta cambia, pero el navegador sigue usando la copia que cargó. Si ymd incluye una versión más reciente que la que sincroniza, la tarjeta lo indica: «Hay una versión nueva de la extensión». Pulsa **Abrir [navegador] y copiar la dirección**, pega la dirección y pulsa el botón de recargar de **ymd Cookies**. El aviso desaparece con la siguiente sincronización. Con la extensión de la tienda, el aviso puede aparecer hasta que la tienda publique la versión nueva; no hace falta hacer nada.
+La extensión de la tienda se actualiza sola. La de la carpeta no: cuando ymd se actualiza, la carpeta cambia, pero el navegador sigue usando la copia que cargó. Si ymd incluye una versión más reciente que la que sincroniza, la tarjeta lo indica: «Hay una versión nueva de la extensión». Pulsa **Abrir [navegador] y copiar la dirección**, pega la dirección y pulsa el botón de recargar de **ymd Cookies**. El aviso desaparece con la siguiente sincronización. Con la extensión de la tienda no aparece este aviso: la tienda la actualiza.
 
 ### Navegadores compatibles
 
@@ -125,4 +125,4 @@ La primera sincronización llega cuando cambia una cookie o al pulsar **Enviar a
 Brave muestra este aviso con cualquier extensión cargada en modo desarrollador; no indica un problema.
 
 **«Hay una versión nueva de la extensión».**
-ymd incluye una versión de la extensión más reciente que la que tienes cargada. En la página de extensiones del navegador, pulsa el botón de recargar de **ymd Cookies**.
+ymd incluye una versión de la extensión más reciente que la que cargaste desde su carpeta. En la página de extensiones del navegador, pulsa el botón de recargar de **ymd Cookies**. Solo aparece con la extensión de la carpeta: la de la tienda se actualiza sola.

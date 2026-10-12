@@ -34,6 +34,9 @@ struct Meta {
     /// Manifest version of the extension that wrote the jar (`None` when it sent no valid one).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     extension_version: Option<String>,
+    /// The jar came from the Chrome Web Store build (it updates itself).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    from_store: bool,
 }
 
 fn meta_file(paths: &AppPaths) -> PathBuf {
@@ -103,19 +106,21 @@ pub fn sweep_auth_temps(paths: &AppPaths) -> usize {
 
 /// Write `text` (a Netscape jar) as ymd's cookies.txt plus its meta, both owner-only and
 /// atomic, after validating it, recording the manifest version of the extension that sent the
-/// jar. Used by the native-messaging host (`origin = "extension:<browser>"`).
+/// jar and whether it is the Chrome Web Store build. Used by the native-messaging host
+/// (`origin = "extension:<browser>"`).
 pub fn store_from_extension(
     paths: &AppPaths,
     text: &str,
     origin: &str,
     extension_version: Option<&str>,
+    from_store: bool,
 ) -> CmdResult<CookieFileInfo> {
     parse_netscape(text).map_err(|e| CommandError::unknown(format!("{e:#}")))?;
     ensure_private_dir(&paths.auth_dir())?;
     // Jar, meta and the summary read back belong to the same sync.
     let _lock = lock_jar(paths, false)?;
     write_jar(paths, &normalize_for_ytdlp(text))?;
-    write_meta(paths, origin, extension_version)?;
+    write_meta(paths, origin, extension_version, from_store)?;
     info(paths).ok_or_else(|| CommandError::unknown("cookies written but unreadable"))
 }
 
@@ -124,11 +129,13 @@ pub(crate) fn write_meta(
     paths: &AppPaths,
     origin: &str,
     extension_version: Option<&str>,
+    from_store: bool,
 ) -> CmdResult<()> {
     let meta = Meta {
         created_at: chrono::Utc::now().to_rfc3339(),
         origin: origin.to_string(),
         extension_version: extension_version.map(str::to_string),
+        from_store,
     };
     write_private(
         &meta_file(paths),
@@ -337,6 +344,12 @@ fn read_meta(paths: &AppPaths) -> Option<Meta> {
 /// without a valid version in it.
 pub fn extension_version(paths: &AppPaths) -> Option<String> {
     read_meta(paths)?.extension_version
+}
+
+/// The current jar came from the Chrome Web Store build. `false` without a jar meta, and for
+/// metas written before ymd recorded it.
+pub fn extension_from_store(paths: &AppPaths) -> bool {
+    read_meta(paths).is_some_and(|m| m.from_store)
 }
 
 pub fn clear(paths: &AppPaths) -> CmdResult<()> {
@@ -927,8 +940,14 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
                 let text = jar(browser, n);
                 std::thread::spawn(move || {
                     for _ in 0..20 {
-                        store_from_extension(&p, &text, &format!("extension:{browser}"), None)
-                            .unwrap();
+                        store_from_extension(
+                            &p,
+                            &text,
+                            &format!("extension:{browser}"),
+                            None,
+                            false,
+                        )
+                        .unwrap();
                     }
                 })
             })
@@ -984,10 +1003,13 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
             config_dir: dir.path().join("config"),
         };
         let comment_only = "# only a comment\n";
-        assert!(store_from_extension(&p, comment_only, "extension:brave", Some("1.4.3")).is_err());
+        assert!(
+            store_from_extension(&p, comment_only, "extension:brave", Some("1.4.3"), false)
+                .is_err()
+        );
         assert!(!p.cookies_file().exists());
         assert_eq!(extension_version(&p), None);
-        let info = store_from_extension(&p, VALID, "extension:brave", None).unwrap();
+        let info = store_from_extension(&p, VALID, "extension:brave", None, false).unwrap();
         assert_eq!(info.origin, "extension:brave");
         assert_eq!(info.cookie_count, 3);
         assert_eq!(
@@ -998,11 +1020,26 @@ sub.test.org\tFALSE\t/path\tFALSE\t1999999999\tempty_value\t\n";
         let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
         assert!(!meta.contains("extensionVersion"), "{meta}");
 
-        let edge = store_from_extension(&p, VALID, "extension:edge", Some("1.4.1")).unwrap();
+        let edge = store_from_extension(&p, VALID, "extension:edge", Some("1.4.1"), false).unwrap();
         assert_eq!(edge.origin, "extension:edge");
         assert_eq!(extension_version(&p).as_deref(), Some("1.4.1"));
         let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
         assert!(meta.contains(r#""extensionVersion":"1.4.1""#), "{meta}");
+        // The folder build: no store mark in the meta.
+        assert!(!meta.contains("fromStore"), "{meta}");
+        assert!(!extension_from_store(&p));
+
+        store_from_extension(&p, VALID, "extension:chrome", Some("1.4.1"), true).unwrap();
+        assert!(extension_from_store(&p));
+        let meta = std::fs::read_to_string(meta_file(&p)).unwrap();
+        assert!(meta.contains(r#""fromStore":true"#), "{meta}");
+        // A meta written before ymd recorded it reads as the folder build.
+        std::fs::write(
+            meta_file(&p),
+            r#"{"createdAt":"2026-10-01T00:00:00Z","origin":"extension:brave"}"#,
+        )
+        .unwrap();
+        assert!(!extension_from_store(&p));
 
         clear(&p).unwrap();
         assert_eq!(extension_version(&p), None);

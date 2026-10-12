@@ -52,9 +52,9 @@ Los navegadores Chromium lanzan el host como `ymd.exe chrome-extension://<id>/ [
 ## Efectos
 
 - El host escribe `<datos de la app>/auth/cookies.txt` (formato Netscape) de forma atómica, con permisos solo para el usuario y cifrado (ver [Seguridad](#seguridad)).
-- Escribe `cookies.meta.json` con `origin: "extension:<browser>"` y, si es válida, `extensionVersion`.
+- Escribe `cookies.meta.json` con `origin: "extension:<browser>"`, si es válida `extensionVersion` y, si el origen que pasa el navegador es el de la versión de la Chrome Web Store, `fromStore: true`. Lo decide el origen, nunca el mensaje.
 - Dos navegadores pueden sincronizar a la vez (un proceso de host cada uno): el host toma un bloqueo exclusivo sobre `auth/.cookies.lock` mientras escribe `cookies.txt` y `cookies.meta.json`, así ambos archivos siempre vienen del mismo envío.
-- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). Si la sincronizada es anterior, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza automáticamente.
+- `extension_status` devuelve esa versión (`lastSync.extensionVersion`) y la de la extensión que trae ymd (`bundledVersion`, del `manifest.json` de su carpeta). También devuelve `lastSync.fromStore`. Si la sincronizada es anterior y no viene de la tienda, la tarjeta pide recargar la extensión: una extensión descomprimida no se actualiza automáticamente, y la de la tienda sí.
 - La app lee ambos con `cookies_info` y `extension_status`.
 - `open` lanza `ymd --open-url <url>` y responde enseguida. Si ymd ya está abierto, esa segunda instancia le pasa el enlace y se cierra, y ymd pasa al frente; si no, ymd arranca con él. El enlace aparece en **Recibir** con su ficha. Nunca se descarga nada sin tu clic.
 
