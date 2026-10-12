@@ -42,6 +42,11 @@ const BROWSERS: [&str; 7] = [
 /// unpacked [`EXTENSION_ID`]). Both builds can talk to ymd.
 pub const STORE_EXTENSION_ID: &str = "hhojlkpllmndkaolmebblijfcjkjpdpi";
 
+/// Public Chrome Web Store page of [`STORE_EXTENSION_ID`] (mirrored by `STORE_URL` in
+/// `src/screens/settings/extension.ts`).
+pub const STORE_LISTING_URL: &str =
+    "https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi";
+
 /// Every extension ID allowed to talk to the host: the unpacked one, then the store one.
 pub fn allowed_extension_ids() -> Vec<&'static str> {
     vec![EXTENSION_ID, STORE_EXTENSION_ID]

@@ -125,11 +125,16 @@ pub async fn extension_status(state: State<'_>) -> CmdResult<ExtensionStatus> {
 
 /// Launches (or focuses) `browser` for the extension setup. Chromium ignores internal pages
 /// such as `brave://extensions` passed by another program, so the UI copies that address for
-/// the user to paste.
+/// the user to paste. `store` opens the extension's Chrome Web Store page in it instead (a web
+/// page, which the browser does accept).
 #[tauri::command]
 /// `browser: None` launches the default browser by its own executable (Chromium forks such as
 /// Arc or Yandex have no yt-dlp browser key).
-pub async fn extension_open_page(state: State<'_>, browser: Option<Browser>) -> CmdResult<()> {
+pub async fn extension_open_page(
+    state: State<'_>,
+    browser: Option<Browser>,
+    store: bool,
+) -> CmdResult<()> {
     let _ = state;
     let (program, args) = tokio::task::spawn_blocking(move || match browser {
         Some(b) => crate::auth::browser_exe::launch_command(b),
@@ -146,6 +151,7 @@ pub async fn extension_open_page(state: State<'_>, browser: Option<Browser>) -> 
     })
     .await
     .map_err(CommandError::unknown)??;
+    let args = open_page_args(args, store);
     let mut cmd = crate::process::command(&program);
     // The browser must outlive this call (and ymd).
     cmd.kill_on_drop(false)
@@ -164,4 +170,47 @@ pub async fn extension_open_page(state: State<'_>, browser: Option<Browser>) -> 
         let _ = child.wait().await;
     });
     Ok(())
+}
+
+/// Launch arguments for [`extension_open_page`]: the store page goes last (after `open -a App`
+/// on macOS), as a fixed URL, never one from the UI.
+fn open_page_args(mut args: Vec<String>, store: bool) -> Vec<String> {
+    if store {
+        args.push(crate::auth::native_host::STORE_LISTING_URL.to_string());
+    }
+    args
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::auth::native_host::{STORE_EXTENSION_ID, STORE_LISTING_URL};
+
+    #[test]
+    fn store_page_goes_last() {
+        assert_eq!(open_page_args(Vec::new(), false), Vec::<String>::new());
+        assert_eq!(open_page_args(Vec::new(), true), [STORE_LISTING_URL]);
+        let mac = vec!["-a".to_string(), "Brave Browser".to_string()];
+        assert_eq!(open_page_args(mac.clone(), false), mac);
+        assert_eq!(
+            open_page_args(mac, true),
+            ["-a", "Brave Browser", STORE_LISTING_URL]
+        );
+    }
+
+    /// The store page is the published item, and the UI shows the same address.
+    #[test]
+    fn store_url_matches_the_item_and_the_ui() {
+        assert!(STORE_LISTING_URL.starts_with("https://chromewebstore.google.com/detail/"));
+        assert!(STORE_LISTING_URL.ends_with(&format!("/{STORE_EXTENSION_ID}")));
+        let ts = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../src/screens/settings/extension.ts"),
+        )
+        .unwrap();
+        assert!(
+            ts.contains(&format!("\"{STORE_LISTING_URL}\"")),
+            "STORE_URL in extension.ts"
+        );
+    }
 }

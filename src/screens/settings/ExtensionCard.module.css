@@ -148,3 +148,10 @@
   color: var(--text);
   white-space: nowrap;
 }
+
+/* «Sin la tienda»: the folder path, a quiet alternative under the store steps. */
+.foldTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}

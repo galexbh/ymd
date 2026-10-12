@@ -9,20 +9,33 @@ Es la forma de usar las cookies de un navegador Chromium: ymd no las lee directa
 
 ## Instalar
 
-ymd incluye la extensión ya compilada en su carpeta de recursos y registra el puente con los navegadores al arrancar. La tarjeta **Extensión de ymd para navegadores Chromium**, en **Ajustes → Cuentas**, guía la instalación en tu **navegador predeterminado**: ymd lo detecta y muestra sus pasos. Si tu navegador predeterminado es Firefox, la tarjeta ofrece usar sus cookies directamente, sin la extensión.
+ymd registra el puente con los navegadores al arrancar. La tarjeta **Extensión de ymd para navegadores Chromium**, en **Ajustes → Cuentas**, guía la instalación en tu **navegador predeterminado**: ymd lo detecta y muestra sus pasos. Si tu navegador predeterminado es Firefox, la tarjeta ofrece usar sus cookies directamente, sin la extensión.
 
-Pasos, una sola vez:
+### Desde la Chrome Web Store
+
+Es la forma recomendada: no pide el modo de desarrollador y la extensión se actualiza sola. Pasos, una sola vez:
+
+1. **Abrir la tienda en [navegador]**: abre la [ficha de «ymd Cookies»](https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi) en ese navegador. Pulsa el botón para agregarla. En Edge, permite antes las extensiones de otras tiendas.
+2. Se abre la página de bienvenida de la extensión. Sigue su paso **Fija la extensión en la barra**: pulsa el icono de extensiones (la pieza de rompecabezas) y luego la chincheta junto a **ymd Cookies**. Después pulsa **Usar YouTube**: el navegador pide permiso para youtube.com. Inicia sesión en YouTube en ese navegador y ymd recibirá las cookies automáticamente.
+
+En Windows, el instalador de ymd ya ofrece la extensión de la tienda a Chrome, Brave y Edge. Al abrir uno de ellos después de instalar ymd, puede avisar de que se agregó **ymd Cookies**: actívala y sigue en el paso 2. Si no la quieres, quítala desde ese aviso; al desinstalar ymd, esos navegadores la quitan en su siguiente inicio.
+
+### Sin la tienda: cargar la carpeta de ymd
+
+ymd incluye la extensión ya compilada en su carpeta de recursos. Esta versión trae YouTube agregado, pero pide el modo de desarrollador y no se actualiza sola. En la tarjeta, abre **Sin la tienda: cargar la carpeta de ymd**:
 
 1. **Mostrar la carpeta de la extensión**: abre el explorador de archivos con la carpeta `extension` de ymd seleccionada. Esa carpeta es la que arrastras en el paso 3.
 2. **Abrir [navegador] y copiar la dirección**: copia la dirección de su página de extensiones (por ejemplo `brave://extensions`) y abre el navegador. Pégala en la barra de direcciones (<kbd>Ctrl</kbd>+<kbd>V</kbd>) y pulsa <kbd>Enter</kbd>: los navegadores no permiten que otros programas abran esa página directamente.
 3. Activa **Modo de desarrollador**. Arrastra a la página la carpeta del paso 1, o pulsa **Cargar descomprimida** (en Chrome y Edge, «Cargar desempaquetada») y elígela: es la que contiene `manifest.json`.
-4. Se abre la página de bienvenida de la extensión. Sigue su paso **Fija la extensión en la barra**: pulsa el icono de extensiones (la pieza de rompecabezas) y luego la chincheta junto a **ymd Cookies**. La página confirma cuando queda fijada. La extensión que incluye ymd ya tiene YouTube agregado, así que solo necesitas iniciar sesión en YouTube en ese navegador: ymd recibirá las cookies automáticamente.
+4. Se abre la página de bienvenida de la extensión. Fija la extensión en la barra como en la versión de la tienda. YouTube ya viene agregado, así que solo necesitas iniciar sesión en YouTube en ese navegador.
+
+### Después de instalar
 
 Cuando llega la primera sincronización, la tarjeta pasa a **Conectada**, muestra el navegador, la última sincronización, el número de cookies y la **Versión de la extensión**, y el origen de las cookies cambia a **Extensión**. Si **Sesión de YouTube** dice **Sin agregar**, la extensión no está enviando las cookies de YouTube: agrégalo desde la extensión.
 
-El **ID de la extensión** que incluye ymd es siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque el manifiesto lleva una clave pública fija. Puedes comprobarlo en la página de extensiones. Si instalas la extensión desde la Chrome Web Store, tiene su propio ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`. ymd solo acepta mensajes de esos dos.
+La extensión de la Chrome Web Store tiene el ID `hhojlkpllmndkaolmebblijfcjkjpdpi`. La que incluye ymd tiene siempre `gicaphbpepkphmeciigjhdpnbcaflfgd`, porque su manifiesto lleva una clave pública fija; la tarjeta lo muestra en **Sin la tienda: cargar la carpeta de ymd**. Puedes comprobarlos en la página de extensiones. ymd solo acepta mensajes de esos dos.
 
-Cuando ymd se actualiza, la extensión se actualiza en la misma carpeta, pero el navegador sigue usando la copia que cargó: una extensión descomprimida no se actualiza automáticamente. Si ymd incluye una versión más reciente que la que sincroniza, la tarjeta lo indica: «Hay una versión nueva de la extensión». Pulsa **Abrir [navegador] y copiar la dirección**, pega la dirección y pulsa el botón de recargar de **ymd Cookies**. El aviso desaparece con la siguiente sincronización.
+La extensión de la tienda se actualiza sola. La de la carpeta no: cuando ymd se actualiza, la carpeta cambia, pero el navegador sigue usando la copia que cargó. Si ymd incluye una versión más reciente que la que sincroniza, la tarjeta lo indica: «Hay una versión nueva de la extensión». Pulsa **Abrir [navegador] y copiar la dirección**, pega la dirección y pulsa el botón de recargar de **ymd Cookies**. El aviso desaparece con la siguiente sincronización. Con la extensión de la tienda, el aviso puede aparecer hasta que la tienda publique la versión nueva; no hace falta hacer nada.
 
 ### Navegadores compatibles
 
@@ -97,7 +110,7 @@ El protocolo completo está en [Protocolo del puente de cookies](/ymd/desarrollo
 Abre ymd una vez: registra el puente al arrancar. Comprueba que la tarjeta en **Ajustes → Cuentas** no diga **Sin puente**. Después pulsa **Enviar ahora**.
 
 **«ymd no reconoce esta extensión».**
-La extensión cargada no tiene el ID de ymd. Quítala y cárgala desde la carpeta que indica ymd en **Ajustes → Cuentas**.
+La extensión cargada no tiene ninguno de los IDs de ymd. Quítala e instálala con **Abrir la tienda en [navegador]**, o cárgala desde la carpeta que indica ymd en **Ajustes → Cuentas**.
 
 **«ymd se cerró antes de responder» o «ymd no pudo guardar las cookies».**
 Vuelve a intentarlo con **Enviar ahora**. Si el error se repite, actualiza ymd.

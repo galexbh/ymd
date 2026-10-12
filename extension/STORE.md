@@ -1,6 +1,7 @@
-# ymd Cookies: Chrome Web Store listing (draft)
+# ymd Cookies: Chrome Web Store listing
 
-Store item: **hhojlkpllmndkaolmebblijfcjkjpdpi**, status **Draft** (not submitted yet).
+Store item: **hhojlkpllmndkaolmebblijfcjkjpdpi**, status **Published** (approved 2026-10-12):
+<https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi>.
 
 The store assigned its own extension ID. ymd accepts both IDs: the unpacked one (fixed by the
 manifest `key`) and the store one (`STORE_EXTENSION_ID` in
@@ -24,9 +25,13 @@ youtube.com.
    per language in the store), `tile-small.jpg` (440×280) and
    `tile-marquee.jpg` (1400×560). The 128×128 icon is `extension/icons/icon-128.png`.
 6. Visibility: **Unlisted** is enough (installable by link and from ymd).
-7. Submit for review. `STORE_EXTENSION_ID` is already set. Once published, phase 2: turn on
-   `STORE_EXTENSION_ENABLED` and the `YMD_STORE_EXTENSION` installer define (preinstall from the
-   ymd installer) and point the card at the store.
+7. Submit for review. `STORE_EXTENSION_ID` is already set.
+8. Done after approval: `STORE_EXTENSION_ENABLED` and `!define YMD_STORE_EXTENSION` are on (the
+   Windows installer offers the store build to Chrome, Brave and Edge), and the card leads with
+   «Abrir la tienda en …» (`STORE_LISTING_URL` / `STORE_URL`).
+
+New versions: upload the `ymd-cookies-store.zip` of the release. Until the store approves it, store
+users may see the card's «Hay una versión nueva de la extensión» notice.
 
 ## Listing
 

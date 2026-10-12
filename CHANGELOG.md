@@ -4,6 +4,11 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Novedades
+
+- **«ymd Cookies» desde la Chrome Web Store.** La extensión ya está publicada en la [Chrome Web Store](https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi): se instala sin el modo de desarrollador y se actualiza sola. La tarjeta de **Ajustes → Cuentas** empieza con **Abrir la tienda en [navegador]**, que abre la ficha en tu navegador; la carpeta que trae ymd queda en **Sin la tienda: cargar la carpeta de ymd**.
+- En Windows, el instalador de ymd ofrece la extensión de la tienda a Chrome, Brave y Edge: al abrirlos avisan de que se agregó **ymd Cookies** y basta con activarla. Desinstalar ymd la retira.
+
 ## [0.9.0] - 2026-10-11
 
 ### Novedades

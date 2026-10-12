@@ -8,8 +8,9 @@
 //! executable, also after an update moves it. Only browsers whose user-data dir exists are
 //! registered. The NSIS uninstall hook (`windows/hooks.nsh`) removes the keys.
 //!
-//! The Chrome Web Store "external extension" registration is prepared but off
-//! ([`STORE_EXTENSION_ENABLED`]).
+//! The installer also registers the Chrome Web Store build as an "external extension" for
+//! Chrome, Brave and Edge ([`STORE_EXTENSION_ENABLED`]): each browser offers it on its next start
+//! and the person turns it on.
 
 use super::browsers::{chromium_dir, Env, Os};
 use super::native_host::{allowed_origins, HOST_NAME, STORE_EXTENSION_ID};
@@ -25,10 +26,10 @@ pub const BROWSERS: [Browser; 5] = [
     Browser::Vivaldi,
 ];
 
-/// Writes the Web Store external-extension keys at install time when true. Off until the
-/// store item ([`STORE_EXTENSION_ID`]) is published (it is a draft) and Edge's acceptance of a
-/// Chrome Web Store `update_url` is verified.
-pub const STORE_EXTENSION_ENABLED: bool = false;
+/// Writes the Web Store external-extension keys at install time when true (the store item
+/// [`STORE_EXTENSION_ID`] is published). Mirrored by `!define YMD_STORE_EXTENSION` in
+/// `windows/hooks.nsh`. Edge documents the Chrome Web Store `update_url` for these keys.
+pub const STORE_EXTENSION_ENABLED: bool = true;
 /// Chrome Web Store update endpoint used by external-extension registrations.
 pub const STORE_UPDATE_URL: &str = "https://clients2.google.com/service/update2/crx";
 
@@ -429,7 +430,6 @@ mod tests {
 
     #[test]
     fn external_keys() {
-        const { assert!(!STORE_EXTENSION_ENABLED) };
         let keys = external_extension_keys();
         assert_eq!(
             keys.iter().map(|k| k.key.as_str()).collect::<Vec<_>>(),
@@ -457,6 +457,12 @@ mod tests {
             .expect("PREUNINSTALL macro");
         assert!(post.contains("!macro NSIS_HOOK_POSTINSTALL"));
         assert!(post.contains("!ifdef YMD_STORE_EXTENSION"));
+        // The installer define follows the app's switch.
+        assert_eq!(
+            nsh.lines()
+                .any(|l| l.trim() == "!define YMD_STORE_EXTENSION"),
+            STORE_EXTENSION_ENABLED
+        );
         for (_, key) in registry_targets() {
             assert!(
                 pre.contains(&format!(r#"DeleteRegKey HKCU "{key}""#)),

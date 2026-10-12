@@ -9,20 +9,33 @@ It's how ymd uses a Chromium browser's cookies: ymd doesn't read them directly (
 
 ## Install
 
-ymd includes the extension prebuilt in its resources folder and registers the bridge with the browsers on startup. The **ymd extension for Chromium browsers** card, in **Settings → Accounts**, walks you through the install in your **default browser**: ymd detects it and shows its steps. If your default browser is Firefox, the card offers to use its cookies directly, without the extension.
+ymd registers the bridge with the browsers on startup. The **ymd extension for Chromium browsers** card, in **Settings → Accounts**, walks you through the install in your **default browser**: ymd detects it and shows its steps. If your default browser is Firefox, the card offers to use its cookies directly, without the extension.
 
-Steps, once:
+### From the Chrome Web Store
+
+This is the recommended way: it doesn't need developer mode and the extension updates itself. Steps, once:
+
+1. **Open the store in [browser]**: opens the [“ymd Cookies” listing](https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi) in that browser. Press the button to add it. In Edge, allow extensions from other stores first.
+2. The extension's welcome page opens. Follow its **Pin the extension to the toolbar** step: click the extensions icon (the puzzle piece), then the pin next to **ymd Cookies**. Then click **Use YouTube**: the browser asks for permission for youtube.com. Sign in to YouTube in that browser and ymd will receive the cookies automatically.
+
+On Windows, the ymd installer already offers the store extension to Chrome, Brave and Edge. When you open one of them after installing ymd, it may say **ymd Cookies** was added: turn it on and continue at step 2. If you don't want it, remove it from that prompt; when you uninstall ymd, those browsers remove it on their next start.
+
+### Without the store: load ymd's folder
+
+ymd includes the extension prebuilt in its resources folder. This version comes with YouTube added, but it needs developer mode and doesn't update itself. In the card, open **Without the store: load ymd’s folder**:
 
 1. **Show extension folder**: opens your file manager with ymd's `extension` folder selected. That folder is the one you drag in step 3.
 2. **Open [browser] and copy the address**: copies its extensions-page address (for example `brave://extensions`) and opens the browser. Paste it into the address bar (<kbd>Ctrl</kbd>+<kbd>V</kbd>) and press <kbd>Enter</kbd>: browsers don't allow other programs to open that page directly.
 3. Turn on **Developer mode**. Drag the folder from step 1 onto the page, or click **Load unpacked** and choose it: it's the one containing `manifest.json`.
-4. The extension's welcome page opens. Follow its **Pin the extension to the toolbar** step: click the extensions icon (the puzzle piece), then the pin next to **ymd Cookies**. The page confirms once it's pinned. The extension included with ymd already has YouTube added, so you only need to sign in to YouTube in that browser: ymd will receive the cookies automatically.
+4. The extension's welcome page opens. Pin the extension to the toolbar as with the store version. YouTube is already added, so you only need to sign in to YouTube in that browser.
+
+### After installing
 
 When the first sync arrives, the card switches to **Connected**, shows the browser, the last sync, the number of cookies and the **Extension version**, and the cookie source switches to **Extension**. If **YouTube session** reads **Not added**, the extension isn't sending YouTube's cookies: add it from the extension.
 
-The **Extension ID** of the extension included with ymd is always `gicaphbpepkphmeciigjhdpnbcaflfgd`, because the manifest carries a fixed public key. You can check it on the extensions page. If you install the extension from the Chrome Web Store, it has its own ID, `hhojlkpllmndkaolmebblijfcjkjpdpi`. ymd only accepts messages from those two.
+The Chrome Web Store extension has the ID `hhojlkpllmndkaolmebblijfcjkjpdpi`. The one included with ymd always has `gicaphbpepkphmeciigjhdpnbcaflfgd`, because its manifest carries a fixed public key; the card shows it under **Without the store: load ymd’s folder**. You can check them on the extensions page. ymd only accepts messages from those two.
 
-When ymd updates, the extension is updated in the same folder, but the browser keeps running the copy it loaded: an unpacked extension doesn't update automatically. When ymd includes a newer version than the one syncing, the card says so: “A new version of the extension is available”. Click **Open [browser] and copy the address**, paste the address and click the reload button on **ymd Cookies**. The notice goes away with the next sync.
+The store extension updates itself. The folder one doesn't: when ymd updates, the folder changes, but the browser keeps running the copy it loaded. When ymd includes a newer version than the one syncing, the card says so: “A new version of the extension is available”. Click **Open [browser] and copy the address**, paste the address and click the reload button on **ymd Cookies**. The notice goes away with the next sync. With the store extension, the notice may show until the store publishes the new version; there's nothing to do.
 
 ### Supported browsers
 
@@ -97,7 +110,7 @@ The full protocol is in [Cookie bridge protocol](/ymd/en/desarrollo/puente-de-co
 Open ymd once: it registers the bridge on startup. Check that the card in **Settings → Accounts** doesn't say **No bridge**. Then click **Send now**.
 
 **“ymd does not recognize this extension”.**
-The loaded extension doesn't have ymd's ID. Remove it and load it from the folder ymd shows in **Settings → Accounts**.
+The loaded extension has neither of ymd's IDs. Remove it and install it with **Open the store in [browser]**, or load it from the folder ymd shows in **Settings → Accounts**.
 
 **“ymd closed before answering” or “ymd could not save the cookies”.**
 Try again with **Send now**. If the error persists, update ymd.
