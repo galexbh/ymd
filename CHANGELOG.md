@@ -4,6 +4,8 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-12
+
 ### Novedades
 
 - **«ymd Cookies» desde la Chrome Web Store.** La extensión ya está publicada en la [Chrome Web Store](https://chromewebstore.google.com/detail/ymd-cookies/hhojlkpllmndkaolmebblijfcjkjpdpi): se instala sin el modo de desarrollador y se actualiza sola. La tarjeta de **Ajustes → Cuentas** empieza con **Abrir la tienda en [navegador]**, que abre la ficha en tu navegador; la carpeta que trae ymd queda en **Sin la tienda: cargar la carpeta de ymd**.
@@ -242,7 +244,8 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/galexbh/ymd/releases/tag/v0.10.0
 [0.9.0]: https://github.com/galexbh/ymd/releases/tag/v0.9.0
 [0.8.0]: https://github.com/galexbh/ymd/releases/tag/v0.8.0
 [0.7.0]: https://github.com/galexbh/ymd/releases/tag/v0.7.0
