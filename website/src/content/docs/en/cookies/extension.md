@@ -35,7 +35,7 @@ When the first sync arrives, the card switches to **Connected**, shows the brows
 
 The Chrome Web Store extension has the ID `hhojlkpllmndkaolmebblijfcjkjpdpi`. The one included with ymd always has `gicaphbpepkphmeciigjhdpnbcaflfgd`, because its manifest carries a fixed public key; the card shows it under **Without the store: load ymd’s folder**. You can check them on the extensions page. ymd only accepts messages from those two.
 
-The store extension updates itself. The folder one doesn't: when ymd updates, the folder changes, but the browser keeps running the copy it loaded. When ymd includes a newer version than the one syncing, the card says so: “A new version of the extension is available”. Click **Open [browser] and copy the address**, paste the address and click the reload button on **ymd Cookies**. The notice goes away with the next sync. With the store extension, the notice may show until the store publishes the new version; there's nothing to do.
+The store extension updates itself. The folder one doesn't: when ymd updates, the folder changes, but the browser keeps running the copy it loaded. When ymd includes a newer version than the one syncing, the card says so: “A new version of the extension is available”. Click **Open [browser] and copy the address**, paste the address and click the reload button on **ymd Cookies**. The notice goes away with the next sync. The store extension never shows this notice: the store updates it.
 
 ### Supported browsers
 
@@ -125,4 +125,4 @@ The first sync arrives when a cookie changes or when you click **Send now** in t
 Brave shows this warning for any extension loaded in developer mode; it doesn't indicate a problem.
 
 **“A new version of the extension is available”.**
-ymd includes a newer version of the extension than the one you have loaded. On the browser's extensions page, click the reload button on **ymd Cookies**.
+ymd includes a newer version of the extension than the one you loaded from its folder. On the browser's extensions page, click the reload button on **ymd Cookies**. It only shows with the folder extension: the store one updates itself.

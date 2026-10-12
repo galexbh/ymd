@@ -30,8 +30,8 @@ youtube.com.
    Windows installer offers the store build to Chrome, Brave and Edge), and the card leads with
    «Abrir la tienda en …» (`STORE_LISTING_URL` / `STORE_URL`).
 
-New versions: upload the `ymd-cookies-store.zip` of the release. Until the store approves it, store
-users may see the card's «Hay una versión nueva de la extensión» notice.
+New versions: upload the `ymd-cookies-store.zip` of the release. The card's «Hay una versión nueva
+de la extensión» notice is only for the folder build (`lastSync.fromStore` tells them apart).
 
 ## Listing
 

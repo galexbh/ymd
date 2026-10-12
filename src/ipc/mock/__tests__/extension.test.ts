@@ -42,6 +42,7 @@ describe("mock backend — cookie bridge", () => {
           domains: [],
           signedIn: [],
           extensionVersion: null,
+          fromStore: false,
         },
       },
     });
@@ -64,6 +65,7 @@ describe("mock backend — cookie bridge", () => {
       domains: [".youtube.com", ".google.com"],
       signedIn: ["youtube.com"],
       extensionVersion: BUNDLED_EXTENSION_VERSION,
+      fromStore: false,
     });
     // a delivered message proves the host is registered for that browser
     expect(st.targets.find((t) => t.browser === "brave")?.registered).toBe(true);
@@ -105,6 +107,16 @@ describe("mock backend — cookie bridge", () => {
     be.setExtensionState({ lastSync: null });
     st = await api.extensionStatus();
     expect(st.lastSync).toBeNull();
+  });
+
+  it("simulateExtensionSync can come from the store build", async () => {
+    const be = installMockBackend({ clock: "manual" });
+    be.simulateExtensionSync("chrome", 3, [".youtube.com"], ["youtube.com"], "1.4.0", true);
+    expect((await api.extensionStatus()).lastSync).toMatchObject({
+      browser: "chrome",
+      extensionVersion: "1.4.0",
+      fromStore: true,
+    });
   });
 
   it("extension_open_page accepts installed Chromium browsers and rejects the rest", async () => {

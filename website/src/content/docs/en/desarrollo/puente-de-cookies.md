@@ -52,9 +52,9 @@ Chromium browsers launch the host as `ymd.exe chrome-extension://<id>/ [--parent
 ## Effects
 
 - The host writes `<app data>/auth/cookies.txt` (Netscape format) atomically, owner-only and encrypted (see [Security](#security)).
-- It writes `cookies.meta.json` with `origin: "extension:<browser>"` and, when valid, `extensionVersion`.
+- It writes `cookies.meta.json` with `origin: "extension:<browser>"`, `extensionVersion` when valid and, when the origin the browser passes is the Chrome Web Store build's, `fromStore: true`. The origin decides it, never the message.
 - Two browsers can sync at once (one host process each): the host holds an exclusive lock on `auth/.cookies.lock` while it writes `cookies.txt` and `cookies.meta.json`, so both files always come from the same sync.
-- `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). When the synced one is older, the card asks to reload the extension: an unpacked extension doesn't update automatically.
+- `extension_status` returns that version (`lastSync.extensionVersion`) and the version of the extension ymd ships (`bundledVersion`, from the `manifest.json` in its folder). It also returns `lastSync.fromStore`. When the synced one is older and didn't come from the store, the card asks to reload the extension: an unpacked extension doesn't update automatically, and the store one does.
 - The app reads both through `cookies_info` / `extension_status`.
 - `open` launches `ymd --open-url <url>` and replies right away. If ymd is already open, that second instance hands it the link and exits, and ymd comes to the front; otherwise ymd starts with it. The link shows up in **Receive** with its card. Nothing is ever downloaded without your click.
 

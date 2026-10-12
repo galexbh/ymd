@@ -397,6 +397,8 @@ export interface ExtensionSync {
   signedIn: string[];
   /** manifest version of the extension that synced ("1.4.1"); null when the stored meta has no valid version */
   extensionVersion: string | null;
+  /** the Chrome Web Store build synced (it updates itself) */
+  fromStore: boolean;
 }
 
 export interface ExtensionStatus {

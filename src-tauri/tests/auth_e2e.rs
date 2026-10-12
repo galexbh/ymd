@@ -90,7 +90,7 @@ fn cookie_test_with_stored_jar() {
     let fixture =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/auth/cookies_valid.txt");
     let text = std::fs::read_to_string(&fixture).unwrap();
-    cookies::store_from_extension(&p, &text, "extension:brave", Some("1.4.3")).unwrap();
+    cookies::store_from_extension(&p, &text, "extension:brave", Some("1.4.3"), false).unwrap();
     let tools = Tools {
         ytdlp: Some(ytdlp),
         ..Default::default()

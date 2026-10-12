@@ -39,9 +39,11 @@ export function olderVersion(a: string, b: string): boolean {
 
 /**
  * The bundled extension is newer than the one that synced (an unpacked extension doesn't
- * update itself: the user reloads it). Without both versions nothing is compared.
+ * update itself: the user reloads it). Without both versions nothing is compared; the store
+ * build updates itself, so it is never outdated here.
  */
 export function extensionOutdated(st: ExtensionStatus): boolean {
+  if (st.lastSync?.fromStore) return false;
   const bundled = st.bundledVersion;
   const synced = st.lastSync?.extensionVersion;
   if (!bundled || !synced) return false;

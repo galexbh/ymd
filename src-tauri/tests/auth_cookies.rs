@@ -102,6 +102,7 @@ fn store_info_clear() {
         &read("cookies_no_header_crlf.txt"),
         "extension:brave",
         Some("1.4.3"),
+        false,
     )
     .unwrap();
     assert_eq!(info.origin, "extension:brave");
@@ -119,6 +120,7 @@ fn store_info_clear() {
         &read("cookies_valid.txt"),
         "extension:brave",
         Some("1.4.3"),
+        false,
     )
     .unwrap();
     assert_eq!(info.cookie_count, 5);
@@ -150,11 +152,12 @@ fn store_rejects_bad_jars_and_keeps_previous() {
         &read("cookies_valid.txt"),
         "extension:brave",
         Some("1.4.3"),
+        false,
     )
     .unwrap();
     for bad in ["cookies_malformed.txt", "cookies_json.txt"] {
         assert!(
-            cookies::store_from_extension(&p, &read(bad), "extension:brave", Some("1.4.3"))
+            cookies::store_from_extension(&p, &read(bad), "extension:brave", Some("1.4.3"), false)
                 .is_err(),
             "{bad}"
         );
@@ -184,6 +187,7 @@ fn store_sets_owner_only_permissions() {
         &read("cookies_valid.txt"),
         "extension:brave",
         Some("1.4.3"),
+        false,
     )
     .unwrap();
     let mode = |f: &Path| std::fs::metadata(f).unwrap().permissions().mode() & 0o777;

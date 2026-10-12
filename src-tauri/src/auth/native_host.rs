@@ -65,11 +65,20 @@ pub fn allowed_origins() -> Vec<String> {
         .collect()
 }
 
-/// True when `arg` is an allowed extension's origin (with or without the trailing slash).
-pub fn is_allowed_origin(arg: &str) -> bool {
+/// The extension ID in a `chrome-extension://<id>/` origin (trailing slash optional).
+fn origin_id(arg: &str) -> Option<&str> {
     arg.strip_prefix("chrome-extension://")
         .map(|rest| rest.strip_suffix('/').unwrap_or(rest))
-        .is_some_and(|id| allowed_extension_ids().contains(&id))
+}
+
+/// True when `arg` is an allowed extension's origin (with or without the trailing slash).
+pub fn is_allowed_origin(arg: &str) -> bool {
+    origin_id(arg).is_some_and(|id| allowed_extension_ids().contains(&id))
+}
+
+/// True when `arg` is the Chrome Web Store build's origin ([`STORE_EXTENSION_ID`]).
+pub fn is_store_origin(arg: &str) -> bool {
+    origin_id(arg) == Some(STORE_EXTENSION_ID)
 }
 
 // ───────────────────────────── framing ─────────────────────────────
@@ -304,7 +313,8 @@ pub fn cookies_to_netscape(cookies: &[ChromeCookie]) -> String {
 
 // ───────────────────────────── host ─────────────────────────────
 
-fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
+/// `from_store`: the caller is the Chrome Web Store build (from the origin Chromium passes).
+fn handle(req: Request, data_dir: &Path, from_store: bool) -> Result<Value, CommandError> {
     match req {
         Request::Hello { .. } => Ok(hello_reply()),
         Request::Open { url, .. } => {
@@ -330,7 +340,7 @@ fn handle(req: Request, data_dir: &Path) -> Result<Value, CommandError> {
             let _entered = span.enter();
             let started = std::time::Instant::now();
             let received = cookies.len();
-            let result = store_cookies(data_dir, browser, &cookies, &extension);
+            let result = store_cookies(data_dir, browser, &cookies, &extension, from_store);
             // Counts only: never a cookie name, value or domain.
             match &result {
                 Ok((stored, _)) => tracing::info!(
@@ -361,6 +371,7 @@ fn store_cookies(
     browser: &str,
     cookies: &[ChromeCookie],
     extension: &str,
+    from_store: bool,
 ) -> Result<(u32, Vec<String>), CommandError> {
     if cookies.len() > MAX_COOKIES {
         return Err(CommandError::unknown(format!(
@@ -380,6 +391,7 @@ fn store_cookies(
         &text,
         &format!("extension:{browser}"),
         extension.as_deref(),
+        from_store,
     )?;
     Ok((info.cookie_count, info.domains))
 }
@@ -408,15 +420,16 @@ pub fn host_main_with<R, W, H>(
 where
     R: Read,
     W: Write,
-    H: FnOnce(Request, &Path) -> Result<Value, CommandError> + Send + 'static,
+    H: FnOnce(Request, &Path, bool) -> Result<Value, CommandError> + Send + 'static,
 {
-    if !args.first().is_some_and(|o| is_allowed_origin(o)) {
+    let Some(origin) = args.first().filter(|o| is_allowed_origin(o)) else {
         log::warn!("cookie bridge: rejected origin {:?}", args.first());
         return 1;
-    }
+    };
+    let from_store = is_store_origin(origin);
     let (reply, code) = match read_message(&mut stdin) {
         Ok(body) => match parse_request(&body) {
-            Ok(req) => match run_with_watchdog(req, data_dir, handler, timeout) {
+            Ok(req) => match run_with_watchdog(req, data_dir, from_store, handler, timeout) {
                 Some(Ok(v)) => (v, 0),
                 Some(Err(e)) => (error_reply(&e), 0),
                 None => {
@@ -445,16 +458,17 @@ where
 fn run_with_watchdog<H>(
     req: Request,
     data_dir: &Path,
+    from_store: bool,
     handler: H,
     timeout: std::time::Duration,
 ) -> Option<Result<Value, CommandError>>
 where
-    H: FnOnce(Request, &Path) -> Result<Value, CommandError> + Send + 'static,
+    H: FnOnce(Request, &Path, bool) -> Result<Value, CommandError> + Send + 'static,
 {
     let (tx, rx) = std::sync::mpsc::channel();
     let dir = data_dir.to_path_buf();
     std::thread::spawn(move || {
-        let _ = tx.send(handler(req, &dir));
+        let _ = tx.send(handler(req, &dir, from_store));
     });
     match rx.recv_timeout(timeout) {
         Ok(result) => Some(result),
@@ -620,6 +634,29 @@ mod tests {
         assert_eq!(crate::auth::cookies::extension_version(&paths), None);
     }
 
+    /// The meta records which build synced, from the origin Chromium passes (never from the
+    /// message, which the extension writes).
+    #[test]
+    fn host_records_the_store_build_from_the_origin() {
+        let dir = tempfile::tempdir().unwrap();
+        let paths = AppPaths {
+            bin_dir: dir.path().join("bin"),
+            data_dir: dir.path().to_path_buf(),
+            config_dir: dir.path().to_path_buf(),
+        };
+        let body = frame(
+            br#"{"type":"cookies","version":1,"browser":"chrome","extension":"1.4.1","cookies":[
+            {"domain":".youtube.com","name":"SID","value":"v"}]}"#,
+        );
+        let sync = |origin: String| {
+            let mut out = Vec::new();
+            assert_eq!(host_main(&[origin], dir.path(), &body[..], &mut out), 0);
+            crate::auth::cookies::extension_from_store(&paths)
+        };
+        assert!(sync(format!("chrome-extension://{STORE_EXTENSION_ID}/")));
+        assert!(!sync(allowed_origin()));
+    }
+
     #[test]
     fn bundled_manifest_version() {
         let dir = tempfile::tempdir().unwrap();
@@ -726,7 +763,7 @@ mod tests {
             cookies: vec![cookie(".youtube.com", false, "n", "v"); MAX_COOKIES + 1],
             extension: "1.4.3".into(),
         };
-        let e = handle(req, dir.path()).unwrap_err();
+        let e = handle(req, dir.path(), false).unwrap_err();
         assert!(e.detail.contains("too many cookies"), "{}", e.detail);
         assert!(!dir.path().join("auth").exists());
     }
@@ -743,6 +780,21 @@ mod tests {
             "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/"
         ));
         assert!(!is_allowed_origin("hhojlkpllmndkaolmebblijfcjkjpdpi"));
+    }
+
+    #[test]
+    fn only_the_store_origin_is_the_store_build() {
+        assert!(is_store_origin(
+            "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi/"
+        ));
+        assert!(is_store_origin(
+            "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpi"
+        ));
+        assert!(!is_store_origin(&allowed_origin()));
+        assert!(!is_store_origin("hhojlkpllmndkaolmebblijfcjkjpdpi"));
+        assert!(!is_store_origin(
+            "chrome-extension://hhojlkpllmndkaolmebblijfcjkjpdpix/"
+        ));
     }
 
     #[test]
@@ -841,7 +893,7 @@ mod tests {
             dir.path(),
             &input[..],
             &mut out,
-            |_, _| {
+            |_, _, _| {
                 std::thread::sleep(std::time::Duration::from_secs(5));
                 Ok(json!({"ok": true}))
             },
@@ -862,7 +914,7 @@ mod tests {
             dir.path(),
             &input[..],
             &mut out,
-            |_, _| panic!("handler crashed"),
+            |_, _, _| panic!("handler crashed"),
             std::time::Duration::from_secs(5),
         );
         assert_eq!(code, 0);

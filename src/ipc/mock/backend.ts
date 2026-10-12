@@ -512,7 +512,7 @@ export class MockBackend {
   /**
    * The extension delivered `count` cookies from `browser` (writes cookies.txt + meta).
    * `extensionVersion` is the sender's manifest version (default: the bundled one; null = no
-   * valid version stored).
+   * valid version stored); `fromStore`, whether the Chrome Web Store build sent it.
    */
   simulateExtensionSync(
     browser: string,
@@ -520,6 +520,7 @@ export class MockBackend {
     domains: string[],
     signedIn: string[] = domains.some((d) => /youtube\.com$/.test(d)) ? ["youtube.com"] : [],
     extensionVersion: string | null = BUNDLED_EXTENSION_VERSION,
+    fromStore = false,
   ): ExtensionSync {
     const at = new Date(this.clock.now()).toISOString();
     const sync: ExtensionSync = {
@@ -529,6 +530,7 @@ export class MockBackend {
       domains: [...domains],
       signedIn: [...signedIn],
       extensionVersion,
+      fromStore,
     };
     this.extension.lastSync = sync;
     // a message got through, so the host is registered for that browser
