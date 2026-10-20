@@ -9,6 +9,13 @@ updates:
     groups:
       cargo-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      # Mirror of the npm ignores below: a Tauri crate minor needs its @tauri-apps/* npm
+      # package on the same major.minor (tauri-cli refuses to build otherwise); bump both by hand.
+      - dependency-name: "tauri"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "tauri-plugin-*"
+        update-types: ["version-update:semver-minor"]
 
   - package-ecosystem: npm
     directory: /
