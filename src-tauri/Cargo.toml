@@ -67,7 +67,7 @@ tracing-subscriber = { version = "=0.3.23", default-features = false, features =
 tracing-appender = "=0.2.5"
 tracing-log = { version = "=0.2.0", default-features = false, features = ["std", "log-tracer"] }
 chacha20poly1305 = "0.11"
-getrandom = "0.3"
+getrandom = "0.4"
 tauri-plugin-single-instance = "2"
 
 [target.'cfg(unix)'.dependencies]
