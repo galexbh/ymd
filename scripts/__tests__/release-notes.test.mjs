@@ -34,6 +34,7 @@ describe("release notes from CHANGELOG.md", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
     const notes = releaseNotes(readFileSync("CHANGELOG.md", "utf8"), pkg.version);
     expect(notes.length).toBeGreaterThan(200);
-    expect(notes).toContain("### Novedades");
+    // A patch release may only have Cambios / Correcciones / Seguridad, not Novedades.
+    expect(notes).toMatch(/^### \S/m);
   });
 });
