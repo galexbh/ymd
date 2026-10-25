@@ -114,7 +114,7 @@ export const AccessionCard = memo(function AccessionCard({ probe }: { probe: Pro
 /**
  * «Tramo»: download only a time range of the video (empty = the whole video). A disclosure,
  * closed until a range is typed; an invalid range keeps it open so the field error that blocks
- * Ingresar is never hidden.
+ * Descargar is never hidden.
  */
 function ClipFields({ duration }: { duration: number }) {
   const { t } = useTranslation();
@@ -134,7 +134,7 @@ function ClipFields({ duration }: { duration: number }) {
       data-testid="clip-fields"
     >
       <summary
-        // an invalid range cannot be folded away: its error is what blocks Ingresar
+        // an invalid range cannot be folded away: its error is what blocks Descargar
         onClick={(e) => invalid && e.preventDefault()}
         data-locked={invalid || undefined}
         data-testid="clip-summary"

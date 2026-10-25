@@ -12,7 +12,7 @@ The **Receive** screen has an intake counter:
 1. Paste a link into the **Link** field (YouTube or any site yt-dlp supports). With the counter empty, <kbd>Ctrl</kbd>+<kbd>V</kbd> pastes and checks the link from anywhere on the screen.
 2. ymd checks the link and shows its card: title, duration, site and, for a playlist, the number of entries. The card also shows the preset and the shelf (the folder) it will be filed on.
 3. Pick **Video** or **Audio** and a **Preset**.
-4. Click **File it** (or press <kbd>Enter</kbd>).
+4. Click **Download** (or press <kbd>Enter</kbd>).
 
 For protected videos, **Options for this download** takes a **Video password** and a **Verification code (2FA)**. They aren't saved: they're only used for that download.
 
@@ -50,6 +50,8 @@ Three options to keep a music library in order. They start off and apply once th
 
 **Even out volume** is not available with the **Original (no conversion)** format, which keeps the audio as it arrives, without re-encoding it. It is also skipped when the site already serves a file in the chosen format (for example, an `.m4a` for **M4A**): yt-dlp leaves it unconverted and the volume stays the same.
 
+Audio presets with **Embed metadata** never use the channel name as the artist: if the video has no artist of its own (or **Split artist and title** finds none in the title), the artist tag stays empty.
+
 ## Playlists
 
 When the link is a playlist, the card shows a thumbnail grid with every entry:
@@ -66,7 +68,7 @@ A video's card (not a playlist's) includes **Section**, which starts closed. Ope
 
 - With both fields empty, the whole video is downloaded.
 - An empty **From** starts at `0:00`; an empty **To** runs to the end of the video.
-- If a time isn't in a valid format, **To** doesn't come after **From**, or the section goes past the end of the video, the field says so and **File it** stays disabled until it's fixed. Until then, **Section** can't be closed.
+- If a time isn't in a valid format, **To** doesn't come after **From**, or the section goes past the end of the video, the field says so and **Download** stays disabled until it's fixed. Until then, **Section** can't be closed.
 - With a valid section, **Section** shows it next to its title even when closed (“Section · 1:30–2:45”).
 
 The file name ends with the section, using dots instead of colons so it's valid on every system: `My video [abc123] [1.30-2.45].mp4`. In the ledger, the row shows the section next to the title (“1:30–2:45”).
@@ -168,7 +170,7 @@ A failed download shows the reason and a button with the direct fix. **Show the 
 | ----------------------------------------- | -------------------------------------------------- |
 | <kbd>Ctrl</kbd>+<kbd>L</kbd>              | Go to the link field                               |
 | <kbd>Ctrl</kbd>+<kbd>V</kbd>              | Paste a link and check it (with the counter empty) |
-| <kbd>Enter</kbd>                          | File the checked link                              |
+| <kbd>Enter</kbd>                          | Download the checked link                          |
 | <kbd>Ctrl</kbd>+<kbd>1</kbd>–<kbd>5</kbd> | Switch section                                     |
 | <kbd>Ctrl</kbd>+<kbd>,</kbd>              | Open Settings                                      |
 | <kbd>?</kbd>                              | Show the shortcut list                             |

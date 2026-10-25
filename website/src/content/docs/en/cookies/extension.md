@@ -67,7 +67,7 @@ From the browser, no copying or pasting:
 
 Browsers don't allow extensions to add options to the address bar menu; right-click the page or use the shortcut.
 
-ymd opens, or comes to the front if it was already open, with the link in **Receive** and its card. If the counter already held another link, ymd asks before replacing it. Nothing downloads until you click **File it**.
+ymd opens, or comes to the front if it was already open, with the link in **Receive** and its card. If the counter already held another link, ymd asks before replacing it. Nothing downloads until you click **Download**.
 
 ## The extension popup
 
