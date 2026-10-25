@@ -4,6 +4,16 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-25
+
+### Cambios
+
+- El botón de **Recibir** ahora dice **Descargar** (antes **Ingresar**).
+
+### Correcciones
+
+- Los preajustes de audio ya no guardan el nombre del canal como artista. Si el video no trae artista propio, la etiqueta queda vacía. **Separar artista y título** sigue llenándola cuando el título tiene la forma «Artista - Canción».
+
 ## [0.10.0] - 2026-10-12
 
 ### Novedades
@@ -244,7 +254,8 @@ Primera versión pública: ymd pasa de prototipo a una app completa para descarg
 - **Brave, Chrome y Edge en Windows:** cifran sus cookies (app-bound), así que yt-dlp no puede leerlas directamente. Usa la extensión, Firefox o `cookies.txt`.
 - **Licencias:** yt-dlp y ffmpeg (GPL) se descargan al usarse y no van incluidos en el instalador.
 
-[Unreleased]: https://github.com/galexbh/ymd/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/galexbh/ymd/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/galexbh/ymd/releases/tag/v0.10.1
 [0.10.0]: https://github.com/galexbh/ymd/releases/tag/v0.10.0
 [0.9.0]: https://github.com/galexbh/ymd/releases/tag/v0.9.0
 [0.8.0]: https://github.com/galexbh/ymd/releases/tag/v0.8.0
