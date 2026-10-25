@@ -200,7 +200,7 @@
     "title": "Keyboard shortcuts",
     "focusUrl": "Go to the link field",
     "paste": "Paste a link and check it (with the counter empty)",
-    "submit": "File the checked link",
+    "submit": "Download the checked link",
     "sections": "Switch section",
     "settings": "Open Settings",
     "help": "Show this list"
@@ -252,7 +252,7 @@
     "video": "Video",
     "audio": "Audio",
     "preset": "Preset",
-    "ingest": "File it",
+    "ingest": "Download",
     "probing": "Checking the link…",
     "ledgerTitle": "This session's ledger",
     "openQueue": "Open full ledger",
@@ -346,7 +346,7 @@
     },
     "empty": {
       "title": "The ledger is empty",
-      "body": "Paste a link at the counter, pick Video or Audio and press File it. Every download gets a number and shows up here with its exact progress.",
+      "body": "Paste a link at the counter, pick Video or Audio and press Download. Every download gets a number and shows up here with its exact progress.",
       "paste": "pastes and checks a link from anywhere on this screen.",
       "filtered": "No downloads match this filter."
     },

@@ -200,7 +200,7 @@
     "title": "Atajos de teclado",
     "focusUrl": "Ir al campo del enlace",
     "paste": "Pegar un enlace y revisarlo (con el mostrador vacío)",
-    "submit": "Ingresar el enlace revisado",
+    "submit": "Descargar el enlace revisado",
     "sections": "Cambiar de sección",
     "settings": "Abrir Ajustes",
     "help": "Mostrar esta lista"
@@ -252,7 +252,7 @@
     "video": "Video",
     "audio": "Audio",
     "preset": "Preajuste",
-    "ingest": "Ingresar",
+    "ingest": "Descargar",
     "probing": "Revisando el enlace…",
     "ledgerTitle": "Registro de esta sesión",
     "openQueue": "Abrir registro completo",
@@ -346,7 +346,7 @@
     },
     "empty": {
       "title": "El registro está vacío",
-      "body": "Pega un enlace en el mostrador, elige Video o Audio y pulsa Ingresar. Cada descarga recibe un número y aparece aquí con su avance exacto.",
+      "body": "Pega un enlace en el mostrador, elige Video o Audio y pulsa Descargar. Cada descarga recibe un número y aparece aquí con su avance exacto.",
       "paste": "pega y revisa un enlace desde cualquier parte de esta pantalla.",
       "filtered": "Ninguna descarga coincide con este filtro."
     },

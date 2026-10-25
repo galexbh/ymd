@@ -43,6 +43,8 @@ expression: download_args(&s)
 - 320K
 - "--embed-thumbnail"
 - "--embed-metadata"
+- "--parse-metadata"
+- "post_process:%(artist,creator|)s:(?P<meta_artist>.*)"
 - "--no-playlist"
 - "--download-sections"
 - "*3-10"

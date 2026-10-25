@@ -43,6 +43,8 @@ expression: args
 - "0"
 - "--embed-thumbnail"
 - "--embed-metadata"
+- "--parse-metadata"
+- "post_process:%(artist,creator|)s:(?P<meta_artist>.*)"
 - "--ppa"
 - "ExtractAudio:-af loudnorm=I=-14:TP=-1.5:LRA=11 -ar 48000 -c:a libmp3lame -q:a 0"
 - "--no-playlist"
