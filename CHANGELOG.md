@@ -14,6 +14,10 @@ Todas las versiones notables de ymd. Formato basado en [Keep a Changelog](https:
 
 - Los preajustes de audio ya no guardan el nombre del canal como artista. Si el video no trae artista propio, la etiqueta queda vacía. **Separar artista y título** sigue llenándola cuando el título tiene la forma «Artista - Canción».
 
+### Seguridad
+
+- Dependencias de Rust al día con los avisos de RustSec de octubre (`rustls`, `rustls-webpki`, `webpki-root-certs`, `ctutils`). El actualizador ya no incluye la extracción de `.zip` / `.tar.gz` que ymd no usa, y con ella sale una versión antigua de `zip` con avisos críticos.
+
 ## [0.10.0] - 2026-10-12
 
 ### Novedades
