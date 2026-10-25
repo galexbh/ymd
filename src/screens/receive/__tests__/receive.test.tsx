@@ -14,10 +14,10 @@ describe("Recibir", () => {
   it("teaches how to start when the ledger is empty", async () => {
     await renderApp();
     expect(screen.getByText("El registro está vacío")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Ingresar" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Descargar" })).toBeDisabled();
   });
 
-  it("paste → accession card → Ingresar → the row inks its span and is stamped ARCHIVADO", async () => {
+  it("paste → accession card → Descargar → the row inks its span and is stamped ARCHIVADO", async () => {
     const { be, user, tick } = await renderApp();
     pasteLink(VIDEO);
     await tick(0);
@@ -28,7 +28,7 @@ describe("Recibir", () => {
     expect(await within(card).findByTestId("next-accession")).toHaveTextContent("000026");
     expect(within(card).getByText("C:\\Users\\ana\\Videos")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     const enq = calls(be, "enqueue");
     expect(enq).toHaveLength(1);
@@ -73,7 +73,7 @@ describe("Recibir", () => {
     await user.click(boxes[4]);
     expect(screen.getByTestId("picker-count")).toHaveTextContent("10/12");
 
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     const req = calls(be, "enqueue")[0].args!.req as EnqueueRequest;
     expect(req.playlistItems).toEqual([1, 3, 4, 6, 7, 8, 9, 10, 11, 12]);
@@ -86,7 +86,7 @@ describe("Recibir", () => {
     await screen.findByTestId("accession-card");
     await user.click(screen.getByRole("button", { name: "Ninguna" }));
     expect(screen.getByTestId("picker-count")).toHaveTextContent("0/12");
-    expect(screen.getByRole("button", { name: "Ingresar" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Descargar" })).toBeDisabled();
     expect(
       screen.getByText("Elige al menos una entrada para ingresar la lista."),
     ).toBeInTheDocument();
@@ -106,7 +106,7 @@ describe("Recibir", () => {
     pasteLink(PLAYLIST);
     await tick(0);
     await screen.findByTestId("accession-card");
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     expect((calls(be, "enqueue")[0].args!.req as EnqueueRequest).playlistItems).toEqual([]);
   });
@@ -119,7 +119,7 @@ describe("Recibir", () => {
     await user.click(screen.getByText("Opciones de esta descarga"));
     await user.type(screen.getByLabelText(/Contraseña del video/), "pw-123");
     await user.type(screen.getByLabelText(/Código de verificación/), "424242");
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     const req = calls(be, "enqueue")[0].args!.req as EnqueueRequest;
     expect(req.videoPassword).toBe("pw-123");
@@ -130,7 +130,7 @@ describe("Recibir", () => {
     );
   });
 
-  it("«Tramo»: a bad range blocks Ingresar; a valid one files only that section", async () => {
+  it("«Tramo»: a bad range blocks Descargar; a valid one files only that section", async () => {
     const { be, user, tick } = await renderApp();
     pasteLink(VIDEO);
     await tick(0);
@@ -141,7 +141,7 @@ describe("Recibir", () => {
     const to = within(group).getByRole("textbox", { name: "Hasta" });
     expect(from).toHaveAttribute("placeholder", "0:00");
     expect(to.getAttribute("placeholder")).toMatch(/^\d+:\d\d$/);
-    const ingresar = screen.getByRole("button", { name: "Ingresar" });
+    const ingresar = screen.getByRole("button", { name: "Descargar" });
 
     await user.type(from, "1:30");
     await user.type(to, "1:00");
@@ -186,8 +186,8 @@ describe("Recibir", () => {
     const to = screen.getByRole("textbox", { name: "Hasta" });
     await user.type(from, "2:00");
     await user.type(to, "1:00");
-    expect(screen.getByRole("button", { name: "Ingresar" })).toBeDisabled();
-    // the error blocks Ingresar, so it cannot be folded away
+    expect(screen.getByRole("button", { name: "Descargar" })).toBeDisabled();
+    // the error blocks Descargar, so it cannot be folded away
     await user.click(summary);
     expect(tramo).toHaveAttribute("open");
     expect(screen.getByText("«Hasta» tiene que ir después de «Desde».")).toBeVisible();
@@ -234,7 +234,7 @@ describe("Recibir", () => {
     expect(screen.getByTestId("clip-fields")).not.toHaveAttribute("open");
     await user.click(screen.getByText("Tramo"));
     expect(screen.getByRole("textbox", { name: "Desde" })).toHaveValue("");
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     expect((calls(be, "enqueue")[0].args!.req as EnqueueRequest).clip).toBeNull();
     expect(screen.queryByTestId("job-clip")).toBeNull();
@@ -251,7 +251,7 @@ describe("Recibir", () => {
     await tick(0);
     await screen.findByTestId("accession-card");
     expect(screen.getByText("Se pregunta al ingresar")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Ingresar" }));
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
     await tick(0);
     await waitFor(() => expect(calls(be, "enqueue")).toHaveLength(1));
     expect(calls(be, "plugin:dialog|open")).toHaveLength(1);

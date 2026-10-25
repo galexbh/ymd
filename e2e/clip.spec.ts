@@ -2,7 +2,7 @@
 import { expect, test } from "./fixtures";
 
 test.describe("tramo", () => {
-  test("an invalid range blocks Ingresar; a valid one files the section with its tag", async ({
+  test("an invalid range blocks Descargar; a valid one files the section with its tag", async ({
     page,
     app,
   }) => {

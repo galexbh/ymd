@@ -67,7 +67,7 @@ Desde el navegador, sin copiar ni pegar:
 
 Los navegadores no permiten a las extensiones añadir opciones al menú de la barra de direcciones; usa el clic derecho en la página o el atajo.
 
-ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador ya tenía otro enlace, ymd te pregunta antes de cambiarlo. No se descarga nada hasta que pulsas **Ingresar**.
+ymd se abre, o pasa al frente si ya estaba abierto, con el enlace en **Recibir** y su ficha. Si el mostrador ya tenía otro enlace, ymd te pregunta antes de cambiarlo. No se descarga nada hasta que pulsas **Descargar**.
 
 ## La ventana de la extensión
 

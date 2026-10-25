@@ -45,6 +45,8 @@ expression: args
 - "--embed-metadata"
 - "--parse-metadata"
 - "post_process:title:(?P<artist>.+?)\\s+[-–—]\\s+(?P<title>.+)"
+- "--parse-metadata"
+- "post_process:%(artist,creator|)s:(?P<meta_artist>.*)"
 - "--no-playlist"
 - "--"
 - "https://www.youtube.com/watch?v=YE7VzlLtp-4"

@@ -43,6 +43,8 @@ expression: args
 - 320K
 - "--embed-thumbnail"
 - "--embed-metadata"
+- "--parse-metadata"
+- "post_process:%(artist,creator|)s:(?P<meta_artist>.*)"
 - "--no-playlist"
 - "--"
 - "https://www.youtube.com/watch?v=YE7VzlLtp-4"

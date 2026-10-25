@@ -10,7 +10,7 @@ import { ClipboardOffer } from "./ClipboardOffer";
 import { activePreset, ingest, URL_INPUT_ID } from "./ingest";
 import s from "./receive.module.css";
 
-/** The counter strip: link, kind, preset and the violet "Ingresar". */
+/** The counter strip: link, kind, preset and the violet "Descargar". */
 export function CounterStrip() {
   const { t } = useTranslation();
   const settings = useSettings((st) => st.settings);

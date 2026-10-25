@@ -285,6 +285,12 @@ pub fn format_args(preset: &Preset) -> Vec<String> {
 /// shaped "Artist - Title" (a hyphen, en dash or em dash between spaces) are left as they are:
 /// yt-dlp prints "Could not interpret 'title' as …" and keeps going.
 pub const SPLIT_ARTIST_TITLE: &str = r"post_process:title:(?P<artist>.+?)\s+[-–—]\s+(?P<title>.+)";
+/// `--parse-metadata` rule that keeps the channel out of the artist tag of audio presets.
+/// `--embed-metadata` falls back to `uploader` / `uploader_id` when the video has no artist,
+/// which tags songs with the channel name ("Contributing artists" in Windows Explorer). Setting
+/// `meta_artist` from the real artist fields only (empty when there is none, which drops the
+/// tag) overrides that fallback. It runs after [`SPLIT_ARTIST_TITLE`], so a split artist wins.
+pub const ARTIST_WITHOUT_UPLOADER: &str = r"post_process:%(artist,creator|)s:(?P<meta_artist>.*)";
 /// `--convert-thumbnails` mapping for "Square cover". yt-dlp skips the conversion (and with it
 /// the crop below) when the thumbnail already has the target format, so JPEG thumbnails become
 /// PNG and everything else becomes JPEG.
@@ -345,6 +351,7 @@ pub fn normalize_volume_ppa(audio: &AudioOptions) -> Option<String> {
 /// The audio-only options are ignored for video presets, and each one only applies when it can
 /// have an effect: splitting the title needs embedded metadata, the square cover needs an
 /// embedded thumbnail, and loudness normalization needs a re-encode (not `AudioFormat::Best`).
+/// Audio presets that embed metadata never tag the channel as the artist.
 /// Each `--ppa` is scoped to its own postprocessor, so neither reaches the other nor
 /// SponsorBlock's `ModifyChapters`.
 pub fn postprocess_args(preset: &Preset) -> Vec<String> {
@@ -372,8 +379,11 @@ pub fn postprocess_args(preset: &Preset) -> Vec<String> {
         a.extend([s("--sponsorblock-remove"), cats.join(",")]);
     }
     if preset.kind == MediaKind::Audio {
-        if pp.split_artist_title && pp.embed_metadata {
-            a.extend([s("--parse-metadata"), s(SPLIT_ARTIST_TITLE)]);
+        if pp.embed_metadata {
+            if pp.split_artist_title {
+                a.extend([s("--parse-metadata"), s(SPLIT_ARTIST_TITLE)]);
+            }
+            a.extend([s("--parse-metadata"), s(ARTIST_WITHOUT_UPLOADER)]);
         }
         if pp.square_cover && pp.embed_thumbnail {
             a.extend([
@@ -992,7 +1002,17 @@ mod tests {
         p.postprocess = tidy(true, true, true);
         p.postprocess.sponsorblock_remove = vec!["sponsor".into()];
         let a = postprocess_args(&p);
+        assert_eq!(flag(&a, "--parse-metadata"), 2);
+        let split = a.iter().position(|x| x == SPLIT_ARTIST_TITLE).unwrap();
+        let artist = a.iter().position(|x| x == ARTIST_WITHOUT_UPLOADER).unwrap();
+        assert!(split < artist, "the split artist must reach meta_artist");
+
+        // Without splitting, the channel is still kept out of the artist tag.
+        p.postprocess.split_artist_title = false;
+        let a = postprocess_args(&p);
         assert_eq!(flag(&a, "--parse-metadata"), 1);
+        assert!(a.contains(&ARTIST_WITHOUT_UPLOADER.to_string()));
+        p.postprocess.split_artist_title = true;
         assert_eq!(flag(&a, "--convert-thumbnails"), 1);
         assert_eq!(flag(&a, "--ppa"), 2);
         assert!(a.contains(&SQUARE_COVER_PPA.to_string()));
@@ -1020,9 +1040,17 @@ mod tests {
             assert_eq!(flag(&postprocess_args(&p), "--ppa"), 1, "{f:?}");
         }
 
-        // Off by default: nothing new for existing presets.
+        // Off by default: existing presets only gain the artist rule.
         let a = postprocess_args(&audio("x", AudioFormat::Mp3, "0"));
-        assert_eq!(a, ["--embed-thumbnail", "--embed-metadata"]);
+        assert_eq!(
+            a,
+            [
+                "--embed-thumbnail",
+                "--embed-metadata",
+                "--parse-metadata",
+                ARTIST_WITHOUT_UPLOADER
+            ]
+        );
     }
 
     /// The `--ppa` values are split by yt-dlp with POSIX shlex: the crop filter must reach

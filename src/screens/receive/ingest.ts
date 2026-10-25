@@ -1,4 +1,4 @@
-// "Ingresar": probe if needed, resolve the destination, file the job, clear the counter.
+// "Descargar": probe if needed, resolve the destination, file the job, clear the counter.
 import { toCommandError } from "../../ipc/commands";
 import type { MediaKind, Preset, Settings } from "../../ipc/types";
 import { pickFolder } from "../../app/native";

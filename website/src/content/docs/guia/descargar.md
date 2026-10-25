@@ -12,7 +12,7 @@ La pantalla **Recibir** tiene un mostrador de ingreso:
 1. Pega un enlace en el campo **Enlace** (YouTube o cualquier sitio compatible con yt-dlp). Con el mostrador vacío, <kbd>Ctrl</kbd>+<kbd>V</kbd> pega y revisa el enlace desde cualquier parte de la pantalla.
 2. ymd revisa el enlace y muestra su ficha: título, duración, sitio y, en una lista, el número de entradas. La ficha indica también el preajuste y el estante (la carpeta) donde se archivará.
 3. Elige **Video** o **Audio** y un **Preajuste**.
-4. Pulsa **Ingresar** (o <kbd>Enter</kbd>).
+4. Pulsa **Descargar** (o <kbd>Enter</kbd>).
 
 Para videos protegidos, **Opciones de esta descarga** acepta una **Contraseña del video** y un **Código de verificación (2FA)**. No se guardan: solo se usan en esa descarga.
 
@@ -50,6 +50,8 @@ Tres opciones para dejar ordenada una biblioteca de música. Vienen apagadas y s
 
 **Igualar volumen** no está disponible con el formato **Original (sin convertir)**, porque ese formato guarda el audio tal como llega, sin codificarlo de nuevo. Tampoco se aplica cuando el sitio ya entrega un archivo con el mismo formato elegido (por ejemplo, un `.m4a` para **M4A**): yt-dlp no lo convierte y el volumen queda igual.
 
+Los preajustes de audio con **Incrustar metadatos** nunca usan el nombre del canal como artista: si el video no trae artista propio (o **Separar artista y título** no lo encuentra en el título), la etiqueta de artista queda vacía.
+
 ## Playlists
 
 Cuando el enlace es una lista, la ficha muestra una cuadrícula de miniaturas con todas las entradas:
@@ -66,7 +68,7 @@ La ficha de un video (no la de una lista) incluye **Tramo**, que está cerrado d
 
 - Con los dos campos vacíos se descarga el video completo.
 - **Desde** vacío empieza en `0:00`; **Hasta** vacío llega hasta el final del video.
-- Si la hora no tiene un formato válido, **Hasta** no va después de **Desde** o el tramo pasa del final del video, el campo lo indica e **Ingresar** queda desactivado hasta corregirlo. Mientras tanto, **Tramo** no se puede cerrar.
+- Si la hora no tiene un formato válido, **Hasta** no va después de **Desde** o el tramo pasa del final del video, el campo lo indica e **Descargar** queda desactivado hasta corregirlo. Mientras tanto, **Tramo** no se puede cerrar.
 - Con un tramo válido, **Tramo** lo muestra junto al título aunque esté cerrado («Tramo · 1:30–2:45»).
 
 El archivo lleva el tramo al final del nombre, con puntos en lugar de dos puntos para que sea válido en cualquier sistema: `Mi video [abc123] [1.30-2.45].mp4`. En el registro, la fila muestra el tramo junto al título («1:30–2:45»).
@@ -168,7 +170,7 @@ Una descarga fallida muestra el motivo y un botón con el arreglo directo. **Mos
 | ----------------------------------------- | ---------------------------------------------------- |
 | <kbd>Ctrl</kbd>+<kbd>L</kbd>              | Ir al campo del enlace                               |
 | <kbd>Ctrl</kbd>+<kbd>V</kbd>              | Pegar un enlace y revisarlo (con el mostrador vacío) |
-| <kbd>Enter</kbd>                          | Ingresar el enlace revisado                          |
+| <kbd>Enter</kbd>                          | Descargar el enlace revisado                         |
 | <kbd>Ctrl</kbd>+<kbd>1</kbd>–<kbd>5</kbd> | Cambiar de sección                                   |
 | <kbd>Ctrl</kbd>+<kbd>,</kbd>              | Abrir Ajustes                                        |
 | <kbd>?</kbd>                              | Mostrar la lista de atajos                           |
