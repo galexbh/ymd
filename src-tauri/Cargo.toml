@@ -83,6 +83,6 @@ winreg = "0.56"
 [dev-dependencies]
 base64 = "0.23"
 insta = { version = "1", features = ["yaml", "json"] }
-httpmock = "0.8"
+httpmock = "0.9"
 tempfile = "3"
 pretty_assertions = "1"
